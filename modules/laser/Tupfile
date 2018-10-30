@@ -1,0 +1,22 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow laser modules
+#
+# Copyright (c) 2017-2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-laser
+TYPE     = package
+DEPENDS  = vg-module-laser-filter-beamify \
+           vg-module-laser-source-ilda \
+           vg-module-laser-filter-idn-transmit \
+           vg-module-laser-filter-optimise
+
+PACKAGE  = $(NAME)
+VERSION  = 0.4.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

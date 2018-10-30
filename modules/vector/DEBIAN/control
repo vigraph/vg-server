@@ -1,0 +1,13 @@
+Source: vg-modules-vector
+Section: Video
+Priority: optional
+Maintainer:  ViGraph Support <support@vigraph.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: http://www.vigraph.com/
+
+Package: vg-modules-vector
+Architecture: any
+Depends: ${shlibs:Depends}, vg-engine
+Description: ViGraph dataflow engine - vector modules
+ Vector graphics modules for the dataflow engine.

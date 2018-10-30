@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph SVG parser library
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-svg
+TYPE    = lib
+DEPENDS = vg-geometry ot-xml ot-lex ot-log ot-text
+
+include_rules

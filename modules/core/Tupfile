@@ -1,0 +1,27 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow core modules
+#
+# Copyright (c) 2017-2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-core
+TYPE     = package
+DEPENDS  = vg-module-core-source-selector \
+           vg-module-core-source-clone \
+           vg-module-core-control-lfo \
+           vg-module-core-control-set \
+           vg-module-core-control-modify \
+           vg-module-core-control-wrap \
+           vg-module-core-control-limit \
+           vg-module-core-control-random \
+           vg-module-core-control-beat
+
+PACKAGE  = $(NAME)
+VERSION  = 0.4.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

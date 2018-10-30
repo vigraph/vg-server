@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph collision detector service
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-vector-service-collision-detector
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ot-web ext-dl
+
+include_rules

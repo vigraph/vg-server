@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph colour library
+#
+# Copyright (c) 2017 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-colour
+TYPE    = lib
+DEPENDS = ot-text
+
+include_rules

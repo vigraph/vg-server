@@ -1,0 +1,20 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow UI modules
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-ui
+TYPE     = package
+DEPENDS  = vg-module-ui-control-websocket \
+           vg-module-ui-manager-key-distributor
+
+PACKAGE  = $(NAME)
+VERSION  = 0.4.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

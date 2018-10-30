@@ -1,0 +1,4 @@
+/sources/ilda/vg-module-laser-source-ilda.so /usr/lib/vigraph/modules/
+filters/beamify/vg-module-laser-filter-beamify.so /usr/lib/vigraph/modules/
+filters/idn-transmit/vg-module-laser-filter-idn-transmit.so /usr/lib/vigraph/modules/
+filters/optimise/vg-module-laser-filter-optimise.so /usr/lib/vigraph/modules/

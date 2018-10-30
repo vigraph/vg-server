@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph IDN transmit filter module
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-laser-filter-idn-transmit
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl vg-idn
+
+include_rules

@@ -1,0 +1,81 @@
+<!--
+  Configuration file for ViGraph dataflow engine server (vg-engine)
+
+  Copyright (c) Paul Clark 2017-2018.
+  All rights reserved.
+-->
+
+<engine>
+  <!-- Logging configuration
+
+       'level' is one of:
+
+         0 - Silence
+         1 - Errors only
+         2 - Session start/stop
+         3 - Details & intermediate changes
+         4 - Debug
+         5 - Everything imaginable
+
+       Production builds are only capable of outputting to level 3
+
+       'file' (default /var/log/vigraph/engine.log) gives log file
+
+       'timestamp' gives strftime(3) format for timestamp prefix.
+       with extensions: %*S = seconds+milliseconds, %*L = log level
+       Plain text can also be added.  If empty, nothing is added
+  -->
+  <log level="2" file="/var/log/vigraph/engine.log"
+       timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
+
+  <!-- Loadable modules -->
+  <modules>
+    <!-- Search paths, recursive for all .so -->
+    <directory path="/usr/lib/vigraph/modules"/>
+  </modules>
+
+  <!-- The dataflow graph -->
+  <graph frequency="25">
+    <lfo target='c1' property="x.freq" period="87" scale="1.5"/>
+    <lfo target='c1' property="y.freq" period="101" scale="2"/>
+    <lfo target='c1' property="y.phase" period="217"/>
+    <figure id='c1' points="250" closed="no">
+      <x wave="sin" freq="1" scale="0.4"/>
+      <y wave="sin" freq="1" scale="0.4" phase="0.25"/>
+    </figure>
+
+    <lfo target='c2' property="x.freq" period="257" scale="2"/>
+    <lfo target='c2' property="y.freq" period="451" scale="1.5"/>
+    <figure id='c2' points="250" closed="no">
+      <x wave="sin" freq="6" scale="0.5" />
+      <y wave="sin" freq="6" scale="0.5" phase="0.25"/>
+    </figure>
+
+    <sum id="sum"/>
+
+    <lfo property="h" wave="saw" period="7"/>
+    <colour h="0" l="0.8"/>
+
+    <websocket-display port="33381"/>
+    <idn-transmit>
+      <packet size="65280"/>
+      <configuration interval="0.5"/>
+      <intensity enabled="true"/>
+      <source address="0.0.0.0"/>
+      <host address="localhost" port="7255"/>
+    </idn-transmit>
+
+  </graph>
+
+  <!-- HTTP REST interface -->
+  <rest>
+
+    <!-- HTTP port -->
+    <http port="33380"/>
+
+    <!-- URL prefix, including leading and trailing / -->
+    <url prefix="/"/>
+
+  </rest>
+
+</engine>

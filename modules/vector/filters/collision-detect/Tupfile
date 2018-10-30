@@ -1,0 +1,13 @@
+#===========================================================================
+# Tupfile for Vigraph collision-detect filter module
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-vector-filter-collision-detect
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
+          vg-module-vector-source-svg vg-module-core-control-set \
+          vg-module-vector-filter-translate vg-module-vector-service-collision-detector
+
+include_rules

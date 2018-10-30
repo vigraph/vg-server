@@ -1,0 +1,25 @@
+<!--
+  Configuration file for ViGraph dataflow engine (vg-engine)
+  SVG file test version
+
+  Copyright (c) Paul Clark 2017-2018.
+  All rights reserved.
+-->
+
+<engine>
+  <log level="3"/>
+
+  <modules>
+    <directory path="../build-debug/modules"/>
+  </modules>
+
+  <graph frequency="25">
+
+    <svg precision = "0.1" file = "greenwave.svg"/>
+    <optimise max-distance="0.01"/>
+    <scale all="0.8"/>
+    <websocket-display port="33381"/>
+
+  </graph>
+
+</engine>

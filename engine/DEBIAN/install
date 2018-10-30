@@ -1,0 +1,3 @@
+vg-engine usr/sbin
+engine.cfg.xml etc/vigraph
+licences/demo.2018Q3/licence.xml etc/vigraph

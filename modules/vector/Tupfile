@@ -1,0 +1,37 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow vector modules
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-vector
+TYPE     = package
+DEPENDS  = vg-module-vector-source-test \
+           vg-module-vector-source-figure \
+           vg-module-vector-source-svg \
+           vg-module-vector-source-text \
+           vg-module-vector-control-velocity \
+           vg-module-vector-control-polar-velocity \
+           vg-module-vector-control-polar-acceleration \
+           vg-module-vector-filter-depth-fade \
+           vg-module-vector-filter-translate \
+           vg-module-vector-filter-colour \
+           vg-module-vector-filter-scale \
+           vg-module-vector-filter-rotate \
+           vg-module-vector-filter-clip \
+           vg-module-vector-filter-sum \
+           vg-module-vector-filter-join \
+           vg-module-vector-filter-perspective \
+           vg-module-vector-filter-websocket \
+           vg-module-vector-filter-collision-detect \
+           vg-module-vector-service-collision-detector
+
+PACKAGE  = $(NAME)
+VERSION  = 0.4.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

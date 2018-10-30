@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph vector graphics library
+#
+# Copyright (c) 2017 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-geometry
+TYPE    = lib
+DEPENDS = vg-colour
+
+include_rules

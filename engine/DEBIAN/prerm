@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+if [ $1 = "remove" -o $1 = "upgrade" -o $1 = "purge" ]; then
+  /etc/init.d/vg-engine stop
+  update-rc.d -f vg-engine remove > /dev/null 2>&1
+fi

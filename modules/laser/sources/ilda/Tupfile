@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph ILDA source module
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-laser-source-ilda
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl vg-ilda
+
+include_rules

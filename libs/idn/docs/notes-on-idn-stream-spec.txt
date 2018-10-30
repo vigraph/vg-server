@@ -1,0 +1,38 @@
+Notes on IDN Stream Specification
+Revision 001, July 2015
+
+Paul Clark
+
+== General
+
+The English is generally excellent but watch for use of "in case".  It doesn't
+mean "in the case that", "when" or "if" which I think you mean (any of which
+could replace it).  "In case" by iself means approximately "in order to prepare
+for the possibility that..." - e.g. "In case it rains, I'll take my umbrella."
+
+An overall diagram of a message including all the tags etc. would be useful,
+as would binary examples / test vectors
+
+== 2.1 Channel Message Header
+
+Table isn't quite clear that octets 2 and 3 comprise the content identifier,
+although the text makes this implicit
+
+The CNL bitfield diagram has bit 0 as MSB (0x80).  Although I would draw it
+that way round (MSB first) I would usually number 7 down to 0, and I had to
+mentally do this to work out the Channel ID mask (0x3f).  Also other bitmaps
+such as CFL.
+
+== 2.2 Channel Configuration Header
+
+Confused about the relationship between SCWC and the data configuration
+(metadata) "tags".  SCWC says number of 32-bit configuration words but the
+tags are defined as 16-bit headers with variable length structure.  It sounds
+more like SCWC is referring to opaque private data but then I can't find any
+count of configuration tags...
+
+
+3.4.6 4/1 - draw control
+
+Hint: What defines Format 0 or Format 1?
+

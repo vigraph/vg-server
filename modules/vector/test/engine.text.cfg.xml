@@ -1,0 +1,24 @@
+<!--
+  Configuration file for ViGraph dataflow engine (vg-engine)
+  Text test version
+
+  Copyright (c) Paul Clark 2017-2018.
+  All rights reserved.
+-->
+
+<engine>
+  <log level="3"/>
+
+  <modules>
+    <directory path="../build-debug/modules"/>
+  </modules>
+
+  <graph frequency="25">
+
+    <text precision="0.1" font="roboto.ttf">Hello, world!</text>
+    <scale all="0.8"/>
+    <websocket-display port="33381"/>
+
+  </graph>
+
+</engine>

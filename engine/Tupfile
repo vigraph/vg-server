@@ -1,0 +1,21 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow engine server
+#
+# Copyright (c) 2017-2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-engine
+TYPE     = exe
+DEPENDS  = ot-daemon ot-soap ot-g2d ot-json \
+           vg-dataflow vg-geometry vg-licence \
+           ext-dl
+
+PACKAGE  = $(NAME)
+VERSION  = 0.4.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow library
+#
+# Copyright (c) 2017 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-dataflow
+TYPE    = lib
+DEPENDS = ot-xml ot-mt ot-init ot-text ot-log ot-time
+
+include_rules

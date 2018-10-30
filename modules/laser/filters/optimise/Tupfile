@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph optimise filter module
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-laser-filter-optimise
+TYPE    = shared
+DEPENDS = vg-dataflow vg-laser ot-log ext-dl vg-module-vector-source-svg
+
+include_rules

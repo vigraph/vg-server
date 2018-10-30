@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph Font library
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-font
+TYPE    = lib
+DEPENDS = vg-geometry ot-log ot-text ext-pkg-freetype2
+
+include_rules

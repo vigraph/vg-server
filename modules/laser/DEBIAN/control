@@ -1,0 +1,13 @@
+Source: vg-modules-laser
+Section: Video
+Priority: optional
+Maintainer:  ViGraph Support <support@vigraph.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: http://www.vigraph.com/
+
+Package: vg-modules-laser
+Architecture: any
+Depends: ${shlibs:Depends}, vg-modules-vector, vg-engine
+Description: ViGraph dataflow engine - laser modules
+ Laser display modules for the dataflow engine.

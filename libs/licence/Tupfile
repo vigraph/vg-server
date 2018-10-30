@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph Licence library
+#
+# Copyright (c) 2017 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-licence
+TYPE    = lib
+DEPENDS = ot-xml ot-log ot-misc ot-crypto
+
+include_rules

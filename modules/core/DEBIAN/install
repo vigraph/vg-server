@@ -1,0 +1,9 @@
+controls/beat/vg-module-core-control-beat.so /usr/lib/vigraph/modules/
+controls/lfo/vg-module-core-control-lfo.so /usr/lib/vigraph/modules/
+controls/limit/vg-module-core-control-limit.so /usr/lib/vigraph/modules/
+controls/modify/vg-module-core-control-modify.so /usr/lib/vigraph/modules/
+controls/random/vg-module-core-control-random.so /usr/lib/vigraph/modules/
+controls/set/vg-module-core-control-set.so /usr/lib/vigraph/modules/
+controls/wrap/vg-module-core-control-wrap.so /usr/lib/vigraph/modules/
+sources/selector/vg-module-core-source-selector.so /usr/lib/vigraph/modules/
+sources/clone/vg-module-core-source-clone.so /usr/lib/vigraph/modules/

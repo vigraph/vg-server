@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for Vigraph <beat> core control module
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-core-control-beat
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl              \
+          vg-module-core-control-set vg-module-core-control-modify
+
+include_rules

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph ILDA Digital Network format library
+#
+# Copyright (c) 2017 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-idn
+TYPE    = lib
+DEPENDS = vg-geometry vg-colour ot-chan
+
+include_rules

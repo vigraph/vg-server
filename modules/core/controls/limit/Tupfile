@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for Vigraph <limit> core control module
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-core-control-limit
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
+          vg-module-core-control-set vg-module-core-control-modify
+
+include_rules

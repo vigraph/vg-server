@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph vector convertor
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-convert-vector
+TYPE    = exe
+DEPENDS = vg-ilda vg-svg vg-laser
+
+include_rules

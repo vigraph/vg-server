@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph laser graphics support library
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-laser
+TYPE    = lib
+DEPENDS = vg-geometry vg-colour
+
+include_rules

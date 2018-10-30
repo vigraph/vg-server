@@ -1,0 +1,13 @@
+Source: vg-engine
+Section: Video
+Priority: optional
+Maintainer:  ViGraph Support <support@vigraph.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: http://www.vigraph.com/
+
+Package: vg-engine
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: ViGraph dataflow engine
+ Realtime module dataflow engine.

@@ -77,6 +77,7 @@ void Engine::shutdown()
   // Shut down services
   for(const auto& it: services)
     it.second->shutdown();
+  services.clear();
 }
 
 }} // namespaces

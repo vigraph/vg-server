@@ -96,20 +96,37 @@ MIDIInControl::MIDIInControl(const Module *module,
 void MIDIInControl::run()
 {
   Log::Streams log;
+
+  // Get FDs for poll
+  const auto nfds = snd_rawmidi_poll_descriptors_count(midi);
+  vector<struct pollfd> fds(nfds);
+  snd_rawmidi_poll_descriptors(midi, fds.data(), nfds);
+
+  // Filter for only input side
+  vector<struct pollfd> ifds;
+  for (auto i=0; i<nfds; i++)
+  {
+    if (fds[i].events & POLLIN)
+      ifds.push_back(fds[i]);
+  }
+
   while (running)
   {
-    unsigned char bytes[100];
-    auto n = snd_rawmidi_read(midi, bytes, sizeof(bytes));
-    if (n < 0)
+    if (poll(ifds.data(), ifds.size(), 100) > 0)
     {
-      log.error << "Can't read MIDI input: " << snd_strerror(n) << endl;
-      continue;
+      unsigned char bytes[100];
+      auto n = snd_rawmidi_read(midi, bytes, sizeof(bytes));
+      if (n < 0)
+      {
+        log.error << "Can't read MIDI input: " << snd_strerror(n) << endl;
+        continue;
+      }
+
+      for(auto i=0; i<n; i++)
+        buffer.push_back(bytes[i]);
+
+      check_messages();
     }
-
-    for(auto i=0; i<n; i++)
-      buffer.push_back(bytes[i]);
-
-    check_messages();
   }
 }
 
@@ -182,11 +199,7 @@ void MIDIInControl::shutdown()
   log << "Shutting down MIDI input\n";
 
   running = false;
-  if (thread)
-  {
-    thread->cancel();
-    thread->join();
-  }
+  if (thread) thread->join();
 
   if (midi) snd_rawmidi_close(midi);
   midi = nullptr;

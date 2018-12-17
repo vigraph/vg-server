@@ -24,6 +24,8 @@
   <!-- The dataflow graph -->
   <graph frequency="25">
 
+    <midi-in device="virtual" base="24" modulus="12"
+             target="selector" property="index"/>
     <websocket-control property="index" port="33382"/>
     <selector>
       <graph id="beam">

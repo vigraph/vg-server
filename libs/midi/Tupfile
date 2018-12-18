@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph Linux MIDI input control module
+# Tupfile for ViGraph MIDI library
 #
 # Copyright (c) 2018 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-linux-control-midi-in
-TYPE    = shared
-DEPENDS = vg-dataflow vg-midi ot-log ot-web ext-dl ext-asound
+NAME    = vg-midi
+TYPE    = lib
+DEPENDS =
 
 include_rules

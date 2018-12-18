@@ -9,6 +9,7 @@
 #include "../../../module.h"
 #include "ot-web.h"
 #include <alsa/asoundlib.h>
+#include "vg-midi.h"
 
 namespace {
 
@@ -26,7 +27,7 @@ class MIDIInControl: public Dataflow::Control
   snd_rawmidi_t* midi{nullptr};
   unique_ptr<MIDIInThread> thread;
   bool running;
-  vector<unsigned char> buffer;
+  MIDI::Reader reader;
 
   friend class MIDIInThread;
   void run();
@@ -123,7 +124,7 @@ void MIDIInControl::run()
       }
 
       for(auto i=0; i<n; i++)
-        buffer.push_back(bytes[i]);
+        reader.add(bytes[i]);
 
       check_messages();
     }
@@ -134,38 +135,20 @@ void MIDIInControl::run()
 // Check for complete messages in the buffer
 void MIDIInControl::check_messages()
 {
-  // If top bit not set when we enter here, we're out of sync or in a
-  // system exclusive message - either way, just drop them
-  while (!buffer.empty() && !(buffer[0] & 0x80))
-    buffer.erase(buffer.begin());
+  MIDI::Event event = reader.read();
 
-  if (!buffer.empty())
+  switch (event.type)
   {
-    const auto first = buffer[0];
-    const auto cmd = (first >> 4) & 7; // We know top bit is set, ignore it
-    const auto chan = (first & 0xf) + 1;
-    auto erase = int{0};
-
-    switch (cmd)
-    {
-      case 0:  // Note off
-        if (buffer.size() >= 3)
-        {
-          handle_note_off(chan, buffer[1], buffer[2]);
-          erase = 3;
-        }
+    case MIDI::Event::Type::none:
       break;
 
-      case 1:  // Note on
-        if (buffer.size() >= 3)
-        {
-          handle_note_on(chan, buffer[1], buffer[2]);
-          erase = 3;
-        }
+    case MIDI::Event::Type::note_off:
+      handle_note_off(event.channel, event.key, event.value);
       break;
-    }
 
-    if (erase) buffer.erase(buffer.begin(), buffer.begin()+erase);
+    case MIDI::Event::Type::note_on:
+      handle_note_on(event.channel, event.key, event.value);
+      break;
   }
 }
 

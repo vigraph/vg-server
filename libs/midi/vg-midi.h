@@ -34,11 +34,11 @@ struct Event
   Type type{Type::none};
   uint8_t channel{0}; // Note, from 1 when valid
   uint8_t key{0};
-  uint8_t value{0};   // velocity or controller value
+  uint16_t value{0};  // velocity or controller value
 
   // Constructor
   Event() {}
-  Event(Type _type, uint8_t _channel, uint8_t _key, uint8_t _value):
+  Event(Type _type, uint8_t _channel, uint8_t _key, uint16_t _value):
     type(_type), channel(_channel), key(_key), value(_value) {}
 };
 

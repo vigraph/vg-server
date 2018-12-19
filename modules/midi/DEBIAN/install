@@ -1,0 +1,1 @@
+services/midi-linux-alsa/vg-module-midi-service-linux-alsa.so /usr/lib/vigraph/modules/

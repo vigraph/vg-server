@@ -1,15 +1,17 @@
 //==========================================================================
-// ViGraph dataflow module: linux/controls/midi-in/midi-in.cc
+// ViGraph dataflow module: midi/services/midi-linux-alsa/midi-linux-alsa.cc
 //
-// MIDI input control
+// MIDI interface using Linux ALSA API
 //
 // Copyright (c) 2018 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../../../module.h"
-#include "ot-web.h"
+#include "../../midi-services.h"
 #include <alsa/asoundlib.h>
 #include "vg-midi.h"
+
+using namespace ViGraph::Module::MIDI;
 
 namespace {
 
@@ -18,29 +20,44 @@ const auto default_device = "default";
 class MIDIInThread;  // forward
 
 //==========================================================================
-// MIDIIn control
-class MIDIInControl: public Dataflow::Control
+// MIDI interface implementation
+class MIDIInterfaceImpl: public Dataflow::Service, public Interface
 {
-  int base{0};
-  int modulus{0};
-
   snd_rawmidi_t* midi{nullptr};
   unique_ptr<MIDIInThread> thread;
   bool running;
-  MIDI::Reader reader;
+  ViGraph::MIDI::Reader reader;
 
   friend class MIDIInThread;
   void run();
-  void check_messages();
-  void handle_note_on(int chan, int key, int velocity);
-  void handle_note_off(int chan, int key, int velocity);
 
-  // Control virtuals
+  // Service interface
+  void tick(Dataflow::timestamp_t t) override;
   void shutdown() override;
+
+  // MIDI interface implementation
+  void register_event_observer(int channel,
+                               ViGraph::MIDI::Event::Type type,
+                               EventObserver *observer) override;
+
+  // Event observers
+  struct Observer
+  {
+    int channel;
+    ViGraph::MIDI::Event::Type type;
+    EventObserver *observer;
+
+    Observer(int _channel, ViGraph::MIDI::Event::Type _type,
+             EventObserver *_observer):
+      channel(_channel), type(_type), observer(_observer) {}
+  };
+
+  list<Observer> observers;
 
 public:
   // Construct
-  MIDIInControl(const Module *module, const XML::Element& config);
+  MIDIInterfaceImpl(const Dataflow::Module *module,
+                    const XML::Element& config);
 };
 
 //==========================================================================
@@ -48,35 +65,29 @@ public:
 class MIDIInThread: public MT::Thread
 {
 private:
-  MIDIInControl& control;
+  MIDIInterfaceImpl& control;
 
   void run() override
   { control.run(); }
 
 public:
-  MIDIInThread(MIDIInControl& _control): control(_control)
+  MIDIInThread(MIDIInterfaceImpl& _control): control(_control)
   { start(); }
 };
 
 //==========================================================================
-// MIDIIn control implementation
+// MIDIInterface implementation
 
 //--------------------------------------------------------------------------
 // Construct from XML:
-//   <midi-in device="hw:0:1"/>
-MIDIInControl::MIDIInControl(const Module *module,
-                             const XML::Element& config):
-  Element(module, config), Control(module, config)
+//   <midi device='default'/>
+MIDIInterfaceImpl::MIDIInterfaceImpl(const Dataflow::Module *module,
+                                     const XML::Element& config):
+  Service(module, config)
 {
   Log::Streams log;
   const auto& device = config.get_attr("device", default_device);
   log.summary << "Opening MIDI input on ALSA device '" << device << "'\n";
-  base = config.get_attr_int("base");
-  if (base)
-    log.detail << "MIDI note base: " << base << endl;
-  modulus = config.get_attr_int("modulus");
-  if (modulus)
-    log.detail << "MIDI note modulus: " << modulus << endl;
 
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
 
@@ -93,8 +104,17 @@ MIDIInControl::MIDIInControl(const Module *module,
 }
 
 //--------------------------------------------------------------------------
+// Register an event handler - channel=0 means all (Omni)
+void MIDIInterfaceImpl::register_event_observer(int channel,
+                                                ViGraph::MIDI::Event::Type type,
+                                                EventObserver *observer)
+{
+  observers.push_back(Observer(channel, type, observer));
+}
+
+//--------------------------------------------------------------------------
 // Run background
-void MIDIInControl::run()
+void MIDIInterfaceImpl::run()
 {
   Log::Streams log;
 
@@ -125,60 +145,30 @@ void MIDIInControl::run()
 
       for(auto i=0; i<n; i++)
         reader.add(bytes[i]);
-
-      check_messages();
     }
   }
 }
 
 //--------------------------------------------------------------------------
-// Check for complete messages in the buffer
-void MIDIInControl::check_messages()
+// Tick
+void MIDIInterfaceImpl::tick(Dataflow::timestamp_t)
 {
   MIDI::Event event = reader.get();
-
-  switch (event.type)
+  if (event.type != ViGraph::MIDI::Event::Type::none)
   {
-    case MIDI::Event::Type::none:
-      break;
-
-    case MIDI::Event::Type::note_off:
-      handle_note_off(event.channel, event.key, event.value);
-      break;
-
-    case MIDI::Event::Type::note_on:
-      handle_note_on(event.channel, event.key, event.value);
-      break;
-
-    default:;
+    // Send event to all interested observers
+    for(const auto& o: observers)
+    {
+      if ((!o.channel || o.channel == event.channel) // channel 0 is wildcard
+          && o.type == event.type)
+        o.observer->handle(event);
+    }
   }
-}
-
-//--------------------------------------------------------------------------
-// Handle note on
-void MIDIInControl::handle_note_on(int chan, int key, int velocity)
-{
-  Log::Detail log;
-  log << "MIDI " << chan << ": key " << key << " ON @" << velocity << endl;
-  key -= base;
-  if (key >= 0)
-  {
-    if (modulus) key %= modulus;
-    send(Dataflow::Value(key));
-  }
-}
-
-//--------------------------------------------------------------------------
-// Handle note off
-void MIDIInControl::handle_note_off(int chan, int key, int /*velocity*/)
-{
-  Log::Detail log;
-  log << "MIDI " << chan << ": key " << key << " OFF\n";
 }
 
 //--------------------------------------------------------------------------
 // Shut down
-void MIDIInControl::shutdown()
+void MIDIInterfaceImpl::shutdown()
 {
   Log::Detail log;
   log << "Shutting down MIDI input\n";
@@ -194,21 +184,16 @@ void MIDIInControl::shutdown()
 // Module definition
 Dataflow::Module module
 {
-  "midi-in",
-  "MIDI Input",
-  "MIDI Input for Linux/ALSA",
-  "linux",
+  "midi",
+  "MIDI Interface",
+  "MIDI Interface for Linux/ALSA",
+  "midi",
   {
     { "device",  { {"Device to listen to", "default"}, Value::Type::text,
-                                                       "@device" } },
-    { "base",    { {"Base note value", "0"},           Value::Type::number,
-                                                       "@base" } },
-    { "modulus", { {"Note value modulus", "0"},        Value::Type::number,
-                                                       "@modulus" } }
-  },
-  { { "", { "Key code", "key", Value::Type::number }}}
+                                                       "@device" } }
+  }
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(MIDIInControl, module)
+VIGRAPH_ENGINE_SERVICE_MODULE_INIT(MIDIInterfaceImpl, module)

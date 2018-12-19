@@ -1,12 +1,13 @@
 #===========================================================================
-# Tupfile for ViGraph dataflow linux hardware modules
+# Tupfile for ViGraph dataflow MIDI modules
 #
 # Copyright (c) 2018 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME     = vg-modules-linux
+NAME     = vg-modules-midi
 TYPE     = package
-DEPENDS  = vg-module-linux-control-midi-in
+DEPENDS  = vg-module-midi-service-linux-alsa \
+           vg-module-midi-control-key-in
 
 PACKAGE  = $(NAME)
 VERSION  = 0.4.0

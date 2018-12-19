@@ -22,8 +22,6 @@ class MIDIKeyInControl: public Dataflow::Control,
 {
   shared_ptr<Interface> interface;
   int channel{0};
-  int base{0};
-  int modulus{0};
 
   // Control virtuals
   void configure(const XML::Element& config) override;
@@ -44,8 +42,6 @@ MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
   Element(module, config), Control(module, config)
 {
   channel = config.get_attr_int("channel");
-  base = config.get_attr_int("base");
-  modulus = config.get_attr_int("modulus");
 }
 
 //--------------------------------------------------------------------------
@@ -74,12 +70,7 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
   Log::Detail log;
   log << "MIDI " << (int)event.channel << ": key " << (int)event.key
       << " ON @" << event.value << endl;
-  int key = event.key-base;
-  if (key >= 0)
-  {
-    if (modulus) key %= modulus;
-    send(Dataflow::Value(key));
-  }
+  send(Dataflow::Value(event.key));
 }
 
 //--------------------------------------------------------------------------
@@ -92,11 +83,7 @@ Dataflow::Module module
   "midi",
   {
     { "channel", { {"MIDI channel (0=all)", "0"}, Value::Type::number,
-                                                    "@channel" } },
-    { "base",    { {"Base note value", "0"},      Value::Type::number,
-                                                    "@base" } },
-    { "modulus", { {"Note value modulus", "0"},   Value::Type::number,
-                                                    "@modulus" } }
+                                                    "@channel" } }
   },
   { { "", { "Key code", "key", Value::Type::number }}}
 };

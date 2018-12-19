@@ -24,8 +24,9 @@
 
   <!-- The dataflow graph -->
   <graph frequency="25">
-    <midi-key-in channel="1" base="24" modulus="12"
-                 target="selector" property="index"/>
+    <midi-key-in channel="1" property="index"/>
+    <add offset="-24" property="index"/>
+    <wrap max="12" target="selector" property="index"/>
     <websocket-control property="index" port="33382"/>
     <selector>
       <graph id="beam">
@@ -78,7 +79,8 @@
       </graph>
 
       <graph id="circle">
-        <midi-control-in channel="1" number="1" target="f1" property="x.freq"/>
+        <midi-control-in channel="1" number="1" property="x.freq"/>
+        <multiply factor="0.1" target="f1" property="x.freq"/>
         <lfo property="y.phase" period="3"/>
         <figure id="f1" points="100" closed="yes">
           <x wave="sin" freq="1"/>

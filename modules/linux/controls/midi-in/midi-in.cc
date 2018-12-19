@@ -135,7 +135,7 @@ void MIDIInControl::run()
 // Check for complete messages in the buffer
 void MIDIInControl::check_messages()
 {
-  MIDI::Event event = reader.read();
+  MIDI::Event event = reader.get();
 
   switch (event.type)
   {
@@ -149,6 +149,8 @@ void MIDIInControl::check_messages()
     case MIDI::Event::Type::note_on:
       handle_note_on(event.channel, event.key, event.value);
       break;
+
+    default:;
   }
 }
 

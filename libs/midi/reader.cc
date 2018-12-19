@@ -11,43 +11,76 @@
 namespace ViGraph { namespace MIDI {
 
 //-----------------------------------------------------------------------
-// Read an event from the buffer
-// Returns Event::Type::none if nothing available (yet)
-Event Reader::read()
+// Post a raw MIDI byte into the reader
+void Reader::add(uint8_t byte)
 {
-  // If top bit not set when we enter here, we're out of sync or in a
-  // system exclusive message or something else we don't handle
-  // - either way, just drop them
-  while (!buffer.empty() && !(buffer[0] & 0x80))
-    buffer.erase(buffer.begin());
-
-  if (!buffer.empty())
+  // Status or data?
+  if (byte & 0x80)
   {
-    const auto first = buffer[0];
-    const auto cmd = (first >> 4) & 7; // We know top bit is set, ignore it
-    const auto chan = (first & 0xf) + 1;
-
-    switch (cmd)
+    // Ignore realtime messages (for now!)
+    if (byte < 0xF8)
     {
-      case 0:  // Note off
-        if (buffer.size() >= 3)
-        {
-          buffer.erase(buffer.begin(), buffer.begin()+3);
-          return Event(Event::Type::note_off, chan, buffer[1], buffer[2]);
-        }
-      break;
-
-      case 1:  // Note on
-        if (buffer.size() >= 3)
-        {
-          buffer.erase(buffer.begin(), buffer.begin()+3);
-          return Event(Event::Type::note_on, chan, buffer[1], buffer[2]);
-        }
-      break;
+      // Keep it for later - including for 'running status'
+      last_status = byte;
+      data.clear();
     }
   }
+  else
+  {
+    data.push_back(byte);
+    if (last_status)
+    {
+      // Check for enough data now
+      const auto cmd = (last_status >> 4) & 7; // Ignore known top bit
+      const auto chan = (last_status & 0xf) + 1;
 
-  return Event();
+      switch (cmd)
+      {
+        case 0:  // Note off
+          if (data.size() >= 2)
+          {
+            data.clear();
+            events.push_back(Event(Event::Type::note_off, chan,
+                                   data[0], data[1]));
+          }
+        break;
+
+        case 1:  // Note on
+          if (data.size() >= 2)
+          {
+            data.clear();
+            events.push_back(Event(Event::Type::note_on, chan,
+                                   data[0], data[1]));
+          }
+        break;
+
+        case 3:  // Control change
+          if (data.size() >= 2)
+          {
+            data.clear();
+            events.push_back(Event(Event::Type::control_change, chan,
+                                   data[0], data[1]));
+          }
+        break;
+
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------------
+// Get an event from the buffer
+// Returns Event::Type::none if nothing available (yet)
+Event Reader::get()
+{
+  if (events.empty())
+    return Event();
+  else
+  {
+    const auto event = events.front();
+    events.pop_front();
+    return event;
+  }
 }
 
 }} // namespaces

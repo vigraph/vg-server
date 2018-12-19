@@ -10,6 +10,7 @@
 #define __VG_MIDI_H
 
 #include <vector>
+#include <deque>
 #include <cstdint>
 
 namespace ViGraph { namespace MIDI {
@@ -26,7 +27,8 @@ struct Event
   {
     none,
     note_on,
-    note_off
+    note_off,
+    control_change
   };
 
   Type type{Type::none};
@@ -44,7 +46,9 @@ struct Event
 // MIDI format reader
 class Reader
 {
-  vector<uint8_t> buffer;
+  uint8_t last_status{0};
+  vector<uint8_t> data;
+  deque<Event> events;
 
  public:
   //-----------------------------------------------------------------------
@@ -52,13 +56,13 @@ class Reader
   Reader() {}
 
   //-----------------------------------------------------------------------
-  // Post a MIDI byte into the buffer
-  void add(uint8_t byte) { buffer.push_back(byte); }
+  // Post a raw MIDI byte into the reader
+  void add(uint8_t byte);
 
   //-----------------------------------------------------------------------
-  // Read an event from the buffer
+  // Get an event from the queue
   // Returns Event::Type::none if nothing available (yet)
-  Event read();
+  Event get();
 };
 
 //==========================================================================

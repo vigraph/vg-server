@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     }
     if (show_hex) cout << "]\n" << dec;
 
-    MIDI::Event event = reader.read();
+    MIDI::Event event = reader.get();
     if (event.type == MIDI::Event::Type::none) continue;
 
     cout << "CH " << (int)event.channel << "\t";
@@ -92,6 +92,11 @@ int main(int argc, char **argv)
       case MIDI::Event::Type::note_on:
         cout << "OFF\t" << (int)event.key << "\t@" << (int)event.value;
         break;
+
+      case MIDI::Event::Type::control_change:
+        cout << "CONTROL\t" << (int)event.key << "\t=" << (int)event.value;
+        break;
+
     }
 
     cout << endl;

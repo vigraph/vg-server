@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph MIDI analyser
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-analyse-midi
+TYPE    = exe
+DEPENDS = vg-midi ext-asound
+
+include_rules

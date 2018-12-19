@@ -10,6 +10,8 @@ DEPENDS  = vg-module-core-source-selector \
            vg-module-core-source-clone \
            vg-module-core-control-lfo \
            vg-module-core-control-set \
+           vg-module-core-control-add \
+           vg-module-core-control-multiply \
            vg-module-core-control-modify \
            vg-module-core-control-wrap \
            vg-module-core-control-limit \

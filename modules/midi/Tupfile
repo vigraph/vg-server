@@ -7,7 +7,8 @@
 NAME     = vg-modules-midi
 TYPE     = package
 DEPENDS  = vg-module-midi-service-linux-alsa \
-           vg-module-midi-control-key-in
+           vg-module-midi-control-key-in \
+           vg-module-midi-control-control-in
 
 PACKAGE  = $(NAME)
 VERSION  = 0.4.0

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph MIDI control input module
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-midi-control-control-in
+TYPE    = shared
+DEPENDS = vg-dataflow vg-midi ot-log ot-web ext-dl
+
+include_rules

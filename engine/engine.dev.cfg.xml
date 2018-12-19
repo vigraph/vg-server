@@ -78,8 +78,9 @@
       </graph>
 
       <graph id="circle">
+        <midi-control-in channel="1" number="1" target="f1" property="x.freq"/>
         <lfo property="y.phase" period="3"/>
-        <figure points="100" closed="yes">
+        <figure id="f1" points="100" closed="yes">
           <x wave="sin" freq="1"/>
           <y wave="sin" freq="1" phase="0.25"/>
         </figure>

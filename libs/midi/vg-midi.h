@@ -33,7 +33,7 @@ struct Event
 
   Type type{Type::none};
   uint8_t channel{0}; // Note, from 1 when valid
-  uint8_t key{0};
+  uint8_t key{0};     // Key number or controller number (from 0)
   uint16_t value{0};  // velocity or controller value
 
   // Constructor

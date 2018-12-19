@@ -153,9 +153,11 @@ void MIDIInterfaceImpl::run()
 // Tick
 void MIDIInterfaceImpl::tick(Dataflow::timestamp_t)
 {
-  MIDI::Event event = reader.get();
-  if (event.type != ViGraph::MIDI::Event::Type::none)
+  for(;;)
   {
+    MIDI::Event event = reader.get();
+    if (event.type == ViGraph::MIDI::Event::Type::none) break;
+
     // Send event to all interested observers
     for(const auto& o: observers)
     {

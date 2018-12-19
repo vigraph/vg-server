@@ -20,7 +20,7 @@ class Interface
  public:
   struct EventObserver
   {
-    virtual void handle(ViGraph::MIDI::Event& event) = 0;
+    virtual void handle(const ViGraph::MIDI::Event& event) = 0;
   };
 
   // Construct

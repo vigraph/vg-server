@@ -33,8 +33,8 @@ function get_dependency_path(name)
 
   elseif string.sub(name, 1, 21) == 'vg-module-ui-control-' then
     return 'modules/ui/controls/' .. string.sub(name, 22)
-  elseif string.sub(name, 1, 21) == 'vg-module-ui-manager-' then
-    return 'modules/ui/managers/' .. string.sub(name, 22)
+  elseif string.sub(name, 1, 21) == 'vg-module-ui-service-' then
+    return 'modules/ui/services/' .. string.sub(name, 22)
 
   elseif string.sub(name, 1, 23) == 'vg-module-laser-source-' then
     return 'modules/laser/sources/' .. string.sub(name, 24)

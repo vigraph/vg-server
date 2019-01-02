@@ -7,7 +7,7 @@
 NAME     = vg-modules-ui
 TYPE     = package
 DEPENDS  = vg-module-ui-control-websocket \
-           vg-module-ui-manager-key-distributor
+           vg-module-ui-service-key-distributor
 
 PACKAGE  = $(NAME)
 VERSION  = 0.4.0

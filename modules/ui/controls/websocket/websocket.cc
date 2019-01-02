@@ -7,7 +7,10 @@
 //==========================================================================
 
 #include "../../../module.h"
+#include "../../ui-services.h"
 #include "ot-web.h"
+
+using namespace ViGraph::Module::UI;
 
 namespace {
 
@@ -39,13 +42,18 @@ class WebSocketControl: public Dataflow::Control
 {
   unique_ptr<WebSocketControlServer> server;
   unique_ptr<Net::TCPServerThread> server_thread;
+  shared_ptr<KeyDistributor> key_distributor;
 
   // Control virtuals
+  void configure(const XML::Element& config) override;
   void shutdown() override;
 
 public:
   // Construct
-  WebSocketControl(const Module *module, const XML::Element& config);
+  WebSocketControl(const Dataflow::Module *module, const XML::Element& config);
+
+  // Handle a key
+  void handle_key(int code);
 };
 
 //==========================================================================
@@ -121,7 +129,7 @@ void WebSocketControlServer::handle_websocket(
           log.detail << "Key " << code << " " << (pressed?"pressed":"released")
                      << endl;
           // Negative indicates released
-          control->send(Dataflow::Value(pressed?code:-code));
+          control->handle_key(pressed?code:-code);
         }
         break;
 
@@ -142,9 +150,9 @@ void WebSocketControlServer::handle_websocket(
 //--------------------------------------------------------------------------
 // Construct from XML:
 //   <websocket-control port="33382"/>
-WebSocketControl::WebSocketControl(const Module *module,
+WebSocketControl::WebSocketControl(const Dataflow::Module *module,
                                    const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Element(module, config), Control(module, config, true) // optional targets
 {
   int hport = config.get_attr_int("port");
   if (hport)
@@ -159,6 +167,27 @@ WebSocketControl::WebSocketControl(const Module *module,
     server_thread.reset(new Net::TCPServerThread(*server));
     server_thread->detach();
   }
+}
+
+//--------------------------------------------------------------------------
+// Configure from XML (once we have the engine)
+void WebSocketControl::configure(const XML::Element&)
+{
+  auto& engine = graph->get_engine();
+  key_distributor = engine.get_service<KeyDistributor>("key-distributor");
+  if (!key_distributor)
+  {
+    Log::Error log;
+    log << "No key-distributor service loaded\n";
+  }
+}
+
+//--------------------------------------------------------------------------
+// Handle a key press
+void WebSocketControl::handle_key(int code)
+{
+  if (key_distributor)
+    key_distributor->handle_key(code);
 }
 
 //--------------------------------------------------------------------------
@@ -184,7 +213,7 @@ Dataflow::Module module
   {
     { "port", { "Listening port", Value::Type::number } },
   },
-  { { "", { "Key code", "key", Value::Type::number }}}
+  { { "", { "Control index", "index", Value::Type::number }}}
 };
 
 } // anon

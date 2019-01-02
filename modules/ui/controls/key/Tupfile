@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph key input module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-ui-control-key
+TYPE    = shared
+DEPENDS = vg-dataflow ot-log ext-dl
+
+include_rules

@@ -137,7 +137,7 @@ void UIKeyControl::configure(const XML::Element&)
 
 //--------------------------------------------------------------------------
 // Handle event
-void UIKeyControl::handle_key(int code)
+void UIKeyControl::handle_key(int /*code*/)
 {
   send(Dataflow::Value());
 }

@@ -308,14 +308,6 @@ class Acceptor
 };
 
 //==========================================================================
-// Manager - doesn't process data, but can accept control changes
-class Manager: virtual public Element
-{
- public:
-  using Element::Element;
-};
-
-//==========================================================================
 // Generator - something that generates data on a single output
 class Generator: virtual public Element
 {

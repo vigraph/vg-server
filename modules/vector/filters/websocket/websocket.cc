@@ -190,7 +190,7 @@ Dataflow::Module module
   "websocket-display",
   "WebSocket Display",
   "WebSocket server for vector display clients",
-  "laser",
+  "vector",
   {
     { "port", { "Listening port", Value::Type::number } },
   },

@@ -92,7 +92,7 @@ MIDIInterfaceImpl::MIDIInterfaceImpl(const Dataflow::Module *module,
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
 
    auto status = snd_rawmidi_open(&midi, NULL, device.c_str(),
-                                  SND_RAWMIDI_SYNC);
+                                  SND_RAWMIDI_SYNC | SND_RAWMIDI_NONBLOCK);
    if (status)
    {
      log.error << "Can't open MIDI input: " << snd_strerror(status) << endl;

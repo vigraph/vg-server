@@ -113,10 +113,12 @@ class WebSocketFilter: public FrameFilter
 {
   unique_ptr<WebSocketDisplayServer> server;
   unique_ptr<Net::TCPServerThread> server_thread;
+  bool frame_seen{false};
 
   // Source/Element virtuals
   void configure(const XML::Element& config) override;
   void accept(FramePtr frame) override;
+  void post_tick(Dataflow::timestamp_t) override;
   void shutdown() override;
 
 public:
@@ -150,6 +152,21 @@ void WebSocketFilter::accept(FramePtr frame)
 
   // Send it down as well, so these can be chained
   send(frame);
+
+  frame_seen = true;
+}
+
+//--------------------------------------------------------------------------
+// Post-tick flush
+void WebSocketFilter::post_tick(Dataflow::timestamp_t t)
+{
+  // Send an empty frame to clear screen if none seen since last tick
+  if (!frame_seen)
+  {
+    FramePtr frame(new Frame(t));
+    server->queue(frame);
+  }
+  frame_seen = false;
 }
 
 //--------------------------------------------------------------------------

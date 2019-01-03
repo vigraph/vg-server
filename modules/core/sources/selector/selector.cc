@@ -16,7 +16,6 @@ namespace {
 class SelectorSource: public Dataflow::Source
 {
   unique_ptr<Dataflow::MultiGraph> multigraph;
-  bool multiple{false};
   map<int, Dataflow::timestamp_t> active_starts;  // Start time, or 0 when new
 
   // Source/Element virtuals
@@ -32,7 +31,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML:
-//  <selector multiple="true">
+//  <selector>
 //    <graph id="sub1">
 //      ..
 //    </graph>
@@ -42,7 +41,6 @@ public:
 //  </selector>
 void SelectorSource::configure(const XML::Element& config)
 {
-  multiple = config.get_attr_bool("multiple");
   multigraph.reset(new Dataflow::MultiGraph(graph->get_engine()));
   multigraph->configure(config);
 }
@@ -59,38 +57,29 @@ void SelectorSource::attach(Dataflow::Acceptor *acceptor)
 // Set a control property
 void SelectorSource::set_property(const string& property, const SetParams& sp)
 {
-  if (property == "index")
+  if (property == "selected")
   {
-    if (multiple)
-    {
-      int index{0};
-      update_prop_int(index, sp);
-      bool remove = false;
-      if (index < 0)
-      {
-        remove = true;
-        index = -index;
-      }
+    int index = -1;
 
+    // Find single old one, if any, to allow increment
+    if (active_starts.size() == 1)
+      index = active_starts.begin()->first;
+
+    // Update it
+    int old_index = index;
+    update_prop_int(index, sp);
+
+    if (index != old_index && index >= 0)
+    {
       Log::Detail log;
-      log << "Selector source " << (remove?"removing":"adding")
-          << " index " << index << endl;
+      log << "Selector source selected index " << index << endl;
+
+      // Clear all current and add this
+      active_starts.clear();
 
       Dataflow::Graph *sub = multigraph->get_subgraph(index);
       if (sub)
-      {
-        if (remove)
-        {
-          // Remove from active
-          active_starts.erase(index);
-        }
-        else
-        {
-          // Mark to start at next tick if not already there
-          if (!active_starts[index])
-            active_starts[index] = 0;
-        }
-      }
+        active_starts[index] = 0;
       else
       {
         Log::Error elog;
@@ -98,36 +87,48 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
              << index << endl;
       }
     }
+  }
+  else if (property == "enable")
+  {
+    int index{0};
+    update_prop_int(index, sp);
+
+    Log::Detail log;
+    log << "Selector source enabling index " << index << endl;
+
+    Dataflow::Graph *sub = multigraph->get_subgraph(index);
+    if (sub)
+    {
+      // Mark to start at next tick if not already there
+      if (!active_starts[index])
+        active_starts[index] = 0;
+    }
     else
     {
-      int index = -1;
+      Log::Error elog;
+      elog << "Selector requested to enable out-of-range item "
+           << index << endl;
+    }
+  }
+  else if (property == "disable")
+  {
+    int index{0};
+    update_prop_int(index, sp);
 
-      // Find single old one, if any, to allow increment
-      if (active_starts.size() == 1)
-        index = active_starts.begin()->first;
+    Log::Detail log;
+    log << "Selector source disabling index " << index << endl;
 
-      // Update it
-      int old_index = index;
-      update_prop_int(index, sp);
-
-      if (index != old_index && index >= 0)
-      {
-        Log::Detail log;
-        log << "Selector source selected index " << index << endl;
-
-        // Clear all current and add this
-        active_starts.clear();
-
-        Dataflow::Graph *sub = multigraph->get_subgraph(index);
-        if (sub)
-          active_starts[index] = 0;
-        else
-        {
-          Log::Error elog;
-          elog << "Selector requested to select out-of-range item "
-               << index << endl;
-        }
-      }
+    Dataflow::Graph *sub = multigraph->get_subgraph(index);
+    if (sub)
+    {
+      // Remove from active
+      active_starts.erase(index);
+    }
+    else
+    {
+      Log::Error elog;
+      elog << "Selector requested to disable out-of-range item "
+           << index << endl;
     }
   }
 }
@@ -137,7 +138,7 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
 void SelectorSource::tick(Dataflow::timestamp_t t)
 {
   // Tick all active
-  for(auto it: active_starts)
+  for(auto& it: active_starts)
   {
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
     if (sub)
@@ -157,9 +158,9 @@ Dataflow::Module module
   "Selects one of several sub-graphs to tick",
   "core",
   {
-    { "multiple", { { "Whether multiple allowed", "false" },
-          Value::Type::boolean } },
-    { "index", { "Selected index", Value::Type::number, true } }
+    { "selected", { "Selected single item", Value::Type::number, true } },
+    { "enable",   { "Item to enable", Value::Type::number, true } },
+    { "disable",  { "Item to disable", Value::Type::number, true } }
   },
   {}, // no inputs
   { "any" },

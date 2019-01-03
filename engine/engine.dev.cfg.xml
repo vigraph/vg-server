@@ -25,12 +25,16 @@
 
   <!-- The dataflow graph -->
   <graph frequency="25">
-    <midi-key-in channel="1" target="selector" property="index"/>
-<!--    <add offset="-24" property="index"/>
-     <wrap max="12" target="selector" property="index"/>
-     -->
-    <websocket-control port="33382" target="selector" property="index"/>
-    <selector multiple="true">
+    <midi-key-in channel="1">
+      <target id="rebase-on" property-on="enable"/>
+      <target id="rebase-off" property-off="disable"/>
+    </midi-key-in>
+    <add id="rebase-on" offset="-24" property="enable"/>
+    <wrap max="12" target="selector" property="enable"/>
+    <add id="rebase-off" offset="-24" property="disable"/>
+    <wrap max="12" target="selector" property="disable"/>
+    <websocket-control port="33382" target="selector" property="selected"/>
+    <selector>
       <graph id="beam">
         <figure points="1">
           <y pos="0.25"/>
@@ -120,7 +124,7 @@
         <colour h="0" l="0.8"/>
       </graph>
     </selector>
-
+    <join/>
 
     <clip>
       <!--

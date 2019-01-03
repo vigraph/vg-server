@@ -36,7 +36,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML:
-//   <midi-key-in base="24" modulus="12" ... target .../>
+//   <midi-key-in channel="1" target .../>
 MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
                                    const XML::Element& config):
   Element(module, config), Control(module, config)
@@ -55,6 +55,9 @@ void MIDIKeyInControl::configure(const XML::Element&)
     interface->register_event_observer(channel,
                                        ViGraph::MIDI::Event::Type::note_on,
                                        this);
+    interface->register_event_observer(channel,
+                                       ViGraph::MIDI::Event::Type::note_off,
+                                       this);
   }
   else
   {
@@ -68,9 +71,11 @@ void MIDIKeyInControl::configure(const XML::Element&)
 void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
 {
   Log::Detail log;
+  bool is_on = event.type==ViGraph::MIDI::Event::Type::note_on;
   log << "MIDI " << (int)event.channel << ": key " << (int)event.key
-      << " ON @" << event.value << endl;
-  send(Dataflow::Value(event.key));
+      << " " << (is_on?"ON":"OFF") << " @" << event.value << endl;
+
+  send(Dataflow::Value(is_on ? event.key : -event.key));
 }
 
 //--------------------------------------------------------------------------
@@ -83,7 +88,7 @@ Dataflow::Module module
   "midi",
   {
     { "channel", { {"MIDI channel (0=all)", "0"}, Value::Type::number,
-                                                    "@channel" } }
+                                                    "@channel" } },
   },
   { { "", { "Key code", "key", Value::Type::number }}}
 };

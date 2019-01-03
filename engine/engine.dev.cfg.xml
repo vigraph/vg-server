@@ -2,7 +2,7 @@
   Configuration file for ViGraph dataflow engine server (vg-engine)
   Development version
 
-  Copyright (c) Paul Clark 2017-2018.
+  Copyright (c) Paul Clark 2017-2019.
   All rights reserved.
 -->
 
@@ -20,15 +20,17 @@
   <services>
     <collision-detector/>
     <midi device="virtual"/>
+    <key-distributor/>
   </services>
 
   <!-- The dataflow graph -->
   <graph frequency="25">
-    <midi-key-in channel="1" property="index"/>
-    <add offset="-24" property="index"/>
-    <wrap max="12" target="selector" property="index"/>
-    <websocket-control property="index" port="33382"/>
-    <selector>
+    <midi-key-in channel="1" target="selector" property="index"/>
+<!--    <add offset="-24" property="index"/>
+     <wrap max="12" target="selector" property="index"/>
+     -->
+    <websocket-control port="33382" target="selector" property="index"/>
+    <selector multiple="true">
       <graph id="beam">
         <figure points="1">
           <y pos="0.25"/>

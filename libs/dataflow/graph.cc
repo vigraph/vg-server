@@ -10,8 +10,6 @@
 
 namespace ViGraph { namespace Dataflow {
 
-const double default_frequency = 25;
-
 //------------------------------------------------------------------------
 // Add an element to the graph
 void Graph::add(Element *el)
@@ -189,13 +187,6 @@ void Graph::configure(const XML::Element& config)
   disconnected_acceptors.clear();
   unbound_generators.clear();
   last_element = nullptr;
-
-  // Get tick interval from frequency
-  double freq = config.get_attr_real("frequency", default_frequency);
-  if (freq > 0)
-    tick_interval = Time::Duration(1/freq);
-  else
-    tick_interval = Time::Duration(1/default_frequency);
 
   // Two-phase create/connect to allow forward references
 

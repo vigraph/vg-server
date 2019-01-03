@@ -80,7 +80,8 @@ void IDNTransmitFilter::accept(FramePtr frame)
 
   // Timestamp and duration in microseconds, wrapping every ~4000 sec
   message.timestamp = static_cast<uint32_t>(frame->timestamp * 1000000.0);
-  message.duration = static_cast<uint32_t>(graph->get_tick_interval().seconds()
+  auto& engine = graph->get_engine();
+  message.duration = static_cast<uint32_t>(engine.get_tick_interval().seconds()
                                            * 1000000.0);
 
   // Add configuration periodically

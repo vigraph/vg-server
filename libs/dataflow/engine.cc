@@ -37,7 +37,6 @@ void Engine::configure(const XML::Element& graph_config,
 // Tick the engine
 void Engine::tick(Time::Stamp t)
 {
-  Time::Duration tick_interval = graph->get_tick_interval();
   if (t - last_graph_tick_time >= tick_interval)
   {
     try

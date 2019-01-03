@@ -17,6 +17,7 @@ Server server;
 
 // Defaults
 const auto default_licence = "/etc/vigraph/licence.xml";
+const double default_frequency = 25;
 
 //--------------------------------------------------------------------------
 // Constructor
@@ -133,6 +134,14 @@ void Server::reconfigure()
 
   // Shutdown any existing graph
   engine.shutdown();
+
+  // Get tick interval from frequency
+  double freq = config_xml.get_child("tick").get_attr_real("frequency",
+                                                           default_frequency);
+  if (freq > 0)
+    engine.set_tick_interval(Time::Duration(1/freq));
+  else
+    engine.set_tick_interval(Time::Duration(1/default_frequency));
 
   // (Re)load modules
   const XML::Element& modules_e = config_xml.get_child("modules");

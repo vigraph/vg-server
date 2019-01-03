@@ -23,8 +23,11 @@
     <key-distributor/>
   </services>
 
+  <!-- Tick frequency (Hz, 25) -->
+  <tick frequency="25"/>
+
   <!-- The dataflow graph -->
-  <graph frequency="25">
+  <graph>
     <midi-key-in channel="1">
       <target id="rebase-on" property-on="enable"/>
       <target id="rebase-off" property-off="disable"/>

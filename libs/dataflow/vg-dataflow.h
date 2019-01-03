@@ -403,7 +403,6 @@ class Control: virtual public Element
 class Graph
 {
   Engine& engine;
-  Time::Duration tick_interval;
   MT::RWMutex mutex;
   map<string, shared_ptr<Element> > elements;   // By ID
 
@@ -433,10 +432,6 @@ class Graph
   // Configure with XML
   // Throws a runtime_error if configuration fails
   void configure(const XML::Element& config);
-
-  //------------------------------------------------------------------------
-  // Get the tick interval
-  Time::Duration get_tick_interval() { return tick_interval; }
 
   //------------------------------------------------------------------------
   // Add an element to the graph
@@ -609,6 +604,7 @@ class Engine
   // Graph structure
   MT::Mutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
+  Time::Duration tick_interval{0.04};  // 25Hz default
   Dataflow::timestamp_t timestamp{0};
   Time::Stamp last_graph_tick_time;
 
@@ -619,6 +615,11 @@ class Engine
   //------------------------------------------------------------------------
   // Constructor
   Engine(): graph(new Graph(*this)) {}
+
+  //------------------------------------------------------------------------
+  // Set/get the tick interval
+  void set_tick_interval(const Time::Duration& d) { tick_interval = d; }
+  Time::Duration get_tick_interval() const { return tick_interval; }
 
   //------------------------------------------------------------------------
   // Get the graph (for testing only)

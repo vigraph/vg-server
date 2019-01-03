@@ -34,8 +34,11 @@
     <directory path="/usr/lib/vigraph/modules"/>
   </modules>
 
+  <!-- Tick frequency (Hz, 25) -->
+  <tick frequency="25"/>
+
   <!-- The dataflow graph -->
-  <graph frequency="25">
+  <graph>
     <lfo target='c1' property="x.freq" period="87" scale="1.5"/>
     <lfo target='c1' property="y.freq" period="101" scale="2"/>
     <lfo target='c1' property="y.phase" period="217"/>

@@ -38,7 +38,7 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML
 // <set value="42" wait="yes"
-//      type="{real|integer|boolean|trigger}"
+//      type="{number|trigger}"
 //      property="..."/>
 SetControl::SetControl(const Module *module, const XML::Element& config):
   Element(module, config), Control(module, config)

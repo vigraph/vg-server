@@ -116,7 +116,8 @@ class WebSocketFilter: public FrameFilter
   bool frame_seen{false};
 
   // Source/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void accept(FramePtr frame) override;
   void post_tick(Dataflow::timestamp_t) override;
   void shutdown() override;
@@ -128,7 +129,8 @@ public:
 
 //--------------------------------------------------------------------------
 // Configure from XML
-void WebSocketFilter::configure(const XML::Element& config)
+void WebSocketFilter::configure(const File::Directory&,
+                                const XML::Element& config)
 {
   int hport = config.get_attr_int("port");
   if (hport)

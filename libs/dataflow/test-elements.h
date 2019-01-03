@@ -34,7 +34,8 @@ public:
   }
 
   // Configure
-  void configure(const XML::Element& config) override
+  void configure(const File::Directory&,
+                 const XML::Element& config) override
   {
     value = config.get_attr_int("value");
   }
@@ -76,7 +77,8 @@ public:
   }
 
   // Configure
-  void configure(const XML::Element& config) override
+  void configure(const File::Directory&,
+                 const XML::Element& config) override
   {
     value = config.get_attr_int("value");
   }
@@ -163,7 +165,7 @@ inline void construct_graph(const string& xml, Dataflow::Graph& graph)
   try
   {
     register_elements();
-    graph.configure(config.get_root());
+    graph.configure(File::Directory("."), config.get_root());
   }
   catch (runtime_error e)
   {
@@ -182,7 +184,7 @@ inline void construct_graph_should_fail(const string& xml,
   try
   {
     register_elements();
-    graph.configure(config.get_root());
+    graph.configure(File::Directory("."), config.get_root());
   }
   catch (runtime_error e)
   {
@@ -201,7 +203,7 @@ inline void construct_multigraph(const string& xml, Dataflow::MultiGraph& graph)
   try
   {
     register_elements();
-    graph.configure(config.get_root());
+    graph.configure(File::Directory("."), config.get_root());
   }
   catch (runtime_error e)
   {

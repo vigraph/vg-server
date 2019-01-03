@@ -14,7 +14,8 @@ namespace ViGraph { namespace Dataflow {
 //------------------------------------------------------------------------
 // Configure with <graph> and <services> XML
 // Throws a runtime_error if configuration fails
-void Engine::configure(const XML::Element& graph_config,
+void Engine::configure(const File::Directory& base_dir,
+                       const XML::Element& graph_config,
                        const XML::Element& services_config)
 {
   // Create services from services config
@@ -30,7 +31,7 @@ void Engine::configure(const XML::Element& graph_config,
   }
 
   // Configure graph from graph config
-  graph->configure(graph_config);
+  graph->configure(base_dir, graph_config);
 }
 
 //------------------------------------------------------------------------

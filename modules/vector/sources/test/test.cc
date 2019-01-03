@@ -18,7 +18,8 @@ class TestSource: public Dataflow::Source
   double precision{default_precision};
 
   // Source/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void tick(Dataflow::timestamp_t t) override;
 
   // Internals
@@ -32,7 +33,8 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML:
 //    <test/>
-void TestSource::configure(const XML::Element& config)
+void TestSource::configure(const File::Directory&,
+                           const XML::Element& config)
 {
   precision = config.get_attr_real("precision", default_precision);
 }

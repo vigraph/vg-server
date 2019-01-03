@@ -18,7 +18,8 @@ class CloneSource: public Dataflow::Source
   int n{1};
 
   // Source/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void attach(Dataflow::Acceptor *_target) override;
   void tick(Dataflow::timestamp_t t) override;
 
@@ -32,7 +33,8 @@ public:
 //  <clone n="10">
 //    .. subgraph elements ..
 //  </clone>
-void CloneSource::configure(const XML::Element& config)
+void CloneSource::configure(const File::Directory& base_dir,
+                            const XML::Element& config)
 {
   n = config.get_attr_int("n", 1);
 
@@ -40,7 +42,7 @@ void CloneSource::configure(const XML::Element& config)
 
   // Read our own children as sub-graphs, n times
   for(auto i=0; i<n; i++)
-    multigraph->add_subgraph(config);
+    multigraph->add_subgraph(base_dir, config);
 }
 
 //--------------------------------------------------------------------------

@@ -17,6 +17,7 @@
 #include "ot-init.h"
 #include "ot-text.h"
 #include "ot-time.h"
+#include "ot-file.h"
 
 namespace ViGraph { namespace Dataflow {
 
@@ -262,7 +263,8 @@ public:
   // Implement this for configuration which could take time, or needs
   // Engine registries to create sub-graphs / access services
   // Throw a runtime_error if configuration fails
-  virtual void configure(const XML::Element& /*config*/) {}
+  virtual void configure(const File::Directory& /*base_dir*/,
+                         const XML::Element& /*config*/) {}
 
   // Connect to other elements in the graph, for cases where the normal
   // graph connection isn't sufficient.  Called when the graph is already
@@ -406,6 +408,9 @@ class Graph
   MT::RWMutex mutex;
   map<string, shared_ptr<Element> > elements;   // By ID
 
+  // Source
+  File::Path source_file;  // empty if inline
+
   // Construction state
   map<string, int> id_serials;  // ID serial number for each type
   list<Element *> disconnected_acceptors;
@@ -429,9 +434,9 @@ class Graph
   Engine& get_engine() { return engine; }
 
   //------------------------------------------------------------------------
-  // Configure with XML
+  // Configure with XML, with a base directory for files
   // Throws a runtime_error if configuration fails
-  void configure(const XML::Element& config);
+  void configure(const File::Directory& base_dir, const XML::Element& config);
 
   //------------------------------------------------------------------------
   // Add an element to the graph
@@ -495,12 +500,14 @@ class MultiGraph
   // Configure with XML
   // Reads <graph> child elements of config
   // Throws a runtime_error if configuration fails
-  void configure(const XML::Element& config);
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config);
 
   //------------------------------------------------------------------------
   // Add a graph from the given XML
   // Throws a runtime_error if configuration fails
-  void add_subgraph(const XML::Element& graph_config);
+  void add_subgraph(const File::Directory& base_dir,
+                    const XML::Element& graph_config);
 
   //------------------------------------------------------------------------
   // Attach a pure Acceptor to the end of all subgraphs (for testing only)
@@ -641,7 +648,8 @@ class Engine
   //------------------------------------------------------------------------
   // Configure with <graph> and <services> XML
   // Throws a runtime_error if configuration fails
-  void configure(const XML::Element& graph_config,
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& graph_config,
                  const XML::Element& services_config);
 
   //------------------------------------------------------------------------

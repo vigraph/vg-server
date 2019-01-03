@@ -32,7 +32,7 @@ public:
     XML::Element graph_e;
     XML::Element services_e;
     services_e.add(service_id);
-    engine.configure(graph_e, services_e);
+    engine.configure(File::Directory("."), graph_e, services_e);
   };
 
   void load(const string& path)

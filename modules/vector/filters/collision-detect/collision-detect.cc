@@ -22,7 +22,8 @@ class CollisionDetectFilter: public FrameFilter, public Dataflow::Control,
   shared_ptr<CollisionDetector> detector;
 
   // Filter/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void accept(FramePtr frame) override;
 
   // CollisionObserver virtual
@@ -47,7 +48,8 @@ CollisionDetectFilter::CollisionDetectFilter(const Dataflow::Module *module,
 
 //--------------------------------------------------------------------------
 // Configure from XML (once we have the engine)
-void CollisionDetectFilter::configure(const XML::Element&)
+void CollisionDetectFilter::configure(const File::Directory&,
+                                      const XML::Element&)
 {
   auto& engine = graph->get_engine();
   detector = engine.get_service<CollisionDetector>("collision-detector");

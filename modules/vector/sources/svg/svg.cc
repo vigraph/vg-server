@@ -20,7 +20,8 @@ class SVGSource: public Source
   vector<Point> points;
 
   // Source/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void tick(timestamp_t t) override;
 
 public:
@@ -32,7 +33,8 @@ public:
 // Construct from XML:
 //    <svg path="M0 0 L 1 2..."/>
 // or <svg file="picture.svg"/>
-void SVGSource::configure(const XML::Element& config)
+void SVGSource::configure(const File::Directory& base_dir,
+                          const XML::Element& config)
 {
   Log::Streams log;
 
@@ -53,10 +55,11 @@ void SVGSource::configure(const XML::Element& config)
         return;
       }
 
-      XML::Configuration cfg(file, log.error);
+      File::Path fpath(base_dir, file);
+      XML::Configuration cfg(fpath.str(), log.error);
       if (!cfg.read())
       {
-        log.error << "Can't read SVG file " << file << endl;
+        log.error << "Can't read SVG file " << fpath << endl;
         return;
       }
 

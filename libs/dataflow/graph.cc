@@ -7,6 +7,7 @@
 //==========================================================================
 
 #include "vg-dataflow.h"
+#include "ot-log.h"
 
 namespace ViGraph { namespace Dataflow {
 
@@ -176,11 +177,32 @@ void Graph::connect(Element *el)
 }
 
 //------------------------------------------------------------------------
-// Construct with XML
+// Configure with XML, with a base directory for files
 // Throws a runtime_error if configuration fails
-void Graph::configure(const XML::Element& config)
+void Graph::configure(const File::Directory& base_dir,
+                      const XML::Element& config)
 {
- // Lock for write and clear existing state
+  // Check for load from file - if so, read it and recurse
+  const auto& fn = config["file"];
+  if (!fn.empty())
+  {
+    source_file = File::Path(base_dir, fn);
+    Log::Error log;
+    XML::Configuration fconfig(source_file.str(), log);
+    if (!fconfig.read("graph"))
+      throw(runtime_error("Can't read graph file "+source_file.str()));
+
+    const auto& root = fconfig.get_root();
+
+    // Recurse, but don't allow it to recurse another level!
+    if (root["file"].empty())
+      configure(File::Directory(source_file.dirname()), root);
+    else
+      throw(runtime_error("Recursive graph files considered harmful!"));
+    return;
+  }
+
+  // Lock for write and clear existing state
   MT::RWWriteLock lock(mutex);
   elements.clear();
   id_serials.clear();
@@ -211,7 +233,7 @@ void Graph::configure(const XML::Element& config)
       el->id += "-"+Text::itos(++id_serials[e.name]);
 
     // Configure it
-    el->configure(e);
+    el->configure(base_dir, e);
 
     // Add it
     add(el);

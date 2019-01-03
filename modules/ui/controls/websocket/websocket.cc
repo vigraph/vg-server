@@ -45,7 +45,8 @@ class WebSocketControl: public Dataflow::Control
   shared_ptr<KeyDistributor> key_distributor;
 
   // Control virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void shutdown() override;
 
 public:
@@ -171,7 +172,8 @@ WebSocketControl::WebSocketControl(const Dataflow::Module *module,
 
 //--------------------------------------------------------------------------
 // Configure from XML (once we have the engine)
-void WebSocketControl::configure(const XML::Element&)
+void WebSocketControl::configure(const File::Directory&,
+                                 const XML::Element&)
 {
   auto& engine = graph->get_engine();
   key_distributor = engine.get_service<KeyDistributor>("key-distributor");

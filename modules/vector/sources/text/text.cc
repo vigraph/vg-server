@@ -21,7 +21,8 @@ class TextSource: public Dataflow::Source
   vector<Point> points;
 
   // Source/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void tick(Dataflow::timestamp_t t) override;
 
 public:
@@ -32,7 +33,8 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML:
 //   <text font="arial.ttf" precision="0.1">Hello, world!</text>
-void TextSource::configure(const XML::Element& config)
+void TextSource::configure(const File::Directory&,
+                           const XML::Element& config)
 {
   Log::Streams log;
   text = *config;

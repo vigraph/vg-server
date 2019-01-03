@@ -22,7 +22,8 @@ class ILDASource: public Dataflow::Source
   static constexpr double default_frame_rate = 25.0;
 
   // Source/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void tick(Dataflow::timestamp_t t) override;
 
 public:
@@ -33,15 +34,17 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML:
 //   <ilda file="..." frame-rate="25"/>
-void ILDASource::configure(const XML::Element& config)
+void ILDASource::configure(const File::Directory& base_dir,
+                           const XML::Element& config)
 {
   // General config
   string filename = config["file"];
   frame_rate = config.get_attr_real("frame-rate", default_frame_rate);
 
   // Read from file
-  ifstream in(filename.c_str());
-  if (!in) throw runtime_error("Can't read ILDA file "+filename);
+  File::Path fpath(base_dir, filename);
+  ifstream in(fpath.c_str());
+  if (!in) throw runtime_error("Can't read ILDA file "+fpath.str());
 
   ILDA::Reader reader(in);
   reader.read(animation);

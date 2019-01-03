@@ -28,7 +28,8 @@ class IDNTransmitFilter: public FrameFilter
   bool intensity_enabled{false};
 
   // Source/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void accept(FramePtr frame) override;
   void shutdown() override;
 
@@ -39,7 +40,8 @@ public:
 
 //--------------------------------------------------------------------------
 // Configure from XML
-void IDNTransmitFilter::configure(const XML::Element& config)
+void IDNTransmitFilter::configure(const File::Directory&,
+                                  const XML::Element& config)
 {
   XML::ConstXPathProcessor xpath(config);
   Log::Streams log;

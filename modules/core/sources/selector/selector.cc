@@ -19,7 +19,8 @@ class SelectorSource: public Dataflow::Source
   map<int, Dataflow::timestamp_t> active_starts;  // Start time, or 0 when new
 
   // Source/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void attach(Dataflow::Acceptor *_target) override;
   void set_property(const string& property, const SetParams& sp) override;
   void tick(Dataflow::timestamp_t t) override;
@@ -39,10 +40,11 @@ public:
 //      ..
 //    </graph>
 //  </selector>
-void SelectorSource::configure(const XML::Element& config)
+void SelectorSource::configure(const File::Directory& base_dir,
+                               const XML::Element& config)
 {
   multigraph.reset(new Dataflow::MultiGraph(graph->get_engine()));
-  multigraph->configure(config);
+  multigraph->configure(base_dir, config);
 }
 
 //--------------------------------------------------------------------------

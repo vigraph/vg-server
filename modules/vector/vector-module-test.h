@@ -42,7 +42,7 @@ class FrameGenerator
     Graph graph(loader.engine);
     try
     {
-      graph.configure(config.get_root());
+      graph.configure(File::Directory("."), config.get_root());
     }
     catch (runtime_error e)
     {
@@ -77,7 +77,7 @@ class BadFrameGenerator
     Graph graph(loader.engine);
     try
     {
-      graph.configure(config.get_root());
+      graph.configure(File::Directory("."), config.get_root());
     }
     catch (runtime_error e)
     {

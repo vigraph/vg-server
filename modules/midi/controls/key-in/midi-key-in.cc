@@ -24,7 +24,8 @@ class MIDIKeyInControl: public Dataflow::Control,
   int channel{0};
 
   // Control virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
 
   // Event observer implementation
   void handle(const ViGraph::MIDI::Event& event) override;
@@ -46,7 +47,8 @@ MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
 
 //--------------------------------------------------------------------------
 // Configure from XML (once we have the engine)
-void MIDIKeyInControl::configure(const XML::Element&)
+void MIDIKeyInControl::configure(const File::Directory&,
+                                 const XML::Element&)
 {
   auto& engine = graph->get_engine();
   interface = engine.get_service<Interface>("midi");

@@ -13,23 +13,25 @@ namespace ViGraph { namespace Dataflow {
 //------------------------------------------------------------------------
 // Construct with XML
 // Throws a runtime_error if configuration fails
-void MultiGraph::configure(const XML::Element& config)
+void MultiGraph::configure(const File::Directory& base_dir,
+                           const XML::Element& config)
 {
   // Load all <graph> elements in config
   for(const auto& p: config.get_children("graph"))
-    add_subgraph(*p);
+    add_subgraph(base_dir, *p);
 }
 
 //------------------------------------------------------------------------
 // Add a graph from the given XML
 // Throws a runtime_error if configuration fails
-void MultiGraph::add_subgraph(const XML::Element& graph_config)
+void MultiGraph::add_subgraph(const File::Directory& base_dir,
+                              const XML::Element& graph_config)
 {
   string id = graph_config["id"];
   if (id.empty()) id = "graph-"+Text::itos(++id_serial);
 
   Graph *sub = new Graph(engine);
-  sub->configure(graph_config);
+  sub->configure(base_dir, graph_config);
 
   // Lock for write
   MT::RWWriteLock lock(mutex);

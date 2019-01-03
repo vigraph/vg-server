@@ -89,7 +89,8 @@ class UIKeyControl: public Dataflow::Control,
   int code{0};
 
   // Control virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
 
   // Event observer implementation
   void handle_key(int code) override;
@@ -120,7 +121,8 @@ UIKeyControl::UIKeyControl(const Dataflow::Module *module,
 
 //--------------------------------------------------------------------------
 // Configure from XML (once we have the engine)
-void UIKeyControl::configure(const XML::Element&)
+void UIKeyControl::configure(const File::Directory&,
+                             const XML::Element&)
 {
   auto& engine = graph->get_engine();
   distributor = engine.get_service<KeyDistributor>("key-distributor");

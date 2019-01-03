@@ -53,7 +53,8 @@ class FigureSource: public Source
   void read_axis(const XML::Element& aconfig, Axis& axis);
 
   // Source/Element virtuals
-  void configure(const XML::Element& config) override;
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override;
   void set_property(const string& property, const SetParams& sp) override;
   void tick(timestamp_t t) override;
 
@@ -180,7 +181,8 @@ void FigureSource::read_axis(const XML::Element& aconfig, Axis& axis)
 }
 
 // Configure from XML
-void FigureSource::configure(const XML::Element& config)
+void FigureSource::configure(const File::Directory&,
+                             const XML::Element& config)
 {
   // General config
   points = config.get_attr_int("points", default_points);

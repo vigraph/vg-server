@@ -55,6 +55,12 @@ void Engine::tick(Time::Stamp t)
       Log::Error log;
       log << "Graph tick failed: " << e.what() << endl;
     }
+
+    // Maintain constant timebase unless it's badly out (more than 1 interval)
+    last_graph_tick_time += tick_interval;
+    if (t - last_graph_tick_time >= tick_interval)
+      last_graph_tick_time = t;
+    timestamp += tick_interval.seconds();
   }
 }
 

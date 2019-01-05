@@ -140,6 +140,7 @@ void MIDIInterfaceImpl::run()
       if (n < 0)
       {
         log.error << "Can't read MIDI input: " << snd_strerror(n) << endl;
+        this_thread::sleep_for(chrono::milliseconds{100});
         continue;
       }
 

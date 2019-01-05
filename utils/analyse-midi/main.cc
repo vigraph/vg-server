@@ -75,31 +75,33 @@ int main(int argc, char **argv)
     }
     if (show_hex) cout << "]\n" << dec;
 
-    MIDI::Event event = reader.get();
-    if (event.type == MIDI::Event::Type::none) continue;
-
-    cout << "CH " << (int)event.channel << "\t";
-
-    switch (event.type)
+    for(;;)
     {
-      case MIDI::Event::Type::none:
-        break;
+      MIDI::Event event = reader.get();
+      if (event.type == MIDI::Event::Type::none) break;
 
-      case MIDI::Event::Type::note_off:
-        cout << "ON\t" << (int)event.key << "\t@" << (int)event.value;
-      break;
+      cout << "CH " << (int)event.channel << "\t";
 
-      case MIDI::Event::Type::note_on:
-        cout << "OFF\t" << (int)event.key << "\t@" << (int)event.value;
-        break;
+      switch (event.type)
+      {
+        case MIDI::Event::Type::none:
+          break;
 
-      case MIDI::Event::Type::control_change:
-        cout << "CONTROL\t" << (int)event.key << "\t=" << (int)event.value;
-        break;
+        case MIDI::Event::Type::note_off:
+          cout << "ON\t" << (int)event.key << "\t@" << (int)event.value;
+          break;
 
+        case MIDI::Event::Type::note_on:
+          cout << "OFF\t" << (int)event.key << "\t@" << (int)event.value;
+          break;
+
+        case MIDI::Event::Type::control_change:
+          cout << "CONTROL\t" << (int)event.key << "\t=" << (int)event.value;
+          break;
+      }
+
+      cout << endl;
     }
-
-    cout << endl;
   }
 
   return 0;

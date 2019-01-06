@@ -77,7 +77,7 @@ void MIDIControlInControl::handle(const ViGraph::MIDI::Event& event)
     Log::Detail log;
     log << "MIDI " << (int)event.channel << ": control " << (int)event.key
         << " -> " << event.value << endl;
-    send(Dataflow::Value(event.value));
+    send(Dataflow::Value(event.value/127.0));
   }
 }
 

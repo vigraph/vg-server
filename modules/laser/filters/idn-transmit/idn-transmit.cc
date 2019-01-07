@@ -19,19 +19,27 @@ const char *default_config_interval = "0.1";
 // IDNTransmit filter
 class IDNTransmitFilter: public FrameFilter
 {
+  // Config
   unsigned int packet_size;
   Time::Duration config_interval;
   Net::EndPoint source, destination;
+  bool intensity_enabled{false};
+
+  // State
   unique_ptr<Net::UDPSocket> socket;
   Time::Stamp last_config_sent;
   uint16_t message_sequence{0};
-  bool intensity_enabled{false};
+  bool frame_seen{false};
 
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void accept(FramePtr frame) override;
+  void post_tick(Dataflow::timestamp_t) override;
   void shutdown() override;
+
+  // Internal
+  void transmit(FramePtr frame);
 
 public:
   IDNTransmitFilter(const Dataflow::Module *module, const XML::Element& config):
@@ -77,6 +85,17 @@ void IDNTransmitFilter::configure(const File::Directory&,
 // Process some data
 void IDNTransmitFilter::accept(FramePtr frame)
 {
+  transmit(frame);
+
+  // Send it down as well, so these can be chained
+  send(frame);
+  frame_seen = true;
+}
+
+//--------------------------------------------------------------------------
+// Transmit a frame
+void IDNTransmitFilter::transmit(FramePtr frame)
+{
   // Construct message
   IDN::Message message(IDN::Message::ChunkType::laser_frame_samples_entire);
 
@@ -120,7 +139,7 @@ void IDNTransmitFilter::accept(FramePtr frame)
   }
 
   // Loop, possibly fragmenting
-  for (size_t point_index=0; point_index<frame->points.size();)
+  for (size_t point_index=0; point_index<=frame->points.size();)
   {
     // Check size before adding the rest of the data, to see if we need
     // to fragment
@@ -180,6 +199,8 @@ void IDNTransmitFilter::accept(FramePtr frame)
     // Send it !!! exceptions
     socket->sendto(packet.data(), size, 0, destination);
 
+    // If nothing sent this time, that's it
+    if (!points_this_message) break;
     point_index += points_this_message;
 
     // Change chunk type and clear for next fragment (if any) - doing it
@@ -190,9 +211,19 @@ void IDNTransmitFilter::accept(FramePtr frame)
     // Increment timestamp for next fragment
     message.timestamp++;
   }
+}
 
-  // Send it down as well, so these can be chained
-  send(frame);
+//--------------------------------------------------------------------------
+// Post-tick flush
+void IDNTransmitFilter::post_tick(Dataflow::timestamp_t t)
+{
+  // Send an empty frame if none seen since last tick
+  if (!frame_seen)
+  {
+    FramePtr frame(new Frame(t));
+    transmit(frame);
+  }
+  frame_seen = false;
 }
 
 //--------------------------------------------------------------------------

@@ -139,10 +139,7 @@ void WebSocketFilter::configure(const File::Directory&,
     log << "Starting WebSocket display server at port " << hport << endl;
     server.reset(new WebSocketDisplayServer(hport,
                            "ViGraph laserd WebSocket display server"));
-
-    // Start threads
     server_thread.reset(new Net::TCPServerThread(*server));
-    server_thread->detach();
   }
 }
 
@@ -179,8 +176,12 @@ void WebSocketFilter::shutdown()
   log << "Shutting down WebSocket display server\n";
 
   // Send an empty frame to force shutdown of connection
-  server->queue(nullptr);
-  if (server.get()) server->shutdown();
+  if (!!server)
+  {
+    server->queue(nullptr);
+    server->shutdown();
+  }
+  server_thread->join();
   server_thread.reset();
   server.reset();
 }

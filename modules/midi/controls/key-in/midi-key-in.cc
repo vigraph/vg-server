@@ -26,6 +26,7 @@ class MIDIKeyInControl: public Dataflow::Control,
   // Control virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
+  void shutdown() override;
 
   // Event observer implementation
   void handle(const ViGraph::MIDI::Event& event) override;
@@ -78,6 +79,13 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
       << " " << (is_on?"ON":"OFF") << " @" << event.value << endl;
 
   send(is_on?"on":"off", Dataflow::Value(event.key));
+}
+
+//--------------------------------------------------------------------------
+// Shutdown (deregister for keys)
+void MIDIKeyInControl::shutdown()
+{
+  interface->deregister_event_observer(this);
 }
 
 //--------------------------------------------------------------------------

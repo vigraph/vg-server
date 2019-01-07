@@ -410,6 +410,7 @@ class Graph
 
   // Source
   File::Path source_file;  // empty if inline
+  time_t source_file_mtime;
 
   // Construction state
   map<string, int> id_serials;  // ID serial number for each type
@@ -422,6 +423,7 @@ class Graph
   list<Element *> topological_order;
 
   // Internals
+  void configure_from_source_file();
   void toposort(Element *e, set<Element *>& visited);
 
  public:

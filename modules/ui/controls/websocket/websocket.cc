@@ -166,7 +166,6 @@ WebSocketControl::WebSocketControl(const Dataflow::Module *module,
 
     // Start threads
     server_thread.reset(new Net::TCPServerThread(*server));
-    server_thread->detach();
   }
 }
 
@@ -200,6 +199,7 @@ void WebSocketControl::shutdown()
   log << "Shutting down WebSocket control server\n";
 
   if (server.get()) server->shutdown();
+  server_thread->join();
   server_thread.reset();
   server.reset();
 }

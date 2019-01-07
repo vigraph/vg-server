@@ -24,9 +24,12 @@ class KeyDistributor
   // Construct
   KeyDistributor() {}
 
-  // Register an key handler for the given key (negative when released)
+  // Register a key handler for the given key (negative when released)
   virtual void register_key_observer(int code,
                                      KeyObserver *observer) = 0;
+
+  // Deregister an observer from all keys
+  virtual void deregister_key_observer(KeyObserver *observer) = 0;
 
   // Handle a key
   virtual void handle_key(int code) = 0;

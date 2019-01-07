@@ -30,6 +30,7 @@ class KeyDistributorImpl: public Dataflow::Service, public KeyDistributor
 
   // KeyDistributor virtuals
   void register_key_observer(int code, KeyObserver *observer) override;
+  void deregister_key_observer(KeyObserver *observer) override;
   void handle_key(int code) override;
 
 public:
@@ -53,6 +54,20 @@ void KeyDistributorImpl::register_key_observer(int code,
                                                KeyObserver *observer)
 {
   observers.push_back(Observer(code, observer));
+}
+
+//--------------------------------------------------------------------------
+// Deregister an observer from all keys
+void KeyDistributorImpl::deregister_key_observer(KeyObserver *observer)
+{
+  for(auto p=observers.begin(); p!=observers.end();)
+  {
+    Observer& o = *p;
+    if (o.observer == observer)
+      p = observers.erase(p);
+    else
+      ++p;
+  }
 }
 
 //--------------------------------------------------------------------------

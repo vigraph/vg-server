@@ -91,6 +91,7 @@ class UIKeyControl: public Dataflow::Control,
   // Control virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
+  void shutdown() override;
 
   // Event observer implementation
   void handle_key(int code) override;
@@ -142,6 +143,13 @@ void UIKeyControl::configure(const File::Directory&,
 void UIKeyControl::handle_key(int /*code*/)
 {
   send(Dataflow::Value());
+}
+
+//--------------------------------------------------------------------------
+// Shutdown (deregister for keys)
+void UIKeyControl::shutdown()
+{
+  distributor->deregister_key_observer(this);
 }
 
 //--------------------------------------------------------------------------

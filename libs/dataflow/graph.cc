@@ -177,6 +177,27 @@ void Graph::connect(Element *el)
 }
 
 //------------------------------------------------------------------------
+// (re)configure from source_file
+// Throws a runtime_error if configuration fails
+void Graph::configure_from_source_file()
+{
+  Log::Streams log;
+  log.summary << "Reading graph from " << source_file << endl;
+  XML::Configuration fconfig(source_file.str(), log.error);
+  if (!fconfig.read("graph"))
+    throw(runtime_error("Can't read graph file "+source_file.str()));
+
+  source_file_mtime = source_file.last_modified();
+  const auto& root = fconfig.get_root();
+
+  // Recurse, but don't allow it to recurse another level!
+  if (root["file"].empty())
+    configure(File::Directory(source_file.dirname()), root);
+  else
+    throw(runtime_error("Recursive graph files considered harmful!"));
+}
+
+//------------------------------------------------------------------------
 // Configure with XML, with a base directory for files
 // Throws a runtime_error if configuration fails
 void Graph::configure(const File::Directory& base_dir,
@@ -187,18 +208,7 @@ void Graph::configure(const File::Directory& base_dir,
   if (!fn.empty())
   {
     source_file = File::Path(base_dir, fn);
-    Log::Error log;
-    XML::Configuration fconfig(source_file.str(), log);
-    if (!fconfig.read("graph"))
-      throw(runtime_error("Can't read graph file "+source_file.str()));
-
-    const auto& root = fconfig.get_root();
-
-    // Recurse, but don't allow it to recurse another level!
-    if (root["file"].empty())
-      configure(File::Directory(source_file.dirname()), root);
-    else
-      throw(runtime_error("Recursive graph files considered harmful!"));
+    configure_from_source_file();
     return;
   }
 
@@ -287,6 +297,17 @@ void Graph::generate_topological_order()
 // Tick all elements in topological order
 void Graph::tick(timestamp_t t)
 {
+  // Check for file update !!! slow this down
+  if (!source_file.str().empty())
+  {
+    time_t mtime = source_file.last_modified();
+    if (mtime != source_file_mtime)
+    {
+      shutdown();
+      configure_from_source_file();
+    }
+  }
+
   MT::RWReadLock lock(mutex);
 
   // Notify all elements to prepare for a new tick

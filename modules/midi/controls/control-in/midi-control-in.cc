@@ -30,6 +30,7 @@ class MIDIControlInControl: public Dataflow::Control,
 
   // Event observer implementation
   void handle(const ViGraph::MIDI::Event& event) override;
+  void shutdown() override;
 
 public:
   // Construct
@@ -79,6 +80,13 @@ void MIDIControlInControl::handle(const ViGraph::MIDI::Event& event)
         << " -> " << event.value << endl;
     send(Dataflow::Value(event.value/127.0));
   }
+}
+
+//--------------------------------------------------------------------------
+// Shutdown (deregister for events)
+void MIDIControlInControl::shutdown()
+{
+  interface->deregister_event_observer(this);
 }
 
 //--------------------------------------------------------------------------

@@ -39,6 +39,7 @@ class MIDIInterfaceImpl: public Dataflow::Service, public Interface
   void register_event_observer(int channel,
                                ViGraph::MIDI::Event::Type type,
                                EventObserver *observer) override;
+  void deregister_event_observer(EventObserver *observer) override;
 
   // Event observers
   struct Observer
@@ -110,6 +111,20 @@ void MIDIInterfaceImpl::register_event_observer(int channel,
                                                 EventObserver *observer)
 {
   observers.push_back(Observer(channel, type, observer));
+}
+
+//--------------------------------------------------------------------------
+// Deregister an event observer for all events
+void MIDIInterfaceImpl::deregister_event_observer(EventObserver *observer)
+{
+  for(auto p=observers.begin(); p!=observers.end();)
+  {
+    Observer& o = *p;
+    if (o.observer == observer)
+      p = observers.erase(p);
+    else
+      ++p;
+  }
 }
 
 //--------------------------------------------------------------------------

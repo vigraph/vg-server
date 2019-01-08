@@ -417,6 +417,7 @@ class Graph
   list<Element *> disconnected_acceptors;
   list<Generator *> unbound_generators;
   Element *last_element{nullptr};
+  Acceptor *external_acceptor{nullptr};
 
   // Topological ordering - ensure a precursor is ticked before its
   // dependents - either for base data flow or control flow
@@ -455,6 +456,7 @@ class Graph
   //------------------------------------------------------------------------
   // Attach a pure Acceptor to all unbound generators remaining in the graph
   // Returns whether any were attached
+  // Note, doesn't add to graph ordering and remembers this for reload
   bool attach(Acceptor *a);
 
   //------------------------------------------------------------------------

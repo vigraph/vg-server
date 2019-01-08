@@ -29,7 +29,7 @@ void Graph::add(Element *el)
 //------------------------------------------------------------------------
 // Attach a pure Acceptor to all unbound generators remaining in the graph
 // Returns whether any were attached
-// Note, doesn't add to graph ordering
+// Note, doesn't add to graph ordering and remembers this for reload
 bool Graph::attach(Acceptor *a)
 {
   if (unbound_generators.empty()) return false;
@@ -37,6 +37,7 @@ bool Graph::attach(Acceptor *a)
   for(auto g: unbound_generators)
     g->attach(a);
   unbound_generators.clear();
+  external_acceptor = a;
   return true;
 }
 
@@ -257,6 +258,9 @@ void Graph::configure(const File::Directory& base_dir,
   // Check for acceptors that never received any input
   for(auto el: disconnected_acceptors)
     throw runtime_error("Element "+el->id+" has no inputs");
+
+  // Add back any external acceptor that was given in a previous incarnation
+  if (external_acceptor) attach(external_acceptor);
 
   // Generate the topological order from the graph
   generate_topological_order();

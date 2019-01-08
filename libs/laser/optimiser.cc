@@ -46,8 +46,9 @@ vector<Point> Optimiser::optimise(const vector<Point>& points)
       coord_t d = last_point.distance_to(p);
       if (d > max_distance)
       {
-        // Spread along a line
-        Line l(last_point, p);
+        // Spread along a line, using new point's colour
+        Point p0(last_point, p.c);
+        Line l(p0, p);
         coord_t interval = max_distance / d;
         for(coord_t t=interval; t<=1.0-interval; t+=interval)
           new_points.emplace_back(l.interpolate(t));

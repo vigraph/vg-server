@@ -116,6 +116,7 @@ struct Message
   uint8_t scm{0};
   bool once{false};
   uint32_t duration{0}; // microseconds
+  bool has_data{false}; // even if empty
   vector<uint8_t> data;
 
   //-----------------------------------------------------------------------
@@ -131,7 +132,7 @@ struct Message
     size_t length = 8;
     if (has_channel_configuration())
       length += 4 + 4*((config.tags.size()+1)/2); // Rounded up to 32-bit words
-    if (!data.empty() && !is_sequel())
+    if (has_data && !is_sequel())
       length += 4;  // Data chunk header
     length += data.size();
     return length;
@@ -171,7 +172,7 @@ struct Message
   //-----------------------------------------------------------------------
   // Set the data header, duration in microseconds
   void set_data_header(uint32_t _duration, bool _once = false, uint8_t _scm = 0)
-  { duration = _duration; once = _once; scm = _scm; }
+  { duration = _duration; once = _once; scm = _scm; has_data = true; }
 
   //-----------------------------------------------------------------------
   // Add a data byte

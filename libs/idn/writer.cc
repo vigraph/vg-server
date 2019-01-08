@@ -41,16 +41,15 @@ void Writer::write(Message& message)
         output.write_nbo_16(0);
     }
 
-    if (!message.data.empty())
+    // Write data header if data specified and not a sequel
+    if (message.has_data && !message.is_sequel())
     {
-      // Write data header only if not a sequel
-      if (!message.is_sequel())
-      {
-        output.write_byte(message.scm << 4 | (message.once?1:0));
-        output.write_nbo_24(message.duration);
-      }
-      output.write(message.data);
+      output.write_byte(message.scm << 4 | (message.once?1:0));
+      output.write_nbo_24(message.duration);
     }
+
+    if (!message.data.empty())
+      output.write(message.data);
   }
   catch (Channel::Error ce)
   {

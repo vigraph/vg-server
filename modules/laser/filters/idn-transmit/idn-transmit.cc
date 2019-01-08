@@ -102,8 +102,9 @@ void IDNTransmitFilter::transmit(FramePtr frame)
   // Timestamp and duration in microseconds, wrapping every ~4000 sec
   message.timestamp = static_cast<uint32_t>(frame->timestamp * 1000000.0);
   auto& engine = graph->get_engine();
-  message.duration = static_cast<uint32_t>(engine.get_tick_interval().seconds()
+  auto duration = static_cast<uint32_t>(engine.get_tick_interval().seconds()
                                            * 1000000.0);
+  message.set_data_header(duration);
 
   // Add configuration periodically
   Time::Stamp now = Time::Stamp::now();
@@ -138,8 +139,10 @@ void IDNTransmitFilter::transmit(FramePtr frame)
     if (intensity_enabled) message.add_data(0);
   }
 
-  // Loop, possibly fragmenting
-  for (size_t point_index=0; point_index<=frame->points.size();)
+  // Loop, possibly fragmenting - first time, allow empty packets if
+  // config not already sent
+  for (size_t point_index=0;
+       point_index<frame->points.size()+(point_index?0:1);)
   {
     // Check size before adding the rest of the data, to see if we need
     // to fragment

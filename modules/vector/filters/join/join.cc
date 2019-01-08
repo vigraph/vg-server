@@ -57,9 +57,14 @@ void JoinFilter::pre_tick(Dataflow::timestamp_t)
 
 //--------------------------------------------------------------------------
 // Post-tick flush
-void JoinFilter::post_tick(Dataflow::timestamp_t)
+void JoinFilter::post_tick(Dataflow::timestamp_t t)
 {
-  if (!!join) send(join);
+  if (!!join)
+  {
+    // Reset disparate local timebases to our master
+    join->timestamp = t;
+    send(join);
+  }
 }
 
 //--------------------------------------------------------------------------

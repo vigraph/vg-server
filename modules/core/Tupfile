@@ -8,6 +8,7 @@ NAME     = vg-modules-core
 TYPE     = package
 DEPENDS  = vg-module-core-source-selector \
            vg-module-core-source-clone \
+           vg-module-core-source-graph \
            vg-module-core-control-lfo \
            vg-module-core-control-set \
            vg-module-core-control-add \

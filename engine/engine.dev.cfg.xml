@@ -145,11 +145,11 @@
 -->
 
     <idn-transmit>
-      <packet size="65280"/>
-      <configuration interval="0.5"/>
+      <packet size="1472"/>
+      <configuration interval="0.1"/>
       <intensity enabled="true"/>
       <source address="0.0.0.0"/>
-      <host address="localhost" port="7255"/>
+      <host address="10.0.0.100" port="7255"/>
     </idn-transmit>
 
   </graph>

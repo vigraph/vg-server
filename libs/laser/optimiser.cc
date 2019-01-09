@@ -26,6 +26,24 @@ vector<Point> Optimiser::optimise(const vector<Point>& points)
 
   for(const auto& p: points)
   {
+    // Blanking in-fills
+    if (blanking_repeats)
+    {
+      if (last_point_valid)
+      {
+        if (last_point.is_lit() && p.is_blanked())
+        {
+          // Repeat last lit point
+          for(auto i=0; i<blanking_repeats; i++)
+            new_points.emplace_back(last_point);
+
+          // Repeat this blanked point
+          for(auto i=0; i<blanking_repeats; i++)
+            new_points.emplace_back(p);
+        }
+      }
+    }
+
     // Check for vertex with maximum angle
     // Note do this before line infills because we repeat the previous point
     if (max_angle >= 0 && last_vector_valid)
@@ -53,20 +71,6 @@ vector<Point> Optimiser::optimise(const vector<Point>& points)
         coord_t interval = max_distance / d;
         for(coord_t t=interval; t<=1.0-interval; t+=interval)
           new_points.emplace_back(l.interpolate(t));
-      }
-    }
-
-    // Blanking in-fills
-    if (blanking_repeats)
-    {
-      if ((last_point_valid
-          && ((last_point.is_blanked() && p.is_lit())      // blank to lit
-              || (last_point.is_lit() && p.is_blanked()))) // lit to blank
-          || !last_point_valid)                            // first point
-      {
-        // Repeat new point
-        for(auto i=0; i<blanking_repeats; i++)
-          new_points.emplace_back(p);
       }
     }
 

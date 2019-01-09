@@ -123,7 +123,7 @@ TEST(OptimiserTest, TestRepeatsAddedForBlanking)
   Optimiser optimiser;
   optimiser.enable_blanking_repeats(3);
   vector<Point> opoints = optimiser.optimise(points);
-  ASSERT_EQ(8, opoints.size());
+  ASSERT_EQ(5, opoints.size());
   ASSERT_EQ(Point(0,0), opoints[0]);
   ASSERT_TRUE(opoints[0].is_blanked());
   EXPECT_EQ(Point(0,0), opoints[1]);
@@ -134,12 +134,6 @@ TEST(OptimiserTest, TestRepeatsAddedForBlanking)
   ASSERT_TRUE(opoints[3].is_blanked());
   EXPECT_EQ(Point(1,1), opoints[4]);
   EXPECT_EQ(Colour::white, opoints[4].c);
-  EXPECT_EQ(Point(1,1), opoints[5]);
-  EXPECT_EQ(Colour::white, opoints[5].c);
-  EXPECT_EQ(Point(1,1), opoints[6]);
-  EXPECT_EQ(Colour::white, opoints[6].c);
-  EXPECT_EQ(Point(1,1), opoints[7]);
-  EXPECT_EQ(Colour::white, opoints[7].c);
 }
 
 } // anonymous namespace

@@ -89,7 +89,7 @@ TEST(OptimiseTest, TestBlankingPointInsertion)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  ASSERT_EQ(8, frame->points.size());  // 2 points, 3 added at each
+  ASSERT_EQ(5, frame->points.size());  // 2 points, 3 added at blank
   for(auto i=0; i<4; i++)
   {
     const auto& p = frame->points[i];
@@ -97,13 +97,11 @@ TEST(OptimiseTest, TestBlankingPointInsertion)
     EXPECT_EQ(0, p.y);
     EXPECT_TRUE(p.is_blanked());
   }
-  for(auto i=4; i<8; i++)
-  {
-    const auto& p = frame->points[i];
-    EXPECT_EQ(0.5, p.x);
-    EXPECT_EQ(0, p.y);
-    EXPECT_TRUE(p.is_lit());
-  }
+
+  const auto& p = frame->points[4];
+  EXPECT_EQ(0.5, p.x);
+  EXPECT_EQ(0, p.y);
+  EXPECT_TRUE(p.is_lit());
 }
 
 int main(int argc, char **argv)

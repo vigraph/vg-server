@@ -98,6 +98,34 @@ TEST(OptimiserTest, TestRepeatsAddedIfMaxAngleExceeded)
   EXPECT_EQ(Point(0.9,2), opoints[5]);
 }
 
+TEST(OptimiserTest, TestRepeatsAddedForBlanking)
+{
+  vector<Point> points;
+  points.push_back(Point(0, 0));
+  points.push_back(Point(1, 1, Colour::white));
+
+  Optimiser optimiser;
+  optimiser.enable_blanking_repeats(3);
+  vector<Point> opoints = optimiser.optimise(points);
+  ASSERT_EQ(8, opoints.size());
+  ASSERT_EQ(Point(0,0), opoints[0]);
+  ASSERT_TRUE(opoints[0].is_blanked());
+  EXPECT_EQ(Point(0,0), opoints[1]);
+  ASSERT_TRUE(opoints[1].is_blanked());
+  EXPECT_EQ(Point(0,0), opoints[2]);
+  ASSERT_TRUE(opoints[2].is_blanked());
+  EXPECT_EQ(Point(0,0), opoints[3]);
+  ASSERT_TRUE(opoints[3].is_blanked());
+  EXPECT_EQ(Point(1,1), opoints[4]);
+  EXPECT_EQ(Colour::white, opoints[4].c);
+  EXPECT_EQ(Point(1,1), opoints[5]);
+  EXPECT_EQ(Colour::white, opoints[5].c);
+  EXPECT_EQ(Point(1,1), opoints[6]);
+  EXPECT_EQ(Colour::white, opoints[6].c);
+  EXPECT_EQ(Point(1,1), opoints[7]);
+  EXPECT_EQ(Colour::white, opoints[7].c);
+}
+
 } // anonymous namespace
 
 int main(int argc, char **argv)

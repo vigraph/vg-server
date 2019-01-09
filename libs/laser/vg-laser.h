@@ -27,6 +27,7 @@ class Optimiser
   coord_t max_distance{0.0};
   double max_angle{-1.0};    // in radians
   int vertex_repeats{0};
+  int blanking_repeats{0};
 
  public:
   //-----------------------------------------------------------------------
@@ -44,6 +45,12 @@ class Optimiser
   // Points are added at vertices above a angle
   void enable_vertex_repeats(double _max_angle, int _repeats)
   { max_angle = _max_angle; vertex_repeats = _repeats; }
+
+  //-----------------------------------------------------------------------
+  // Enable blanking anchors
+  // Points are added at blanking start/end points
+  void enable_blanking_repeats(int _repeats)
+  { blanking_repeats = _repeats; }
 
   //-----------------------------------------------------------------------
   // Optimise a set of points

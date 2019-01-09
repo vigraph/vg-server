@@ -19,6 +19,7 @@ class OptimiseFilter: public FrameFilter
   coord_t max_distance;
   coord_t max_angle;     // in rad
   int vertex_repeats;
+  int blanking_repeats;
   Laser::Optimiser optimiser;
 
   // Filter/Element virtuals
@@ -43,6 +44,9 @@ OptimiseFilter::OptimiseFilter(const Dataflow::Module *module,
   max_angle = config.get_attr_real("max-angle")*pi/180;
   vertex_repeats = config.get_attr_int("vertex-repeats");
   optimiser.enable_vertex_repeats(max_angle, vertex_repeats);
+
+  blanking_repeats = config.get_attr_int("blanking-repeats");
+  optimiser.enable_blanking_repeats(blanking_repeats);
 }
 
 //--------------------------------------------------------------------------
@@ -64,6 +68,11 @@ void OptimiseFilter::set_property(const string& property, const SetParams& sp)
     update_prop_int(vertex_repeats, sp);
     optimiser.enable_vertex_repeats(max_angle, vertex_repeats);
   }
+  else if (property == "blanking-repeats")
+  {
+    update_prop_int(blanking_repeats, sp);
+    optimiser.enable_blanking_repeats(blanking_repeats);
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -71,7 +80,7 @@ void OptimiseFilter::set_property(const string& property, const SetParams& sp)
 void OptimiseFilter::accept(FramePtr frame)
 {
   // Fast null operation
-  if (!max_distance && !max_angle)
+  if (!max_distance && !max_angle && !blanking_repeats)
   {
     send(frame);
     return;
@@ -94,6 +103,8 @@ Dataflow::Module module
     { "max-angle",    { "Angle at a vertex before adding points",
           Value::Type::number } },
     { "vertex-repeats", { "Number of points to add at a sharp vertex",
+          Value::Type::number } },
+    { "blanking-repeats", { "Number of points to add at blanking start/end",
           Value::Type::number } }
   },
   { "VectorFrame" }, // inputs

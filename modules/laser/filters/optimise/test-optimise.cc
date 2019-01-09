@@ -76,6 +76,36 @@ TEST(OptimiseTest, TestMaximumAngleIgnoresSmallAngles)
   ASSERT_EQ(3, frame->points.size());  // None added
 }
 
+TEST(OptimiseTest, TestBlankingPointInsertion)
+{
+  const string& xml = R"(
+    <graph>
+      <svg path="M0,0 L1,0"/>
+      <optimise blanking-repeats="3"/>
+    </graph>
+  )";
+
+  FrameGenerator gen(xml, loader);
+  Frame *frame = gen.get_frame();
+  ASSERT_FALSE(!frame);
+
+  ASSERT_EQ(8, frame->points.size());  // 2 points, 3 added at each
+  for(auto i=0; i<4; i++)
+  {
+    const auto& p = frame->points[i];
+    EXPECT_EQ(-0.5, p.x);
+    EXPECT_EQ(0, p.y);
+    EXPECT_TRUE(p.is_blanked());
+  }
+  for(auto i=4; i<8; i++)
+  {
+    const auto& p = frame->points[i];
+    EXPECT_EQ(0.5, p.x);
+    EXPECT_EQ(0, p.y);
+    EXPECT_TRUE(p.is_lit());
+  }
+}
+
 int main(int argc, char **argv)
 {
   if (argc > 1 && string(argv[1]) == "-v")

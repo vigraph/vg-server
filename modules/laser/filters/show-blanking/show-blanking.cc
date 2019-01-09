@@ -7,7 +7,6 @@
 //==========================================================================
 
 #include "../../../vector/vector-module.h"
-#include "vg-laser.h"
 
 namespace {
 

@@ -9,7 +9,8 @@ TYPE     = package
 DEPENDS  = vg-module-laser-filter-beamify \
            vg-module-laser-source-ilda \
            vg-module-laser-filter-idn-transmit \
-           vg-module-laser-filter-optimise
+           vg-module-laser-filter-optimise \
+           vg-module-laser-filter-show-blanking
 
 PACKAGE  = $(NAME)
 VERSION  = 0.4.0

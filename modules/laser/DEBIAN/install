@@ -2,3 +2,4 @@
 filters/beamify/vg-module-laser-filter-beamify.so /usr/lib/vigraph/modules/
 filters/idn-transmit/vg-module-laser-filter-idn-transmit.so /usr/lib/vigraph/modules/
 filters/optimise/vg-module-laser-filter-optimise.so /usr/lib/vigraph/modules/
+filters/show-blanking/vg-module-laser-filter-show-blanking.so /usr/lib/vigraph/modules/

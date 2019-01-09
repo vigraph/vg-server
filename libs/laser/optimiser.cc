@@ -40,8 +40,8 @@ vector<Point> Optimiser::optimise(const vector<Point>& points)
       }
     }
 
-    // Maximum distance in-fills
-    if (max_distance && last_point_valid)
+    // Maximum distance in-fills - only for lit lines
+    if (max_distance && last_point_valid && p.is_lit())
     {
       // Check point against last
       coord_t d = last_point.distance_to(p);

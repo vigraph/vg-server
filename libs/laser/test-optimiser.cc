@@ -20,8 +20,8 @@ TEST(OptimiserTest, TestPassThroughIfNoOperationsConfigured)
 {
   vector<Point> points;
   points.push_back(Point(0, 0));
-  points.push_back(Point(1, 1));
-  points.push_back(Point(2, 2));
+  points.push_back(Point(1, 1, Colour::white));
+  points.push_back(Point(2, 2, Colour::red));
 
   Optimiser optimiser;
   vector<Point> opoints = optimiser.optimise(points);
@@ -32,6 +32,22 @@ TEST(OptimiserTest, TestPassThroughIfNoOperationsConfigured)
 }
 
 TEST(OptimiserTest, TestPassThroughIfMaxDistanceNotExceeded)
+{
+  vector<Point> points;
+  points.push_back(Point(0, 0));
+  points.push_back(Point(1, 1, Colour::white));
+  points.push_back(Point(2, 2, Colour::white));
+
+  Optimiser optimiser;
+  optimiser.enable_infill(1);
+  vector<Point> opoints = optimiser.optimise(points);
+  ASSERT_EQ(3, opoints.size());
+  ASSERT_EQ(Point(0,0), opoints[0]);
+  EXPECT_EQ(Point(1,1), opoints[1]);
+  EXPECT_EQ(Point(2,2), opoints[2]);
+}
+
+TEST(OptimiserTest, TestPassThroughIfBlank)
 {
   vector<Point> points;
   points.push_back(Point(0, 0));
@@ -51,7 +67,7 @@ TEST(OptimiserTest, TestMaxDistanceInfill)
 {
   vector<Point> points;
   points.push_back(Point(0, 0));
-  points.push_back(Point(1, 0));
+  points.push_back(Point(1, 0, Colour::white));  // blanks aren't infilled
 
   Optimiser optimiser;
   optimiser.enable_infill(0.5);

@@ -15,7 +15,8 @@ namespace ViGraph { namespace Laser {
 vector<Point> Optimiser::optimise(const vector<Point>& points)
 {
   // Fast null operation
-  if (!max_distance && max_angle < 0 && !blanking_repeats) return points;
+  if (!max_distance && max_angle < 0 && !blanking_repeats)
+    return points;
 
   Point last_point;
   bool last_point_valid{false};

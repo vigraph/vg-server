@@ -20,7 +20,9 @@ class OptimiseFilter: public FrameFilter
   coord_t max_angle;     // in rad
   int vertex_repeats;
   int blanking_repeats;
+  bool reorder;
   Laser::Optimiser optimiser;
+  Laser::Reorderer reorderer;
 
   // Filter/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -33,7 +35,8 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML
-//  <optimise max-distance="0.001"/>
+//  <optimise max-distance="0.001" max-angle="30" vertex-repeats="3"
+//            blanking-repeats="5" reorder="true"/>
 OptimiseFilter::OptimiseFilter(const Dataflow::Module *module,
                                const XML::Element& config):
   Element(module, config), FrameFilter(module, config)
@@ -47,6 +50,8 @@ OptimiseFilter::OptimiseFilter(const Dataflow::Module *module,
 
   blanking_repeats = config.get_attr_int("blanking-repeats");
   optimiser.enable_blanking_repeats(blanking_repeats);
+
+  reorder = config.get_attr_bool("reorder");
 }
 
 //--------------------------------------------------------------------------
@@ -80,13 +85,17 @@ void OptimiseFilter::set_property(const string& property, const SetParams& sp)
 void OptimiseFilter::accept(FramePtr frame)
 {
   // Fast null operation
-  if (!max_distance && !max_angle && !blanking_repeats)
+  if (!max_distance && !max_angle && !blanking_repeats && !reorder)
   {
     send(frame);
     return;
   }
 
   frame->points = optimiser.optimise(frame->points);
+
+  if (reorder)
+    frame->points = reorderer.reorder(frame->points);
+
   send(frame);
 }
 
@@ -99,13 +108,16 @@ Dataflow::Module module
   "Optimise frames for laser scanners",
   "vector",
   {
-    { "max-distance", { "Maximum distance between points", Value::Type::number } },
+    { "max-distance", { "Maximum distance between points",
+          Value::Type::number, true } },
     { "max-angle",    { "Angle at a vertex before adding points",
-          Value::Type::number } },
+          Value::Type::number, true } },
     { "vertex-repeats", { "Number of points to add at a sharp vertex",
-          Value::Type::number } },
+          Value::Type::number, true } },
     { "blanking-repeats", { "Number of points to add at blanking start/end",
-          Value::Type::number } }
+          Value::Type::number, true } },
+    { "reorder", { "Whether to reorder segments to minimise scan distance",
+          Value::Type::boolean } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

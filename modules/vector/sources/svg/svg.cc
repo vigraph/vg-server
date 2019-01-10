@@ -17,6 +17,7 @@ class SVGSource: public Source
 {
   SVG::Path path;
   double precision;
+  bool normalise;
   vector<Point> points;
 
   // Source/Element virtuals
@@ -31,7 +32,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML:
-//    <svg path="M0 0 L 1 2..."/>
+//    <svg path="M0 0 L 1 2..." auto-scale="true"/>
 // or <svg file="picture.svg"/>
 void SVGSource::configure(const File::Directory& base_dir,
                           const XML::Element& config)
@@ -75,13 +76,15 @@ void SVGSource::configure(const File::Directory& base_dir,
   }
 
   precision = config.get_attr_real("precision", SVG::Path::default_precision);
+  normalise = config.get_attr_bool("normalise", true);
 
   log.summary << "Loaded SVG animation with "
               << path.segments.size() << " segments\n";
   log.detail << "Curve precision: " << precision << endl;
+  if (!normalise) log.detail << "No normalisation\n";
 
   // Render to points immediately, since it doesn't change
-  path.render(points, precision, true);  // normalising
+  path.render(points, precision, normalise);
   log.detail << "SVG generated " << points.size() << " points\n";
 }
 

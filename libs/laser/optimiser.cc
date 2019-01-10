@@ -13,7 +13,7 @@ namespace ViGraph { namespace Laser {
 //-----------------------------------------------------------------------
 // Add repeated points as blanking anchors
 vector<Point> Optimiser::add_blanking_anchors(const vector<Point>& points,
-                                              int repeats)
+                                              int leading, int trailing)
 {
   Point last_point;
   bool last_point_valid{false};
@@ -26,19 +26,32 @@ vector<Point> Optimiser::add_blanking_anchors(const vector<Point>& points,
       if (last_point.is_lit() && p.is_blanked())
       {
         // Repeat last lit point
-        for(auto i=0; i<repeats; i++)
+        for(auto i=0; i<trailing; i++)
           new_points.emplace_back(last_point);
 
         // Repeat this blanked point
-        for(auto i=0; i<repeats; i++)
+        for(auto i=0; i<leading; i++)
           new_points.emplace_back(p);
       }
     }
-
+    else
+    {
+      // First point - insert leading blanks
+      for(auto i=0; i<leading; i++)
+        new_points.emplace_back(Point(p));
+    }
     new_points.emplace_back(p);
 
     last_point = p;
     last_point_valid = true;
+  }
+
+  // Last point - insert trailing lit
+  if (last_point_valid)
+  {
+    // Repeat last lit point
+    for(auto i=0; i<trailing; i++)
+      new_points.emplace_back(last_point);
   }
 
   return new_points;

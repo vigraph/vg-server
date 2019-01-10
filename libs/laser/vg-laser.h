@@ -32,7 +32,7 @@ class Optimiser
   //-----------------------------------------------------------------------
   // Add repeated points as blanking anchors
   vector<Point> add_blanking_anchors(const vector<Point>& points,
-                                     int repeats);
+                                     int leading, int trailing);
 
 
   //-----------------------------------------------------------------------

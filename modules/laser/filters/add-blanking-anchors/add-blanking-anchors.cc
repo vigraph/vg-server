@@ -13,13 +13,15 @@
 
 namespace {
 
-const int default_repeats = 5;
+const int default_leading = 5;
+const int default_trailing = 5;
 
 //==========================================================================
 // AddBlankingAnchors filter
 class AddBlankingAnchorsFilter: public FrameFilter
 {
-  int repeats;
+  int leading;
+  int trailing;
   Laser::Optimiser optimiser;
 
   // Filter/Element virtuals
@@ -40,7 +42,8 @@ AddBlankingAnchorsFilter::AddBlankingAnchorsFilter(
                                          const XML::Element& config):
   Element(module, config), FrameFilter(module, config)
 {
-  repeats = config.get_attr_int("repeats", default_repeats);
+  leading = config.get_attr_int("leading", default_leading);
+  trailing = config.get_attr_int("trailing", default_trailing);
 }
 
 //--------------------------------------------------------------------------
@@ -48,15 +51,18 @@ AddBlankingAnchorsFilter::AddBlankingAnchorsFilter(
 void AddBlankingAnchorsFilter::set_property(const string& property,
                                             const SetParams& sp)
 {
-  if (property == "repeats")
-    update_prop_int(repeats, sp);
+  if (property == "leading")
+    update_prop_int(leading, sp);
+  else if (property == "trailing")
+    update_prop_int(trailing, sp);
 }
 
 //--------------------------------------------------------------------------
 // Process some data
 void AddBlankingAnchorsFilter::accept(FramePtr frame)
 {
-  frame->points = optimiser.add_blanking_anchors(frame->points, repeats);
+  frame->points = optimiser.add_blanking_anchors(frame->points, leading,
+                                                 trailing);
   send(frame);
 }
 
@@ -69,7 +75,9 @@ Dataflow::Module module
   "Add anchors points around blanking for laser scanners",
   "laser",
   {
-    { "repeats", { "Number of points to add at blanking start/end",
+    { "leading", { "Number of points to add at start of lit segment",
+          Value::Type::number, true } },
+    { "trailing", { "Number of points to add at end of lit segment",
           Value::Type::number, true } }
   },
   { "VectorFrame" }, // inputs

@@ -24,51 +24,31 @@ using namespace ViGraph::Geometry;
 // Laser frame optimiser
 class Optimiser
 {
-  coord_t max_distance{0.0};
-  double max_angle{-1.0};    // in radians
-  int vertex_repeats{0};
-  int blanking_repeats{0};
-
  public:
   //-----------------------------------------------------------------------
   // Constructor
   Optimiser() {}
 
   //-----------------------------------------------------------------------
-  // Enable point infill
-  // Points are added to make them no more than 'max_distance' apart
-  void enable_infill(coord_t _max_distance)
-  { max_distance = _max_distance; }
+  // Add repeated points as blanking anchors
+  vector<Point> add_blanking_anchors(const vector<Point>& points,
+                                     int repeats);
+
 
   //-----------------------------------------------------------------------
-  // Enable vertex anchors
-  // Points are added at vertices above a angle
-  void enable_vertex_repeats(double _max_angle, int _repeats)
-  { max_angle = _max_angle; vertex_repeats = _repeats; }
+  // Add repeated points at vertices
+  vector<Point> add_vertex_repeats(const vector<Point>& points,
+                                   double max_angle, // radians
+                                   int repeats);
 
   //-----------------------------------------------------------------------
-  // Enable blanking anchors
-  // Points are added at blanking start/end points
-  void enable_blanking_repeats(int _repeats)
-  { blanking_repeats = _repeats; }
+  // Infill points to enforce a maximum distance
+  vector<Point> infill_lines(const vector<Point>& points,
+                             double max_distance);
 
   //-----------------------------------------------------------------------
-  // Optimise a set of points
-  vector<Point> optimise(const vector<Point>& points);
-};
-
-//==========================================================================
-// Laser frame reorderer
-class Reorderer
-{
- public:
-  //-----------------------------------------------------------------------
-  // Constructor
-  Reorderer() {}
-
-  //-----------------------------------------------------------------------
-  // Reorder a set of points
-  vector<Point> reorder(const vector<Point>& points);
+  // Reorder segments of points to find optimal path
+  vector<Point> reorder_segments(const vector<Point>& points);
 };
 
 //==========================================================================

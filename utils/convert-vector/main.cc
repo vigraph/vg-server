@@ -87,11 +87,12 @@ int main(int argc, char **argv)
   if (max_distance > 0 || max_angle >= 0)
   {
     Laser::Optimiser optimiser;
-    if (max_distance > 0) optimiser.enable_infill(max_distance);
-    if (max_angle >= 0)
-      optimiser.enable_vertex_repeats(max_angle, vertex_repeats);
+    if (max_distance > 0)
+      frame.points = optimiser.infill_lines(frame.points, max_distance);
 
-    frame.points = optimiser.optimise(frame.points);
+    if (max_angle >= 0)
+      frame.points = optimiser.add_vertex_repeats(frame.points, max_angle,
+                                                  vertex_repeats);
     cout << "After optimisation, " << frame.points.size()
          << " points in frame\n";
   }

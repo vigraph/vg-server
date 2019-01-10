@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph infill-lines filter module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-laser-filter-infill-lines
+TYPE    = shared
+DEPENDS = vg-dataflow vg-laser ot-log ext-dl vg-module-vector-source-svg
+
+include_rules

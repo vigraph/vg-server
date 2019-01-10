@@ -11,13 +11,45 @@
 namespace ViGraph { namespace Laser {
 
 //-----------------------------------------------------------------------
-// Optimise a set of points
-vector<Point> Optimiser::optimise(const vector<Point>& points)
+// Add repeated points as blanking anchors
+vector<Point> Optimiser::add_blanking_anchors(const vector<Point>& points,
+                                              int repeats)
 {
-  // Fast null operation
-  if (!max_distance && max_angle < 0 && !blanking_repeats)
-    return points;
+  Point last_point;
+  bool last_point_valid{false};
+  vector<Point> new_points;
 
+  for(const auto& p: points)
+  {
+    if (last_point_valid)
+    {
+      if (last_point.is_lit() && p.is_blanked())
+      {
+        // Repeat last lit point
+        for(auto i=0; i<repeats; i++)
+          new_points.emplace_back(last_point);
+
+        // Repeat this blanked point
+        for(auto i=0; i<repeats; i++)
+          new_points.emplace_back(p);
+      }
+    }
+
+    new_points.emplace_back(p);
+
+    last_point = p;
+    last_point_valid = true;
+  }
+
+  return new_points;
+}
+
+//-----------------------------------------------------------------------
+// Add repeated points at vertices
+vector<Point> Optimiser::add_vertex_repeats(const vector<Point>& points,
+                                            double max_angle, // radians
+                                            int repeats)
+{
   Point last_point;
   bool last_point_valid{false};
   Vector last_vector;
@@ -26,40 +58,46 @@ vector<Point> Optimiser::optimise(const vector<Point>& points)
 
   for(const auto& p: points)
   {
-    // Blanking in-fills
-    if (blanking_repeats)
-    {
-      if (last_point_valid)
-      {
-        if (last_point.is_lit() && p.is_blanked())
-        {
-          // Repeat last lit point
-          for(auto i=0; i<blanking_repeats; i++)
-            new_points.emplace_back(last_point);
-
-          // Repeat this blanked point
-          for(auto i=0; i<blanking_repeats; i++)
-            new_points.emplace_back(p);
-        }
-      }
-    }
-
     // Check for vertex with maximum angle
-    // Note do this before line infills because we repeat the previous point
-    if (max_angle >= 0 && last_vector_valid)
+    if (last_vector_valid)
     {
       Vector this_vector = p-last_point;
       coord_t angle = last_vector.angle_to(this_vector);
       if (angle > max_angle || angle < -max_angle)  // Turning either way
       {
         // Repeat point at vertex
-        for(auto i=0; i<vertex_repeats; i++)
+        for(auto i=0; i<repeats; i++)
           new_points.emplace_back(last_point);
       }
     }
 
+    new_points.emplace_back(p);
+
+    if (last_point_valid)
+    {
+      last_vector = p-last_point;
+      last_vector_valid = true;
+    }
+    last_point = p;
+    last_point_valid = true;
+  }
+
+  return new_points;
+}
+
+//-----------------------------------------------------------------------
+// Infill points to enforce a maximum distance
+vector<Point> Optimiser::infill_lines(const vector<Point>& points,
+                                      double max_distance)
+{
+  Point last_point;
+  bool last_point_valid{false};
+  vector<Point> new_points;
+
+  for(const auto& p: points)
+  {
     // Maximum distance in-fills - only for lit lines
-    if (max_distance && last_point_valid && p.is_lit())
+    if (last_point_valid && p.is_lit())
     {
       // Check point against last
       coord_t d = last_point.distance_to(p);
@@ -74,17 +112,24 @@ vector<Point> Optimiser::optimise(const vector<Point>& points)
       }
     }
 
-    // Always add the point anyway
     new_points.emplace_back(p);
 
-    // State for next time
-    if (last_point_valid)
-    {
-      last_vector = p-last_point;
-      last_vector_valid = true;
-    }
     last_point = p;
     last_point_valid = true;
+  }
+
+  return new_points;
+}
+
+//-----------------------------------------------------------------------
+// Reorder segments of points to find optimal path
+vector<Point> Optimiser::reorder_segments(const vector<Point>& points)
+{
+  vector<Point> new_points;
+
+  for(const auto& p: points)
+  {
+    new_points.push_back(p);
   }
 
   return new_points;

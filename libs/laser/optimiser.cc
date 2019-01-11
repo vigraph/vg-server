@@ -76,6 +76,7 @@ vector<Point> Optimiser::add_vertex_repeats(const vector<Point>& points,
     {
       Vector this_vector = p-last_point;
       coord_t angle = last_vector.angle_to(this_vector);
+      if (angle > pi) angle-=2*pi;  // Fix direction
       if (angle > max_angle || angle < -max_angle)  // Turning either way
       {
         // Repeat point at vertex
@@ -101,22 +102,22 @@ vector<Point> Optimiser::add_vertex_repeats(const vector<Point>& points,
 //-----------------------------------------------------------------------
 // Infill points to enforce a maximum distance
 vector<Point> Optimiser::infill_lines(const vector<Point>& points,
-                                      double max_distance)
+                                      coord_t max_distance_lit,
+                                      coord_t max_distance_blanked)
 {
-  if (!max_distance) return points;
-
   Point last_point;
   bool last_point_valid{false};
   vector<Point> new_points;
 
   for(const auto& p: points)
   {
-    // Maximum distance in-fills - only for lit lines
-    if (last_point_valid && p.is_lit())
+    // Maximum distance in-fills
+    if (last_point_valid)
     {
       // Check point against last
       coord_t d = last_point.distance_to(p);
-      if (d > max_distance)
+      coord_t max_distance = p.is_lit()?max_distance_lit:max_distance_blanked;
+      if (max_distance && d > max_distance)
       {
         // Spread along a line, using new point's colour
         Point p0(last_point, p.c);

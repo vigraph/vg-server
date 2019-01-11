@@ -21,39 +21,40 @@ TEST(OptimiserTest, TestInfillPassThroughIfMaxDistanceNotExceeded)
   vector<Point> points;
   points.push_back(Point(0, 0));
   points.push_back(Point(1, 0, Colour::white));
-  points.push_back(Point(2, 0, Colour::white));
+  points.push_back(Point(2, 0));
 
   Optimiser optimiser;
-  vector<Point> opoints = optimiser.infill_lines(points, 1);
+  vector<Point> opoints = optimiser.infill_lines(points, 1, 1);
   ASSERT_EQ(3, opoints.size());
   ASSERT_EQ(Point(0,0), opoints[0]);
   EXPECT_EQ(Point(1,0), opoints[1]);
   EXPECT_EQ(Point(2,0), opoints[2]);
 }
 
-TEST(OptimiserTest, TestInfillPassThroughIfBlank)
+TEST(OptimiserTest, TestInfillAddsBlanks)
 {
   vector<Point> points;
   points.push_back(Point(0, 0));
-  points.push_back(Point(1, 1));
-  points.push_back(Point(2, 2));
+  points.push_back(Point(1, 0));
 
   Optimiser optimiser;
-  vector<Point> opoints = optimiser.infill_lines(points, 1);
+  vector<Point> opoints = optimiser.infill_lines(points, 0, 0.5);
   ASSERT_EQ(3, opoints.size());
   ASSERT_EQ(Point(0,0), opoints[0]);
-  EXPECT_EQ(Point(1,1), opoints[1]);
-  EXPECT_EQ(Point(2,2), opoints[2]);
+  EXPECT_NEAR(0.5, opoints[1].x, 0.01);
+  EXPECT_EQ(0, opoints[1].y);
+  EXPECT_TRUE(opoints[1].is_blanked());
+  EXPECT_EQ(Point(1,0), opoints[2]);
 }
 
 TEST(OptimiserTest, TestInfillAddsPoints)
 {
   vector<Point> points;
   points.push_back(Point(0, 0));
-  points.push_back(Point(1, 0, Colour::white));  // blanks aren't infilled
+  points.push_back(Point(1, 0, Colour::white));
 
   Optimiser optimiser;
-  vector<Point> opoints = optimiser.infill_lines(points, 0.5);
+  vector<Point> opoints = optimiser.infill_lines(points, 0.5, 0);
   ASSERT_EQ(3, opoints.size());
   ASSERT_EQ(Point(0,0), opoints[0]);
   EXPECT_NEAR(0.5, opoints[1].x, 0.01);
@@ -76,7 +77,7 @@ TEST(OptimiserTest, TestVertexPassThroughIfMaxAngleNotExceeded)
   EXPECT_EQ(Point(1.1,2), opoints[2]);
 }
 
-TEST(OptimiserTest, TestVertexRepeatsAddedIfMaxAngleExceeded)
+TEST(OptimiserTest, TestVertexRepeatsAddedIfMaxAngleExceededLeft)
 {
   vector<Point> points;
   points.push_back(Point(0, 0));
@@ -92,6 +93,24 @@ TEST(OptimiserTest, TestVertexRepeatsAddedIfMaxAngleExceeded)
   EXPECT_EQ(Point(1,1), opoints[3]);
   EXPECT_EQ(Point(1,1), opoints[4]);
   EXPECT_EQ(Point(0.9,2), opoints[5]);
+}
+
+TEST(OptimiserTest, TestVertexRepeatsAddedIfMaxAngleExceededRight)
+{
+  vector<Point> points;
+  points.push_back(Point(1, 1));
+  points.push_back(Point(1, 0));
+  points.push_back(Point(0, 0));
+
+  Optimiser optimiser;
+  vector<Point> opoints = optimiser.add_vertex_repeats(points, pi/4, 3);
+  ASSERT_EQ(6, opoints.size());
+  ASSERT_EQ(Point(1,1), opoints[0]);
+  EXPECT_EQ(Point(1,0), opoints[1]);
+  EXPECT_EQ(Point(1,0), opoints[2]);
+  EXPECT_EQ(Point(1,0), opoints[3]);
+  EXPECT_EQ(Point(1,0), opoints[4]);
+  EXPECT_EQ(Point(0,0), opoints[5]);
 }
 
 TEST(OptimiserTest, TestBlankingAnchorsAdded)

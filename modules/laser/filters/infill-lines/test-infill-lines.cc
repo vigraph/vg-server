@@ -17,7 +17,7 @@ TEST(InfillLinesTest, TestMaximumDistancePointInsertion)
   const string& xml = R"(
     <graph>
       <svg path="M0,0 L1,0"/>
-      <infill-lines max-distance="0.1"/>
+      <infill-lines lit="0.1"/>
     </graph>
   )";
 

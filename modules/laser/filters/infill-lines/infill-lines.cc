@@ -12,13 +12,12 @@
 
 namespace {
 
-const double default_max_distance = 0.01;
-
 //==========================================================================
 // InfillLines filter
 class InfillLinesFilter: public FrameFilter
 {
-  double max_distance;
+  double max_distance_lit;
+  double max_distance_blanked;
   Laser::Optimiser optimiser;
 
   // Filter/Element virtuals
@@ -38,7 +37,8 @@ InfillLinesFilter::InfillLinesFilter(const Dataflow::Module *module,
                                      const XML::Element& config):
   Element(module, config), FrameFilter(module, config)
 {
-  max_distance = config.get_attr_real("max-distance", default_max_distance);
+  max_distance_lit = config.get_attr_real("lit");
+  max_distance_blanked = config.get_attr_real("blanked");
 }
 
 //--------------------------------------------------------------------------
@@ -46,15 +46,18 @@ InfillLinesFilter::InfillLinesFilter(const Dataflow::Module *module,
 void InfillLinesFilter::set_property(const string& property,
                                             const SetParams& sp)
 {
-  if (property == "max-distance")
-    update_prop(max_distance, sp);
+  if (property == "lit")
+    update_prop(max_distance_lit, sp);
+  else if (property == "blanked")
+    update_prop(max_distance_blanked, sp);
 }
 
 //--------------------------------------------------------------------------
 // Process some data
 void InfillLinesFilter::accept(FramePtr frame)
 {
-  frame->points = optimiser.infill_lines(frame->points, max_distance);
+  frame->points = optimiser.infill_lines(frame->points, max_distance_lit,
+                                         max_distance_blanked);
   send(frame);
 }
 
@@ -67,7 +70,9 @@ Dataflow::Module module
   "Adds a spread of points to lines to get constant brightness in laser scans",
   "laser",
   {
-    { "max-distance", { "Maximum distance between points",
+    { "lit", { "Maximum distance between lit points",
+          Value::Type::number, true } },
+    { "blanked", { "Maximum distance between blanked points",
           Value::Type::number, true } }
   },
   { "VectorFrame" }, // inputs

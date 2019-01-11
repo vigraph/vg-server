@@ -44,7 +44,8 @@ class Optimiser
   //-----------------------------------------------------------------------
   // Infill points to enforce a maximum distance
   vector<Point> infill_lines(const vector<Point>& points,
-                             double max_distance);
+                             coord_t max_distance_lit,
+                             coord_t max_distance_blanked);
 
   //-----------------------------------------------------------------------
   // Reorder segments of points to find optimal path

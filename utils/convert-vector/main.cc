@@ -88,7 +88,8 @@ int main(int argc, char **argv)
   {
     Laser::Optimiser optimiser;
     if (max_distance > 0)
-      frame.points = optimiser.infill_lines(frame.points, max_distance);
+      frame.points = optimiser.infill_lines(frame.points, max_distance,
+                                            max_distance);
 
     if (max_angle >= 0)
       frame.points = optimiser.add_vertex_repeats(frame.points, max_angle,

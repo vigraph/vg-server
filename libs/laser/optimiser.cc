@@ -103,6 +103,8 @@ vector<Point> Optimiser::add_vertex_repeats(const vector<Point>& points,
 vector<Point> Optimiser::infill_lines(const vector<Point>& points,
                                       double max_distance)
 {
+  if (!max_distance) return points;
+
   Point last_point;
   bool last_point_valid{false};
   vector<Point> new_points;
@@ -119,7 +121,8 @@ vector<Point> Optimiser::infill_lines(const vector<Point>& points,
         // Spread along a line, using new point's colour
         Point p0(last_point, p.c);
         Line l(p0, p);
-        coord_t interval = max_distance / d;
+        // Get first equal interval that satisfies the constraint
+        coord_t interval = 1.0/ceil(d/max_distance);
         for(coord_t t=interval; t<1.0-interval/2; t+=interval)
           new_points.emplace_back(l.interpolate(t));
       }

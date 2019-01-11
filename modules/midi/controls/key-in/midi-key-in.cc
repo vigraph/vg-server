@@ -78,7 +78,8 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
   log << "MIDI " << (int)event.channel << ": key " << (int)event.key
       << " " << (is_on?"ON":"OFF") << " @" << event.value << endl;
 
-  send(is_on?"on":"off", Dataflow::Value(event.key));
+  // Treat Note On with 0 velocity as off
+  send((is_on && event.value)?"on":"off", Dataflow::Value(event.key));
 }
 
 //--------------------------------------------------------------------------

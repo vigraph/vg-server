@@ -120,7 +120,7 @@ vector<Point> Optimiser::infill_lines(const vector<Point>& points,
         Point p0(last_point, p.c);
         Line l(p0, p);
         coord_t interval = max_distance / d;
-        for(coord_t t=interval; t<=1.0-interval; t+=interval)
+        for(coord_t t=interval; t<1.0-interval/2; t+=interval)
           new_points.emplace_back(l.interpolate(t));
       }
     }

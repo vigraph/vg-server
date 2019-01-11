@@ -20,15 +20,15 @@ TEST(OptimiserTest, TestInfillPassThroughIfMaxDistanceNotExceeded)
 {
   vector<Point> points;
   points.push_back(Point(0, 0));
-  points.push_back(Point(1, 1, Colour::white));
-  points.push_back(Point(2, 2, Colour::white));
+  points.push_back(Point(1, 0, Colour::white));
+  points.push_back(Point(2, 0, Colour::white));
 
   Optimiser optimiser;
   vector<Point> opoints = optimiser.infill_lines(points, 1);
   ASSERT_EQ(3, opoints.size());
   ASSERT_EQ(Point(0,0), opoints[0]);
-  EXPECT_EQ(Point(1,1), opoints[1]);
-  EXPECT_EQ(Point(2,2), opoints[2]);
+  EXPECT_EQ(Point(1,0), opoints[1]);
+  EXPECT_EQ(Point(2,0), opoints[2]);
 }
 
 TEST(OptimiserTest, TestInfillPassThroughIfBlank)

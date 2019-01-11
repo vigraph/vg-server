@@ -135,6 +135,22 @@ vector<Point> Optimiser::infill_lines(const vector<Point>& points,
     last_point_valid = true;
   }
 
+  // If we are filling blanked lines, do the flyback to the start point as
+  // well
+  if (max_distance_blanked && last_point_valid)
+  {
+    const auto& p = points[0];
+    coord_t d = last_point.distance_to(p);
+    if (d > max_distance_blanked)
+    {
+      Point p0(last_point, Colour::black);  // blanked
+      Line l(p0, p);
+      coord_t interval = 1.0/ceil(d/max_distance_blanked);
+      for(coord_t t=interval; t<1.0-interval/2; t+=interval)
+        new_points.emplace_back(l.interpolate(t));
+    }
+  }
+
   return new_points;
 }
 

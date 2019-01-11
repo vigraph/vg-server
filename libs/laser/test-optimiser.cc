@@ -21,14 +21,14 @@ TEST(OptimiserTest, TestInfillPassThroughIfMaxDistanceNotExceeded)
   vector<Point> points;
   points.push_back(Point(0, 0));
   points.push_back(Point(1, 0, Colour::white));
-  points.push_back(Point(2, 0));
+  points.push_back(Point(1, 1));
 
   Optimiser optimiser;
-  vector<Point> opoints = optimiser.infill_lines(points, 1, 1);
+  vector<Point> opoints = optimiser.infill_lines(points, 2, 2);
   ASSERT_EQ(3, opoints.size());
   ASSERT_EQ(Point(0,0), opoints[0]);
   EXPECT_EQ(Point(1,0), opoints[1]);
-  EXPECT_EQ(Point(2,0), opoints[2]);
+  EXPECT_EQ(Point(1,1), opoints[2]);
 }
 
 TEST(OptimiserTest, TestInfillAddsBlanks)
@@ -39,12 +39,15 @@ TEST(OptimiserTest, TestInfillAddsBlanks)
 
   Optimiser optimiser;
   vector<Point> opoints = optimiser.infill_lines(points, 0, 0.5);
-  ASSERT_EQ(3, opoints.size());
+  ASSERT_EQ(4, opoints.size());
   ASSERT_EQ(Point(0,0), opoints[0]);
   EXPECT_NEAR(0.5, opoints[1].x, 0.01);
   EXPECT_EQ(0, opoints[1].y);
   EXPECT_TRUE(opoints[1].is_blanked());
   EXPECT_EQ(Point(1,0), opoints[2]);
+  EXPECT_NEAR(0.5, opoints[3].x, 0.01);  // flyback
+  EXPECT_EQ(0, opoints[3].y);
+  EXPECT_TRUE(opoints[3].is_blanked());
 }
 
 TEST(OptimiserTest, TestInfillAddsPoints)
@@ -59,6 +62,7 @@ TEST(OptimiserTest, TestInfillAddsPoints)
   ASSERT_EQ(Point(0,0), opoints[0]);
   EXPECT_NEAR(0.5, opoints[1].x, 0.01);
   EXPECT_EQ(0, opoints[1].y);
+  EXPECT_TRUE(opoints[1].is_lit());
   EXPECT_EQ(Point(1,0), opoints[2]);
 }
 

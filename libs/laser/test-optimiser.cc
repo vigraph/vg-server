@@ -180,12 +180,10 @@ TEST(OptimiserTest, TestReordering)
 
   EXPECT_EQ(0, opoints[0].x);
   EXPECT_EQ(1, opoints[1].x);
-  /* !!! FIXME
   EXPECT_EQ(1, opoints[2].x);
   EXPECT_EQ(2, opoints[3].x);
   EXPECT_EQ(3, opoints[4].x);
   EXPECT_EQ(4, opoints[5].x);
-  */
 }
 
 } // anonymous namespace

@@ -7,6 +7,8 @@
 //==========================================================================
 
 #include "vg-laser.h"
+#include <map>
+#include <list>
 
 namespace ViGraph { namespace Laser {
 
@@ -158,12 +160,73 @@ vector<Point> Optimiser::infill_lines(const vector<Point>& points,
 // Reorder segments of points to find optimal path
 vector<Point> Optimiser::reorder_segments(const vector<Point>& points)
 {
-  vector<Point> new_points;
+  if (points.empty()) return points;
 
+  // Find segments delimited by blanks
+  map<int, int> segments;  // start index -> end index (excl)
+  Point last_point(points.back());
+  int i=0;
   for(const auto& p: points)
   {
-    new_points.push_back(p);
+    if (p.is_blanked())
+    {
+      // Note also on first point, when last_point will be end, blanked
+      if (last_point.is_lit())
+      {
+        // Segment starts here
+        // Close last segment (if any)
+        if (!segments.empty()) segments.rbegin()->second = i-1;
+
+        // Open new one
+        segments[i] = -1;
+      }
+    }
+    last_point = p;
+    i++;
   }
+
+  // Close off last
+  if (segments.empty()) return points;
+  segments.rbegin()->second = i-1;
+
+  // Get segments in 'best' order - by naive method of just finding closest
+  // one to each one in turn
+  list<pair<int, int>> ordered_segments;
+
+  // Take the first one as starting point
+  auto current_segment = segments.begin();
+  ordered_segments.emplace_back(*current_segment);
+  last_point = points[current_segment->first];
+  segments.erase(current_segment);
+
+  // Loop through all the segments - this is O(N^2)!
+  while (!segments.empty())
+  {
+    // Find the nearest start to the last point of those remaining
+    auto best_segment = segments.end();
+    coord_t best_d = coord_max_range;
+    for(auto it = segments.begin(); it!=segments.end(); ++it)
+    {
+      const Point& start_point = points[it->first];
+      coord_t d = last_point.distance_to(start_point);
+      if (d < best_d)
+      {
+        best_segment = it;
+        best_d = d;
+      }
+    }
+
+    // Use this one and erase it
+    ordered_segments.emplace_back(*best_segment);
+    last_point = points[best_segment->first];
+    segments.erase(best_segment);
+  }
+
+  // Copy points out in order
+  vector<Point> new_points;
+  for(const auto it: ordered_segments)
+    new_points.insert(new_points.end(), points.begin()+it.first,
+                      points.begin()+it.second+1);
 
   return new_points;
 }

@@ -22,6 +22,8 @@ class CloneSource: public Dataflow::Source
                  const XML::Element& config) override;
   void attach(Dataflow::Acceptor *_target) override;
   void tick(Dataflow::timestamp_t t) override;
+  void enable() override;
+  void disable() override;
 
 public:
   CloneSource(const Module *module, const XML::Element& config):
@@ -51,6 +53,20 @@ void CloneSource::configure(const File::Directory& base_dir,
 void CloneSource::attach(Dataflow::Acceptor *acceptor)
 {
   multigraph->attach_to_all(acceptor);
+}
+
+//--------------------------------------------------------------------------
+// Enable all subgraphs
+void CloneSource::enable()
+{
+  multigraph->enable_all();
+}
+
+//--------------------------------------------------------------------------
+// Disable all subgraphs
+void CloneSource::disable()
+{
+  multigraph->disable_all();
 }
 
 //--------------------------------------------------------------------------

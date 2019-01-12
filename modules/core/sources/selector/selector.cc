@@ -24,6 +24,8 @@ class SelectorSource: public Dataflow::Source
   void attach(Dataflow::Acceptor *_target) override;
   void set_property(const string& property, const SetParams& sp) override;
   void tick(Dataflow::timestamp_t t) override;
+  void enable() override;
+  void disable() override;
 
 public:
   SelectorSource(const Module *module, const XML::Element& config):
@@ -76,12 +78,19 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
       Log::Detail log;
       log << "Selector source selected index " << index << endl;
 
+      // Disable all current
+      disable();
+
       // Clear all current and add this
       active_starts.clear();
 
       Dataflow::Graph *sub = multigraph->get_subgraph(index);
       if (sub)
+      {
         active_starts[index] = 0;
+        // Enable it
+        sub->enable();
+      }
       else
       {
         Log::Error elog;
@@ -104,6 +113,9 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
       // Mark to start at next tick if not already there
       if (!active_starts[index])
         active_starts[index] = 0;
+
+      // Enable it
+      sub->enable();
     }
     else
     {
@@ -125,6 +137,9 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
     {
       // Remove from active
       active_starts.erase(index);
+
+      // Disable
+      sub->disable();
     }
     else
     {
@@ -132,6 +147,30 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
       elog << "Selector requested to disable out-of-range item "
            << index << endl;
     }
+  }
+}
+
+//--------------------------------------------------------------------------
+// Enable all active subgraphs
+void SelectorSource::enable()
+{
+  // Enable all active
+  for(auto& it: active_starts)
+  {
+    Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
+    if (sub) sub->enable();
+  }
+}
+
+//--------------------------------------------------------------------------
+// Disable all active subgraphs
+void SelectorSource::disable()
+{
+  // Disable all active
+  for(auto& it: active_starts)
+  {
+    Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
+    if (sub) sub->disable();
   }
 }
 

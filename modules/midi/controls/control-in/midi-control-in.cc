@@ -30,7 +30,8 @@ class MIDIControlInControl: public Dataflow::Control,
 
   // Event observer implementation
   void handle(const ViGraph::MIDI::Event& event) override;
-  void shutdown() override;
+  void enable() override;
+  void disable() override;
 
 public:
   // Construct
@@ -56,17 +57,39 @@ void MIDIControlInControl::configure(const File::Directory&,
 {
   auto& engine = graph->get_engine();
   interface = engine.get_service<Interface>("midi");
+  if (!interface)
+  {
+    Log::Error log;
+    log << "No MIDI service loaded\n";
+  }
+}
+
+//--------------------------------------------------------------------------
+// Enable - register for events
+void MIDIControlInControl::enable()
+{
+  Log::Detail log;
+  log << "MIDI controller enable on channel " << channel
+      << " controller " << number << endl;
+
   if (interface)
   {
     interface->register_event_observer(channel,
                                   ViGraph::MIDI::Event::Type::control_change,
                                        this);
   }
-  else
-  {
-    Log::Error log;
-    log << "No MIDI service loaded\n";
-  }
+}
+
+//--------------------------------------------------------------------------
+// Disable - deregister for events
+void MIDIControlInControl::disable()
+{
+  Log::Detail log;
+  log << "MIDI control disable on channel " << channel
+      << " controller " << number << endl;
+
+  if (interface)
+    interface->deregister_event_observer(this);
 }
 
 //--------------------------------------------------------------------------
@@ -80,13 +103,6 @@ void MIDIControlInControl::handle(const ViGraph::MIDI::Event& event)
         << " -> " << event.value << endl;
     send(Dataflow::Value(event.value/127.0));
   }
-}
-
-//--------------------------------------------------------------------------
-// Shutdown (deregister for events)
-void MIDIControlInControl::shutdown()
-{
-  interface->deregister_event_observer(this);
 }
 
 //--------------------------------------------------------------------------

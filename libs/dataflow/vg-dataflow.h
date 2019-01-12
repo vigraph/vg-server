@@ -282,6 +282,12 @@ public:
   // for testing
   virtual Value::Type get_property_type(const string& property);
 
+  // Notify of parent graph being enabled - register for keys etc.
+  virtual void enable() {}
+
+  // Notify of parent graph being disabled - de-register for keys etc.
+  virtual void disable() {}
+
   // Notify of a new tick about to start
   virtual void pre_tick(timestamp_t) {}
 
@@ -472,6 +478,14 @@ class Graph
   void generate_topological_order();
 
   //------------------------------------------------------------------------
+  // Enable all elements
+  void enable();
+
+  //------------------------------------------------------------------------
+  // Disable all elements
+  void disable();
+
+  //------------------------------------------------------------------------
   // Tick all sources
   void tick(timestamp_t t);
 
@@ -520,6 +534,14 @@ class MultiGraph
   //------------------------------------------------------------------------
   // Attach an Acceptor Element to the end of all subgraphs
   void attach_to_all(Element *el);
+
+  //------------------------------------------------------------------------
+  // Enable all subgraphs
+  void enable_all();
+
+  //------------------------------------------------------------------------
+  // Disable all subgraphs
+  void disable_all();
 
   //------------------------------------------------------------------------
   // Tick all subgraphs

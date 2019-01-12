@@ -297,6 +297,24 @@ void Graph::generate_topological_order()
 }
 
 //------------------------------------------------------------------------
+// Enable all elements
+void Graph::enable()
+{
+  MT::RWReadLock lock(mutex);
+  for(const auto e: topological_order)
+    e->enable();
+}
+
+//------------------------------------------------------------------------
+// Disable all elements
+void Graph::disable()
+{
+  MT::RWReadLock lock(mutex);
+  for(const auto e: topological_order)
+    e->disable();
+}
+
+//------------------------------------------------------------------------
 // Tick all elements in topological order
 void Graph::tick(timestamp_t t)
 {

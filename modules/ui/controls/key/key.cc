@@ -91,7 +91,8 @@ class UIKeyControl: public Dataflow::Control,
   // Control virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
-  void shutdown() override;
+  void enable() override;
+  void disable() override;
 
   // Event observer implementation
   void handle_key(int code) override;
@@ -127,11 +128,7 @@ void UIKeyControl::configure(const File::Directory&,
 {
   auto& engine = graph->get_engine();
   distributor = engine.get_service<KeyDistributor>("key-distributor");
-  if (distributor)
-  {
-    distributor->register_key_observer(code, this);
-  }
-  else
+  if (!distributor)
   {
     Log::Error log;
     log << "No key-distributor service loaded\n";
@@ -139,17 +136,28 @@ void UIKeyControl::configure(const File::Directory&,
 }
 
 //--------------------------------------------------------------------------
+// Enable - register for events
+void UIKeyControl::enable()
+{
+  if (distributor)
+  {
+    distributor->register_key_observer(code, this);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Disable (deregister for keys)
+void UIKeyControl::disable()
+{
+  if (distributor)
+    distributor->deregister_key_observer(this);
+}
+
+//--------------------------------------------------------------------------
 // Handle event
 void UIKeyControl::handle_key(int /*code*/)
 {
   send(Dataflow::Value());
-}
-
-//--------------------------------------------------------------------------
-// Shutdown (deregister for keys)
-void UIKeyControl::shutdown()
-{
-  distributor->deregister_key_observer(this);
 }
 
 //--------------------------------------------------------------------------

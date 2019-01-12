@@ -32,6 +32,9 @@ void Engine::configure(const File::Directory& base_dir,
 
   // Configure graph from graph config
   graph->configure(base_dir, graph_config);
+
+  // Enable it
+  graph->enable();
 }
 
 //------------------------------------------------------------------------
@@ -71,6 +74,7 @@ void Engine::shutdown()
   // Shut down graph
   {
     MT::Lock lock(graph_mutex);
+    graph->disable();
     graph->shutdown();
   }
 

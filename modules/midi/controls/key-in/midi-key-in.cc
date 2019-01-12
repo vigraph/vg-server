@@ -26,7 +26,8 @@ class MIDIKeyInControl: public Dataflow::Control,
   // Control virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
-  void shutdown() override;
+  void enable() override;
+  void disable() override;
 
   // Event observer implementation
   void handle(const ViGraph::MIDI::Event& event) override;
@@ -53,6 +54,20 @@ void MIDIKeyInControl::configure(const File::Directory&,
 {
   auto& engine = graph->get_engine();
   interface = engine.get_service<Interface>("midi");
+  if (!interface)
+  {
+    Log::Error log;
+    log << "No MIDI service loaded\n";
+  }
+}
+
+//--------------------------------------------------------------------------
+// Enable - register for events
+void MIDIKeyInControl::enable()
+{
+  Log::Detail log;
+  log << "MIDI key enable on channel " << channel << endl;
+
   if (interface)
   {
     interface->register_event_observer(channel,
@@ -62,11 +77,17 @@ void MIDIKeyInControl::configure(const File::Directory&,
                                        ViGraph::MIDI::Event::Type::note_off,
                                        this);
   }
-  else
-  {
-    Log::Error log;
-    log << "No MIDI service loaded\n";
-  }
+}
+
+//--------------------------------------------------------------------------
+// Disable - deregister for events
+void MIDIKeyInControl::disable()
+{
+  Log::Detail log;
+  log << "MIDI key disable on channel " << channel << endl;
+
+  if (interface)
+    interface->deregister_event_observer(this);
 }
 
 //--------------------------------------------------------------------------
@@ -80,13 +101,6 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
 
   // Treat Note On with 0 velocity as off
   send((is_on && event.value)?"on":"off", Dataflow::Value(event.key));
-}
-
-//--------------------------------------------------------------------------
-// Shutdown (deregister for keys)
-void MIDIKeyInControl::shutdown()
-{
-  interface->deregister_event_observer(this);
 }
 
 //--------------------------------------------------------------------------

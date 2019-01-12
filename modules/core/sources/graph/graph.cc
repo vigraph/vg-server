@@ -21,6 +21,8 @@ class GraphSource: public Dataflow::Source
                  const XML::Element& config) override;
   void attach(Dataflow::Acceptor *_target) override;
   void tick(Dataflow::timestamp_t t) override;
+  void enable() override;
+  void disable() override;
 
 public:
   GraphSource(const Module *module, const XML::Element& config):
@@ -45,6 +47,20 @@ void GraphSource::configure(const File::Directory& base_dir,
 void GraphSource::attach(Dataflow::Acceptor *acceptor)
 {
   subgraph->attach(acceptor);
+}
+
+//--------------------------------------------------------------------------
+// Enable subgraph
+void GraphSource::enable()
+{
+  subgraph->enable();
+}
+
+//--------------------------------------------------------------------------
+// Disable subgraph
+void GraphSource::disable()
+{
+  subgraph->disable();
 }
 
 //--------------------------------------------------------------------------

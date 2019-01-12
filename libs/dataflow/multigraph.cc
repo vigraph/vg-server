@@ -58,6 +58,24 @@ void MultiGraph::attach_to_all(Element *el)
 }
 
 //------------------------------------------------------------------------
+// Enable all subgraphs
+void MultiGraph::enable_all()
+{
+  MT::RWReadLock lock(mutex);
+  for(const auto it: subgraphs)
+    it->enable();
+}
+
+//------------------------------------------------------------------------
+// Disable all subgraphs
+void MultiGraph::disable_all()
+{
+  MT::RWReadLock lock(mutex);
+  for(const auto it: subgraphs)
+    it->disable();
+}
+
+//------------------------------------------------------------------------
 // Tick all subgraphs
 void MultiGraph::tick_all(timestamp_t t)
 {

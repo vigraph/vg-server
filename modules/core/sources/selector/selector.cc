@@ -15,6 +15,7 @@ namespace {
 // Selector source
 class SelectorSource: public Dataflow::Source
 {
+  bool retrigger{false};
   unique_ptr<Dataflow::MultiGraph> multigraph;
   map<int, Dataflow::timestamp_t> active_starts;  // Start time, or 0 when new
 
@@ -34,7 +35,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML:
-//  <selector>
+//  <selector retrigger="false">
 //    <graph id="sub1">
 //      ..
 //    </graph>
@@ -45,6 +46,7 @@ public:
 void SelectorSource::configure(const File::Directory& base_dir,
                                const XML::Element& config)
 {
+  retrigger = config.get_attr_bool("retrigger");
   multigraph.reset(new Dataflow::MultiGraph(graph->get_engine()));
   multigraph->configure(base_dir, config);
 }
@@ -73,7 +75,7 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
     int old_index = index;
     update_prop_int(index, sp);
 
-    if (index != old_index && index >= 0)
+    if ((retrigger || index != old_index) && index >= 0)
     {
       Log::Detail log;
       log << "Selector source selected index " << index << endl;
@@ -199,6 +201,7 @@ Dataflow::Module module
   "Selects one of several sub-graphs to tick",
   "core",
   {
+    { "retrigger", { "Whether to retrigger same item", Value::Type::boolean } },
     { "selected", { "Selected single item", Value::Type::number, true } },
     { "enable",   { "Item to enable", Value::Type::number, true } },
     { "disable",  { "Item to disable", Value::Type::number, true } }

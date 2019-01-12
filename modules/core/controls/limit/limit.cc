@@ -17,6 +17,7 @@ class LimitControl: public Dataflow::Control
 {
   string property;
   double min, max;
+  double initial_value;
 
   // Mimic of controlled value
   double value{0.0};
@@ -24,6 +25,7 @@ class LimitControl: public Dataflow::Control
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
   Dataflow::Value::Type get_property_type(const string& property) override;
+  void enable() override;
 
 public:
   // Construct
@@ -39,7 +41,14 @@ LimitControl::LimitControl(const Module *module, const XML::Element& config):
   property = config["property"];
   min = config.get_attr_real("min", 0.0);
   max = config.get_attr_real("max", 1.0);
-  value = config.get_attr_real("value");
+  value = initial_value = config.get_attr_real("value");
+}
+
+//--------------------------------------------------------------------------
+// Enable (reset)
+void LimitControl::enable()
+{
+  value = initial_value;
 }
 
 //--------------------------------------------------------------------------

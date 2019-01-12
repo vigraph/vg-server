@@ -22,6 +22,7 @@ class VelocityControl: public Dataflow::Control
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void tick(Dataflow::timestamp_t t) override;
+  void enable() override;
 
 public:
   // Construct
@@ -59,6 +60,13 @@ void VelocityControl::set_property(const string& property,
     coord_t mag = v.length();
     if (mag > max) v *= max/mag;  // Scale equally
   }
+}
+
+//--------------------------------------------------------------------------
+// Enable (reset)
+void VelocityControl::enable()
+{
+  last_tick = -1.0;
 }
 
 //--------------------------------------------------------------------------

@@ -16,6 +16,7 @@ DEPENDS  = vg-module-vector-source-test \
            vg-module-vector-filter-depth-fade \
            vg-module-vector-filter-translate \
            vg-module-vector-filter-colour \
+           vg-module-vector-filter-fade \
            vg-module-vector-filter-scale \
            vg-module-vector-filter-rotate \
            vg-module-vector-filter-clip \

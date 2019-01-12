@@ -1,0 +1,13 @@
+#===========================================================================
+# Tupfile for Vigraph fade filter module
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-vector-filter-fade
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
+          vg-module-vector-source-figure vg-module-core-control-set \
+          vg-module-vector-filter-colour
+
+include_rules

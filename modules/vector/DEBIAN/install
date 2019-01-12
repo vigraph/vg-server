@@ -8,6 +8,7 @@ sources/text/vg-module-vector-source-text.so /usr/lib/vigraph/modules/
 filters/clip/vg-module-vector-filter-clip.so /usr/lib/vigraph/modules/
 filters/collision-detect/vg-module-vector-filter-collision-detect.so /usr/lib/vigraph/modules/
 filters/colour/vg-module-vector-filter-colour.so /usr/lib/vigraph/modules/
+filters/fade/vg-module-vector-filter-fade.so /usr/lib/vigraph/modules/
 filters/depth-fade/vg-module-vector-filter-depth-fade.so /usr/lib/vigraph/modules/
 filters/perspective/vg-module-vector-filter-perspective.so /usr/lib/vigraph/modules/
 filters/rotate/vg-module-vector-filter-rotate.so /usr/lib/vigraph/modules/

@@ -22,8 +22,8 @@ TEST(JoinTest, TestSingleInputPassesThrough)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  // Should be 10 points at (0,0)
-  EXPECT_EQ(10, frame->points.size());
+  // Should be 11 points at (0,0)
+  EXPECT_EQ(11, frame->points.size());
   for(const auto& p: frame->points)
   {
     EXPECT_EQ(0.0, p.x);
@@ -48,12 +48,12 @@ TEST(JoinTest, TestTwoInputsJoins)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  // Should be 10 points at (0,0) then 10 at (1,0)
-  EXPECT_EQ(20, frame->points.size());
+  // Should be 11 points at (0,0) then 11 at (1,0)
+  EXPECT_EQ(22, frame->points.size());
   int i=0;
   for(const auto& p: frame->points)
   {
-    EXPECT_EQ(i<10?0.0:1.0, p.x);
+    EXPECT_EQ(i<11?0.0:1.0, p.x);
     EXPECT_EQ(0.0, p.y);
     EXPECT_EQ(0.0, p.z);
     i++;

@@ -23,12 +23,14 @@ TEST(FadeTest, TestDefaultIsNoChange)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
-    EXPECT_EQ(1.0, p.c.r);
-    EXPECT_EQ(0.5, p.c.g);
-    EXPECT_EQ(0.3, p.c.b);
+    EXPECT_EQ(first?0.0:1.0, p.c.r);
+    EXPECT_EQ(first?0.0:0.5, p.c.g);
+    EXPECT_EQ(first?0.0:0.3, p.c.b);
+    first = false;
   }
 }
 
@@ -46,12 +48,14 @@ TEST(FadeTest, TestFadeAllChannels)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
-    EXPECT_EQ(0.5, p.c.r);
-    EXPECT_EQ(0.25, p.c.g);
-    EXPECT_EQ(0.15, p.c.b);
+    EXPECT_EQ(first?0.0:0.5, p.c.r);
+    EXPECT_EQ(first?0.0:0.25, p.c.g);
+    EXPECT_EQ(first?0.0:0.15, p.c.b);
+    first = false;
   }
 }
 
@@ -69,12 +73,14 @@ TEST(FadeTest, TestFadeIndividualChannels)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
-    EXPECT_EQ(0.7, p.c.r);
-    EXPECT_EQ(0.3, p.c.g);
-    EXPECT_EQ(0.15, p.c.b);
+    EXPECT_EQ(first?0.0:0.7, p.c.r);
+    EXPECT_EQ(first?0.0:0.3, p.c.g);
+    EXPECT_EQ(first?0.0:0.15, p.c.b);
+    first = false;
   }
 }
 
@@ -93,12 +99,14 @@ TEST(FadeTest, TestFadeAllPropertyChanged)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
-    EXPECT_EQ(0.5, p.c.r);
-    EXPECT_EQ(0.25, p.c.g);
-    EXPECT_EQ(0.15, p.c.b);
+    EXPECT_EQ(first?0.0:0.5, p.c.r);
+    EXPECT_EQ(first?0.0:0.25, p.c.g);
+    EXPECT_EQ(first?0.0:0.15, p.c.b);
+    first = false;
   }
 }
 
@@ -119,12 +127,14 @@ TEST(FadeTest, TestFadeIndividualPropertyChanged)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
-    EXPECT_EQ(0.7, p.c.r);
-    EXPECT_EQ(0.3, p.c.g);
-    EXPECT_EQ(0.15, p.c.b);
+    EXPECT_EQ(first?0.0:0.7, p.c.r);
+    EXPECT_EQ(first?0.0:0.3, p.c.g);
+    EXPECT_EQ(first?0.0:0.15, p.c.b);
+    first=false;
   }
 }
 

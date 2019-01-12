@@ -226,6 +226,10 @@ void FigureSource::tick(timestamp_t t)
 {
   Frame *frame = new Frame(t);
 
+  // Blank to start
+  if (points)
+    frame->points.push_back(Point(x_waveform[0], y_waveform[0]));
+
   // Fill with lit points
   for(int i=0; i<points; i++)
     frame->points.push_back(Point(x_waveform[i], y_waveform[i],

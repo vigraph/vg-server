@@ -22,8 +22,8 @@ TEST(ColourTest, TestDefaultIsBlack)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  // Should be 10 points at (0,0), black
-  EXPECT_EQ(10, frame->points.size());
+  // Should be 11 points at (0,0), black
+  EXPECT_EQ(11, frame->points.size());
   for(const auto& p: frame->points)
   {
     EXPECT_EQ(0.0, p.x);
@@ -48,15 +48,17 @@ TEST(ColourTest, TestSpecifiedRGBColour)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
     EXPECT_EQ(0.0, p.x);
     EXPECT_EQ(0.0, p.y);
     EXPECT_EQ(0.0, p.z);
-    EXPECT_EQ(0.1, p.c.r);
-    EXPECT_EQ(0.2, p.c.g);
-    EXPECT_EQ(0.3, p.c.b);
+    EXPECT_EQ(first?0.0:0.1, p.c.r);
+    EXPECT_EQ(first?0.0:0.2, p.c.g);
+    EXPECT_EQ(first?0.0:0.3, p.c.b);
+    first = false;
   }
 }
 
@@ -73,15 +75,17 @@ TEST(ColourTest, TestSpecifiedHSLColour)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
     EXPECT_EQ(0.0, p.x);
     EXPECT_EQ(0.0, p.y);
     EXPECT_EQ(0.0, p.z);
-    EXPECT_EQ(1.0, p.c.r);
+    EXPECT_EQ(first?0.0:1.0, p.c.r);
     EXPECT_EQ(0.0, p.c.g);
     EXPECT_EQ(0.0, p.c.b);
+    first = false;
   }
 }
 
@@ -98,15 +102,17 @@ TEST(ColourTest, TestSpecifiedHexColour)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
     EXPECT_EQ(0.0, p.x);
     EXPECT_EQ(0.0, p.y);
     EXPECT_EQ(0.0, p.z);
     EXPECT_DOUBLE_EQ(0.0, p.c.r);
-    EXPECT_NEAR(0.75, p.c.g, 0.01);
-    EXPECT_DOUBLE_EQ(1.0, p.c.b);
+    EXPECT_NEAR(first?0.0:0.75, p.c.g, 0.01);
+    EXPECT_DOUBLE_EQ(first?0.0:1.0, p.c.b);
+    first = false;
   }
 }
 
@@ -126,15 +132,17 @@ TEST(ColourTest, TestColourRGBPropertiesChanged)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
     EXPECT_EQ(0.0, p.x);
     EXPECT_EQ(0.0, p.y);
     EXPECT_EQ(0.0, p.z);
-    EXPECT_EQ(0.4, p.c.r);
-    EXPECT_EQ(0.5, p.c.g);
-    EXPECT_EQ(0.6, p.c.b);
+    EXPECT_EQ(first?0.0:0.4, p.c.r);
+    EXPECT_EQ(first?0.0:0.5, p.c.g);
+    EXPECT_EQ(first?0.0:0.6, p.c.b);
+    first=false;
   }
 }
 
@@ -157,15 +165,17 @@ TEST(ColourTest, TestColourHSLPropertiesChanged)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  EXPECT_EQ(10, frame->points.size());
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
   for(const auto& p: frame->points)
   {
     EXPECT_EQ(0.0, p.x);
     EXPECT_EQ(0.0, p.y);
     EXPECT_EQ(0.0, p.z);
     EXPECT_NEAR(0.0, p.c.r, 0.01);
-    EXPECT_NEAR(1.0, p.c.g, 0.01);
+    EXPECT_NEAR(first?0.0:1.0, p.c.g, 0.01);
     EXPECT_NEAR(0.0, p.c.b, 0.01);
+    first = false;
   }
 }
 

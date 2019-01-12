@@ -23,8 +23,8 @@ TEST(VelocityTest, TestZeroVelocityDoesNothing)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  // Should be 1 point at 0, 0
-  EXPECT_EQ(1, frame->points.size());
+  // Should be 2 points at 0, 0
+  EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
     EXPECT_EQ(0.0, p.x);
@@ -48,8 +48,8 @@ TEST(VelocityTest, TestMovement)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  // Should be 1 point at 1,2,-0.5
-  EXPECT_EQ(1, frame->points.size());
+  // Should be 2 points at 1,2,-0.5
+  EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
     EXPECT_NEAR(1.0, p.x, 1e-5);
@@ -76,8 +76,8 @@ TEST(VelocityTest, TestSetVelocity)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  // Should be 1 point at 1.0, 2.0, -0.5
-  EXPECT_EQ(1, frame->points.size());
+  // Should be 2 points at 1.0, 2.0, -0.5
+  EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
     EXPECT_NEAR(1.0, p.x, 1e-5);
@@ -107,8 +107,8 @@ TEST(VelocityTest, TestSetVelocityWithMax)
 
   // Requested magnitude is sqrt(1+4+4) = 3, max is 1.5, so
   // each axis should be halved.
-  // Should be 1 point at 0.5, 1.0. -1.0
-  EXPECT_EQ(1, frame->points.size());
+  // Should be 2 points at 0.5, 1.0. -1.0
+  EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
     EXPECT_NEAR(0.5, p.x, 1e-5);

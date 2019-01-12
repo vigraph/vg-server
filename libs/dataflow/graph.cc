@@ -138,8 +138,7 @@ void Graph::connect(Element *el)
         Value::Type target_type =
           target_element->get_property_type(p.second.name);
         if (target_type == Value::Type::invalid)
-          throw runtime_error("No such property "+p.second.name+" on element "
-                              +target_element->id);
+          continue;  // Ignore for now - later make explicit if it's optional?
 
         if (p.second.type != target_type && p.second.type != Value::Type::any
             && target_type != Value::Type::any)

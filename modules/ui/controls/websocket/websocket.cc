@@ -153,7 +153,7 @@ void WebSocketControlServer::handle_websocket(
 //   <websocket-control port="33382"/>
 WebSocketControl::WebSocketControl(const Dataflow::Module *module,
                                    const XML::Element& config):
-  Element(module, config), Control(module, config, true) // optional targets
+  Element(module, config), Control(module, config)
 {
   int hport = config.get_attr_int("port");
   if (hport)

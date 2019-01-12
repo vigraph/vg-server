@@ -41,7 +41,7 @@ public:
 //   <midi-key-in channel="1" target .../>
 MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
                                    const XML::Element& config):
-  Element(module, config), Control(module, config, true)  // optional targets
+  Element(module, config), Control(module, config)
 {
   channel = config.get_attr_int("channel");
 }

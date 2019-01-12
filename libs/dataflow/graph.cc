@@ -218,6 +218,7 @@ void Graph::configure(const File::Directory& base_dir,
   id_serials.clear();
   disconnected_acceptors.clear();
   unbound_generators.clear();
+  topological_order.clear();
   last_element = nullptr;
 
   // Two-phase create/connect to allow forward references
@@ -328,7 +329,17 @@ void Graph::tick(timestamp_t t)
     {
       bool was_enabled = is_enabled;
       shutdown();
-      configure_from_source_file();
+
+      try
+      {
+        configure_from_source_file();
+      }
+      catch (runtime_error e)
+      {
+        Log::Error log;
+        log << "Graph reload failed: " << e.what() << endl;
+      }
+
       if (was_enabled) enable();  // re-enable if it was previously
     }
   }

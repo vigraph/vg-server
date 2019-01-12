@@ -429,6 +429,9 @@ class Graph
   // dependents - either for base data flow or control flow
   list<Element *> topological_order;
 
+  // Temporary state
+  bool is_enabled{false};
+
   // Internals
   void configure_from_source_file();
   void toposort(Element *e, set<Element *>& visited);

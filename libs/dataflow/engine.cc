@@ -74,7 +74,6 @@ void Engine::shutdown()
   // Shut down graph
   {
     MT::Lock lock(graph_mutex);
-    graph->disable();
     graph->shutdown();
   }
 

@@ -303,6 +303,7 @@ void Graph::enable()
   MT::RWReadLock lock(mutex);
   for(const auto e: topological_order)
     e->enable();
+  is_enabled = true;
 }
 
 //------------------------------------------------------------------------
@@ -312,6 +313,7 @@ void Graph::disable()
   MT::RWReadLock lock(mutex);
   for(const auto e: topological_order)
     e->disable();
+  is_enabled = false;
 }
 
 //------------------------------------------------------------------------
@@ -324,8 +326,10 @@ void Graph::tick(timestamp_t t)
     time_t mtime = source_file.last_modified();
     if (mtime != source_file_mtime)
     {
+      bool was_enabled = is_enabled;
       shutdown();
       configure_from_source_file();
+      if (was_enabled) enable();  // re-enable if it was previously
     }
   }
 
@@ -359,6 +363,8 @@ Element *Graph::get_element(const string& id)
 // Shutdown all elements
 void Graph::shutdown()
 {
+  disable();
+
   MT::RWWriteLock lock(mutex);
   for(const auto it: elements)
     it.second->shutdown();

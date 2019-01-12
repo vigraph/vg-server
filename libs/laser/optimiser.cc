@@ -163,14 +163,14 @@ vector<Point> Optimiser::reorder_segments(const vector<Point>& points)
   if (points.empty()) return points;
 
   // Find segments delimited by blanks
-  map<int, int> segments;  // start index -> end index (excl)
-  Point last_point(points.back());
+  map<int, int> segments;  // start index (blank) -> end index (last lit, excl)
+  Point last_point(points.back(), Colour::white);
   int i=0;
   for(const auto& p: points)
   {
     if (p.is_blanked())
     {
-      // Note also on first point, when last_point will be end, blanked
+      // Note also on first point, when last_point will be end, lit
       if (last_point.is_lit())
       {
         // Segment starts here

@@ -29,6 +29,7 @@ class LFOControl: public Dataflow::Control
   };
 
   Waveform waveform{Waveform::saw};
+  bool once{false};
   double period{0.0};
   double scale{0.0};
   double offset{0.0};
@@ -66,13 +67,15 @@ void LFOControl::set_waveform(const string& wave)
 //--------------------------------------------------------------------------
 // Construct from XML
 // <lfo wave="{saw|sin|square|triangle}"
-//          period="1.0" scale="1.0" offset="0.0"
-//          type="{real|integer|boolean}"
-//          property="..."/>
+//      once="yes|no"
+//      period="1.0" scale="1.0" offset="0.0"
+//       type="{real|integer|boolean}"
+//       property="..."/>
 LFOControl::LFOControl(const Module *module, const XML::Element& config):
   Element(module, config), Control(module, config)
 {
   set_waveform(config.get_attr("wave", "sin"));
+  once = config.get_attr_bool("once");
   period = config.get_attr_real("period", 1.0);
   scale = config.get_attr_real("scale", 1.0);
   offset = config.get_attr_real("offset");
@@ -96,6 +99,9 @@ void LFOControl::tick(Dataflow::timestamp_t t)
 {
   // Divide by period to get slower timebase
   if (period > 0) t /= period;
+
+  // If once, stop after first whole period
+  if (once && t >= 1.0) return;
 
   // Get 0..1 repeating fraction
   t -= floor(t);
@@ -127,6 +133,8 @@ Dataflow::Module module
     { "wave",  { { "Waveform", "sin" },
           Value::Type::choice, "@wave",
           { "saw", "sin", "square", "triangle", "random" } } },
+    { "once", { { "Run only one cycle", "false" },
+          Value::Type::boolean } },
     { "period", { { "Period in seconds", "1.0" },
           Value::Type::number, true } },
     { "scale", { { "Scale (amplitude)", "1.0" },

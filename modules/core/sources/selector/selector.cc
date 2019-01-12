@@ -156,12 +156,8 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
 // Enable all active subgraphs
 void SelectorSource::enable()
 {
-  // Enable all active
-  for(auto& it: active_starts)
-  {
-    Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
-    if (sub) sub->enable();
-  }
+  // Reset active
+  active_starts.clear();
 }
 
 //--------------------------------------------------------------------------
@@ -174,6 +170,8 @@ void SelectorSource::disable()
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
     if (sub) sub->disable();
   }
+
+  active_starts.clear();
 }
 
 //--------------------------------------------------------------------------

@@ -22,7 +22,7 @@ class MIDIKeyInControl: public Dataflow::Control,
 {
   shared_ptr<Interface> interface;
   int channel{0};
-  int note{0};  // negative for trigger on OFF
+  int note{0};
 
   // Control virtuals
   void configure(const File::Directory& base_dir,
@@ -41,15 +41,13 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML:
 //   <midi-key-in channel="1" .../> - sends on/off for every key
-//   <midi-key-in channel="1" note="48"/> - sends triggers for ON 48
-//   <midi-key-in channel="1" note="48" when="off"/> - sends triggers for OFF 48
+//   <midi-key-in channel="1" note="48"/> - sends triggers for ON/OFF 48
 MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
                                    const XML::Element& config):
   Element(module, config), Control(module, config)
 {
   channel = config.get_attr_int("channel");
   note = config.get_attr_int("note");
-  if (config["when"] == "off") note = -note;
 }
 
 //--------------------------------------------------------------------------
@@ -112,11 +110,11 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
     send(is_on?"on":"off", Dataflow::Value(event.key));
 
   // Specific triggers
-  else if (event.key == (is_on?note:-note))
-    send(Dataflow::Value());
+  else if (event.key == note)
+    send(is_on?"trigger":"clear", Dataflow::Value());
 
   // Send velocity separately if either is true
-  if (!note || (event.key == (is_on?note:-note)))
+  if (!note || event.key == note)
     send("velocity", Dataflow::Value(event.value/127.0));
 }
 
@@ -137,7 +135,8 @@ Dataflow::Module module
           Value::Type::number, "@note-off" } }
   },
   {
-    { "", { "Note trigger", "trigger", Value::Type::trigger }},
+    { "trigger", { "Note trigger", "trigger", Value::Type::trigger }},
+    { "clear",   { "Note release", "clear", Value::Type::trigger }},
     { "on", { "Note on", "on", Value::Type::number }},
     { "off", { "Note off", "off", Value::Type::number }},
     { "velocity", { "Velocity", "velocity", Value::Type::number }}

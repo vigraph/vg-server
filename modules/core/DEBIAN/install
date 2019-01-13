@@ -1,4 +1,5 @@
 controls/beat/vg-module-core-control-beat.so /usr/lib/vigraph/modules/
+controls/envelope/vg-module-core-control-envelope.so /usr/lib/vigraph/modules/
 controls/lfo/vg-module-core-control-lfo.so /usr/lib/vigraph/modules/
 controls/log/vg-module-core-control-log.so /usr/lib/vigraph/modules/
 controls/limit/vg-module-core-control-limit.so /usr/lib/vigraph/modules/

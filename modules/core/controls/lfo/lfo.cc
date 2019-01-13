@@ -30,9 +30,15 @@ class LFOControl: public Dataflow::Control
 
   Waveform waveform{Waveform::saw};
   bool once{false};
+  bool wait{false};
   double period{0.0};
   double scale{0.0};
   double offset{0.0};
+
+  // Dynamic state
+  bool running{false};
+  bool triggered{false};
+  timestamp_t trigger_time{0};
 
   // Internals
   void set_waveform(const string& wave);
@@ -40,6 +46,7 @@ class LFOControl: public Dataflow::Control
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void tick(Dataflow::timestamp_t t) override;
+  void enable() override;
 
 public:
   // Construct
@@ -68,6 +75,7 @@ void LFOControl::set_waveform(const string& wave)
 // Construct from XML
 // <lfo wave="{saw|sin|square|triangle}"
 //      once="yes|no"
+//      wait="yes|no"
 //      period="1.0" scale="1.0" offset="0.0"
 //       type="{real|integer|boolean}"
 //       property="..."/>
@@ -76,6 +84,7 @@ LFOControl::LFOControl(const Module *module, const XML::Element& config):
 {
   set_waveform(config.get_attr("wave", "sin"));
   once = config.get_attr_bool("once");
+  wait = config.get_attr_bool("wait");
   period = config.get_attr_real("period", 1.0);
   scale = config.get_attr_real("scale", 1.0);
   offset = config.get_attr_real("offset");
@@ -91,12 +100,36 @@ void LFOControl::set_property(const string& property, const SetParams& sp)
     update_prop(scale, sp);
   else if (property == "offset")
     update_prop(offset, sp);
+  else if (property == "trigger")
+    triggered = true;
+}
+
+//--------------------------------------------------------------------------
+// Enable (reset)
+void LFOControl::enable()
+{
+  running = false;
+  triggered = false;
 }
 
 //--------------------------------------------------------------------------
 // Tick
 void LFOControl::tick(Dataflow::timestamp_t t)
 {
+  if (wait)
+  {
+    if (triggered)
+    {
+      trigger_time = t;
+      running = true;
+      triggered = false;
+    }
+
+    if (!running) return;
+
+    t -= trigger_time;
+  }
+
   // Divide by period to get slower timebase
   if (period > 0) t /= period;
 
@@ -135,12 +168,16 @@ Dataflow::Module module
           { "saw", "sin", "square", "triangle", "random" } } },
     { "once", { { "Run only one cycle", "false" },
           Value::Type::boolean } },
+    { "wait", { { "Wait to be triggered", "false" },
+          Value::Type::boolean } },
     { "period", { { "Period in seconds", "1.0" },
           Value::Type::number, true } },
     { "scale", { { "Scale (amplitude)", "1.0" },
           Value::Type::number, true } },
     { "offset", { "Baseline offset",
-          Value::Type::number, true } }
+          Value::Type::number, true } },
+    { "trigger", { "Trigger to start",
+          Value::Type::trigger, true } }
   },
   { { "", { "Wave output", "", Value::Type::number }}}
 };

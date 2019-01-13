@@ -22,6 +22,7 @@ class MIDIKeyInControl: public Dataflow::Control,
 {
   shared_ptr<Interface> interface;
   int channel{0};
+  int note{0};  // negative for trigger on OFF
 
   // Control virtuals
   void configure(const File::Directory& base_dir,
@@ -39,12 +40,16 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML:
-//   <midi-key-in channel="1" target .../>
+//   <midi-key-in channel="1" .../> - sends on/off for every key
+//   <midi-key-in channel="1" note="48"/> - sends triggers for ON 48
+//   <midi-key-in channel="1" note="48" when="off"/> - sends triggers for OFF 48
 MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
                                    const XML::Element& config):
   Element(module, config), Control(module, config)
 {
   channel = config.get_attr_int("channel");
+  note = config.get_attr_int("note");
+  if (config["when"] == "off") note = -note;
 }
 
 //--------------------------------------------------------------------------
@@ -100,7 +105,19 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
       << " " << (is_on?"ON":"OFF") << " @" << event.value << endl;
 
   // Treat Note On with 0 velocity as off
-  send((is_on && event.value)?"on":"off", Dataflow::Value(event.key));
+  if (!event.value) is_on = false;
+
+  // All notes on/off values if not specific
+  if (!note)
+    send(is_on?"on":"off", Dataflow::Value(event.key));
+
+  // Specific triggers
+  else if (event.key == (is_on?note:-note))
+    send(Dataflow::Value());
+
+  // Send velocity separately if either is true
+  if (!note || (event.key == (is_on?note:-note)))
+    send("velocity", Dataflow::Value(event.value/127.0));
 }
 
 //--------------------------------------------------------------------------
@@ -114,10 +131,16 @@ Dataflow::Module module
   {
     { "channel", { {"MIDI channel (0=all)", "0"}, Value::Type::number,
                                                     "@channel" } },
+    { "note", { {"Note number to trigger ON (0=disable)", "0"},
+          Value::Type::number, "@note-on" } },
+    { "note-off", { {"Note number to trigger OFF (0=disable)", "0"},
+          Value::Type::number, "@note-off" } }
   },
   {
+    { "", { "Note trigger", "trigger", Value::Type::trigger }},
     { "on", { "Note on", "on", Value::Type::number }},
-    { "off", { "Note off", "off", Value::Type::number }}
+    { "off", { "Note off", "off", Value::Type::number }},
+    { "velocity", { "Velocity", "velocity", Value::Type::number }}
   }
 };
 

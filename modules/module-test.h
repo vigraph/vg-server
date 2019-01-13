@@ -138,6 +138,17 @@ class ControlTester
     test(xmls, nticks);
   }
 
+  // Test with 3 XMLs
+  void test(const string& xml1, const string& xml2,
+            const string& xml3, int nticks=1)
+  {
+    list<string> xmls;
+    xmls.push_back(xml1);
+    xmls.push_back(xml2);
+    xmls.push_back(xml3);
+    test(xmls, nticks);
+  }
+
   ControlTester(ModuleLoader& _loader,
                 Value::Type prop_type = Value::Type::number):
   loader(_loader), graph(loader.engine), target(new TestTarget(prop_type)) {}

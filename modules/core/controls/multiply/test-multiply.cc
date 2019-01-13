@@ -31,6 +31,17 @@ TEST(MultiplyTest, TestMultiplyBy2)
   EXPECT_NEAR(3.0, sp.v.d, 1e-5);
 }
 
+TEST(MultiplyTest, TestMultiplyBySetFactor)
+{
+  ControlTester tester(loader);
+  tester.test("<set target='m' property='factor' value='2'/>",
+              "<set property='x' value='1.5'/>",
+              "<multiply id='m' property='x'/>");
+  ASSERT_TRUE(tester.target->got("x"));
+  const auto& sp = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, sp.v.type);
+  EXPECT_NEAR(3.0, sp.v.d, 1e-5);
+}
 
 int main(int argc, char **argv)
 {

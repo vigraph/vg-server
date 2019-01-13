@@ -99,8 +99,12 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
 {
   Log::Detail log;
   bool is_on = event.type==ViGraph::MIDI::Event::Type::note_on;
-  log << "MIDI " << (int)event.channel << ": key " << (int)event.key
-      << " " << (is_on?"ON":"OFF") << " @" << event.value << endl;
+
+  if (!note || event.key == note)
+  {
+    log << "MIDI " << (int)event.channel << ": key " << (int)event.key
+        << " " << (is_on?"ON":"OFF") << " @" << event.value << endl;
+  }
 
   // Treat Note On with 0 velocity as off
   if (!event.value) is_on = false;
@@ -113,8 +117,8 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
   else if (event.key == note)
     send(is_on?"trigger":"clear", Dataflow::Value());
 
-  // Send velocity separately if either is true
-  if (!note || event.key == note)
+  // Send velocity separately if either is true, only for ON
+  if (is_on && (!note || event.key == note))
     send("velocity", Dataflow::Value(event.value/127.0));
 }
 

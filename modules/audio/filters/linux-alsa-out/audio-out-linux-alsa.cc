@@ -14,29 +14,86 @@ namespace {
 
 using namespace ViGraph::Dataflow;
 
+const auto default_device{"default"};
+
 //==========================================================================
 // LinuxAudioOut filter
 class LinuxALSAOutFilter: public FragmentFilter
 {
+  snd_pcm_t *pcm{nullptr};
+
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
   void accept(FragmentPtr fragment) override;
   void shutdown() override;
 
 public:
   LinuxALSAOutFilter(const Dataflow::Module *module,
-                     const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config) {}
+                     const XML::Element& config);
 };
 
 //--------------------------------------------------------------------------
-// Configure from XML
-void LinuxALSAOutFilter::configure(const File::Directory&,
-                                   const XML::Element& /*config*/)
+// Construct from XML:
+//   <audio-out/>
+LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
+                                       const XML::Element& config):
+    Element(module, config), FragmentFilter(module, config)
 {
   Log::Streams log;
-  log.detail << "Created Linux ALSA audio out\n";
+  const auto& device = config.get_attr("device", default_device);
+  log.summary << "Opening audio output on ALSA device '" << device << "'\n";
+  log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
+
+  try
+  {
+    // Open PCM
+    auto status = snd_pcm_open(&pcm, device.c_str(),
+                               SND_PCM_STREAM_PLAYBACK, 0);
+    if (status)
+      throw runtime_error(string("open: ")+snd_strerror(status));
+
+    // Set up, configure and use hwparams
+    snd_pcm_hw_params_t *hw_params;
+    snd_pcm_hw_params_alloca(&hw_params);
+
+    status = snd_pcm_hw_params_any(pcm, hw_params);
+    if (status)
+      throw runtime_error(string("hw_params_any: ")+snd_strerror(status));
+
+    status = snd_pcm_hw_params_set_access(pcm, hw_params,
+                                          SND_PCM_ACCESS_RW_INTERLEAVED);
+    if (status)
+      throw runtime_error(string("hw_params_access: ")+snd_strerror(status));
+
+    status = snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_FLOAT);
+    if (status)
+      throw runtime_error(string("hw_params_format: ")+snd_strerror(status));
+
+    unsigned int srate = sample_rate;
+    status = snd_pcm_hw_params_set_rate_near(pcm, hw_params, &srate, 0);
+    if (status)
+      throw runtime_error(string("hw_params_rate: ")+snd_strerror(status));
+
+    status = snd_pcm_hw_params_set_channels(pcm, hw_params, 2);  // !!! config
+    if (status)
+      throw runtime_error(string("hw_params:channels: ")+snd_strerror(status));
+
+    status = snd_pcm_hw_params(pcm, hw_params);
+    if (status)
+      throw runtime_error(string("hw_params_set: ")+snd_strerror(status));
+
+    // Prepare to send
+    status = snd_pcm_prepare(pcm);
+    if (status)
+      throw runtime_error(string("prepare: ")+snd_strerror(status));
+
+    log.detail << "Created Linux ALSA audio out\n";
+  }
+  catch (runtime_error e)
+  {
+    log.error << "Can't open ALSA PCM output: " << e.what() << endl;
+    if (pcm) snd_pcm_close(pcm);
+    pcm = nullptr;
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -55,6 +112,8 @@ void LinuxALSAOutFilter::shutdown()
 {
   Log::Detail log;
   log << "Shutting down Linux ALSA audio out\n";
+  if (pcm) snd_pcm_close(pcm);
+  pcm = nullptr;
 }
 
 //--------------------------------------------------------------------------
@@ -65,7 +124,10 @@ Dataflow::Module module
   "Audio output",
   "Audio output for Linux/ALSA",
   "audio",
-  { }, // !!! properties
+  {
+      { "device",  { {"Device output to", "default"}, Value::Type::text,
+                                                        "@device" } }
+  },
   { "Audio" }, // inputs
   { "Audio" }  // outputs
 };

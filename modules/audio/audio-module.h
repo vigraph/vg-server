@@ -16,8 +16,8 @@ namespace ViGraph { namespace Module { namespace Audio {
 // We follow Audacity in choosing 32-bit float and 44100 sample rate -
 // high resolution without creating unnecessary load and file size
 // - plus easy to read to/from WAV, CD and audio IO
-using sample_t = float;           // Unsigned linear PCM 0.0..1.0
-const int sample_rate = 44100;
+using sample_t = float;           // Unsigned linear PCM -1.0..1.0
+const unsigned int sample_rate = 44100;
 
 //==========================================================================
 // Audio fragment - section of waveform across (maybe) multiple channels

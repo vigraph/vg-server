@@ -18,57 +18,56 @@ namespace ViGraph { namespace Module { namespace Audio {
 // - plus easy to read to/from WAV, CD and audio IO
 using sample_t = float;           // Unsigned linear PCM 0.0..1.0
 const int sample_rate = 44100;
-using multi_sample_t = vector<sample_t>;  // Multiple channel samples
 
 //==========================================================================
-// Audio frame
-struct Frame: public Data
+// Audio fragment - section of waveform across (maybe) multiple channels
+struct Fragment: public Data
 {
   timestamp_t timestamp;
   int nchannels;
-  vector<multi_sample_t> waveform;
+  vector<sample_t> waveform;  // Multi-channel data is interleaved
 
-  Frame(timestamp_t t, int _nchannels=1):
+  Fragment(timestamp_t t, int _nchannels=1):
     timestamp(t), nchannels(_nchannels) {}
 };
 
-using FramePtr = shared_ptr<Frame>;
+using FragmentPtr = shared_ptr<Fragment>;
 
 //==========================================================================
-// Specialisations of Dataflow classes for Frame data
-class FrameFilter: public Filter
+// Specialisations of Dataflow classes for Fragment data
+class FragmentFilter: public Filter
 {
  public:
   // Construct with XML
-  FrameFilter(const Dataflow::Module *module, const XML::Element& config):
+  FragmentFilter(const Dataflow::Module *module, const XML::Element& config):
     Filter(module, config) {}
 
   // Accept a frame
-  virtual void accept(FramePtr frame) = 0;
+  virtual void accept(FragmentPtr frame) = 0;
 
   // Accept data
   void accept(DataPtr data) override
   {
     // Call down with type-checked data
-    accept(data.check<Frame>());
+    accept(data.check<Fragment>());
   }
 };
 
-class FrameSink: public Sink
+class FragmentSink: public Sink
 {
  public:
   // Construct with XML
-  FrameSink(const Dataflow::Module *module, const XML::Element& config):
+  FragmentSink(const Dataflow::Module *module, const XML::Element& config):
     Sink(module, config) {}
 
   // Accept a frame
-  virtual void accept(FramePtr frame) = 0;
+  virtual void accept(FragmentPtr frame) = 0;
 
   // Accept data
   void accept(DataPtr data) override
   {
     // Call down with type-checked data
-    accept(data.check<Frame>());
+    accept(data.check<Fragment>());
   }
 };
 

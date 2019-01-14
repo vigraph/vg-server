@@ -16,18 +16,18 @@ using namespace ViGraph::Dataflow;
 
 //==========================================================================
 // LinuxAudioOut filter
-class LinuxALSAOutFilter: public FrameFilter
+class LinuxALSAOutFilter: public FragmentFilter
 {
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
-  void accept(FramePtr frame) override;
+  void accept(FragmentPtr fragment) override;
   void shutdown() override;
 
 public:
   LinuxALSAOutFilter(const Dataflow::Module *module,
                      const XML::Element& config):
-    Element(module, config), FrameFilter(module, config) {}
+    Element(module, config), FragmentFilter(module, config) {}
 };
 
 //--------------------------------------------------------------------------
@@ -41,12 +41,12 @@ void LinuxALSAOutFilter::configure(const File::Directory&,
 
 //--------------------------------------------------------------------------
 // Process some data
-void LinuxALSAOutFilter::accept(FramePtr frame)
+void LinuxALSAOutFilter::accept(FragmentPtr fragment)
 {
-  // !!! Send out the frame
+  // !!! Send out the fragment
 
   // Send it down as well, so these can be chained
-  send(frame);
+  send(fragment);
 }
 
 //--------------------------------------------------------------------------
@@ -66,8 +66,8 @@ Dataflow::Module module
   "Audio output for Linux/ALSA",
   "audio",
   { }, // !!! properties
-  { "AudioFrame" }, // inputs
-  { "AudioFrame" }  // outputs
+  { "Audio" }, // inputs
+  { "Audio" }  // outputs
 };
 
 } // anon

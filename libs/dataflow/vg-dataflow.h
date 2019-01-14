@@ -417,6 +417,8 @@ class Graph
   // Source
   File::Path source_file;  // empty if inline
   time_t source_file_mtime;
+  Time::Duration file_update_check_interval;
+  Time::Stamp last_file_update_check;
 
   // Construction state
   map<string, int> id_serials;  // ID serial number for each type

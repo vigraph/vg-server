@@ -11,6 +11,8 @@
 
 namespace ViGraph { namespace Dataflow {
 
+const auto default_update_check_interval{"1"};
+
 //------------------------------------------------------------------------
 // Add an element to the graph
 void Graph::add(Element *el)
@@ -208,6 +210,9 @@ void Graph::configure(const File::Directory& base_dir,
   if (!fn.empty())
   {
     source_file = File::Path(base_dir, fn);
+    file_update_check_interval =
+      Time::Duration(config.get_attr("update-check-interval",
+                                     default_update_check_interval));
     configure_from_source_file();
     return;
   }
@@ -321,8 +326,10 @@ void Graph::disable()
 // Tick all elements in topological order
 void Graph::tick(timestamp_t t)
 {
-  // Check for file update !!! slow this down
-  if (!source_file.str().empty())
+  // Check for file update
+  Time::Stamp now = Time::Stamp::now();
+  if (!source_file.str().empty()
+      && now-last_file_update_check >= file_update_check_interval)
   {
     time_t mtime = source_file.last_modified();
     if (mtime != source_file_mtime)
@@ -342,6 +349,8 @@ void Graph::tick(timestamp_t t)
 
       if (was_enabled) enable();  // re-enable if it was previously
     }
+
+    last_file_update_check = now;
   }
 
   MT::RWReadLock lock(mutex);

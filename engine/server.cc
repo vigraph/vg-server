@@ -28,9 +28,11 @@ Server::Server(const string& _licence_file):
 
 //--------------------------------------------------------------------------
 // Read settings from configuration
-void Server::read_config(const XML::Configuration& _config)
+void Server::read_config(const XML::Configuration& _config,
+                         const string& config_filename)
 {
   config_xml = _config.get_root();
+  config_file = File::Path(config_filename);
 }
 
 //--------------------------------------------------------------------------
@@ -171,9 +173,8 @@ void Server::reconfigure()
   // Configure the graph engine using XML
   try
   {
-    // Use current directory as base - chances are config will use
-    // an absolute pathname for root graph anyway, except for testing
-    engine.configure(File::Directory("."), graph_e, services_e);
+    // Based relative to our config filename
+    engine.configure(config_file.dirname(), graph_e, services_e);
     log.summary << "Dataflow engine loaded OK\n";
   }
   catch (runtime_error& e)

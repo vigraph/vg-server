@@ -60,6 +60,7 @@ public:
 class Server: public Daemon::Application
 {
   XML::Element config_xml;
+  File::Path config_file;
   string licence_file;
 
   // Loaded modules
@@ -92,7 +93,8 @@ public:
 
   //------------------------------------------------------------------------
   // Read settings from configuration
-  void read_config(const XML::Configuration& config) override;
+  void read_config(const XML::Configuration& config,
+                   const string& config_filename) override;
 
   //------------------------------------------------------------------------
   // Prerun function for child process

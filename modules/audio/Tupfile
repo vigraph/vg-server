@@ -1,0 +1,19 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow Audio modules
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-audio
+TYPE     = package
+DEPENDS  = vg-module-audio-filter-linux-alsa-out 
+
+PACKAGE  = $(NAME)
+VERSION  = 0.1.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

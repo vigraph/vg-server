@@ -1,0 +1,13 @@
+Source: vg-modules-audio
+Section: Audio
+Priority: optional
+Maintainer:  ViGraph Support <support@vigraph.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: http://www.vigraph.com/
+
+Package: vg-modules-audio
+Architecture: any
+Depends: ${shlibs:Depends}, vg-engine
+Description: ViGraph dataflow engine - Audio modules
+ Audio modules for the dataflow engine.

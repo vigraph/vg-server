@@ -438,6 +438,8 @@ class Graph
 
   // Internals
   void configure_from_source_file();
+  void configure_internal(const File::Directory& base_dir,
+                          const XML::Element& config);
   void toposort(Element *e, set<Element *>& visited);
 
  public:

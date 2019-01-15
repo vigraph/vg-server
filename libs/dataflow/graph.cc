@@ -179,6 +179,30 @@ void Graph::connect(Element *el)
 }
 
 //------------------------------------------------------------------------
+// Configure with XML, with a base directory for files
+// Throws a runtime_error if configuration fails
+// Public version which allows source file
+void Graph::configure(const File::Directory& base_dir,
+                      const XML::Element& config)
+{
+  // Check for load from file - if so, read it and recurse
+  const auto& fn = config["file"];
+  if (fn.empty())
+  {
+    // Configure from direct XML
+    configure_internal(base_dir, config);
+  }
+  else
+  {
+    source_file = File::Path(base_dir, fn);
+    file_update_check_interval =
+      Time::Duration(config.get_attr("update-check-interval",
+                                     default_update_check_interval));
+    configure_from_source_file();
+  }
+}
+
+//------------------------------------------------------------------------
 // (re)configure from source_file
 // Throws a runtime_error if configuration fails
 void Graph::configure_from_source_file()
@@ -191,33 +215,16 @@ void Graph::configure_from_source_file()
 
   source_file_mtime = source_file.last_modified();
   const auto& root = fconfig.get_root();
-
-  // Recurse, but don't allow it to recurse another level!
-  if (root["file"].empty())
-    configure(File::Directory(source_file.dirname()), root);
-  else
-    throw(runtime_error("Recursive graph files considered harmful!"));
+  configure_internal(File::Directory(source_file.dirname()), root);
 }
 
 //------------------------------------------------------------------------
 // Configure with XML, with a base directory for files
 // Throws a runtime_error if configuration fails
-void Graph::configure(const File::Directory& base_dir,
-                      const XML::Element& config)
+// Internal version, doesn't allow source file redirect
+void Graph::configure_internal(const File::Directory& base_dir,
+                               const XML::Element& config)
 {
-  // Check for load from file - if so, read it and recurse
-  const auto& fn = config["file"];
-  if (!fn.empty())
-  {
-    source_file = File::Path(base_dir, fn);
-    file_update_check_interval =
-      Time::Duration(config.get_attr("update-check-interval",
-                                     default_update_check_interval));
-    configure_from_source_file();
-    return;
-  }
-
-  // Lock for write and clear existing state
   MT::RWWriteLock lock(mutex);
   elements.clear();
   id_serials.clear();
@@ -391,6 +398,7 @@ void Graph::shutdown()
 
   // Remove all elements before modules unloaded
   elements.clear();
+  topological_order.clear();
 }
 
 

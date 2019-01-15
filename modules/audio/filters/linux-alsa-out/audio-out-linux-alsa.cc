@@ -51,7 +51,7 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
   {
     // Open PCM
     auto status = snd_pcm_open(&pcm, device.c_str(),
-                               SND_PCM_STREAM_PLAYBACK, 0);
+                               SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
     if (status < 0)
       throw runtime_error(string("open: ")+snd_strerror(status));
 
@@ -112,12 +112,11 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
                                fragment->waveform.size()/fragment->nchannels);
     if (n < 0)
     {
-      n = snd_pcm_recover(pcm, n, 0);
-      if (!n) continue;  // retry
+      Log::Error log;
+      log << "ALSA write error: " << snd_strerror(n) << endl;
 
-      Log::Streams log;
-      log.error << "ALSA PCM write error: " << n << " "
-                << snd_strerror(n) << endl;
+      n = snd_pcm_recover(pcm, n, 1);
+      if (!n) continue;  // retry
     }
     break;
   }

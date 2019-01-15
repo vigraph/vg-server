@@ -21,6 +21,7 @@ const auto default_device{"default"};
 class LinuxALSAOutFilter: public FragmentFilter
 {
   snd_pcm_t *pcm{nullptr};
+  int nchannels{1};
 
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
@@ -42,6 +43,9 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
   const auto& device = config.get_attr("device", default_device);
   log.summary << "Opening audio output on ALSA device '" << device << "'\n";
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
+
+  nchannels = config.get_attr_int("channels", 1);
+  log.detail << "ALSA: " << nchannels << " channels\n";
 
   try
   {
@@ -72,8 +76,9 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
     status = snd_pcm_hw_params_set_rate_near(pcm, hw_params, &srate, 0);
     if (status < 0)
       throw runtime_error(string("hw_params_rate: ")+snd_strerror(status));
+    log.detail << "ALSA: sample rate chosen " << srate << endl;
 
-    status = snd_pcm_hw_params_set_channels(pcm, hw_params, 2);  // !!! config
+    status = snd_pcm_hw_params_set_channels(pcm, hw_params, nchannels);
     if (status < 0)
       throw runtime_error(string("hw_params:channels: ")+snd_strerror(status));
 
@@ -100,17 +105,21 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
 // Process some data
 void LinuxALSAOutFilter::accept(FragmentPtr fragment)
 {
-  if (pcm && fragment->nchannels)
+  while (pcm && fragment->nchannels == nchannels)  // loop after recover
   {
     // Send out the fragment
     ssize_t n = snd_pcm_writei(pcm, fragment->waveform.data(),
                                fragment->waveform.size()/fragment->nchannels);
     if (n < 0)
     {
+      n = snd_pcm_recover(pcm, n, 0);
+      if (!n) continue;  // retry
+
       Log::Streams log;
       log.error << "ALSA PCM write error: " << n << " "
                 << snd_strerror(n) << endl;
     }
+    break;
   }
 
   // Send it down as well, so these can be chained
@@ -121,8 +130,6 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
 // Shut down
 void LinuxALSAOutFilter::shutdown()
 {
-  Log::Detail log;
-  log << "Shutting down Linux ALSA audio out\n";
   if (pcm) snd_pcm_close(pcm);
   pcm = nullptr;
 }
@@ -137,7 +144,9 @@ Dataflow::Module module
   "audio",
   {
       { "device",  { {"Device output to", "default"}, Value::Type::text,
-                                                        "@device" } }
+                                                        "@device" } },
+      { "channels",  { {"Number of channels", "1"}, Value::Type::number,
+                                                        "@number" } }
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

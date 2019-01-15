@@ -44,7 +44,11 @@ void CloneSource::configure(const File::Directory& base_dir,
 
   // Read our own children as sub-graphs, n times
   for(auto i=0; i<n; i++)
-    multigraph->add_subgraph(base_dir, config);
+  {
+    Graph *sub = multigraph->add_subgraph(base_dir, config);
+    sub->set_variable("clone-number", Value{(double)(i+1)});
+    sub->set_variable("clone-fraction", Value{(double)i/n});
+  }
 }
 
 //--------------------------------------------------------------------------

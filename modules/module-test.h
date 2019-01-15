@@ -109,6 +109,8 @@ class ControlTester
         Element *e = loader.engine.element_registry.create(xe.name, xe);
         if (!e) throw runtime_error("Can't create element "+xe.name);
         if (e->id.empty()) e->id = xe.name + Text::itos(++id_serial);
+        e->graph = &graph;
+        e->configure(File::Directory("."), xe);
         elements.push_back(e);
       }
       catch (runtime_error e)

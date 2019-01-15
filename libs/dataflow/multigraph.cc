@@ -24,8 +24,9 @@ void MultiGraph::configure(const File::Directory& base_dir,
 //------------------------------------------------------------------------
 // Add a graph from the given XML
 // Throws a runtime_error if configuration fails
-void MultiGraph::add_subgraph(const File::Directory& base_dir,
-                              const XML::Element& graph_config)
+// Returns sub-Graph (owned by us)
+Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
+                                const XML::Element& graph_config)
 {
   string id = graph_config["id"];
   if (id.empty()) id = "graph-"+Text::itos(++id_serial);
@@ -37,6 +38,7 @@ void MultiGraph::add_subgraph(const File::Directory& base_dir,
   MT::RWWriteLock lock(mutex);
   subgraphs.push_back(shared_ptr<Graph>(sub));
   subgraphs_by_id[id] = sub;
+  return sub;
 }
 
 //------------------------------------------------------------------------

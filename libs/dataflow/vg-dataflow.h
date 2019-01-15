@@ -85,6 +85,7 @@ struct Value
 
   // Constructors
   Value(): type(Type::trigger) {}
+  Value(Type _type): type(_type) {}
   Value(double _d): type(Type::number), d(_d) {}
   Value(const string& _s): type(Type::text), s(_s) {}
 };
@@ -433,6 +434,7 @@ class Graph
 
   // Temporary state
   bool is_enabled{false};
+  map<string, Value> variables;
 
   // Internals
   void configure_from_source_file();
@@ -483,6 +485,17 @@ class Graph
   void generate_topological_order();
 
   //------------------------------------------------------------------------
+  // Set a variable
+  void set_variable(const string& var, const Value& value)
+  { variables[var] = value; }
+
+  //------------------------------------------------------------------------
+  // Get a variable
+  Value get_variable(const string& var)
+  { const auto it = variables.find(var);
+    return (it == variables.end())?Value(Value::Type::invalid):it->second; }
+
+  //------------------------------------------------------------------------
   // Enable all elements
   void enable();
 
@@ -529,8 +542,9 @@ class MultiGraph
   //------------------------------------------------------------------------
   // Add a graph from the given XML
   // Throws a runtime_error if configuration fails
-  void add_subgraph(const File::Directory& base_dir,
-                    const XML::Element& graph_config);
+  // Returns sub-Graph (owned by us)
+  Graph *add_subgraph(const File::Directory& base_dir,
+                      const XML::Element& graph_config);
 
   //------------------------------------------------------------------------
   // Attach a pure Acceptor to the end of all subgraphs (for testing only)

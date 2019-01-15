@@ -9,6 +9,8 @@ TYPE     = package
 DEPENDS  = vg-module-core-source-selector \
            vg-module-core-source-clone \
            vg-module-core-source-graph \
+           vg-module-core-control-clone-number \
+           vg-module-core-control-clone-fraction \
            vg-module-core-control-lfo \
            vg-module-core-control-envelope \
            vg-module-core-control-set \

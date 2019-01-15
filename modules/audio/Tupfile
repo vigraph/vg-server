@@ -7,6 +7,7 @@
 NAME     = vg-modules-audio
 TYPE     = package
 DEPENDS  = vg-module-audio-filter-linux-alsa-out \
+           vg-module-audio-filter-attenuator \
            vg-module-audio-source-vco
 
 PACKAGE  = $(NAME)

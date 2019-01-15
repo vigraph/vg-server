@@ -1,2 +1,3 @@
 filters/linux-alsa-out/vg-module-audio-filter-linux-alsa-out.so /usr/lib/vigraph/modules/
+filters/attenuator/vg-module-audio-filter-attenuator.so /usr/lib/vigraph/modules/
 sources/vco/vg-module-audio-source-vco.so /usr/lib/vigraph/modules/

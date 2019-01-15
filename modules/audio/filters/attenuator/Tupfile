@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph audio attenuator filter module
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-audio-filter-attenuator
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl
+
+include_rules

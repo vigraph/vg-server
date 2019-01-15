@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-audio
 TYPE     = package
-DEPENDS  = vg-module-audio-filter-linux-alsa-out 
+DEPENDS  = vg-module-audio-filter-linux-alsa-out \
+           vg-module-audio-source-vco
 
 PACKAGE  = $(NAME)
 VERSION  = 0.1.0

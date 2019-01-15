@@ -48,7 +48,7 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
     // Open PCM
     auto status = snd_pcm_open(&pcm, device.c_str(),
                                SND_PCM_STREAM_PLAYBACK, 0);
-    if (status)
+    if (status < 0)
       throw runtime_error(string("open: ")+snd_strerror(status));
 
     // Set up, configure and use hwparams
@@ -56,34 +56,34 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
     snd_pcm_hw_params_alloca(&hw_params);
 
     status = snd_pcm_hw_params_any(pcm, hw_params);
-    if (status)
+    if (status < 0)
       throw runtime_error(string("hw_params_any: ")+snd_strerror(status));
 
     status = snd_pcm_hw_params_set_access(pcm, hw_params,
                                           SND_PCM_ACCESS_RW_INTERLEAVED);
-    if (status)
+    if (status < 0)
       throw runtime_error(string("hw_params_access: ")+snd_strerror(status));
 
     status = snd_pcm_hw_params_set_format(pcm, hw_params, SND_PCM_FORMAT_FLOAT);
-    if (status)
+    if (status < 0)
       throw runtime_error(string("hw_params_format: ")+snd_strerror(status));
 
     unsigned int srate = sample_rate;
     status = snd_pcm_hw_params_set_rate_near(pcm, hw_params, &srate, 0);
-    if (status)
+    if (status < 0)
       throw runtime_error(string("hw_params_rate: ")+snd_strerror(status));
 
     status = snd_pcm_hw_params_set_channels(pcm, hw_params, 2);  // !!! config
-    if (status)
+    if (status < 0)
       throw runtime_error(string("hw_params:channels: ")+snd_strerror(status));
 
     status = snd_pcm_hw_params(pcm, hw_params);
-    if (status)
+    if (status < 0)
       throw runtime_error(string("hw_params_set: ")+snd_strerror(status));
 
     // Prepare to send
     status = snd_pcm_prepare(pcm);
-    if (status)
+    if (status < 0)
       throw runtime_error(string("prepare: ")+snd_strerror(status));
 
     log.detail << "Created Linux ALSA audio out\n";
@@ -100,7 +100,18 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
 // Process some data
 void LinuxALSAOutFilter::accept(FragmentPtr fragment)
 {
-  // !!! Send out the fragment
+  if (pcm && fragment->nchannels)
+  {
+    // Send out the fragment
+    ssize_t n = snd_pcm_writei(pcm, fragment->waveform.data(),
+                               fragment->waveform.size()/fragment->nchannels);
+    if (n < 0)
+    {
+      Log::Streams log;
+      log.error << "ALSA PCM write error: " << n << " "
+                << snd_strerror(n) << endl;
+    }
+  }
 
   // Send it down as well, so these can be chained
   send(fragment);

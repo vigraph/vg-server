@@ -23,6 +23,8 @@ class MIDIControlInControl: public Dataflow::Control,
   shared_ptr<Interface> interface;
   int channel{0};
   int number{0};
+  double scale{1.0};
+  double offset{0.0};
 
   // Control virtuals
   void configure(const File::Directory& base_dir,
@@ -41,13 +43,16 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML:
-//   <midi-control-in ... target .../>
+//   <midi-control-in channel="1" number="22"
+//                    scale="1.0" offset="0.0" .../>
 MIDIControlInControl::MIDIControlInControl(const Dataflow::Module *module,
                                            const XML::Element& config):
   Element(module, config), Control(module, config)
 {
   channel = config.get_attr_int("channel");
   number = config.get_attr_int("number");
+  scale = config.get_attr_real("scale", 1.0);
+  offset = config.get_attr_real("offset");
 }
 
 //--------------------------------------------------------------------------
@@ -101,7 +106,7 @@ void MIDIControlInControl::handle(const ViGraph::MIDI::Event& event)
     Log::Detail log;
     log << "MIDI " << (int)event.channel << ": control " << (int)event.key
         << " -> " << event.value << endl;
-    send(Dataflow::Value(event.value/127.0));
+    send(Dataflow::Value(scale*event.value/127.0+offset));
   }
 }
 
@@ -114,10 +119,14 @@ Dataflow::Module module
   "Generic MIDI Control Input",
   "midi",
   {
-    { "channel", { {"MIDI channel (0=all)", "0"}, Value::Type::number,
-                                                    "@channel" } },
-    { "number", { {"Control number", "0"}, Value::Type::number,
-                                                    "@number" } }
+    { "channel", { {"MIDI channel (0=all)", "0"},
+          Value::Type::number, "@channel" } },
+    { "number", { {"Control number", "0"},
+          Value::Type::number, "@number" } },
+    { "scale",  { {"Scale to apply to control value", "1.0"},
+          Value::Type::number, "@scale", true } },
+    { "offset", { {"Offset to apply to control value", "0"},
+          Value::Type::number, "@offset", true } }
   },
   { { "", { "Control value", "value", Value::Type::number }}}
 };

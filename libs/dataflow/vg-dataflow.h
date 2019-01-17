@@ -314,6 +314,8 @@ class Acceptor
  public:
   // Accept data
   virtual void accept(DataPtr data) = 0;
+
+  virtual ~Acceptor() {}
 };
 
 //==========================================================================

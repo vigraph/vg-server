@@ -34,6 +34,7 @@ class LFOControl: public Dataflow::Control
   double period{0.0};
   double scale{0.0};
   double offset{0.0};
+  double phase{0.0};
 
   // Dynamic state
   bool running{false};
@@ -76,7 +77,7 @@ void LFOControl::set_waveform(const string& wave)
 // <lfo wave="{saw|sin|square|triangle}"
 //      once="yes|no"
 //      wait="yes|no"
-//      period="1.0" scale="1.0" offset="0.0"
+//      period="1.0" scale="1.0" offset="0.0" phase="0.0"
 //       type="{real|integer|boolean}"
 //       property="..."/>
 LFOControl::LFOControl(const Module *module, const XML::Element& config):
@@ -88,6 +89,7 @@ LFOControl::LFOControl(const Module *module, const XML::Element& config):
   period = config.get_attr_real("period", 1.0);
   scale = config.get_attr_real("scale", 1.0);
   offset = config.get_attr_real("offset");
+  phase = config.get_attr_real("phase");
 }
 
 //--------------------------------------------------------------------------
@@ -100,6 +102,8 @@ void LFOControl::set_property(const string& property, const SetParams& sp)
     update_prop(scale, sp);
   else if (property == "offset")
     update_prop(offset, sp);
+  else if (property == "phase")
+    update_prop(phase, sp);
   else if (property == "trigger")
     triggered = true;
 }
@@ -135,6 +139,9 @@ void LFOControl::tick(Dataflow::timestamp_t t)
 
   // If once, stop after first whole period
   if (once && t >= 1.0) return;
+
+  // Add phase
+  t += phase;
 
   // Get 0..1 repeating fraction
   t -= floor(t);
@@ -175,6 +182,8 @@ Dataflow::Module module
     { "scale", { { "Scale (amplitude)", "1.0" },
           Value::Type::number, true } },
     { "offset", { "Baseline offset",
+          Value::Type::number, true } },
+    { "phase", { "Phase shift (0..1)",
           Value::Type::number, true } },
     { "trigger", { "Trigger to start",
           Value::Type::trigger, true } }

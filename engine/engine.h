@@ -89,7 +89,7 @@ public:
 
   //------------------------------------------------------------------------
   // Time to sleep until next tick (microseconds)
-  int tick_wait() override { return 1000; }
+  int tick_wait() override { return 100; }
 
   //------------------------------------------------------------------------
   // Read settings from configuration

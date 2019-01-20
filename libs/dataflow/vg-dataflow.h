@@ -508,8 +508,16 @@ class Graph
   void disable();
 
   //------------------------------------------------------------------------
-  // Tick all sources
+  // Pre-tick all elements
+  void pre_tick(timestamp_t t);
+
+  //------------------------------------------------------------------------
+  // Tick all elements
   void tick(timestamp_t t);
+
+  //------------------------------------------------------------------------
+  // Post-tick all elements
+  void post_tick(timestamp_t t);
 
   //------------------------------------------------------------------------
   // Get a particular element by ID
@@ -567,8 +575,16 @@ class MultiGraph
   void disable_all();
 
   //------------------------------------------------------------------------
+  // Pre-tick all subgraphs
+  void pre_tick_all(timestamp_t t);
+
+  //------------------------------------------------------------------------
   // Tick all subgraphs
   void tick_all(timestamp_t t);
+
+  //------------------------------------------------------------------------
+  // Post-tick all subgraphs
+  void post_tick_all(timestamp_t t);
 
   //------------------------------------------------------------------------
   // Get a particular graph by ID

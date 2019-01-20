@@ -63,9 +63,6 @@ void ReceiveSource::disable()
 // Receiver implementation
 void ReceiveSource::receive(FramePtr frame)
 {
-  Log::Detail log;
-  log << "--- receive from " << tag << " " << frame->points.size() << endl;
-
   send(frame);
 }
 

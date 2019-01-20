@@ -144,10 +144,15 @@ TEST(GraphTest, TestGraphTickAndFiltering)
   ASSERT_FALSE(!sink);
 
   EXPECT_FALSE(sink->pre_tick_called);
-  EXPECT_FALSE(sink->post_tick_called);
-  ASSERT_NO_THROW(graph.tick(1.0));
+  ASSERT_NO_THROW(graph.pre_tick(1.0));
   EXPECT_TRUE(sink->pre_tick_called);
+
+  ASSERT_NO_THROW(graph.tick(1.0));
+
+  EXPECT_FALSE(sink->post_tick_called);
+  ASSERT_NO_THROW(graph.post_tick(1.0));
   EXPECT_TRUE(sink->post_tick_called);
+
   EXPECT_EQ(6, sink->received_data);
   ASSERT_NO_THROW(graph.tick(2.0));
   EXPECT_EQ(18, sink->received_data);

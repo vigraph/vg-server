@@ -35,8 +35,6 @@ class RouterImpl: public Dataflow::Service, public Router
 // Register for frame data on the given tag
 void RouterImpl::register_receiver(const string& tag, Receiver *receiver)
 {
-  Log::Detail log;
-  log << "Router registered receiver on '" << tag << "'\n";
   receivers[tag].push_back(receiver);
 }
 

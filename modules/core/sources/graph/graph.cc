@@ -20,7 +20,9 @@ class GraphSource: public Dataflow::Source
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void attach(Dataflow::Acceptor *_target) override;
+  void pre_tick(Dataflow::timestamp_t t) override;
   void tick(Dataflow::timestamp_t t) override;
+  void post_tick(Dataflow::timestamp_t t) override;
   void enable() override;
   void disable() override;
 
@@ -64,10 +66,24 @@ void GraphSource::disable()
 }
 
 //--------------------------------------------------------------------------
+// Pre-tick
+void GraphSource::pre_tick(Dataflow::timestamp_t t)
+{
+  subgraph->pre_tick(t);
+}
+
+//--------------------------------------------------------------------------
 // Generate a frame
 void GraphSource::tick(Dataflow::timestamp_t t)
 {
   subgraph->tick(t);
+}
+
+//--------------------------------------------------------------------------
+// Post-tick
+void GraphSource::post_tick(Dataflow::timestamp_t t)
+{
+  subgraph->post_tick(t);
 }
 
 //--------------------------------------------------------------------------

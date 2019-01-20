@@ -54,7 +54,11 @@ class FrameGenerator
 
     double t = 0.0;
     for(auto i=0; i<nticks; i++, t+=1.0)
+    {
+      graph.pre_tick(t);
       graph.tick(t);
+      graph.post_tick(t);
+    }
   }
 
 public:

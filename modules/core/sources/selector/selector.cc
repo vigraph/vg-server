@@ -24,7 +24,9 @@ class SelectorSource: public Dataflow::Source
                  const XML::Element& config) override;
   void attach(Dataflow::Acceptor *_target) override;
   void set_property(const string& property, const SetParams& sp) override;
+  void pre_tick(Dataflow::timestamp_t t) override;
   void tick(Dataflow::timestamp_t t) override;
+  void post_tick(Dataflow::timestamp_t t) override;
   void enable() override;
   void disable() override;
 
@@ -175,6 +177,22 @@ void SelectorSource::disable()
 }
 
 //--------------------------------------------------------------------------
+// Pre-tick
+void SelectorSource::pre_tick(Dataflow::timestamp_t t)
+{
+  // Pre-tick all active
+  for(auto& it: active_starts)
+  {
+    Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
+    if (sub)
+    {
+      if (!it.second) it.second = t;  // Reset datum time
+      sub->pre_tick(t-it.second);
+    }
+  }
+}
+
+//--------------------------------------------------------------------------
 // Generate a frame
 void SelectorSource::tick(Dataflow::timestamp_t t)
 {
@@ -182,11 +200,19 @@ void SelectorSource::tick(Dataflow::timestamp_t t)
   for(auto& it: active_starts)
   {
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
-    if (sub)
-    {
-      if (!it.second) it.second = t;  // Reset datum time
-      sub->tick(t-it.second);
-    }
+    if (sub) sub->tick(t-it.second);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Post-tick
+void SelectorSource::post_tick(Dataflow::timestamp_t t)
+{
+  // Post-tick all active
+  for(auto& it: active_starts)
+  {
+    Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
+    if (sub) sub->post_tick(t-it.second);
   }
 }
 

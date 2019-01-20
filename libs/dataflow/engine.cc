@@ -51,7 +51,9 @@ void Engine::tick(Time::Stamp t)
 
       // Tick the graph
       MT::Lock lock(graph_mutex);
+      graph->pre_tick(timestamp);
       graph->tick(timestamp);
+      graph->post_tick(timestamp);
     }
     catch (runtime_error e)
     {

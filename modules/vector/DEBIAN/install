@@ -2,6 +2,7 @@ controls/polar-velocity/vg-module-vector-control-polar-velocity.so /usr/lib/vigr
 controls/polar-acceleration/vg-module-vector-control-polar-acceleration.so /usr/lib/vigraph/modules/
 controls/velocity/vg-module-vector-control-velocity.so /usr/lib/vigraph/modules/
 sources/figure/vg-module-vector-source-figure.so /usr/lib/vigraph/modules/
+sources/receive/vg-module-vector-source-receive.so /usr/lib/vigraph/modules/
 sources/svg/vg-module-vector-source-svg.so /usr/lib/vigraph/modules/
 sources/test/vg-module-vector-source-test.so /usr/lib/vigraph/modules/
 sources/text/vg-module-vector-source-text.so /usr/lib/vigraph/modules/
@@ -13,8 +14,10 @@ filters/depth-fade/vg-module-vector-filter-depth-fade.so /usr/lib/vigraph/module
 filters/perspective/vg-module-vector-filter-perspective.so /usr/lib/vigraph/modules/
 filters/rotate/vg-module-vector-filter-rotate.so /usr/lib/vigraph/modules/
 filters/scale/vg-module-vector-filter-scale.so /usr/lib/vigraph/modules/
+filters/send/vg-module-vector-filter-send.so /usr/lib/vigraph/modules/
 filters/sum/vg-module-vector-filter-sum.so /usr/lib/vigraph/modules/
 filters/join/vg-module-vector-filter-join.so /usr/lib/vigraph/modules/
 filters/translate/vg-module-vector-filter-translate.so /usr/lib/vigraph/modules/
 filters/websocket/vg-module-vector-filter-websocket.so /usr/lib/vigraph/modules/
 services/collision-detector/vg-module-vector-service-collision-detector.so /usr/lib/vigraph/modules/
+services/router/vg-module-vector-service-router.so /usr/lib/vigraph/modules/

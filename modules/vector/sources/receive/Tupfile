@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph receive source module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-vector-source-receive
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl
+
+include_rules

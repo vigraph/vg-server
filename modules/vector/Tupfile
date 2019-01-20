@@ -10,6 +10,7 @@ DEPENDS  = vg-module-vector-source-test \
            vg-module-vector-source-figure \
            vg-module-vector-source-svg \
            vg-module-vector-source-text \
+           vg-module-vector-source-receive \
            vg-module-vector-control-velocity \
            vg-module-vector-control-polar-velocity \
            vg-module-vector-control-polar-acceleration \
@@ -25,7 +26,9 @@ DEPENDS  = vg-module-vector-source-test \
            vg-module-vector-filter-perspective \
            vg-module-vector-filter-websocket \
            vg-module-vector-filter-collision-detect \
-           vg-module-vector-service-collision-detector
+           vg-module-vector-filter-send \
+           vg-module-vector-service-collision-detector \
+           vg-module-vector-service-router
 
 PACKAGE  = $(NAME)
 VERSION  = 0.4.0

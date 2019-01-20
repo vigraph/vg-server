@@ -42,7 +42,7 @@ void RouterImpl::register_receiver(const string& tag, Receiver *receiver)
 // Deregister a receiver for all tags
 void RouterImpl::deregister_receiver(Receiver *receiver)
 {
-  for(auto it: receivers)
+  for(auto& it: receivers)
     it.second.remove(receiver);
 }
 

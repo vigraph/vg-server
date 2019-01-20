@@ -23,6 +23,7 @@ struct Frame: public Data
   timestamp_t timestamp;
 
   Frame(timestamp_t t): timestamp(t) {}
+  Frame(const Frame& o): points(o.points), timestamp(o.timestamp) {}
 };
 
 using FramePtr = shared_ptr<Frame>;

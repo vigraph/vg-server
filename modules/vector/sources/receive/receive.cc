@@ -63,7 +63,9 @@ void ReceiveSource::disable()
 // Receiver implementation
 void ReceiveSource::receive(FramePtr frame)
 {
-  send(frame);
+  // Copy the frame so we can modify it without affecting others
+  FramePtr copy_frame(new Frame(*frame));
+  send(copy_frame);
 }
 
 //--------------------------------------------------------------------------

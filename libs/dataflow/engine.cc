@@ -41,8 +41,12 @@ void Engine::configure(const File::Directory& base_dir,
 // Tick the engine
 void Engine::tick(Time::Stamp t)
 {
-  if (t - last_graph_tick_time >= tick_interval)
+  if (!start_time) start_time = t;
+
+  while (t >= start_time + tick_interval * tick_number)
   {
+    timestamp_t timestamp = tick_interval.seconds() * tick_number;
+
     try
     {
       // Tick all services
@@ -61,11 +65,7 @@ void Engine::tick(Time::Stamp t)
       log << "Graph tick failed: " << e.what() << endl;
     }
 
-    // Maintain constant timebase unless it's badly out (more than 1 interval)
-    last_graph_tick_time += tick_interval;
-    if (t - last_graph_tick_time >= tick_interval)
-      last_graph_tick_time = t;
-    timestamp += tick_interval.seconds();
+    tick_number++;
   }
 }
 

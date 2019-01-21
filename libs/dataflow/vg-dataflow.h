@@ -677,8 +677,8 @@ class Engine
   MT::Mutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
   Time::Duration tick_interval{0.04};  // 25Hz default
-  Dataflow::timestamp_t timestamp{0};
-  Time::Stamp last_graph_tick_time;
+  Time::Stamp start_time;
+  uint64_t tick_number{0};
 
  public:
   Registry element_registry;

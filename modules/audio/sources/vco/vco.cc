@@ -84,14 +84,17 @@ void VCOSource::set_property(const string& property, const SetParams& sp)
 void VCOSource::tick(const TickData& td)
 {
   const auto last_tick_total = static_cast<int>(
-      floor(td.interval.seconds() * (td.n) * sample_rate));
+      floor(td.interval.seconds() * (td.global_n) * sample_rate));
   const auto tick_total = static_cast<int>(
-      floor(td.interval.seconds() * (td.n + 1) * sample_rate));
+      floor(td.interval.seconds() * (td.global_n + 1) * sample_rate));
   const auto nsamples = tick_total - last_tick_total;
 
   auto fragment = new Fragment(td.t);  // mono
   fragment->waveform.reserve(nsamples);
-  auto theta = td.t * freq;
+  const auto first_local_tick_total = static_cast<int>(
+      floor(td.interval.seconds() * (td.global_n - td.n) * sample_rate));
+  auto theta = (static_cast<double>(last_tick_total - first_local_tick_total)
+                / sample_rate) * freq;
   theta -= floor(theta); // Wrap to 0..1
   for(int i=0; i<nsamples; i++)
   {

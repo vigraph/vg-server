@@ -29,6 +29,7 @@ class SetControl: public Control
   void tick(const TickData& td) override;
   // Automatically set wait flag if we are the target of something
   void notify_target_of(Element *) override { wait = true; }
+  void enable() override;
 
 public:
   // Construct
@@ -63,6 +64,13 @@ void SetControl::set_property(const string& property, const SetParams& sp)
     triggered = true;
   else if (property == "value")
     update_prop(value, sp);
+}
+
+//--------------------------------------------------------------------------
+// Enable (reset)
+void SetControl::enable()
+{
+  triggered = done = false;
 }
 
 //--------------------------------------------------------------------------

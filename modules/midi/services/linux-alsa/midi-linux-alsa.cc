@@ -32,7 +32,7 @@ class MIDIInterfaceImpl: public Dataflow::Service, public Interface
   void run();
 
   // Service interface
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
   void shutdown() override;
 
   // MIDI interface implementation
@@ -167,7 +167,7 @@ void MIDIInterfaceImpl::run()
 
 //--------------------------------------------------------------------------
 // Tick
-void MIDIInterfaceImpl::tick(Dataflow::timestamp_t)
+void MIDIInterfaceImpl::tick(const TickData&)
 {
   for(;;)
   {

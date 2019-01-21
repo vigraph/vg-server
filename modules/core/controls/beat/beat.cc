@@ -25,7 +25,7 @@ class BeatControl: public Dataflow::Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
   // Disable auto-active if we are the target of something
   void notify_target_of(Element *) override { active = false; }
 
@@ -60,15 +60,15 @@ void BeatControl::set_property(const string& property, const SetParams& sp)
 
 //--------------------------------------------------------------------------
 // Tick
-void BeatControl::tick(Dataflow::timestamp_t t)
+void BeatControl::tick(const TickData& td)
 {
   if (!active) return;
 
   // Check interval
-  if (t >= last_trigger + interval)
+  if (td.t >= last_trigger + interval)
   {
     if (last_trigger < 0.0)
-      last_trigger = t;         // Reset to now
+      last_trigger = td.t;      // Reset to now
     else
       last_trigger += interval; // Maintain constant timebase
   }

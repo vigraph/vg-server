@@ -56,7 +56,7 @@ class FigureSource: public Source
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(timestamp_t t) override;
+  void tick(const TickData& td) override;
 
 public:
   FigureSource(const Dataflow::Module *module, const XML::Element& config):
@@ -222,9 +222,9 @@ void FigureSource::set_property(const string& property, const SetParams& sp)
 
 //--------------------------------------------------------------------------
 // Generate a frame
-void FigureSource::tick(timestamp_t t)
+void FigureSource::tick(const TickData& td)
 {
-  Frame *frame = new Frame(t);
+  Frame *frame = new Frame(td.t);
 
   // Blank to start
   if (points)

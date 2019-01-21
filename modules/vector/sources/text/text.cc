@@ -23,7 +23,7 @@ class TextSource: public Dataflow::Source
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
 
 public:
   TextSource(const Dataflow::Module *module, const XML::Element& config):
@@ -45,9 +45,9 @@ void TextSource::configure(const File::Directory&,
 
 //--------------------------------------------------------------------------
 // Generate a frame
-void TextSource::tick(Dataflow::timestamp_t t)
+void TextSource::tick(const TickData& td)
 {
-  Frame *frame = new Frame(t);
+  Frame *frame = new Frame(td.t);
   frame->points = points;
   send(frame);
 }

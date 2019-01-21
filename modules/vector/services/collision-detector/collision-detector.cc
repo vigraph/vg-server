@@ -26,7 +26,7 @@ class CollisionDetectorImpl: public Dataflow::Service, public CollisionDetector
   map<string, Group> groups;
 
   // Service interface
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
 
  public:
   // Construct
@@ -43,7 +43,7 @@ class CollisionDetectorImpl: public Dataflow::Service, public CollisionDetector
 
 //--------------------------------------------------------------------------
 // Tick
-void CollisionDetectorImpl::tick(Dataflow::timestamp_t)
+void CollisionDetectorImpl::tick(const TickData&)
 {
   // Clear all boxes for this tick
   MT::Lock lock(groups_mutex);

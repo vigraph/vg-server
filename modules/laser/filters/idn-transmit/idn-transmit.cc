@@ -35,7 +35,7 @@ class IDNTransmitFilter: public FrameFilter
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void accept(FramePtr frame) override;
-  void post_tick(Dataflow::timestamp_t) override;
+  void post_tick(const TickData&) override;
   void shutdown() override;
 
   // Internal
@@ -218,12 +218,12 @@ void IDNTransmitFilter::transmit(FramePtr frame)
 
 //--------------------------------------------------------------------------
 // Post-tick flush
-void IDNTransmitFilter::post_tick(Dataflow::timestamp_t t)
+void IDNTransmitFilter::post_tick(const TickData& td)
 {
   // Send an empty frame if none seen since last tick
   if (!frame_seen)
   {
-    FramePtr frame(new Frame(t));
+    FramePtr frame(new Frame(td.t));
     transmit(frame);
   }
   frame_seen = false;

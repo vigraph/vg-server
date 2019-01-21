@@ -17,7 +17,7 @@ namespace {
 class CloneFractionControl: public Dataflow::Control
 {
   // Control virtuals
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
 
 public:
   // Construct
@@ -35,7 +35,7 @@ CloneFractionControl::CloneFractionControl(const Module *module,
 
 //--------------------------------------------------------------------------
 // Tick
-void CloneFractionControl::tick(Dataflow::timestamp_t /*t*/)
+void CloneFractionControl::tick(const TickData& /*td*/)
 {
   Value v = graph->get_variable("clone-fraction");
   if (v.type != Value::Type::invalid)

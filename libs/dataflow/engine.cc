@@ -49,15 +49,16 @@ void Engine::tick(Time::Stamp t)
 
     try
     {
+      const auto td = TickData{timestamp, tick_number, tick_interval};
       // Tick all services
       for(const auto& it: services)
-        it.second->tick(timestamp);
+        it.second->tick(td);
 
       // Tick the graph
       MT::Lock lock(graph_mutex);
-      graph->pre_tick(timestamp);
-      graph->tick(timestamp);
-      graph->post_tick(timestamp);
+      graph->pre_tick(td);
+      graph->tick(td);
+      graph->post_tick(td);
     }
     catch (runtime_error e)
     {

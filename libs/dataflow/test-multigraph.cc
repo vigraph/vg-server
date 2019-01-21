@@ -71,7 +71,7 @@ TEST(MultiGraphTest, TestTickAll)
   construct_multigraph(xml, mg);
 
   // Tick it
-  mg.tick_all(1);
+  mg.tick_all({1, 0, Time::Duration{1}});
 
   Graph *g = mg.get_subgraph("one");
   ASSERT_FALSE(!g) << "Explicit subgraph IDs broken";
@@ -126,7 +126,7 @@ TEST(MultiGraphTest, TestAttachAll)
   mg.attach_to_all(catcher.get());
 
   // Tick all subgraphs
-  mg.tick_all(1);
+  mg.tick_all({1, 0, Time::Duration{1}});
 
   // Catch should have got 1+2
   ASSERT_EQ(3, catcher->received_data);

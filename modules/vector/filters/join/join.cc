@@ -20,8 +20,8 @@ class JoinFilter: public FrameFilter
   void accept(FramePtr frame) override;
 
   // Notify before and after a tick
-  void pre_tick(Dataflow::timestamp_t) override;
-  void post_tick(Dataflow::timestamp_t) override;
+  void pre_tick(const TickData&) override;
+  void post_tick(const TickData&) override;
 
 public:
   // Construct
@@ -50,19 +50,19 @@ void JoinFilter::accept(FramePtr frame)
 
 //--------------------------------------------------------------------------
 // Pre-tick setup
-void JoinFilter::pre_tick(Dataflow::timestamp_t)
+void JoinFilter::pre_tick(const TickData&)
 {
   join.reset();
 }
 
 //--------------------------------------------------------------------------
 // Post-tick flush
-void JoinFilter::post_tick(Dataflow::timestamp_t t)
+void JoinFilter::post_tick(const TickData& td)
 {
   if (!!join)
   {
     // Reset disparate local timebases to our master
-    join->timestamp = t;
+    join->timestamp = td.t;
     send(join);
   }
 }

@@ -89,7 +89,7 @@ class ControlTester
     graph.generate_topological_order();
 
     for(auto i=0; i<nticks; i++)
-      graph.tick(i);
+      graph.tick(TickData(i, i, Time::Duration{i}));
   }
 
  public:

@@ -24,9 +24,9 @@ class SelectorSource: public Dataflow::Source
                  const XML::Element& config) override;
   void attach(Dataflow::Acceptor *_target) override;
   void set_property(const string& property, const SetParams& sp) override;
-  void pre_tick(Dataflow::timestamp_t t) override;
-  void tick(Dataflow::timestamp_t t) override;
-  void post_tick(Dataflow::timestamp_t t) override;
+  void pre_tick(const TickData& td) override;
+  void tick(const TickData& td) override;
+  void post_tick(const TickData& td) override;
   void enable() override;
   void disable() override;
 
@@ -178,7 +178,7 @@ void SelectorSource::disable()
 
 //--------------------------------------------------------------------------
 // Pre-tick
-void SelectorSource::pre_tick(Dataflow::timestamp_t t)
+void SelectorSource::pre_tick(const TickData& td)
 {
   // Pre-tick all active
   for(auto& it: active_starts)
@@ -186,33 +186,33 @@ void SelectorSource::pre_tick(Dataflow::timestamp_t t)
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
     if (sub)
     {
-      if (!it.second) it.second = t;  // Reset datum time
-      sub->pre_tick(t-it.second);
+      if (!it.second) it.second = td.t;  // Reset datum time
+      sub->pre_tick({td.t-it.second, td.n, td.interval});
     }
   }
 }
 
 //--------------------------------------------------------------------------
 // Generate a frame
-void SelectorSource::tick(Dataflow::timestamp_t t)
+void SelectorSource::tick(const TickData& td)
 {
   // Tick all active
   for(auto& it: active_starts)
   {
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
-    if (sub) sub->tick(t-it.second);
+    if (sub) sub->tick({td.t-it.second, td.n, td.interval});
   }
 }
 
 //--------------------------------------------------------------------------
 // Post-tick
-void SelectorSource::post_tick(Dataflow::timestamp_t t)
+void SelectorSource::post_tick(const TickData& td)
 {
   // Post-tick all active
   for(auto& it: active_starts)
   {
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
-    if (sub) sub->post_tick(t-it.second);
+    if (sub) sub->post_tick({td.t-it.second, td.n, td.interval});
   }
 }
 

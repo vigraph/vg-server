@@ -119,7 +119,7 @@ class WebSocketFilter: public FrameFilter
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void accept(FramePtr frame) override;
-  void post_tick(Dataflow::timestamp_t) override;
+  void post_tick(const TickData&) override;
   void shutdown() override;
 
 public:
@@ -157,12 +157,12 @@ void WebSocketFilter::accept(FramePtr frame)
 
 //--------------------------------------------------------------------------
 // Post-tick flush
-void WebSocketFilter::post_tick(Dataflow::timestamp_t t)
+void WebSocketFilter::post_tick(const TickData& td)
 {
   // Send an empty frame to clear screen if none seen since last tick
   if (!frame_seen)
   {
-    FramePtr frame(new Frame(t));
+    FramePtr frame(new Frame(td.t));
     server->queue(frame);
   }
   frame_seen = false;

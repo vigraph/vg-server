@@ -20,8 +20,8 @@ class SumFilter: public FrameFilter
   void accept(FramePtr frame) override;
 
   // Notify before and after a tick
-  void pre_tick(Dataflow::timestamp_t) override;
-  void post_tick(Dataflow::timestamp_t) override;
+  void pre_tick(const TickData&) override;
+  void post_tick(const TickData&) override;
 
 public:
   // Construct
@@ -51,14 +51,14 @@ void SumFilter::accept(FramePtr frame)
 
 //--------------------------------------------------------------------------
 // Pre-tick setup
-void SumFilter::pre_tick(Dataflow::timestamp_t)
+void SumFilter::pre_tick(const TickData&)
 {
   sum.reset();
 }
 
 //--------------------------------------------------------------------------
 // Post-tick flush
-void SumFilter::post_tick(Dataflow::timestamp_t)
+void SumFilter::post_tick(const TickData&)
 {
   if (!!sum) send(sum);
 }

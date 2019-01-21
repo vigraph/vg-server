@@ -21,8 +21,8 @@ class MixerFilter: public FragmentFilter
 
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
-  void pre_tick(Dataflow::timestamp_t) override;
-  void post_tick(Dataflow::timestamp_t) override;
+  void pre_tick(const TickData& td) override;
+  void post_tick(const TickData& td) override;
 
 public:
   MixerFilter(const Dataflow::Module *module, const XML::Element& config);
@@ -58,14 +58,14 @@ void MixerFilter::accept(FragmentPtr fragment)
 
 //--------------------------------------------------------------------------
 // Pre-tick setup
-void MixerFilter::pre_tick(Dataflow::timestamp_t)
+void MixerFilter::pre_tick(const TickData&)
 {
   sum.reset();
 }
 
 //--------------------------------------------------------------------------
 // Post-tick flush
-void MixerFilter::post_tick(Dataflow::timestamp_t)
+void MixerFilter::post_tick(const TickData&)
 {
   if (!!sum) send(sum);
 }

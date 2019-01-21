@@ -40,7 +40,7 @@ class VCOSource: public Source
                  const XML::Element& config) override;
   void set_property(const string& property, const SetParams& sp) override;
   void enable() override;
-  void tick(timestamp_t t) override;
+  void tick(const TickData& td) override;
 
 public:
   VCOSource(const Dataflow::Module *module, const XML::Element& config):
@@ -93,14 +93,14 @@ void VCOSource::enable()
 
 //--------------------------------------------------------------------------
 // Generate a fragment
-void VCOSource::tick(timestamp_t t)
+void VCOSource::tick(const TickData& td)
 {
-  if (last_tick>=0 && t>last_tick)
+  if (last_tick>=0 && td.t>last_tick)
   {
-    timestamp_t delta = t-last_tick;
+    timestamp_t delta = td.t-last_tick;
     int nsamples = (int)ceil(delta * sample_rate);
 
-    auto fragment = new Fragment(t);  // mono
+    auto fragment = new Fragment(td.t);  // mono
     fragment->waveform.reserve(nsamples);
     for(int i=0; i<nsamples; i++)
     {
@@ -142,7 +142,7 @@ void VCOSource::tick(timestamp_t t)
     send(fragment);
   }
 
-  last_tick = t;
+  last_tick = td.t;
 }
 
 Dataflow::Module module

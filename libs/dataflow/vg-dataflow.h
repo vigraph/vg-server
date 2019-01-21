@@ -30,6 +30,20 @@ using namespace ViGraph;
 typedef double timestamp_t; // Relative timestamp
 
 //==========================================================================
+// Tick data - data that is passed for each tick
+struct TickData
+{
+  timestamp_t t = 0.0;      // Relative timestamp
+  uint64_t n = 0;           // Absolute tick number
+  Time::Duration interval;  // Interval of the tick
+
+  // Constructor
+  TickData(timestamp_t _t, uint64_t _n, const Time::Duration& _interval):
+    t{_t}, n{_n}, interval{_interval}
+  {}
+};
+
+//==========================================================================
 // Graph data block - carrier for arbitrary data
 // Will be specialised to actually hold data in user's subclasses
 struct Data
@@ -290,13 +304,13 @@ public:
   virtual void disable() {}
 
   // Notify of a new tick about to start
-  virtual void pre_tick(timestamp_t) {}
+  virtual void pre_tick(const TickData&) {}
 
   // Tick
-  virtual void tick(timestamp_t) {};
+  virtual void tick(const TickData&) {};
 
   // Notify of a tick just ended
-  virtual void post_tick(timestamp_t) {}
+  virtual void post_tick(const TickData&) {}
 
   // Clean shutdown
   virtual void shutdown() {}
@@ -509,15 +523,15 @@ class Graph
 
   //------------------------------------------------------------------------
   // Pre-tick all elements
-  void pre_tick(timestamp_t t);
+  void pre_tick(const TickData& td);
 
   //------------------------------------------------------------------------
   // Tick all elements
-  void tick(timestamp_t t);
+  void tick(const TickData& td);
 
   //------------------------------------------------------------------------
   // Post-tick all elements
-  void post_tick(timestamp_t t);
+  void post_tick(const TickData& td);
 
   //------------------------------------------------------------------------
   // Get a particular element by ID
@@ -576,15 +590,15 @@ class MultiGraph
 
   //------------------------------------------------------------------------
   // Pre-tick all subgraphs
-  void pre_tick_all(timestamp_t t);
+  void pre_tick_all(const TickData& td);
 
   //------------------------------------------------------------------------
   // Tick all subgraphs
-  void tick_all(timestamp_t t);
+  void tick_all(const TickData& td);
 
   //------------------------------------------------------------------------
   // Post-tick all subgraphs
-  void post_tick_all(timestamp_t t);
+  void post_tick_all(const TickData& td);
 
   //------------------------------------------------------------------------
   // Get a particular graph by ID

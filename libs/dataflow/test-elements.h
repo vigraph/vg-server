@@ -41,9 +41,9 @@ public:
   }
 
   // Generate some data
-  void tick(timestamp_t t) override
+  void tick(const TickData& td) override
   {
-    send(new TestData((int)t));
+    send(new TestData((int)td.t));
   }
 
   // Shutdown
@@ -125,11 +125,11 @@ public:
   }
 
   // Notify of tick
-  void pre_tick(timestamp_t) override
+  void pre_tick(const TickData&) override
   {
     pre_tick_called = true;
   }
-  void post_tick(timestamp_t) override
+  void post_tick(const TickData&) override
   {
     post_tick_called = true;
   }

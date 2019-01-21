@@ -20,7 +20,7 @@ class TestSource: public Dataflow::Source
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
 
   // Internals
   void interpolate(const Line& l, vector<Point>& points);
@@ -41,9 +41,9 @@ void TestSource::configure(const File::Directory&,
 
 //--------------------------------------------------------------------------
 // Generate a frame
-void TestSource::tick(Dataflow::timestamp_t t)
+void TestSource::tick(const TickData& td)
 {
-  Frame *frame = new Frame(t);
+  Frame *frame = new Frame(td.t);
   auto& points = frame->points;
 
   // Square corners

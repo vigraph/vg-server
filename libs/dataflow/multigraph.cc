@@ -79,29 +79,29 @@ void MultiGraph::disable_all()
 
 //------------------------------------------------------------------------
 // Pre-tick all subgraphs
-void MultiGraph::pre_tick_all(timestamp_t t)
+void MultiGraph::pre_tick_all(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
   for(const auto it: subgraphs)
-    it->pre_tick(t);
+    it->pre_tick(td);
 }
 
 //------------------------------------------------------------------------
 // Tick all subgraphs
-void MultiGraph::tick_all(timestamp_t t)
+void MultiGraph::tick_all(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
   for(const auto it: subgraphs)
-    it->tick(t);
+    it->tick(td);
 }
 
 //------------------------------------------------------------------------
 // Post-tick all subgraphs
-void MultiGraph::post_tick_all(timestamp_t t)
+void MultiGraph::post_tick_all(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
   for(const auto it: subgraphs)
-    it->post_tick(t);
+    it->post_tick(td);
 }
 
 //------------------------------------------------------------------------

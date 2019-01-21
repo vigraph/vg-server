@@ -26,7 +26,7 @@ class SetControl: public Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(timestamp_t t) override;
+  void tick(const TickData& td) override;
   // Automatically set wait flag if we are the target of something
   void notify_target_of(Element *) override { wait = true; }
 
@@ -67,7 +67,7 @@ void SetControl::set_property(const string& property, const SetParams& sp)
 
 //--------------------------------------------------------------------------
 // Tick
-void SetControl::tick(timestamp_t /*t*/)
+void SetControl::tick(const TickData& /*td*/)
 {
   if (wait)
   {

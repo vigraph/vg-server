@@ -37,7 +37,7 @@ class EnvelopeControl: public Dataflow::Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
   void enable() override;
 
 public:
@@ -104,17 +104,17 @@ void EnvelopeControl::enable()
 
 //--------------------------------------------------------------------------
 // Tick
-void EnvelopeControl::tick(Dataflow::timestamp_t t)
+void EnvelopeControl::tick(const TickData& td)
 {
   // Check for state change
   if (state_changed)
   {
-    state_changed_time = t;
+    state_changed_time = td.t;
     state_changed = false;
   }
 
   double value;
-  timestamp_t delta = t-state_changed_time;
+  timestamp_t delta = td.t-state_changed_time;
   switch (state)
   {
     case State::off:
@@ -126,7 +126,7 @@ void EnvelopeControl::tick(Dataflow::timestamp_t t)
       {
         value = 1.0;
         state = State::decay;
-        state_changed_time = t;
+        state_changed_time = td.t;
       }
       else
       {
@@ -141,7 +141,7 @@ void EnvelopeControl::tick(Dataflow::timestamp_t t)
       {
         value = sustain;
         state = State::sustain;
-        state_changed_time = t;
+        state_changed_time = td.t;
       }
       else
       {
@@ -160,7 +160,7 @@ void EnvelopeControl::tick(Dataflow::timestamp_t t)
       {
         value = 0;
         state = State::off;
-        state_changed_time = t;
+        state_changed_time = td.t;
       }
       else
       {

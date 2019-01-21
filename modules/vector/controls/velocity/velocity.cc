@@ -21,7 +21,7 @@ class VelocityControl: public Dataflow::Control
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
   void enable() override;
 
 public:
@@ -71,11 +71,11 @@ void VelocityControl::enable()
 
 //--------------------------------------------------------------------------
 // Tick
-void VelocityControl::tick(Dataflow::timestamp_t t)
+void VelocityControl::tick(const TickData& td)
 {
   if (last_tick >= 0.0)
   {
-    auto delta_t = t - last_tick;
+    auto delta_t = td.t - last_tick;
     auto delta = v * delta_t;
     SetParams setx(Dataflow::Value{delta.x}, true);
     send("x", setx);
@@ -85,7 +85,7 @@ void VelocityControl::tick(Dataflow::timestamp_t t)
     send("z", setz);
   }
 
-  last_tick = t;
+  last_tick = td.t;
 }
 
 //--------------------------------------------------------------------------

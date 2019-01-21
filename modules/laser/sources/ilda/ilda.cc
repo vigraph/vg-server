@@ -24,7 +24,7 @@ class ILDASource: public Dataflow::Source
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
 
 public:
   ILDASource(const Dataflow::Module *module, const XML::Element& config):
@@ -57,14 +57,14 @@ void ILDASource::configure(const File::Directory& base_dir,
 
 //--------------------------------------------------------------------------
 // Generate a frame
-void ILDASource::tick(Dataflow::timestamp_t t)
+void ILDASource::tick(const TickData& td)
 {
-  Frame *frame = new Frame(t);
+  Frame *frame = new Frame(td.t);
 
   size_t nframes = animation.frames.size();
 
   // Get frame number, looping !!! make looping optional?
-  size_t i = static_cast<size_t>(t * frame_rate) % nframes;
+  size_t i = static_cast<size_t>(td.t * frame_rate) % nframes;
   frame->points = animation.frames[i].points;
 
   // Send to output

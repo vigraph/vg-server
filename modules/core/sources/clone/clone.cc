@@ -21,9 +21,9 @@ class CloneSource: public Dataflow::Source
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void attach(Dataflow::Acceptor *_target) override;
-  void pre_tick(Dataflow::timestamp_t t) override;
-  void tick(Dataflow::timestamp_t t) override;
-  void post_tick(Dataflow::timestamp_t t) override;
+  void pre_tick(const TickData& td) override;
+  void tick(const TickData& td) override;
+  void post_tick(const TickData& td) override;
   void enable() override;
   void disable() override;
 
@@ -77,23 +77,23 @@ void CloneSource::disable()
 
 //--------------------------------------------------------------------------
 // Pre-tick
-void CloneSource::pre_tick(Dataflow::timestamp_t t)
+void CloneSource::pre_tick(const TickData& td)
 {
-  multigraph->pre_tick_all(t);
+  multigraph->pre_tick_all(td);
 }
 
 //--------------------------------------------------------------------------
 // Generate a frame
-void CloneSource::tick(Dataflow::timestamp_t t)
+void CloneSource::tick(const TickData& td)
 {
-  multigraph->tick_all(t);
+  multigraph->tick_all(td);
 }
 
 //--------------------------------------------------------------------------
 // Post-tick
-void CloneSource::post_tick(Dataflow::timestamp_t t)
+void CloneSource::post_tick(const TickData& td)
 {
-  multigraph->post_tick_all(t);
+  multigraph->post_tick_all(td);
 }
 
 //--------------------------------------------------------------------------

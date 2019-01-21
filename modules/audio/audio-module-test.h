@@ -53,8 +53,9 @@ class FragmentGenerator
     graph.attach(&catcher);
 
     double t = 0.0;
-    for(auto i=0; i<nticks; i++, t+=1.0)
-      graph.tick(t);
+    uint64_t n = 0;
+    for(auto i=0; i<nticks; i++, t+=1.0, ++n)
+      graph.tick({t, n, Time::Duration{1}});
   }
 
 public:

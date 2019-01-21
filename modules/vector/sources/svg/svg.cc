@@ -23,7 +23,7 @@ class SVGSource: public Source
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
-  void tick(timestamp_t t) override;
+  void tick(const TickData& td) override;
 
 public:
   SVGSource(const Dataflow::Module *module, const XML::Element& config):
@@ -90,9 +90,9 @@ void SVGSource::configure(const File::Directory& base_dir,
 
 //--------------------------------------------------------------------------
 // Generate a frame
-void SVGSource::tick(timestamp_t t)
+void SVGSource::tick(const TickData& td)
 {
-  Frame *frame = new Frame(t);
+  Frame *frame = new Frame(td.t);
   frame->points = points;
   send(frame);
 }

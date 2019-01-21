@@ -53,11 +53,12 @@ class FrameGenerator
     graph.attach(&catcher);
 
     double t = 0.0;
-    for(auto i=0; i<nticks; i++, t+=1.0)
+    uint64_t n = 0;
+    for(auto i=0; i<nticks; i++, t+=1.0, ++n)
     {
-      graph.pre_tick(t);
-      graph.tick(t);
-      graph.post_tick(t);
+      graph.pre_tick({t, n, Time::Duration{1}});
+      graph.tick({t, n, Time::Duration{1}});
+      graph.post_tick({t, n, Time::Duration{1}});
     }
   }
 

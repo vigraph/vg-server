@@ -27,7 +27,7 @@ class ModifyControl: public Dataflow::Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
   // Automatically set wait flag if we are the target of something
   void notify_target_of(Element *) override { wait = true; }
 
@@ -59,7 +59,7 @@ void ModifyControl::set_property(const string& property, const SetParams& sp)
 
 //--------------------------------------------------------------------------
 // Tick
-void ModifyControl::tick(Dataflow::timestamp_t /*t*/)
+void ModifyControl::tick(const TickData& /*td*/)
 {
   if (wait)
   {

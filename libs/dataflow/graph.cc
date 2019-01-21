@@ -331,7 +331,7 @@ void Graph::disable()
 
 //------------------------------------------------------------------------
 // Pre-tick all elements in topological order
-void Graph::pre_tick(timestamp_t t)
+void Graph::pre_tick(const TickData& td)
 {
   // Check for file update
   Time::Stamp now = Time::Stamp::now();
@@ -362,25 +362,25 @@ void Graph::pre_tick(timestamp_t t)
 
   MT::RWReadLock lock(mutex);
   for(const auto e: topological_order)
-    e->pre_tick(t);
+    e->pre_tick(td);
 }
 
 //------------------------------------------------------------------------
 // Tick all elements in topological order
-void Graph::tick(timestamp_t t)
+void Graph::tick(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
   for(const auto e: topological_order)
-    e->tick(t);
+    e->tick(td);
 }
 
 //------------------------------------------------------------------------
 // Post-tick all elements
-void Graph::post_tick(timestamp_t t)
+void Graph::post_tick(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
   for(const auto e: topological_order)
-    e->post_tick(t);
+    e->post_tick(td);
 }
 
 //------------------------------------------------------------------------

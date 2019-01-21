@@ -23,7 +23,7 @@ class PolarAccelerationControl: public Dataflow::Control
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(Dataflow::timestamp_t t) override;
+  void tick(const TickData& td) override;
 
 public:
   // Construct
@@ -55,11 +55,11 @@ void PolarAccelerationControl::set_property(const string& property,
 
 //--------------------------------------------------------------------------
 // Tick
-void PolarAccelerationControl::tick(Dataflow::timestamp_t t)
+void PolarAccelerationControl::tick(const TickData& td)
 {
   if (last_tick >= 0.0)
   {
-    auto delta_t = t - last_tick;
+    auto delta_t = td.t - last_tick;
     auto delta_v = acceleration * delta_t;
     auto rad = angle * 2 * pi;
     auto cos_rad = cos(rad);
@@ -72,7 +72,7 @@ void PolarAccelerationControl::tick(Dataflow::timestamp_t t)
     send("y", sety);
   }
 
-  last_tick = t;
+  last_tick = td.t;
 }
 
 //--------------------------------------------------------------------------

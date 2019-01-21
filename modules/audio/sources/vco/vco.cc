@@ -31,15 +31,10 @@ class VCOSource: public Source
   Waveform waveform;
   double freq;  // Hz
 
-  // State
-  timestamp_t last_tick{-1};
-  double theta; // Current position in waveform 0..1
-
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void set_property(const string& property, const SetParams& sp) override;
-  void enable() override;
   void tick(const TickData& td) override;
 
 public:
@@ -85,64 +80,57 @@ void VCOSource::set_property(const string& property, const SetParams& sp)
 }
 
 //--------------------------------------------------------------------------
-// Enable (reset)
-void VCOSource::enable()
-{
-  last_tick = -1;
-}
-
-//--------------------------------------------------------------------------
 // Generate a fragment
 void VCOSource::tick(const TickData& td)
 {
-  if (last_tick>=0 && td.t>last_tick)
+  const auto last_tick_total = static_cast<int>(
+      floor(td.interval.seconds() * (td.n) * sample_rate));
+  const auto tick_total = static_cast<int>(
+      floor(td.interval.seconds() * (td.n + 1) * sample_rate));
+  const auto nsamples = tick_total - last_tick_total;
+
+  auto fragment = new Fragment(td.t);  // mono
+  fragment->waveform.reserve(nsamples);
+  auto theta = td.t * freq;
+  theta -= floor(theta); // Wrap to 0..1
+  for(int i=0; i<nsamples; i++)
   {
-    timestamp_t delta = td.t-last_tick;
-    int nsamples = (int)ceil(delta * sample_rate);
+    sample_t v;  // Value -1 .. 1
 
-    auto fragment = new Fragment(td.t);  // mono
-    fragment->waveform.reserve(nsamples);
-    for(int i=0; i<nsamples; i++)
+    switch (waveform)
     {
-      sample_t v;  // Value -1 .. 1
+      case Waveform::none:
+        v = 0.0;
+      break;
 
-      switch (waveform)
-      {
-        case Waveform::none:
-          v = 0.0;
-        break;
+      case Waveform::saw:
+        v = theta*2 - 1;
+      break;
 
-        case Waveform::saw:
-          v = theta*2 - 1;
-        break;
+      case Waveform::sin:
+        v = sin(theta*2*pi);
+      break;
 
-        case Waveform::sin:
-          v = sin(theta*2*pi);
-        break;
+      case Waveform::square:
+        v = theta >= 0.5 ? 1.0 : -1.0;
+      break;
 
-        case Waveform::square:
-          v = theta >= 0.5 ? 1.0 : -1.0;
-        break;
+      case Waveform::triangle:
+        v = (theta < 0.5 ? theta : 1-theta)*4-1;
+      break;
 
-        case Waveform::triangle:
-          v = (theta < 0.5 ? theta : 1-theta)*4-1;
-        break;
-
-        case Waveform::random:
-          v = 2.0 * rand() / RAND_MAX - 1;
-        break;
-      }
-
-      fragment->waveform.push_back(v);
-      theta += freq/sample_rate;
-      theta -= floor(theta); // Wrap to 0..1
+      case Waveform::random:
+        v = 2.0 * rand() / RAND_MAX - 1;
+      break;
     }
 
-    // Send to output
-    send(fragment);
+    fragment->waveform.push_back(v);
+    theta += freq/sample_rate;
+    theta -= floor(theta); // Wrap to 0..1
   }
 
-  last_tick = td.t;
+  // Send to output
+  send(fragment);
 }
 
 Dataflow::Module module

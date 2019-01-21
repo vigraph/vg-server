@@ -33,13 +33,19 @@ typedef double timestamp_t; // Relative timestamp
 // Tick data - data that is passed for each tick
 struct TickData
 {
-  timestamp_t t = 0.0;      // Relative timestamp
-  uint64_t n = 0;           // Absolute tick number
-  Time::Duration interval;  // Interval of the tick
+  timestamp_t t = 0.0;        // Relative timestamp
+  uint64_t n = 0;             // Relative tick number
+  Time::Duration interval;    // Interval of the tick
+  timestamp_t global_t = 0.0; // Absolute timestamp
+  uint64_t global_n = 0;      // Absolute tick number
 
-  // Constructor
+  // Constructors
   TickData(timestamp_t _t, uint64_t _n, const Time::Duration& _interval):
-    t{_t}, n{_n}, interval{_interval}
+    t{_t}, n{_n}, interval{_interval}, global_t{_t}, global_n{_n}
+  {}
+  TickData(timestamp_t _t, uint64_t _n, const Time::Duration& _interval,
+           timestamp_t _global_t, uint64_t _global_n):
+    t{_t}, n{_n}, interval{_interval}, global_t{_global_t}, global_n{_global_n}
   {}
 };
 

@@ -17,7 +17,21 @@ class SelectorSource: public Dataflow::Source
 {
   bool retrigger{false};
   unique_ptr<Dataflow::MultiGraph> multigraph;
-  map<int, Dataflow::timestamp_t> active_starts;  // Start time, or 0 when new
+  struct Start
+  {
+    Dataflow::timestamp_t t = 0.0;
+    uint64_t n = 0;
+
+    Start() {}
+    Start(Dataflow::timestamp_t _t, uint64_t _n): t{_t}, n{_n} {}
+    Start(const Start& s): t{s.t}, n{s.n} {}
+
+    bool operator!() const
+    {
+      return !t && !n;
+    }
+  };
+  map<int, Start> active_starts;  // Starts, zeroed when new
 
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
@@ -91,7 +105,7 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
       Dataflow::Graph *sub = multigraph->get_subgraph(index);
       if (sub)
       {
-        active_starts[index] = 0;
+        active_starts[index] = {0.0, 0};
         // Enable it
         sub->enable();
       }
@@ -116,7 +130,7 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
     {
       // Mark to start at next tick if not already there
       if (!active_starts[index])
-        active_starts[index] = 0;
+        active_starts[index] = {0.0, 0};
 
       // Enable it
       sub->enable();
@@ -186,8 +200,9 @@ void SelectorSource::pre_tick(const TickData& td)
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
     if (sub)
     {
-      if (!it.second) it.second = td.t;  // Reset datum time
-      sub->pre_tick({td.t-it.second, td.n, td.interval});
+      if (!it.second) it.second = {td.t, td.n};  // Reset datum time
+      sub->pre_tick({td.t-it.second.t, td.n-it.second.n, td.interval,
+                     td.global_t, td.global_n});
     }
   }
 }
@@ -200,7 +215,8 @@ void SelectorSource::tick(const TickData& td)
   for(auto& it: active_starts)
   {
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
-    if (sub) sub->tick({td.t-it.second, td.n, td.interval});
+    if (sub) sub->tick({td.t-it.second.t, td.n-it.second.n, td.interval,
+                        td.global_t, td.global_n});
   }
 }
 
@@ -212,7 +228,8 @@ void SelectorSource::post_tick(const TickData& td)
   for(auto& it: active_starts)
   {
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
-    if (sub) sub->post_tick({td.t-it.second, td.n, td.interval});
+    if (sub) sub->post_tick({td.t-it.second.t, td.n-it.second.n, td.interval,
+                             td.global_t, td.global_n});
   }
 }
 

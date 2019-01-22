@@ -43,6 +43,16 @@ struct RGB
   // Fade by a proportion, all channels
   void fade(intens_t f) { r*=f; b*=f; g*=f; }
 
+  // Blend between this and another colour
+  // frac=0 => all 'this', frac=1 => all 'o'
+  RGB blend_with(const RGB& o, double frac)
+  {
+    double rfrac = 1-frac;
+    return RGB(r*rfrac + o.r*frac,
+               g*rfrac + o.g*frac,
+               b*rfrac + o.b*frac);
+  }
+
   // Equality
   bool operator==(const RGB& o) const
   { return r==o.r && g==o.g && b==o.b; }
@@ -54,6 +64,7 @@ struct RGB
   // Create from hex RGB
   static RGB from_rgb_hex(unsigned char r, unsigned char g, unsigned char b)
   { return RGB(r/255.0, g/255.0, b/255.0); }
+
 };
 
 //==========================================================================

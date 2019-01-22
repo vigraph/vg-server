@@ -205,6 +205,19 @@ TEST(ColourTest, TestSpecialColours)
   EXPECT_EQ(1.0, Colour::blue.b);
 }
 
+TEST(ColourTest, TestColourBlend)
+{
+  Colour::RGB a(0.2, 0.4, 0.6);
+  Colour::RGB b(0.4, 0.6, 0.8);
+  EXPECT_EQ(a, a.blend_with(b,0));
+  EXPECT_EQ(b, a.blend_with(b,1));
+  Colour::RGB c = a.blend_with(b,0.5);
+  EXPECT_DOUBLE_EQ(0.3, c.r);
+  EXPECT_DOUBLE_EQ(0.5, c.g);
+  EXPECT_DOUBLE_EQ(0.7, c.b);
+}
+
+
 } // anonymous namespace
 
 int main(int argc, char **argv)

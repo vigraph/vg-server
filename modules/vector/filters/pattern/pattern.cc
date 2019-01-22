@@ -17,6 +17,12 @@ class PatternFilter: public FrameFilter
   double phase{0};
   int repeats{1};
   vector<Colour::RGB> colours;
+  enum class BlendType
+  {
+    none,
+    linear
+  };
+  BlendType blend_type{BlendType::none};
 
   // Filter/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -55,6 +61,9 @@ PatternFilter::PatternFilter(const Dataflow::Module *module,
                       ce.get_attr_real("b"));
     colours.push_back(c);
   }
+
+  const auto& blend = config["blend"];
+  if (blend == "linear") blend_type = BlendType::linear;
 }
 
 //--------------------------------------------------------------------------
@@ -91,7 +100,23 @@ void PatternFilter::accept(FramePtr frame)
         double theta = frac*repeats;
         theta -= floor(theta);
         auto cindex = (unsigned int)floor(theta*nc);
-        if (cindex < nc) p.c = colours[cindex];
+        if (cindex >= nc) break;
+
+        switch (blend_type)
+        {
+          case BlendType::none:
+            p.c = colours[cindex];
+            break;
+
+          case BlendType::linear:
+          {
+            auto next_cindex = (cindex+1)%nc;
+            auto blend = theta*nc - cindex;
+            p.c = colours[cindex].blend_with(colours[next_cindex], blend);
+            break;
+          }
+        }
+
         i++;
       }
     }
@@ -109,6 +134,10 @@ Dataflow::Module module
   "Adds a pattern of colours, optionally blending",
   "vector",
   {
+    { "phase", { "Phase of pattern (0..1)", Value::Type::number,
+          "@phase", true } },
+    { "repeats", { { "Number of repeats of pattern", "1" },
+          Value::Type::number, "@repeats", true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

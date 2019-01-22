@@ -146,6 +146,41 @@ TEST(PatternTest, TestSimpleAlternating5RepeatsAntiPhase)
   }
 }
 
+TEST(PatternTest, TestBlendOneRepeat)
+{
+  const string& xml = R"(
+    <graph>
+      <figure points='10'/>
+      <pattern blend="linear">
+        <colour>red</colour>
+        <colour g="1.0"/>
+      </pattern>
+    </graph>
+  )";
+
+  FrameGenerator gen(xml, loader);
+  Frame *frame = gen.get_frame();
+  ASSERT_FALSE(!frame);
+
+  // Should be 11 points at (0,0), first blanked,
+  // rest blending between pure red and pure green and back again
+  EXPECT_EQ(11, frame->points.size());
+  EXPECT_TRUE(frame->points[0].is_blanked());
+  for(auto i=1; i<6; i++)
+  {
+    const auto&p = frame->points[i];
+    EXPECT_DOUBLE_EQ(1-(i-1)/5.0, p.c.r) << i;
+    EXPECT_DOUBLE_EQ((i-1)/5.0, p.c.g) << i;
+    EXPECT_DOUBLE_EQ(0.0, p.c.b) << i;
+  }
+  for(auto i=6; i<11; i++)
+  {
+    const auto&p = frame->points[i];
+    EXPECT_DOUBLE_EQ((i-6)/5.0, p.c.r) << i;
+    EXPECT_DOUBLE_EQ(1-(i-6)/5.0, p.c.g) << i;
+    EXPECT_DOUBLE_EQ(0.0, p.c.b) << i;
+  }
+}
 
 int main(int argc, char **argv)
 {

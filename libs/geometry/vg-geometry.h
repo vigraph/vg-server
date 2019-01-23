@@ -28,7 +28,7 @@ static const coord_t coord_max = 0.5;
 static const coord_t coord_min_range = std::numeric_limits<double>::lowest();
 static const coord_t coord_max_range = std::numeric_limits<double>::max();
 
-static const double pi = 3.1415926;
+static const double pi = acos(-1);
 
 // -------------------------------------------------------------------------
 // Basics

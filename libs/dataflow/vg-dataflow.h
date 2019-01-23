@@ -260,6 +260,8 @@ protected:
   static void update_prop_int(int &prop, const SetParams& sp)
   { int i=static_cast<int>(sp.v.d);
     if (sp.increment) prop+=i; else prop = i; }
+  static void update_prop(bool &prop, const SetParams& sp)
+  { if (sp.increment) prop = !prop; else prop = !!sp.v.d; }
 
 public:
   const Module *module{nullptr};

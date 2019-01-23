@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph File source module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-audio-source-file
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl ext-pkg-sdl2
+
+include_rules

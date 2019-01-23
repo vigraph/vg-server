@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: audio/sources/file/test-file.cc
+// ViGraph dataflow module: audio/sources/wav/test-wav.cc
 //
-// Tests for <file> source
+// Tests for <wav> source
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -16,7 +16,7 @@ TEST(FileTest, TestNoFile)
 {
   const string& xml = R"(
     <graph>
-      <file/>
+      <wav/>
     </graph>
   )";
 
@@ -24,8 +24,8 @@ TEST(FileTest, TestNoFile)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
-  // Should be 44100 samples at 0
-  EXPECT_EQ(44100, fragment->waveform.size());
+  // Should be 44100 samples for each of the 2 channels at 0
+  EXPECT_EQ(88200, fragment->waveform.size());
   for(auto i=0u; i<fragment->waveform.size(); i++)
     EXPECT_EQ(0.0, fragment->waveform[i]);
 }
@@ -33,6 +33,6 @@ TEST(FileTest, TestNoFile)
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-audio-source-file.so");
+  loader.load("./vg-module-audio-source-wav.so");
   return RUN_ALL_TESTS();
 }

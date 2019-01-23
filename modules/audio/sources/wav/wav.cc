@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: audio/sources/file/file.cc
+// ViGraph dataflow module: audio/sources/wav/wav.cc
 //
-// Sound file source
+// Wav file source
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -16,13 +16,14 @@ namespace {
 using namespace ViGraph::Geometry;
 
 //==========================================================================
-// File source
-class FileSource: public Source
+// Wav source
+class WavSource: public Source
 {
   File::Path file;
   bool loop = false;
-  Uint8 *buffer = nullptr;
-  Uint32 samples = 0;
+  byte *buffer = nullptr;
+  uint64_t samples = 0;
+  unsigned int channels = 2;
 
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
@@ -31,24 +32,24 @@ class FileSource: public Source
   void tick(const TickData& td) override;
 
 public:
-  FileSource(const Dataflow::Module *module, const XML::Element& config):
+  WavSource(const Dataflow::Module *module, const XML::Element& config):
     Element(module, config), Source(module, config) {}
-  ~FileSource();
+  ~WavSource();
 };
 
 //--------------------------------------------------------------------------
 // Construct from XML:
 //   <file> attributes:
 //    path: path to sound file
-void FileSource::configure(const File::Directory&,
-                           const XML::Element& config)
+void WavSource::configure(const File::Directory&,
+                          const XML::Element& config)
 {
-  file = File::Path{config.get_attr("path")};
+  file = File::Path{config.get_attr("file")};
   loop = config.get_attr_bool("loop");
   if (!file.exists())
   {
     Log::Error log;
-    log << "File not found: '" << file << "' in File '" << id << "'\n";
+    log << "File not found: '" << file << "' in Wav '" << id << "'\n";
     return;
   }
 
@@ -58,17 +59,18 @@ void FileSource::configure(const File::Directory&,
   {
     Log::Error log;
     log << "File cannot be loaded: '" << file << "': " << SDL_GetError()
-        << " in File '" << id << "'\n";
+        << " in Wav '" << id << "'\n";
     return;
   }
 
+  channels = spec.channels;
   SDL_AudioCVT cvt;
-  if (SDL_BuildAudioCVT(&cvt, spec.format, spec.channels, spec.freq,
-                              AUDIO_F32, 1, sample_rate) < 0)
+  if (SDL_BuildAudioCVT(&cvt, spec.format, channels, spec.freq,
+                              AUDIO_F32, channels, sample_rate) < 0)
   {
     Log::Error log;
     log << "Cannot prepare file for format conversion: '" << file << "': "
-        << SDL_GetError() << " in File '" << id << "'\n";
+        << SDL_GetError() << " in Wav '" << id << "'\n";
     SDL_FreeWAV(buffer);
     buffer = nullptr;
     return;
@@ -93,7 +95,7 @@ void FileSource::configure(const File::Directory&,
     {
       Log::Error log;
       log << "Could not convert file to usable format: '" << file << "': "
-          << SDL_GetError() << " in File '" << id << "'\n";
+          << SDL_GetError() << " in Wav '" << id << "'\n";
       SDL_FreeWAV(buffer);
       buffer = nullptr;
       return;
@@ -107,12 +109,12 @@ void FileSource::configure(const File::Directory&,
   }
 
   Log::Detail dlog;
-  dlog << "File loaded: " << file << "' in File '" << id << "'\n";
+  dlog << "File loaded: " << file << "' in Wav '" << id << "'\n";
 }
 
 //--------------------------------------------------------------------------
 // Set a control property
-void FileSource::set_property(const string& property, const SetParams& sp)
+void WavSource::set_property(const string& property, const SetParams& sp)
 {
   if (property == "loop")
     update_prop(loop, sp);
@@ -120,20 +122,21 @@ void FileSource::set_property(const string& property, const SetParams& sp)
 
 //--------------------------------------------------------------------------
 // Generate a fragment
-void FileSource::tick(const TickData& td)
+void WavSource::tick(const TickData& td)
 {
   const auto last_tick_total = static_cast<int>(
       floor(td.interval.seconds() * (td.global_n) * sample_rate));
   const auto tick_total = static_cast<int>(
       floor(td.interval.seconds() * (td.global_n + 1) * sample_rate));
-  const auto nsamples = tick_total - last_tick_total;
+  const auto nsamples = (tick_total - last_tick_total) * channels;
 
-  auto fragment = new Fragment(td.t);  // mono
+  auto fragment = new Fragment(td.t, channels);
   fragment->waveform.reserve(nsamples);
   const auto first_local_tick_total = static_cast<int>(
       floor(td.interval.seconds() * (td.global_n - td.n) * sample_rate));
-  auto pos = static_cast<Uint32>(last_tick_total - first_local_tick_total);
-  for (int i=0; i<nsamples; ++i, ++pos)
+  auto pos = static_cast<uint64_t>(last_tick_total - first_local_tick_total)
+             * channels;
+  for (auto i=0u; i<nsamples; ++i, ++pos)
   {
     if (loop && samples && pos >= samples)
       pos %= samples;
@@ -150,7 +153,7 @@ void FileSource::tick(const TickData& td)
 
 //--------------------------------------------------------------------------
 // Destructor
-FileSource::~FileSource()
+WavSource::~WavSource()
 {
   if (buffer)
   {
@@ -161,11 +164,14 @@ FileSource::~FileSource()
 
 Dataflow::Module module
 {
-  "file",
-  "File",
-  "Audio File Input",
+  "wav",
+  "Wav",
+  "Audio Wav Input",
   "audio",
-  {},  // no properties?
+  {
+    { "file",  { "File path", Value::Type::file, "@file" } },
+    { "loop",  { "Loop", Value::Type::boolean, "@loop", true } }
+  },
   {},  // no inputs
   { "Audio" }  // outputs
 };
@@ -173,4 +179,4 @@ Dataflow::Module module
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(FileSource, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(WavSource, module)

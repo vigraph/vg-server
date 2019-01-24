@@ -21,7 +21,7 @@ const auto default_device{"default"};
 class LinuxALSAOutFilter: public FragmentFilter
 {
   snd_pcm_t *pcm{nullptr};
-  int nchannels{1};
+  int nchannels{2};
 
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
@@ -44,7 +44,7 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
   log.summary << "Opening audio output on ALSA device '" << device << "'\n";
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
 
-  nchannels = config.get_attr_int("channels", 1);
+  nchannels = config.get_attr_int("channels", 2);
   log.detail << "ALSA: " << nchannels << " channels\n";
 
   try

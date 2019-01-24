@@ -103,7 +103,11 @@ void PatternFilter::accept(FramePtr frame)
         // Theta can become 1.0 due to rounding in the above
         if (theta >= 1.0) theta = 1.0 - 1e-10;
         auto cindex = (unsigned int)floor(theta*nc);
-        if (cindex >= nc) continue; // Double safety
+        if (cindex >= nc)
+        {
+          p.c = Colour::black;  // Double safety
+          continue;
+        }
 
         switch (blend_type)
         {

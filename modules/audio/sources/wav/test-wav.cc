@@ -22,12 +22,8 @@ TEST(WavTest, TestNoFile)
 
   FragmentGenerator gen(xml, loader, 1);
   Fragment *fragment = gen.get_fragment();
-  ASSERT_FALSE(!fragment);
-
-  // Should be 44100 samples for each of the 2 channels at 0
-  EXPECT_EQ(88200, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ(0.0, fragment->waveform[i]);
+  // Should produce nothing
+  EXPECT_TRUE(!fragment);
 }
 
 TEST(WavTest, TestFileDefaultFormat)
@@ -68,10 +64,10 @@ TEST(WavTest, TestFileDefaultFormat)
 
   EXPECT_EQ(0.0, fragment->waveform[0]);
   EXPECT_EQ(0.0, fragment->waveform[1]);
-  EXPECT_EQ(0.5, fragment->waveform[2]);
-  EXPECT_EQ(0.5, fragment->waveform[3]);
-  EXPECT_EQ(1.0, fragment->waveform[4]);
-  EXPECT_EQ(1.0, fragment->waveform[5]);
+  EXPECT_NEAR(0.5, fragment->waveform[2], 0.001);
+  EXPECT_NEAR(0.5, fragment->waveform[3], 0.001);
+  EXPECT_NEAR(1.0, fragment->waveform[4], 0.001);
+  EXPECT_NEAR(1.0, fragment->waveform[5], 0.001);
 }
 
 TEST(WavTest, TestFileFormatThatNeedsConversion)
@@ -112,8 +108,8 @@ TEST(WavTest, TestFileFormatThatNeedsConversion)
 
   EXPECT_EQ(0.0, fragment->waveform[0]);
   EXPECT_EQ(0.0, fragment->waveform[1]);
-  EXPECT_EQ(0.5, fragment->waveform[2]);
-  EXPECT_EQ(0.5, fragment->waveform[3]);
+  EXPECT_NEAR(0.5, fragment->waveform[2], 0.001);
+  EXPECT_NEAR(0.5, fragment->waveform[3], 0.001);
   EXPECT_NEAR(1.0, fragment->waveform[4], 0.001);
   EXPECT_NEAR(1.0, fragment->waveform[5], 0.001);
 }

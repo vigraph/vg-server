@@ -124,18 +124,10 @@ void WavSource::set_property(const string& property, const SetParams& sp)
 // Generate a fragment
 void WavSource::tick(const TickData& td)
 {
-  const auto last_tick_total = static_cast<int>(
-      floor(td.interval.seconds() * (td.global_n) * sample_rate));
-  const auto tick_total = static_cast<int>(
-      floor(td.interval.seconds() * (td.global_n + 1) * sample_rate));
-  const auto nsamples = (tick_total - last_tick_total) * channels;
-
+  const auto nsamples = td.samples(sample_rate) * channels;
+  auto pos = td.sample_pos(sample_rate) * channels;
   auto fragment = new Fragment(td.t, channels);
   fragment->waveform.reserve(nsamples);
-  const auto first_local_tick_total = static_cast<int>(
-      floor(td.interval.seconds() * (td.global_n - td.n) * sample_rate));
-  auto pos = static_cast<uint64_t>(last_tick_total - first_local_tick_total)
-             * channels;
   for (auto i=0u; i<nsamples; ++i, ++pos)
   {
     if (loop && samples && pos >= samples)

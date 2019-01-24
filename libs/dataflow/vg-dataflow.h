@@ -12,6 +12,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <cmath>
 #include "ot-xml.h"
 #include "ot-mt.h"
 #include "ot-init.h"
@@ -47,6 +48,28 @@ struct TickData
            timestamp_t _global_t, uint64_t _global_n):
     t{_t}, n{_n}, interval{_interval}, global_t{_global_t}, global_n{_global_n}
   {}
+
+  //------------------------------------------------------------------------
+  // Get number of samples required for this tick
+  unsigned samples(double sample_rate) const
+  {
+    const auto last_tick_total = static_cast<uint64_t>(
+      floor(interval.seconds() * (global_n) * sample_rate));
+    const auto tick_total = static_cast<uint64_t>(
+      floor(interval.seconds() * (global_n + 1) * sample_rate));
+    return tick_total - last_tick_total;
+  }
+
+  //------------------------------------------------------------------------
+  // Get the current sample position (local)
+  uint64_t sample_pos(double sample_rate) const
+  {
+    const auto last_tick_total = static_cast<uint64_t>(
+      floor(interval.seconds() * (global_n) * sample_rate));
+    const auto first_local_tick_total = static_cast<uint64_t>(
+      floor(interval.seconds() * (global_n - n) * sample_rate));
+    return last_tick_total - first_local_tick_total;
+  }
 };
 
 //==========================================================================

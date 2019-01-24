@@ -72,7 +72,7 @@ Dataflow::Module module
   "Send to router",
   "vector",
   {
-    { "tag", { "Group name", Value::Type::number } },
+    { "to", { "Group name", Value::Type::number } },
     { "copy", { "Whether to send a copy in normal flow",
           Value::Type::boolean } }
   },

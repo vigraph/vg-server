@@ -61,6 +61,14 @@ void FadeFilter::set_property(const string& property, const SetParams& sp)
 // Process some data
 void FadeFilter::accept(FramePtr frame)
 {
+  // If fading to black, kill the frame altogether
+  if (!fr && !fg && !fb)
+  {
+    frame->points.clear();
+    send(frame);
+    return;
+  }
+
   // Modify all points in the frame
   for(auto& p: frame->points)
   {

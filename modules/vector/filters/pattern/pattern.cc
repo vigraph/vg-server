@@ -99,8 +99,11 @@ void PatternFilter::accept(FramePtr frame)
         double frac = i/np + phase;
         double theta = frac*repeats;
         theta -= floor(theta);
+
+        // Theta can become 1.0 due to rounding in the above
+        if (theta >= 1.0) theta = 1.0 - 1e-10;
         auto cindex = (unsigned int)floor(theta*nc);
-        if (cindex >= nc) break;
+        if (cindex >= nc) continue; // Double safety
 
         switch (blend_type)
         {

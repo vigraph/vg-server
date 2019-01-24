@@ -22,9 +22,14 @@ class LinuxALSAOutFilter: public FragmentFilter
 {
   snd_pcm_t *pcm{nullptr};
   int nchannels{2};
+  bool tick_fulfilled = false;
+
+  // Write samples to device
+  bool write_samples(const vector<sample_t>& samples);
 
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
+  void post_tick(const TickData& td) override;
   void shutdown() override;
 
 public:
@@ -102,27 +107,53 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
 }
 
 //--------------------------------------------------------------------------
+// Write samples to device
+bool LinuxALSAOutFilter::write_samples(const vector<sample_t>& samples)
+{
+  auto n = snd_pcm_writei(pcm, samples.data(), samples.size() / nchannels);
+  if (n < 0)
+  {
+    Log::Error log;
+    log << "ALSA write error: " << snd_strerror(n) << endl;
+
+    n = snd_pcm_recover(pcm, n, 1);
+    if (!n)
+      return false;
+  }
+  return true;
+}
+
+//--------------------------------------------------------------------------
 // Process some data
 void LinuxALSAOutFilter::accept(FragmentPtr fragment)
 {
   while (pcm && fragment->nchannels == nchannels)  // loop after recover
   {
-    // Send out the fragment
-    ssize_t n = snd_pcm_writei(pcm, fragment->waveform.data(),
-                               fragment->waveform.size()/fragment->nchannels);
-    if (n < 0)
-    {
-      Log::Error log;
-      log << "ALSA write error: " << snd_strerror(n) << endl;
-
-      n = snd_pcm_recover(pcm, n, 1);
-      if (!n) continue;  // retry
-    }
+    if (!write_samples(fragment->waveform))
+      continue;
     break;
   }
 
   // Send it down as well, so these can be chained
   send(fragment);
+  tick_fulfilled = true;
+}
+
+//--------------------------------------------------------------------------
+// If tick has not been fulfilled, fill in with empty data to avoid underruns
+void LinuxALSAOutFilter::post_tick(const TickData &td)
+{
+  if (!tick_fulfilled)
+  {
+    auto null_samples = vector<sample_t>(nchannels * td.samples(sample_rate));
+    while (pcm)  // loop after recover
+    {
+      if (!write_samples(null_samples))
+        continue;
+      break;
+    }
+  }
+  tick_fulfilled = false;
 }
 
 //--------------------------------------------------------------------------

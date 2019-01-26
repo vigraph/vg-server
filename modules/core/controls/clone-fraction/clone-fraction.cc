@@ -16,7 +16,11 @@ namespace {
 // CloneFraction control
 class CloneFractionControl: public Dataflow::Control
 {
+  double scale{1.0};
+  double offset{0.0};
+
   // Control virtuals
+  void set_property(const string& property, const SetParams& sp) override;
   void tick(const TickData& td) override;
 
 public:
@@ -26,11 +30,24 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML
-// <clone-fraction property="..."/>
+// <clone-fraction scale="1.0" offset="0" property="..."/>
 CloneFractionControl::CloneFractionControl(const Module *module,
                                        const XML::Element& config):
   Element(module, config), Control(module, config)
 {
+  scale = config.get_attr_real("scale", 1.0);
+  offset = config.get_attr_real("offset");
+}
+
+//--------------------------------------------------------------------------
+// Set a control property
+void CloneFractionControl::set_property(const string& property,
+                                        const SetParams& sp)
+{
+  if (property == "scale")
+    update_prop(scale, sp);
+  else if (property == "offset")
+    update_prop(offset, sp);
 }
 
 //--------------------------------------------------------------------------
@@ -40,6 +57,8 @@ void CloneFractionControl::tick(const TickData& /*td*/)
   Value v = graph->get_variable("clone-fraction");
   if (v.type != Value::Type::invalid)
   {
+    v.d *= scale;
+    v.d += offset;
     SetParams sp(v);
     send(sp);
   }
@@ -53,7 +72,12 @@ Dataflow::Module module
   "CloneFraction",
   "Get the fraction (0..1] of a clone",
   "core",
-  { },
+  {
+    { "scale",  { {"Scale to apply to fraction", "1.0"},
+          Value::Type::number, "@scale", true } },
+    { "offset", { {"Offset to apply to fraction", "0"},
+          Value::Type::number, "@offset", true } }
+  },
   { { "", { "Clone fraction", "", Value::Type::number }}}
 };
 

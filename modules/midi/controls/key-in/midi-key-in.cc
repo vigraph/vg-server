@@ -25,6 +25,7 @@ class MIDIKeyInControl: public Dataflow::Control,
   int note{0};
 
   // Control virtuals
+  void set_property(const string& property, const SetParams& sp) override;
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void enable() override;
@@ -62,6 +63,15 @@ void MIDIKeyInControl::configure(const File::Directory&,
     Log::Error log;
     log << "No MIDI service loaded\n";
   }
+}
+
+//--------------------------------------------------------------------------
+// Set a control property
+void MIDIKeyInControl::set_property(const string& property,
+                                    const SetParams& sp)
+{
+  if (property == "note")
+    update_prop_int(note, sp);
 }
 
 //--------------------------------------------------------------------------
@@ -134,9 +144,9 @@ Dataflow::Module module
     { "channel", { {"MIDI channel (0=all)", "0"}, Value::Type::number,
                                                     "@channel" } },
     { "note", { {"Note number to trigger ON (0=disable)", "0"},
-          Value::Type::number, "@note-on" } },
+          Value::Type::number, "@note-on", true } },
     { "note-off", { {"Note number to trigger OFF (0=disable)", "0"},
-          Value::Type::number, "@note-off" } }
+          Value::Type::number, "@note-off", true } }
   },
   {
     { "trigger", { "Note trigger", "trigger", Value::Type::trigger }},

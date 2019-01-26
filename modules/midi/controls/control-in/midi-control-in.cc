@@ -31,6 +31,7 @@ class MIDIControlInControl: public Dataflow::Control,
                  const XML::Element& config) override;
 
   // Event observer implementation
+  void set_property(const string& property, const SetParams& sp) override;
   void handle(const ViGraph::MIDI::Event& event) override;
   void enable() override;
   void disable() override;
@@ -67,6 +68,17 @@ void MIDIControlInControl::configure(const File::Directory&,
     Log::Error log;
     log << "No MIDI service loaded\n";
   }
+}
+
+//--------------------------------------------------------------------------
+// Set a control property
+void MIDIControlInControl::set_property(const string& property,
+                                        const SetParams& sp)
+{
+  if (property == "scale")
+    update_prop(scale, sp);
+  else if (property == "offset")
+    update_prop(offset, sp);
 }
 
 //--------------------------------------------------------------------------

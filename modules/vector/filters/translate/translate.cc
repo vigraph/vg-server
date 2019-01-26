@@ -15,11 +15,12 @@ namespace {
 // Translate filter
 class TranslateFilter: public FrameFilter
 {
-  Vector d;
+  Vector start_d, d;
 
   // Filter/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
+  void enable() override;
 
 public:
   // Construct
@@ -36,6 +37,7 @@ TranslateFilter::TranslateFilter(const Dataflow::Module *module,
   d.x = config.get_attr_real("x");
   d.y = config.get_attr_real("y");
   d.z = config.get_attr_real("z");
+  start_d = d;
 }
 
 //--------------------------------------------------------------------------
@@ -45,6 +47,13 @@ void TranslateFilter::set_property(const string& property, const SetParams& sp)
        if (property == "x") update_prop(d.x, sp);
   else if (property == "y") update_prop(d.y, sp);
   else if (property == "z") update_prop(d.z, sp);
+}
+
+//--------------------------------------------------------------------------
+// Enable (reset)
+void TranslateFilter::enable()
+{
+  d = start_d;
 }
 
 //--------------------------------------------------------------------------

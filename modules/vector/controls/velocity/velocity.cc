@@ -16,8 +16,12 @@ namespace {
 class VelocityControl: public Dataflow::Control
 {
   Vector v;
-  Dataflow::timestamp_t last_tick{-1.0};
   double max{0.0};
+  bool wait{false};
+
+  // Dynamic state
+  Dataflow::timestamp_t last_tick{-1.0};
+  bool triggered{false};
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -32,7 +36,7 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML
 // <velocity x="0.1" y="0.1" z="0.0"
-//           max = "0.5"
+//           max = "0.5" wait="false"
 //           property-x="x" property-y="y" property-z="z"/>
 VelocityControl::VelocityControl(const Dataflow::Module *module,
                                  const XML::Element& config):
@@ -42,6 +46,7 @@ VelocityControl::VelocityControl(const Dataflow::Module *module,
   v.y = config.get_attr_real("y");
   v.z = config.get_attr_real("z");
   max = config.get_attr_real("max");
+  wait = config.get_attr_bool("wait");
 }
 
 //--------------------------------------------------------------------------
@@ -49,7 +54,8 @@ VelocityControl::VelocityControl(const Dataflow::Module *module,
 void VelocityControl::set_property(const string& property,
                                    const SetParams& sp)
 {
-       if (property == "x") update_prop(v.x, sp);
+  if (property == "trigger") triggered = true;
+  else if (property == "x") update_prop(v.x, sp);
   else if (property == "y") update_prop(v.y, sp);
   else if (property == "z") update_prop(v.z, sp);
   else if (property == "max") update_prop(max, sp);
@@ -66,6 +72,7 @@ void VelocityControl::set_property(const string& property,
 // Enable (reset)
 void VelocityControl::enable()
 {
+  triggered = false;
   last_tick = -1.0;
 }
 
@@ -73,6 +80,12 @@ void VelocityControl::enable()
 // Tick
 void VelocityControl::tick(const TickData& td)
 {
+  if (wait)
+  {
+    if (!triggered) return;
+    triggered = false;
+  }
+
   if (last_tick >= 0.0)
   {
     auto delta_t = td.t - last_tick;
@@ -101,6 +114,8 @@ Dataflow::Module module
     { "y", { "Y component of velocity", Value::Type::number, true } },
     { "z", { "Z component of velocity", Value::Type::number, true } },
     { "max", { "Maximum magnitude of velocity", Value::Type::number, true } },
+    { "wait",  { "Whether to wait for a trigger", Value::Type::number } },
+    { "trigger", { "Trigger to set value", Value::Type::trigger, true } }
   },
   {
     { "x", { "X component of velocity", "x", Value::Type::number }},

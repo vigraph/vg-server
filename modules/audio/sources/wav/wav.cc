@@ -90,7 +90,7 @@ bool WavSource::load_wav(const File::Path& f, vector<sample_t>& s)
     return false;
   }
 
-  s.resize(length);
+  s.resize(length / sizeof(sample_t));
   memcpy(&s[0], buffer, length);
   SDL_FreeWAV(buffer);
 
@@ -143,21 +143,36 @@ void WavSource::set_property(const string& property, const SetParams& sp)
 // Generate a fragment
 void WavSource::tick(const TickData& td)
 {
-  auto pos = td.sample_pos(sample_rate) * channels;
-  if (samples.empty() || (!loop && pos >= samples.size()))
+  if (samples.empty())
     return;
 
-  const auto nsamples = td.samples(sample_rate) * channels;
+  auto step = frequency ? (frequency / base_frequency) : 1.0;
+  auto pos = step * td.sample_pos(sample_rate);
+  if (!loop && pos >= samples.size())
+    return;
+
+  const auto nsamples = td.samples(sample_rate);
   auto fragment = new Fragment(td.t, channels);
-  fragment->waveform.reserve(nsamples);
-  for (auto i=0u; i<nsamples; ++i, ++pos)
+  fragment->waveform.reserve(nsamples * channels);
+
+  for (auto i = 0u; i < nsamples; ++i, pos += step)
   {
-    if (loop && pos >= samples.size())
-      pos %= samples.size();
-    if (pos < samples.size())
-      fragment->waveform.push_back(samples[pos]);
-    else
-      fragment->waveform.push_back(0.0); // Pad with nothing
+    auto p = pos * channels;
+    if (loop && p >= samples.size())
+      p = fmod(p, samples.size());
+    for (auto c = 0u; c < channels; ++c)
+    {
+      if (p >= samples.size())
+      {
+        fragment->waveform.push_back(0.0); // Pad with nothing
+        continue;
+      }
+
+      auto fs = samples[p + c];
+      auto cs = p + 1 > samples.size() ? 0.0 : samples[p + c + channels];
+      auto is = fs + ((cs - fs) * ((pos * channels) - p));
+      fragment->waveform.push_back(is);
+    }
   }
 
   // Send to output

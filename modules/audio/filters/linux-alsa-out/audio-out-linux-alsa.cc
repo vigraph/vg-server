@@ -22,12 +22,13 @@ class LinuxALSAOutFilter: public FragmentFilter
 {
   snd_pcm_t *pcm{nullptr};
   int nchannels{2};
-  bool tick_fulfilled = false;
+  unsigned tick_samples_required = 0;
 
   // Write samples to device
   bool write_samples(const vector<sample_t>& samples);
 
   // Source/Element virtuals
+  void pre_tick(const TickData& td) override;
   void accept(FragmentPtr fragment) override;
   void post_tick(const TickData& td) override;
   void shutdown() override;
@@ -110,7 +111,10 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
 // Write samples to device
 bool LinuxALSAOutFilter::write_samples(const vector<sample_t>& samples)
 {
-  auto n = snd_pcm_writei(pcm, samples.data(), samples.size() / nchannels);
+  const auto samples_to_write = min(tick_samples_required,
+                                    static_cast<unsigned>(samples.size()
+                                                          / nchannels));
+  auto n = snd_pcm_writei(pcm, samples.data(), samples_to_write);
   if (n < 0)
   {
     Log::Error log;
@@ -120,6 +124,11 @@ bool LinuxALSAOutFilter::write_samples(const vector<sample_t>& samples)
     if (!n)
       return false;
   }
+  else
+  {
+    tick_samples_required -= min(static_cast<unsigned>(n),
+                                 tick_samples_required);
+  }
   return true;
 }
 
@@ -127,25 +136,51 @@ bool LinuxALSAOutFilter::write_samples(const vector<sample_t>& samples)
 // Process some data
 void LinuxALSAOutFilter::accept(FragmentPtr fragment)
 {
-  while (pcm && fragment->nchannels == nchannels)  // loop after recover
+  auto waveform = &fragment->waveform;
+  vector<sample_t> s;
+  if (fragment->nchannels != nchannels)
   {
-    if (!write_samples(fragment->waveform))
+    const auto samples = fragment->waveform.size() / fragment->nchannels;
+    s.resize(nchannels * samples);
+    for (auto i = 0u; i < samples; ++i)
+    {
+      for (auto c = 0; c < nchannels; ++c)
+      {
+        if (c >= fragment->nchannels)
+          s[i * nchannels + c] = 0.0;
+        else
+          s[i * nchannels + c]
+            = fragment->waveform[i * fragment->nchannels + c];
+      }
+    }
+    waveform = &s;
+  }
+  while (pcm)  // loop after recover
+  {
+    if (!write_samples(*waveform))
       continue;
     break;
   }
 
   // Send it down as well, so these can be chained
   send(fragment);
-  tick_fulfilled = true;
 }
 
 //--------------------------------------------------------------------------
-// If tick has not been fulfilled, fill in with empty data to avoid underruns
-void LinuxALSAOutFilter::post_tick(const TickData &td)
+// Record how many samples we need for tick
+void LinuxALSAOutFilter::pre_tick(const TickData &td)
 {
-  if (!tick_fulfilled)
+  tick_samples_required = td.samples(sample_rate);
+}
+
+//--------------------------------------------------------------------------
+// If tick has not been completely fulfilled, fill in with empty data to avoid
+// underruns
+void LinuxALSAOutFilter::post_tick(const TickData &)
+{
+  if (tick_samples_required)
   {
-    auto null_samples = vector<sample_t>(nchannels * td.samples(sample_rate));
+    auto null_samples = vector<sample_t>(nchannels * tick_samples_required);
     while (pcm)  // loop after recover
     {
       if (!write_samples(null_samples))
@@ -153,7 +188,7 @@ void LinuxALSAOutFilter::post_tick(const TickData &td)
       break;
     }
   }
-  tick_fulfilled = false;
+  tick_samples_required = 0;
 }
 
 //--------------------------------------------------------------------------

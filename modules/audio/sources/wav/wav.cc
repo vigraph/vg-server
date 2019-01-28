@@ -21,9 +21,14 @@ class WavSource: public Source
 {
   File::Path file;
   bool loop = false;
-  byte *buffer = nullptr;
-  uint64_t samples = 0;
+  vector<sample_t> samples;
   unsigned int channels = 2;
+  double base_frequency = 0.0;
+  double frequency = 0.0;
+
+  //------------------------------------------------------------------------
+  // Load a WAV into samples
+  bool load_wav(const File::Path& f, vector<sample_t>& s);
 
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
@@ -34,7 +39,6 @@ class WavSource: public Source
 public:
   WavSource(const Dataflow::Module *module, const XML::Element& config):
     Element(module, config), Source(module, config) {}
-  ~WavSource();
 };
 
 //--------------------------------------------------------------------------
@@ -46,22 +50,49 @@ void WavSource::configure(const File::Directory&,
 {
   file = File::Path{config.get_attr("file")};
   loop = config.get_attr_bool("loop");
-  if (!file.exists())
+  base_frequency = config.get_attr_real("base-freq");
+  frequency = config.get_attr_real("freq");
+
+  if (frequency && !base_frequency)
   {
     Log::Error log;
-    log << "File not found: '" << file << "' in Wav '" << id << "'\n";
+    log << "Frequency requires that base frequency is also set in Wav '"
+        << id << "'\n";
     return;
   }
 
-  SDL_AudioSpec spec;
-  Uint32 length = 0;
-  if (!SDL_LoadWAV(file.c_str(), &spec, &buffer, &length))
+  if (!load_wav(file, samples))
+    return;
+
+  Log::Detail dlog;
+  dlog << "File loaded: " << file << "' in Wav '" << id << "'\n";
+}
+
+//--------------------------------------------------------------------------
+// Load a WAV into samples
+bool WavSource::load_wav(const File::Path& f, vector<sample_t>& s)
+{
+  if (!f.exists())
   {
     Log::Error log;
-    log << "File cannot be loaded: '" << file << "': " << SDL_GetError()
-        << " in Wav '" << id << "'\n";
-    return;
+    log << "File not found: '" << f << "' in Wav '" << id << "'\n";
+    return false;
   }
+
+  SDL_AudioSpec spec;
+  Uint8 *buffer = nullptr;
+  Uint32 length = 0;
+  if (!SDL_LoadWAV(f.c_str(), &spec, &buffer, &length))
+  {
+    Log::Error log;
+    log << "File cannot be loaded: '" << f << "': " << SDL_GetError()
+        << " in Wav '" << id << "'\n";
+    return false;
+  }
+
+  s.resize(length);
+  memcpy(&s[0], buffer, length);
+  SDL_FreeWAV(buffer);
 
   channels = spec.channels;
   SDL_AudioCVT cvt;
@@ -69,11 +100,10 @@ void WavSource::configure(const File::Directory&,
                               AUDIO_F32, channels, sample_rate) < 0)
   {
     Log::Error log;
-    log << "Cannot prepare file for format conversion: '" << file << "': "
+    log << "Cannot prepare file for format conversion: '" << f << "': "
         << SDL_GetError() << " in Wav '" << id << "'\n";
-    SDL_FreeWAV(buffer);
-    buffer = nullptr;
-    return;
+    s.clear();
+    return false;
   }
 
   if (cvt.needed)
@@ -83,33 +113,20 @@ void WavSource::configure(const File::Directory&,
     if (len_needed > length)
     {
       // We're going to need a bigger boat
-      // !!! - is a malloc like this safe to free with FreeWAV later?
-      const auto b = static_cast<Uint8 *>(SDL_malloc(len_needed));
-      memcpy(b, buffer, length);
-      SDL_FreeWAV(buffer);
-      buffer = b;
-      length = len_needed;
+      s.resize(len_needed / sizeof(sample_t));
     }
-    cvt.buf = buffer;
+    cvt.buf = reinterpret_cast<Uint8 *>(&s[0]);
     if (SDL_ConvertAudio(&cvt))
     {
       Log::Error log;
-      log << "Could not convert file to usable format: '" << file << "': "
+      log << "Could not convert file to usable format: '" << f << "': "
           << SDL_GetError() << " in Wav '" << id << "'\n";
-      SDL_FreeWAV(buffer);
-      buffer = nullptr;
-      return;
+      s.clear();
+      return false;
     }
-    buffer = cvt.buf;
-    samples = cvt.len_ratio * cvt.len / sizeof(sample_t);
+    s.resize(cvt.len_ratio * cvt.len / sizeof(sample_t));
   }
-  else
-  {
-    samples = length / sizeof(sample_t);
-  }
-
-  Log::Detail dlog;
-  dlog << "File loaded: " << file << "' in Wav '" << id << "'\n";
+  return true;
 }
 
 //--------------------------------------------------------------------------
@@ -118,6 +135,8 @@ void WavSource::set_property(const string& property, const SetParams& sp)
 {
   if (property == "loop")
     update_prop(loop, sp);
+  else if (property == "freq")
+    update_prop(frequency, sp);
 }
 
 //--------------------------------------------------------------------------
@@ -125,7 +144,7 @@ void WavSource::set_property(const string& property, const SetParams& sp)
 void WavSource::tick(const TickData& td)
 {
   auto pos = td.sample_pos(sample_rate) * channels;
-  if (!samples || (!loop && pos >= samples))
+  if (samples.empty() || (!loop && pos >= samples.size()))
     return;
 
   const auto nsamples = td.samples(sample_rate) * channels;
@@ -133,28 +152,16 @@ void WavSource::tick(const TickData& td)
   fragment->waveform.reserve(nsamples);
   for (auto i=0u; i<nsamples; ++i, ++pos)
   {
-    if (loop && samples && pos >= samples)
-      pos %= samples;
-    if (pos < samples)
-      fragment->waveform.push_back(
-          *reinterpret_cast<sample_t *>(&buffer[pos * sizeof(sample_t)]));
+    if (loop && pos >= samples.size())
+      pos %= samples.size();
+    if (pos < samples.size())
+      fragment->waveform.push_back(samples[pos]);
     else
       fragment->waveform.push_back(0.0); // Pad with nothing
   }
 
   // Send to output
   send(fragment);
-}
-
-//--------------------------------------------------------------------------
-// Destructor
-WavSource::~WavSource()
-{
-  if (buffer)
-  {
-    SDL_FreeWAV(buffer);
-    buffer = nullptr;
-  }
 }
 
 Dataflow::Module module
@@ -165,7 +172,9 @@ Dataflow::Module module
   "audio",
   {
     { "file",  { "File path", Value::Type::file, "@file" } },
-    { "loop",  { "Loop", Value::Type::boolean, "@loop", true } }
+    { "loop",  { "Loop", Value::Type::boolean, "@loop", true } },
+    { "base-freq",  { "Base frequency", Value::Type::number, "@base-freq" } },
+    { "freq",  { "Frequency to play at", Value::Type::number, "@freq", true } },
   },
   {},  // no inputs
   { "Audio" }  // outputs

@@ -55,7 +55,12 @@ class FragmentGenerator
     double t = 0.0;
     uint64_t n = 0;
     for(auto i=0; i<nticks; i++, t+=1.0, ++n)
-      graph.tick({t, n, Time::Duration{1}});
+    {
+      const auto td = TickData{t, n, Time::Duration{1}};
+      graph.pre_tick(td);
+      graph.tick(td);
+      graph.post_tick(td);
+    }
   }
 
 public:

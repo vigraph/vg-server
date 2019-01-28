@@ -49,10 +49,22 @@ void MixerFilter::accept(FragmentPtr fragment)
   }
   else
   {
-    // Add to existing, up to matching size
-    auto n = min(sum->waveform.size(), fragment->waveform.size());
-    for(auto i=0u; i<n; i++)
-      sum->waveform[i] += fragment->waveform[i];
+    // Make sure fragment with most channels is in sum, because extending
+    // channels within an existing fragment is no fun
+    if (fragment->nchannels > sum->nchannels)
+      sum.swap(fragment);
+
+    // Extend number of samples if new fragment has more
+    const auto samples_per_channel = fragment->waveform.size()
+                                     / fragment->nchannels;
+    if (samples_per_channel > sum->waveform.size() / sum->nchannels)
+      sum->waveform.resize(samples_per_channel * sum->nchannels);
+
+    // Add new fragment to existing
+    for (auto i = 0u; i < samples_per_channel; ++i)
+      for (auto c = 0; c < fragment->nchannels; ++c)
+        sum->waveform[i * sum->nchannels + c]
+                        += fragment->waveform[i * fragment->nchannels + c];
   }
 }
 

@@ -69,11 +69,14 @@ void PositionFilter::accept(FragmentPtr f)
   auto fragment = new Fragment(f->timestamp);
   fragment->nchannels = 2;
   fragment->waveform.resize(f->waveform.size() * fragment->nchannels);
+  auto pos = d.x;
+  if (pos > 0.5) pos = 0.5;
+  if (pos < -0.5) pos = -0.5;
 
   for (auto i = 0u; i < f->waveform.size(); ++i)
   {
-    fragment->waveform[i * 2]      = f->waveform[i] * sin((d.x + 0.5) * pi / 2);
-    fragment->waveform[i * 2 + 1]  = f->waveform[i] * cos((d.x + 0.5) * pi / 2);
+    fragment->waveform[i * 2]      = f->waveform[i] * cos((pos + 0.5) * pi / 2);
+    fragment->waveform[i * 2 + 1]  = f->waveform[i] * sin((pos + 0.5) * pi / 2);
   }
 
   send(fragment);

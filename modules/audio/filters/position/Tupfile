@@ -6,6 +6,7 @@
 
 NAME    = vg-module-audio-filter-position
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
+          vg-module-audio-source-vco
 
 include_rules

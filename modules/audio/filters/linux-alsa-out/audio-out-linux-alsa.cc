@@ -52,6 +52,7 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
 
   nchannels = config.get_attr_int("channels", 2);
   log.detail << "ALSA: " << nchannels << " channels\n";
+  const auto start_threshold = config.get_attr_int("start-threshold", 1000);
 
   try
   {
@@ -91,6 +92,24 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
     status = snd_pcm_hw_params(pcm, hw_params);
     if (status < 0)
       throw runtime_error(string("hw_params_set: ")+snd_strerror(status));
+
+    // Set up, configure and use swparams
+    snd_pcm_sw_params_t *sw_params;
+    snd_pcm_sw_params_alloca(&sw_params);
+
+    status = snd_pcm_sw_params_current(pcm, sw_params);
+    if (status < 0)
+      throw runtime_error(string("sw_params:current: ")+snd_strerror(status));
+
+    status = snd_pcm_sw_params_set_start_threshold(pcm, sw_params,
+                                                   start_threshold);
+    if (status < 0)
+      throw runtime_error(string("sw_params:start_threshold: ")
+                                 +snd_strerror(status));
+
+    status = snd_pcm_sw_params(pcm, sw_params);
+    if (status < 0)
+      throw runtime_error(string("sw_params_set: ")+snd_strerror(status));
 
     // Prepare to send
     status = snd_pcm_prepare(pcm);
@@ -211,7 +230,10 @@ Dataflow::Module module
       { "device",  { {"Device output to", "default"}, Value::Type::text,
                                                         "@device" } },
       { "channels",  { {"Number of channels", "1"}, Value::Type::number,
-                                                        "@number" } }
+                                                        "@number" } },
+      { "start-threshold",
+        { {"Number of samples to buffer before playback will start", "1000"},
+           Value::Type::number, "@number" } }
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

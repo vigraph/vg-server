@@ -2,7 +2,7 @@ controls/beat/vg-module-core-control-beat.so /usr/lib/vigraph/modules/
 controls/clone-fraction/vg-module-core-control-clone-fraction.so /usr/lib/vigraph/modules/
 controls/clone-number/vg-module-core-control-clone-number.so /usr/lib/vigraph/modules/
 controls/envelope/vg-module-core-control-envelope.so /usr/lib/vigraph/modules/
-controls/key-frame/vg-module-core-control-key-frame.so /usr/lib/vigraph/modules/
+controls/interpolate/vg-module-core-control-key-frame.so /usr/lib/vigraph/modules/
 controls/lfo/vg-module-core-control-lfo.so /usr/lib/vigraph/modules/
 controls/log/vg-module-core-control-log.so /usr/lib/vigraph/modules/
 controls/limit/vg-module-core-control-limit.so /usr/lib/vigraph/modules/

@@ -14,7 +14,7 @@ DEPENDS  = vg-module-core-source-selector \
            vg-module-core-control-lfo \
            vg-module-core-control-envelope \
            vg-module-core-control-set \
-           vg-module-core-control-key-frame \
+           vg-module-core-control-interpolate \
            vg-module-core-control-add \
            vg-module-core-control-multiply \
            vg-module-core-control-modify \

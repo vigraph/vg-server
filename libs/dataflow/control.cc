@@ -123,6 +123,13 @@ void Control::send(const string& name, const SetParams& sp)
       const auto& p = target.properties.find(name);
       if (p != target.properties.end())
         target.element->set_property(p->second.name, sp);  // Use their name
+      else
+      {
+        // Look for wildcard, we can send using our name
+        const auto& q = target.properties.find("");
+        if (q != target.properties.end())
+          target.element->set_property(name, sp);  // Use our name
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: audio/sources/position/test-mixer.cc
+// ViGraph dataflow module: audio/sources/position/test-combine.cc
 //
-// Tests for <mixer> filter
+// Tests for <combine> filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -13,12 +13,12 @@
 ModuleLoader loader;
 using namespace ViGraph::Geometry;
 
-TEST(MixerTest, TestNoWaveform)
+TEST(CombineTest, TestNoWaveform)
 {
   const string& xml = R"(
     <graph>
       <vco/>
-      <mixer/>
+      <combine/>
     </graph>
   )";
 
@@ -32,12 +32,12 @@ TEST(MixerTest, TestNoWaveform)
     EXPECT_EQ(0.0, fragment->waveform[i]);
 }
 
-TEST(MixerTest, TestSquareWave)
+TEST(CombineTest, TestSquareWave)
 {
   const string& xml = R"(
     <graph>
       <vco wave="square" freq="1"/>
-      <mixer/>
+      <combine/>
     </graph>
   )";
 
@@ -51,13 +51,13 @@ TEST(MixerTest, TestSquareWave)
     EXPECT_EQ((i < 22050)?-1:1, fragment->waveform[i]) << i;
 }
 
-TEST(MixerTest, TestTwoSquareWaves)
+TEST(CombineTest, TestTwoSquareWaves)
 {
   const string& xml = R"(
     <graph>
       <vco wave="square" freq="1"/>
       <vco wave="square" freq="1"/>
-      <mixer/>
+      <combine/>
     </graph>
   )";
 
@@ -71,10 +71,31 @@ TEST(MixerTest, TestTwoSquareWaves)
     EXPECT_EQ(((i < 22050)?-2:2), fragment->waveform[i]) << i;
 }
 
+TEST(CombineTest, TestMultiplyTwoSineWaves)
+{
+  const string& xml = R"(
+    <graph>
+      <vco wave="sin" freq="1"/>
+      <vco wave="sin" freq="1"/>
+      <combine mode="multiply"/>
+    </graph>
+  )";
+
+  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
+  Fragment *fragment = gen.get_fragment();
+  ASSERT_FALSE(!fragment);
+
+  // Should be 44100 samples at alternating -2, 2
+  EXPECT_EQ(44100, fragment->waveform.size());
+  for(auto i=0u; i<fragment->waveform.size(); i++)
+    EXPECT_NEAR(pow(sin(2*pi*(double)i/fragment->waveform.size()), 2),
+                fragment->waveform[i], 0.0001) << i;
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../sources/vco/vg-module-audio-source-vco.so");
-  loader.load("./vg-module-audio-filter-mixer.so");
+  loader.load("./vg-module-audio-filter-combine.so");
   return RUN_ALL_TESTS();
 }

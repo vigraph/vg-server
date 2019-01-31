@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph audio mixer filter module
+# Tupfile for Vigraph audio combine filter module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-audio-filter-mixer
+NAME    = vg-module-audio-filter-combine
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
           vg-module-audio-source-vco

@@ -19,8 +19,6 @@ using namespace ViGraph::Dataflow;
 class VUMeterFilter: public FragmentFilter, public Dataflow::Control
 {
   double level = 0.0;
-  const double charge = 0.1;
-  const double discharge = 0.001;
 
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
@@ -44,6 +42,9 @@ VUMeterFilter::VUMeterFilter(const Dataflow::Module *module,
 // Process some data
 void VUMeterFilter::accept(FragmentPtr fragment)
 {
+  const auto rise_fall_time = 0.3l;   // VU meter standard rise time is 300ms
+  const auto dt = 1.0l / sample_rate; // Sample interval
+  const auto a = dt / (rise_fall_time + dt);  // Low pass alpha
   for (auto i = 0u; i < fragment->waveform.size() / fragment->nchannels; ++i)
   {
     auto s = 0.0l;
@@ -52,12 +53,10 @@ void VUMeterFilter::accept(FragmentPtr fragment)
       s += fragment->waveform[i * fragment->nchannels + c];
     }
     s /= fragment->nchannels;
-
     s = abs(s);
-    if (s > level)
-      level = level * (1 - charge) + s * charge;
-    else
-      level = level * (1 - discharge);
+
+    // Low pass filter
+    level = a * s + (1 - a) * level;
   }
   Generator::send(fragment);
 }

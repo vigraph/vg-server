@@ -43,15 +43,39 @@ TEST(VUMeterTest, TestSquareWave)
     </graph>
   )";
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
-  ASSERT_FALSE(!fragment);
+  {
+    // After a second should be kind of close to 1
+    FragmentGenerator gen(xml, loader, 2);
+    Fragment *fragment = gen.get_fragment();
+    ASSERT_FALSE(!fragment);
 
-  // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR((i < 22050)?-1:1, fragment->waveform[i], 0.001)
-      << i;
+    EXPECT_EQ(44100, fragment->waveform.size());
+    for(auto i=0u; i<fragment->waveform.size(); i++)
+      EXPECT_NEAR((i < 22050)?-0.964:0.964, fragment->waveform[i], 0.001)
+        << i;
+  }
+  {
+    // After two seconds should be very close to 1
+    FragmentGenerator gen(xml, loader, 3);
+    Fragment *fragment = gen.get_fragment();
+    ASSERT_FALSE(!fragment);
+
+    EXPECT_EQ(44100, fragment->waveform.size());
+    for(auto i=0u; i<fragment->waveform.size(); i++)
+      EXPECT_NEAR((i < 22050)?-0.999:0.999, fragment->waveform[i], 0.001)
+        << i;
+  }
+  {
+    // After three seconds should be practically 1
+    FragmentGenerator gen(xml, loader, 4);
+    Fragment *fragment = gen.get_fragment();
+    ASSERT_FALSE(!fragment);
+
+    EXPECT_EQ(44100, fragment->waveform.size());
+    for(auto i=0u; i<fragment->waveform.size(); i++)
+      EXPECT_NEAR((i < 22050)?-1:1, fragment->waveform[i], 0.0001)
+        << i;
+  }
 }
 
 int main(int argc, char **argv)

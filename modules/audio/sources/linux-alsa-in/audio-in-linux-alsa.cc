@@ -155,7 +155,6 @@ void LinuxALSAInSource::tick(const TickData& td)
     break;
   }
 
-  // Send it down as well, so these can be chained
   send(fragment);
 }
 

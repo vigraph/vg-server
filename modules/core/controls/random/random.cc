@@ -27,6 +27,7 @@ class RandomControl: public Dataflow::Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
+  void enable() override;
   void tick(const TickData& td) override;
   // Automatically set wait flag if we are the target of something
   void notify_target_of(Element *) override { wait = true; }
@@ -59,6 +60,13 @@ void RandomControl::set_property(const string& property, const SetParams& sp)
     update_prop(min, sp);
   else if (property == "max")
     update_prop(max, sp);
+}
+
+//--------------------------------------------------------------------------
+// Tick
+void RandomControl::enable()
+{
+  triggered = done = false;
 }
 
 //--------------------------------------------------------------------------

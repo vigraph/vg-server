@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph ALSA audio in filter module
+# Tupfile for Vigraph ALSA audio in source module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-audio-filter-linux-alsa-in
+NAME    = vg-module-audio-source-linux-alsa-in
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-log ext-dl ext-asound
 

@@ -100,6 +100,9 @@ MIDIInterfaceImpl::MIDIInterfaceImpl(const Dataflow::Module *module,
     return;
   }
 
+  // Clear anything buffered
+  snd_rawmidi_drop(midi);
+
   thread.reset(new MIDIInThread(*this));
   running = true;
 }

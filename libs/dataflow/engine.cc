@@ -26,8 +26,12 @@ void Engine::configure(const File::Directory& base_dir,
 
     const auto srv = service_registry.create(e.name, e);
     if (!srv) throw(runtime_error("No such dataflow service " + e.name));
-
     services[e.name].reset(srv);
+
+    // Configure it with graph in place so it can reach back to us for
+    // other services
+    srv->graph = graph.get();
+    srv->configure(base_dir, e);
   }
 
   // Configure graph from graph config

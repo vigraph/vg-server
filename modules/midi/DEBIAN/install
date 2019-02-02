@@ -1,3 +1,3 @@
-services/linux-alsa/vg-module-midi-service-linux-alsa.so /usr/lib/vigraph/modules/
-controls/key-in/vg-module-midi-control-key-in.so /usr/lib/vigraph/modules/
+services/distributor/vg-module-midi-service-distributor.so /usr/lib/vigraph/modules/
+services/linux-alsa/vg-module-midi-service-linux-alsa.so /usr/lib/vigraph/modulecontrols/key-in/vg-module-midi-control-key-in.so /usr/lib/vigraph/modules/
 controls/control-in/vg-module-midi-control-control-in.so /usr/lib/vigraph/modules/

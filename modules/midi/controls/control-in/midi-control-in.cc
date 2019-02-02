@@ -18,9 +18,9 @@ namespace {
 //==========================================================================
 // MIDIControlIn control
 class MIDIControlInControl: public Dataflow::Control,
-                        public Interface::EventObserver
+                            public Distributor::EventObserver
 {
-  shared_ptr<Interface> interface;
+  shared_ptr<Distributor> distributor;
   int channel{0};
   int number{0};
   double scale{1.0};
@@ -62,11 +62,11 @@ void MIDIControlInControl::configure(const File::Directory&,
                                      const XML::Element&)
 {
   auto& engine = graph->get_engine();
-  interface = engine.get_service<Interface>("midi");
-  if (!interface)
+  distributor = engine.get_service<Distributor>("midi-distributor");
+  if (!distributor)
   {
     Log::Error log;
-    log << "No MIDI service loaded\n";
+    log << "No <midi-distributor> service loaded\n";
   }
 }
 
@@ -89,9 +89,9 @@ void MIDIControlInControl::enable()
   log << "MIDI controller enable on channel " << channel
       << " controller " << number << endl;
 
-  if (interface)
+  if (distributor)
   {
-    interface->register_event_observer(channel,
+    distributor->register_event_observer(channel,
                                   ViGraph::MIDI::Event::Type::control_change,
                                        this);
   }
@@ -105,8 +105,8 @@ void MIDIControlInControl::disable()
   log << "MIDI control disable on channel " << channel
       << " controller " << number << endl;
 
-  if (interface)
-    interface->deregister_event_observer(this);
+  if (distributor)
+    distributor->deregister_event_observer(this);
 }
 
 //--------------------------------------------------------------------------

@@ -21,8 +21,9 @@ class MIDIInThread;  // forward
 
 //==========================================================================
 // MIDI interface implementation
-class MIDIInterfaceImpl: public Dataflow::Service, public Interface
+class MIDIInterface: public Dataflow::Service
 {
+  shared_ptr<Distributor> distributor;
   snd_rawmidi_t* midi{nullptr};
   unique_ptr<MIDIInThread> thread;
   bool running;
@@ -32,32 +33,13 @@ class MIDIInterfaceImpl: public Dataflow::Service, public Interface
   void run();
 
   // Service interface
+  void configure(const File::Directory&, const XML::Element& config) override;
   void tick(const TickData& td) override;
   void shutdown() override;
 
-  // MIDI interface implementation
-  void register_event_observer(int channel,
-                               ViGraph::MIDI::Event::Type type,
-                               EventObserver *observer) override;
-  void deregister_event_observer(EventObserver *observer) override;
-
-  // Event observers
-  struct Observer
-  {
-    int channel;
-    ViGraph::MIDI::Event::Type type;
-    EventObserver *observer;
-
-    Observer(int _channel, ViGraph::MIDI::Event::Type _type,
-             EventObserver *_observer):
-      channel(_channel), type(_type), observer(_observer) {}
-  };
-
-  list<Observer> observers;
-
 public:
   // Construct
-  MIDIInterfaceImpl(const Dataflow::Module *module,
+  MIDIInterface(const Dataflow::Module *module,
                     const XML::Element& config);
 };
 
@@ -66,13 +48,13 @@ public:
 class MIDIInThread: public MT::Thread
 {
 private:
-  MIDIInterfaceImpl& control;
+  MIDIInterface& control;
 
   void run() override
   { control.run(); }
 
 public:
-  MIDIInThread(MIDIInterfaceImpl& _control): control(_control)
+  MIDIInThread(MIDIInterface& _control): control(_control)
   { start(); }
 };
 
@@ -82,11 +64,26 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML:
 //   <midi device='default'/>
-MIDIInterfaceImpl::MIDIInterfaceImpl(const Dataflow::Module *module,
-                                     const XML::Element& config):
+MIDIInterface::MIDIInterface(const Dataflow::Module *module,
+                             const XML::Element& config):
   Service(module, config)
 {
+}
+
+//--------------------------------------------------------------------------
+// Configure from XML (once we have the engine)
+void MIDIInterface::configure(const File::Directory&,
+                              const XML::Element& config)
+{
   Log::Streams log;
+  auto& engine = graph->get_engine();
+  distributor = engine.get_service<Distributor>("midi-distributor");
+  if (!distributor)
+  {
+    log.error << "No <midi-distributor> service loaded\n";
+    return;
+  }
+
   const auto& device = config.get_attr("device", default_device);
   log.summary << "Opening MIDI input on ALSA device '" << device << "'\n";
 
@@ -108,31 +105,8 @@ MIDIInterfaceImpl::MIDIInterfaceImpl(const Dataflow::Module *module,
 }
 
 //--------------------------------------------------------------------------
-// Register an event handler - channel=0 means all (Omni)
-void MIDIInterfaceImpl::register_event_observer(int channel,
-                                                ViGraph::MIDI::Event::Type type,
-                                                EventObserver *observer)
-{
-  observers.push_back(Observer(channel, type, observer));
-}
-
-//--------------------------------------------------------------------------
-// Deregister an event observer for all events
-void MIDIInterfaceImpl::deregister_event_observer(EventObserver *observer)
-{
-  for(auto p=observers.begin(); p!=observers.end();)
-  {
-    Observer& o = *p;
-    if (o.observer == observer)
-      p = observers.erase(p);
-    else
-      ++p;
-  }
-}
-
-//--------------------------------------------------------------------------
 // Run background
-void MIDIInterfaceImpl::run()
+void MIDIInterface::run()
 {
   Log::Streams log;
 
@@ -170,26 +144,19 @@ void MIDIInterfaceImpl::run()
 
 //--------------------------------------------------------------------------
 // Tick
-void MIDIInterfaceImpl::tick(const TickData&)
+void MIDIInterface::tick(const TickData&)
 {
   for(;;)
   {
     MIDI::Event event = reader.get();
     if (event.type == ViGraph::MIDI::Event::Type::none) break;
-
-    // Send event to all interested observers
-    for(const auto& o: observers)
-    {
-      if ((!o.channel || o.channel == event.channel) // channel 0 is wildcard
-          && o.type == event.type)
-        o.observer->handle(event);
-    }
+    if (distributor) distributor->handle_event(event);
   }
 }
 
 //--------------------------------------------------------------------------
 // Shut down
-void MIDIInterfaceImpl::shutdown()
+void MIDIInterface::shutdown()
 {
   Log::Detail log;
   log << "Shutting down MIDI input\n";
@@ -217,4 +184,4 @@ Dataflow::Module module
 
 } // anon
 
-VIGRAPH_ENGINE_SERVICE_MODULE_INIT(MIDIInterfaceImpl, module)
+VIGRAPH_ENGINE_SERVICE_MODULE_INIT(MIDIInterface, module)

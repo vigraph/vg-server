@@ -14,8 +14,8 @@
 namespace ViGraph { namespace Module { namespace MIDI {
 
 //==========================================================================
-// MIDI interface
-class Interface
+// MIDI distributor
+class Distributor
 {
  public:
   struct EventObserver
@@ -24,7 +24,7 @@ class Interface
   };
 
   // Construct
-  Interface() {}
+  Distributor() {}
 
   // Register an event handler for the given channel (or 0 if all) and
   // event type
@@ -34,6 +34,9 @@ class Interface
 
   // Deregister observer for all events
   virtual void deregister_event_observer(EventObserver *observer) = 0;
+
+  // Handle a MIDI event
+  virtual void handle_event(const ViGraph::MIDI::Event& event) = 0;
 };
 
 //==========================================================================

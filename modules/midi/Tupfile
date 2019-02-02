@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-midi
 TYPE     = package
-DEPENDS  = vg-module-midi-service-linux-alsa \
+DEPENDS  = vg-module-midi-service-distributor \
+           vg-module-midi-service-linux-alsa \
            vg-module-midi-control-key-in \
            vg-module-midi-control-control-in
 

@@ -14,7 +14,10 @@ namespace {
 // Clip filter
 class ClipFilter: public FrameFilter
 {
-  Point min, max;  // Bounding cube
+  Point min, max;         // Bounding cube
+  bool exclude{false};    // Inverse, clip out a rectangle
+  Colour::intens_t alpha{0.0}; // Fade
+  Colour::RGB outline_colour;
 
   // Filter/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -27,7 +30,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML
-//  <clip>
+//  <clip exclude="false" alpha="0" outline="black">
 //    <min x="-0.5" y="-0.5" z="-0.5"/>
 //    <max x="0.5"  y="0.5"  z="0.5"/>
 // </clip>
@@ -44,6 +47,11 @@ ClipFilter::ClipFilter(const Dataflow::Module *module,
   max.x = max_e.get_attr_real("x", 0.5);
   max.y = max_e.get_attr_real("y", 0.5);
   max.z = max_e.get_attr_real("z", 0.5);
+
+  exclude = config.get_attr_bool("exclude");
+  alpha = config.get_attr_real("alpha");
+  if (config.has_attr("outline"))
+    outline_colour = Colour::RGB(config["outline"]);
 }
 
 //--------------------------------------------------------------------------
@@ -56,14 +64,15 @@ void ClipFilter::set_property(const string& property, const SetParams& sp)
   else if (property == "max.x") update_prop(max.x, sp);
   else if (property == "max.y") update_prop(max.y, sp);
   else if (property == "max.z") update_prop(max.z, sp);
+  else if (property == "alpha") update_prop(alpha, sp);
 }
 
 //--------------------------------------------------------------------------
 // Process some data
 void ClipFilter::accept(FramePtr frame)
 {
-  // First (bad) attempt - blank all points outside clip, and the following
-  // one
+  // First (bad) attempt - blank all points inside/outside clip,
+  // and the following one
   bool last_was_blanked{false};
   Point last_unclipped_point;
   for(auto& p: frame->points)
@@ -72,21 +81,40 @@ void ClipFilter::accept(FramePtr frame)
     // invalid point
     if (last_was_blanked) p.blank();
 
-    // Is it outside the bounding box?
-    if (p.x < min.x || p.y < min.y || p.z < min.z
-     || p.x > max.x || p.y > max.y || p.z > max.z)
+    bool outside_bb = p.x < min.x || p.y < min.y || p.z < min.z
+                   || p.x > max.x || p.y > max.y || p.z > max.z;
+    // Not wanted?
+    if (exclude?!outside_bb:outside_bb)
     {
-      // Blank and shift to last good one (doesn't matter where it is, but
-      // saves a scanner move)
-      p = last_unclipped_point;
-      p.blank();
-      last_was_blanked = true;
+      // If alpha, leave it in place but fade it
+      if (alpha > 0.0)
+      {
+        p.c.fade(alpha);
+      }
+      else
+      {
+        // Blank and shift to last good one (doesn't matter where it is, but
+        // saves a scanner move)
+        p = last_unclipped_point;
+        p.blank();
+        last_was_blanked = true;
+      }
     }
     else
     {
       last_was_blanked = false;
       last_unclipped_point = p;
     }
+  }
+
+  // Add outline (2D) for testing if required
+  if (!outline_colour.is_black())
+  {
+    frame->points.push_back(min);
+    frame->points.push_back(Point(min.x, max.y, outline_colour));
+    frame->points.push_back(Point(max, outline_colour));
+    frame->points.push_back(Point(max.x, min.y, outline_colour));
+    frame->points.push_back(Point(min, outline_colour));
   }
 
   send(frame);
@@ -106,7 +134,11 @@ Dataflow::Module module
     { "min.z", { "Minimum Z value", Value::Type::number, "min/@z", true } },
     { "max.x", { "Maximum X value", Value::Type::number, "max/@x", true } },
     { "max.y", { "Maximum Y value", Value::Type::number, "max/@y", true } },
-    { "max.z", { "Maximum Z value", Value::Type::number, "max/@z", true } }
+    { "max.z", { "Maximum Z value", Value::Type::number, "max/@z", true } },
+    { "exclude", { "Whether to remove points inside the box",
+          Value::Type::boolean, "@exclude" } },
+    { "alpha", { "Alpha level to apply to clipped points",
+          Value::Type::number, "@alpha", true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

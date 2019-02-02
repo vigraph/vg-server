@@ -24,6 +24,8 @@ class MIDIInThread;  // forward
 class MIDIInterface: public Dataflow::Service
 {
   shared_ptr<Distributor> distributor;
+  int channel_offset{0};
+
   snd_rawmidi_t* midi{nullptr};
   unique_ptr<MIDIInThread> thread;
   bool running;
@@ -63,11 +65,12 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML:
-//   <midi device='default'/>
+//   <midi device='default' channel-offset="16"/>
 MIDIInterface::MIDIInterface(const Dataflow::Module *module,
                              const XML::Element& config):
   Service(module, config)
 {
+  channel_offset = config.get_attr_int("channel-offset");
 }
 
 //--------------------------------------------------------------------------
@@ -150,6 +153,7 @@ void MIDIInterface::tick(const TickData&)
   {
     MIDI::Event event = reader.get();
     if (event.type == ViGraph::MIDI::Event::Type::none) break;
+    event.channel += channel_offset;
     if (distributor) distributor->handle_event(event);
   }
 }
@@ -177,8 +181,10 @@ Dataflow::Module module
   "MIDI Interface for Linux/ALSA",
   "midi",
   {
-    { "device",  { {"Device to listen to", "default"}, Value::Type::text,
-                                                       "@device" } }
+    { "device",  { {"Device to listen to", "default"},
+          Value::Type::text, "@device" } },
+    { "channel-offset",  { "Offset to apply to channel number",
+          Value::Type::number, "@channel-offset" } }
   }
 };
 

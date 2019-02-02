@@ -235,8 +235,9 @@ void FigureSource::tick(const TickData& td)
     frame->points.push_back(Point(x_waveform[i], y_waveform[i],
                                   Colour::white));
 
-  // Optionally close the frame back to starting point
-  if (closed && points) frame->points.push_back(frame->points[0]);
+  // Optionally close the frame back to starting point, but lit
+  if (closed && points)
+    frame->points.push_back(Point(frame->points[0], Colour::white));
 
   // Send to output
   send(frame);

@@ -113,11 +113,11 @@ LinuxALSAInSource::LinuxALSAInSource(const Dataflow::Module *module,
     if (status < 0)
       throw runtime_error(string("prepare: ")+snd_strerror(status));
 
-    log.detail << "Created Linux ALSA audio out\n";
+    log.detail << "Created Linux ALSA audio in\n";
   }
   catch (runtime_error e)
   {
-    log.error << "Can't open ALSA PCM output: " << e.what() << endl;
+    log.error << "Can't open ALSA PCM input: " << e.what() << endl;
     if (pcm) snd_pcm_close(pcm);
     pcm = nullptr;
   }

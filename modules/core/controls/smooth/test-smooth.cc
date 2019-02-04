@@ -9,7 +9,7 @@
 #include "../../../module-test.h"
 ModuleLoader loader;
 
-TEST(AddTest, TestZeroRCDoesNothing)
+TEST(SmoothTest, TestZeroRCDoesNothing)
 {
   ControlTester tester(loader);
   tester.test("<lfo property='x' wave='square' phase='0.5' period='100'/>",
@@ -20,7 +20,7 @@ TEST(AddTest, TestZeroRCDoesNothing)
   EXPECT_EQ(1.0, sp.v.d);
 }
 
-TEST(AddTest, TestSingleRCPeriodIs63Percent)
+TEST(SmoothTest, TestSingleRCPeriodIs63Percent)
 {
   ControlTester tester(loader);
   tester.test("<lfo property='x' wave='square' phase='0.5' period='100000'/>",
@@ -31,7 +31,7 @@ TEST(AddTest, TestSingleRCPeriodIs63Percent)
   EXPECT_NEAR(0.632, sp.v.d, 0.001);
 }
 
-TEST(AddTest, TestTwoRCPeriodsIs86Percent)
+TEST(SmoothTest, TestTwoRCPeriodsIs86Percent)
 {
   ControlTester tester(loader);
   tester.test("<lfo property='x' wave='square' phase='0.5' period='100000'/>",
@@ -42,7 +42,7 @@ TEST(AddTest, TestTwoRCPeriodsIs86Percent)
   EXPECT_NEAR(0.865, sp.v.d, 0.001);
 }
 
-TEST(AddTest, TestThreeRCPeriodsIs95Percent)
+TEST(SmoothTest, TestThreeRCPeriodsIs95Percent)
 {
   ControlTester tester(loader);
   tester.test("<lfo property='x' wave='square' phase='0.5' period='100000'/>",
@@ -53,7 +53,7 @@ TEST(AddTest, TestThreeRCPeriodsIs95Percent)
   EXPECT_NEAR(0.95, sp.v.d, 0.001);
 }
 
-TEST(AddTest, TestFourRCPeriodsIs98Percent)
+TEST(SmoothTest, TestFourRCPeriodsIs98Percent)
 {
   ControlTester tester(loader);
   tester.test("<lfo property='x' wave='square' phase='0.5' period='100000'/>",
@@ -64,7 +64,7 @@ TEST(AddTest, TestFourRCPeriodsIs98Percent)
   EXPECT_NEAR(0.982, sp.v.d, 0.001);
 }
 
-TEST(AddTest, TestFiveRCPeriodsIs99Percent)
+TEST(SmoothTest, TestFiveRCPeriodsIs99Percent)
 {
   ControlTester tester(loader);
   tester.test("<lfo property='x' wave='square' phase='0.5' period='100000'/>",

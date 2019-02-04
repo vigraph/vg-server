@@ -1,0 +1,13 @@
+#===========================================================================
+# Tupfile for Vigraph audio amplitude filter module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-audio-filter-amplitude
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
+          vg-module-core-control-set \
+          vg-module-audio-source-vco vg-module-audio-filter-attenuator
+
+include_rules

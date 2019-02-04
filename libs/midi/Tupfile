@@ -6,6 +6,6 @@
 
 NAME    = vg-midi
 TYPE    = lib
-DEPENDS =
+DEPENDS = ot-text
 
 include_rules

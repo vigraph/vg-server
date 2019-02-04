@@ -12,6 +12,7 @@
 #include <vector>
 #include <deque>
 #include <cstdint>
+#include <string>
 
 namespace ViGraph { namespace MIDI {
 
@@ -64,6 +65,11 @@ class Reader
   // Returns Event::Type::none if nothing available (yet)
   Event get();
 };
+
+//==========================================================================
+// MIDI Notes
+// Returns midi note number or -1 on error
+int get_midi_note(const string& name);
 
 //==========================================================================
 }} //namespaces

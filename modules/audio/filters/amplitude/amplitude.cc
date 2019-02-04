@@ -2,7 +2,7 @@
 // ViGraph dataflow module:
 //    audio/filters/amplitude/amplitude.cc
 //
-// Audio VU meter filter
+// Audio amplitude filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -37,7 +37,7 @@ public:
 AmplitudeFilter::AmplitudeFilter(const Dataflow::Module *module,
                              const XML::Element& config):
     Element(module, config), FragmentFilter(module, config),
-    Control(module, config, true)  // optional targets
+    Control(module, config)
 {
   scale = config.get_attr_real("scale", 1.0);
   offset = config.get_attr_real("offset");

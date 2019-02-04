@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: midi/services/midi-linux-alsa/midi-linux-alsa.cc
+// ViGraph dataflow module: midi/control/midi-linux-alsa/midi-linux-alsa.cc
 //
 // MIDI interface using Linux ALSA API
 //
@@ -21,7 +21,7 @@ class MIDIInThread;  // forward
 
 //==========================================================================
 // MIDI interface implementation
-class MIDIInterface: public Dataflow::Service
+class MIDIInterface: public Dataflow::Control
 {
   shared_ptr<Distributor> distributor;
   int channel_offset{0};
@@ -34,7 +34,7 @@ class MIDIInterface: public Dataflow::Service
   friend class MIDIInThread;
   void run();
 
-  // Service interface
+  // Control virtuals
   void configure(const File::Directory&, const XML::Element& config) override;
   void tick(const TickData& td) override;
   void shutdown() override;
@@ -68,7 +68,7 @@ public:
 //   <midi device='default' channel-offset="16"/>
 MIDIInterface::MIDIInterface(const Dataflow::Module *module,
                              const XML::Element& config):
-  Service(module, config)
+  Element(module, config), Control(module, config, true)  // no props
 {
   channel_offset = config.get_attr_int("channel-offset");
 }
@@ -185,9 +185,10 @@ Dataflow::Module module
           Value::Type::text, "@device" } },
     { "channel-offset",  { "Offset to apply to channel number",
           Value::Type::number, "@channel-offset" } }
-  }
+  },
+  {}  // No controlled properties
 };
 
 } // anon
 
-VIGRAPH_ENGINE_SERVICE_MODULE_INIT(MIDIInterface, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(MIDIInterface, module)

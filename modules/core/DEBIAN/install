@@ -8,7 +8,9 @@ controls/log/vg-module-core-control-log.so /usr/lib/vigraph/modules/
 controls/limit/vg-module-core-control-limit.so /usr/lib/vigraph/modules/
 controls/modify/vg-module-core-control-modify.so /usr/lib/vigraph/modules/
 controls/random/vg-module-core-control-random.so /usr/lib/vigraph/modules/
+controls/round/vg-module-core-control-round.so /usr/lib/vigraph/modules/
 controls/set/vg-module-core-control-set.so /usr/lib/vigraph/modules/
+controls/smooth/vg-module-core-control-smooth.so /usr/lib/vigraph/modules/
 controls/add/vg-module-core-control-add.so /usr/lib/vigraph/modules/
 controls/multiply/vg-module-core-control-multiply.so /usr/lib/vigraph/modules/
 controls/wrap/vg-module-core-control-wrap.so /usr/lib/vigraph/modules/

@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for Vigraph audio <shift> filter module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-audio-filter-shift
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl ext-pkg-soundtouch \
+          vg-module-audio-source-vco
+
+include_rules

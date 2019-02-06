@@ -48,7 +48,13 @@ MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
   Element(module, config), Control(module, config)
 {
   channel = config.get_attr_int("channel");
-  note = config.get_attr_int("note");
+  auto n = config["note"];
+  if (!n.empty())
+  {
+    note = Text::stoi(n);
+    if (!note)
+      note = MIDI::get_midi_note(n);
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -71,7 +77,16 @@ void MIDIKeyInControl::set_property(const string& property,
                                     const SetParams& sp)
 {
   if (property == "note")
-    update_prop_int(note, sp);
+  {
+    if (sp.v.type == Value::Type::text)
+    {
+      note = MIDI::get_midi_note(sp.v.s);
+    }
+    else
+    {
+      update_prop_int(note, sp);
+    }
+  }
 }
 
 //--------------------------------------------------------------------------

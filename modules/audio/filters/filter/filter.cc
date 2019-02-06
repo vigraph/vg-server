@@ -26,7 +26,7 @@ class FilterFilter: public FragmentFilter
   Mode mode = Mode::low_pass;
 
   double cutoff = 1.0;
-  int nchannels = 0;
+  unsigned nchannels = 0;
   vector<vector<double>> buff; // Vector of buffers, then vector of channel
 
   // Source/Element virtuals
@@ -87,7 +87,7 @@ void FilterFilter::accept(FragmentPtr fragment)
 
   for (auto i = 0u; i < fragment->waveform.size() / fragment->nchannels; ++i)
   {
-    for (auto c = 0; c < fragment->nchannels; ++c)
+    for (auto c = 0u; c < fragment->nchannels; ++c)
     {
       auto& s = fragment->waveform[i * fragment->nchannels + c];
       for (auto b = 0u; b < buff.size(); ++b)

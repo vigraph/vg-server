@@ -24,10 +24,10 @@ const unsigned int sample_rate = 44100;
 struct Fragment: public Data
 {
   timestamp_t timestamp;
-  int nchannels;
+  unsigned nchannels;
   vector<sample_t> waveform;  // Multi-channel data is interleaved
 
-  Fragment(timestamp_t t, int _nchannels=1):
+  Fragment(timestamp_t t, unsigned _nchannels=1):
     timestamp(t), nchannels(_nchannels) {}
 };
 

@@ -79,7 +79,7 @@ void CombineFilter::accept(FragmentPtr fragment)
     // Add new fragment to existing
     for (auto i = 0u; i < samples_per_channel; ++i)
     {
-      for (auto c = 0; c < fragment->nchannels; ++c)
+      for (auto c = 0u; c < fragment->nchannels; ++c)
       {
         switch (mode)
         {

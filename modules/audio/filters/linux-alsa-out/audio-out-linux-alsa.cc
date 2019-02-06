@@ -21,7 +21,7 @@ const auto default_device{"default"};
 class LinuxALSAOutFilter: public FragmentFilter
 {
   snd_pcm_t *pcm{nullptr};
-  int nchannels{2};
+  unsigned nchannels{2};
   unsigned tick_samples_required = 0;
 
   // Write samples to device
@@ -163,7 +163,7 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
     s.resize(nchannels * samples);
     for (auto i = 0u; i < samples; ++i)
     {
-      for (auto c = 0; c < nchannels; ++c)
+      for (auto c = 0u; c < nchannels; ++c)
       {
         if (c >= fragment->nchannels)
           s[i * nchannels + c] = 0.0;

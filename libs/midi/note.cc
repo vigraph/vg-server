@@ -8,6 +8,7 @@
 
 #include "vg-midi.h"
 #include "ot-text.h"
+#include <cmath>
 
 namespace ViGraph { namespace MIDI {
 
@@ -57,6 +58,13 @@ int get_midi_note(const string& name)
   m += o * 12;
 
   return m;
+}
+
+//==========================================================================
+// MIDI Note frequency
+double get_midi_frequency(int note)
+{
+  return 440.0 * pow(2, (note - 69) / 12.0);
 }
 
 }} // namespaces

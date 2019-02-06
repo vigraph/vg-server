@@ -50,6 +50,13 @@ TEST(MIDINoteTest, TestFlats)
   ASSERT_EQ(102, get_midi_note("Gb7 "));
 }
 
+TEST(MIDINoteTest, TestFrequency)
+{
+  ASSERT_NEAR(311.13, get_midi_frequency(63), 0.01);
+  ASSERT_NEAR(3322.44, get_midi_frequency(104), 0.01);
+  ASSERT_NEAR(7040.00, get_midi_frequency(117), 0.01);
+}
+
 } // anonymous namespace
 
 int main(int argc, char **argv)

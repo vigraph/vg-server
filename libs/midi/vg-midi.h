@@ -72,5 +72,9 @@ class Reader
 int get_midi_note(const string& name);
 
 //==========================================================================
+// MIDI Note frequency
+double get_midi_frequency(int note);
+
+//==========================================================================
 }} //namespaces
 #endif // !__VG_MIDI_H

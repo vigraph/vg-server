@@ -8,6 +8,7 @@
 
 #include "../../audio-module.h"
 #include "vg-geometry.h"
+#include "vg-midi.h"
 #include <cmath>
 
 namespace {
@@ -51,6 +52,10 @@ void VCOSource::configure(const File::Directory&,
 {
   freq = config.get_attr_real("freq");
 
+  auto note = config["note"];
+  if (!note.empty())
+    freq = MIDI::get_midi_frequency(MIDI::get_midi_note(note));
+
   const string& wave = config["wave"];
   if (wave.empty() || wave=="none")
     waveform = Waveform::none;
@@ -77,6 +82,8 @@ void VCOSource::set_property(const string& property, const SetParams& sp)
 {
   if (property == "freq")
     update_prop(freq, sp);
+  else if (property == "note")
+    freq = MIDI::get_midi_frequency(MIDI::get_midi_note(sp.v.s));
 }
 
 //--------------------------------------------------------------------------
@@ -135,7 +142,8 @@ Dataflow::Module module
   "Simple Voltage Controlled Oscillator",
   "audio",
   {
-    { "freq",  { "Frequency (Hz)", Value::Type::number, "@freq", true } }
+    { "freq",  { "Frequency (Hz)", Value::Type::number, "@freq", true } },
+    { "note",  { "Note (e.g C#4)", Value::Type::text, "@note", true } }
   },
   {},  // no inputs
   { "Audio" }  // outputs

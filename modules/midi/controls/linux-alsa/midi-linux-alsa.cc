@@ -21,12 +21,14 @@ class MIDIInThread;  // forward
 
 //==========================================================================
 // MIDI interface implementation
-class MIDIInterface: public Dataflow::Control
+class MIDIInterface: public Dataflow::Control,
+                     public Distributor::EventObserver
 {
   shared_ptr<Distributor> distributor;
   int channel_offset{0};
 
-  snd_rawmidi_t* midi{nullptr};
+  snd_rawmidi_t *midi_in{nullptr};
+  snd_rawmidi_t *midi_out{nullptr};
   unique_ptr<MIDIInThread> thread;
   bool running;
   ViGraph::MIDI::Reader reader;
@@ -38,6 +40,9 @@ class MIDIInterface: public Dataflow::Control
   void configure(const File::Directory&, const XML::Element& config) override;
   void tick(const TickData& td) override;
   void shutdown() override;
+
+  // Event observer implementation
+  void handle(const ViGraph::MIDI::Event& event) override;
 
 public:
   // Construct
@@ -87,12 +92,13 @@ void MIDIInterface::configure(const File::Directory&,
     return;
   }
 
+  // Input
   const auto& device = config.get_attr("device", default_device);
   log.summary << "Opening MIDI input on ALSA device '" << device << "'\n";
 
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
 
-  auto status = snd_rawmidi_open(&midi, NULL, device.c_str(),
+  auto status = snd_rawmidi_open(&midi_in, &midi_out, device.c_str(),
                                  SND_RAWMIDI_SYNC | SND_RAWMIDI_NONBLOCK);
   if (status)
   {
@@ -101,10 +107,16 @@ void MIDIInterface::configure(const File::Directory&,
   }
 
   // Clear anything buffered
-  snd_rawmidi_drop(midi);
+  snd_rawmidi_drop(midi_in);
 
   thread.reset(new MIDIInThread(*this));
   running = true;
+
+  // Output
+  distributor->register_event_observer(
+                                ViGraph::MIDI::Event::Direction::out,
+                                channel_offset, channel_offset + 15,
+                                ViGraph::MIDI::Event::Type::none, this);
 }
 
 //--------------------------------------------------------------------------
@@ -114,9 +126,9 @@ void MIDIInterface::run()
   Log::Streams log;
 
   // Get FDs for poll
-  const auto nfds = snd_rawmidi_poll_descriptors_count(midi);
+  const auto nfds = snd_rawmidi_poll_descriptors_count(midi_in);
   vector<struct pollfd> fds(nfds);
-  snd_rawmidi_poll_descriptors(midi, fds.data(), nfds);
+  snd_rawmidi_poll_descriptors(midi_in, fds.data(), nfds);
 
   // Filter for only input side
   vector<struct pollfd> ifds;
@@ -131,7 +143,7 @@ void MIDIInterface::run()
     if (poll(ifds.data(), ifds.size(), 100) > 0)
     {
       unsigned char bytes[100];
-      auto n = snd_rawmidi_read(midi, bytes, sizeof(bytes));
+      auto n = snd_rawmidi_read(midi_in, bytes, sizeof(bytes));
       if (n < 0)
       {
         log.error << "Can't read MIDI input: " << snd_strerror(n) << endl;
@@ -159,6 +171,17 @@ void MIDIInterface::tick(const TickData&)
 }
 
 //--------------------------------------------------------------------------
+// Handle event
+void MIDIInterface::handle(const ViGraph::MIDI::Event& event)
+{
+  ViGraph::MIDI::Event e = event;
+  e.channel -= channel_offset;
+  vector<uint8_t> data;
+  auto writer = ViGraph::MIDI::Writer{data};
+  writer.write(event);
+}
+
+//--------------------------------------------------------------------------
 // Shut down
 void MIDIInterface::shutdown()
 {
@@ -168,8 +191,10 @@ void MIDIInterface::shutdown()
   running = false;
   if (thread) thread->join();
 
-  if (midi) snd_rawmidi_close(midi);
-  midi = nullptr;
+  if (midi_in) snd_rawmidi_close(midi_in);
+  midi_in = nullptr;
+  if (midi_out) snd_rawmidi_close(midi_out);
+  midi_out = nullptr;
 }
 
 //--------------------------------------------------------------------------

@@ -48,12 +48,14 @@ MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
   Element(module, config), Control(module, config)
 {
   channel = config.get_attr_int("channel");
-  auto n = config["note"];
-  if (!n.empty())
+  auto ns = config["note"];
+  if (!ns.empty())
   {
-    note = Text::stoi(n);
-    if (!note)
-      note = MIDI::get_midi_note(n);
+    auto n = MIDI::get_midi_note(ns);
+    if (n < 0)
+      note = Text::stoi(ns);
+    else
+      note = n;
   }
 }
 
@@ -98,12 +100,16 @@ void MIDIKeyInControl::enable()
 
   if (distributor)
   {
-    distributor->register_event_observer(channel,
-                                       ViGraph::MIDI::Event::Type::note_on,
-                                       this);
-    distributor->register_event_observer(channel,
-                                       ViGraph::MIDI::Event::Type::note_off,
-                                       this);
+    distributor->register_event_observer(
+                                      ViGraph::MIDI::Event::Direction::in,
+                                      channel, channel,
+                                      ViGraph::MIDI::Event::Type::note_on,
+                                      this);
+    distributor->register_event_observer(
+                                      ViGraph::MIDI::Event::Direction::in,
+                                      channel, channel,
+                                      ViGraph::MIDI::Event::Type::note_off,
+                                      this);
   }
 }
 

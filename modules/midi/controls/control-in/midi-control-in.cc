@@ -91,9 +91,11 @@ void MIDIControlInControl::enable()
 
   if (distributor)
   {
-    distributor->register_event_observer(channel,
+    distributor->register_event_observer(
+                                  ViGraph::MIDI::Event::Direction::in,
+                                  channel, channel,
                                   ViGraph::MIDI::Event::Type::control_change,
-                                       this);
+                                  this);
   }
 }
 

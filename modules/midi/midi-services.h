@@ -28,9 +28,12 @@ class Distributor
 
   // Register an event handler for the given channel (or 0 if all) and
   // event type
-  virtual void register_event_observer(int channel,
-                                       ViGraph::MIDI::Event::Type type,
-                                       EventObserver *observer) = 0;
+  virtual void register_event_observer(
+                                  ViGraph::MIDI::Event::Direction direction,
+                                  unsigned min_channel,
+                                  unsigned max_channel,
+                                  ViGraph::MIDI::Event::Type type,
+                                  EventObserver *observer) = 0;
 
   // Deregister observer for all events
   virtual void deregister_event_observer(EventObserver *observer) = 0;

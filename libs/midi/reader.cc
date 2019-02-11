@@ -40,8 +40,8 @@ void Reader::add(uint8_t byte)
           if (data.size() >= 2)
           {
             data.clear();
-            events.push_back(Event(Event::Type::note_off, chan,
-                                   data[0], data[1]));
+            events.emplace_back(Event::Direction::in, Event::Type::note_off,
+                                chan, data[0], data[1]);
           }
         break;
 
@@ -49,8 +49,8 @@ void Reader::add(uint8_t byte)
           if (data.size() >= 2)
           {
             data.clear();
-            events.push_back(Event(Event::Type::note_on, chan,
-                                   data[0], data[1]));
+            events.emplace_back(Event::Direction::in, Event::Type::note_on,
+                                chan, data[0], data[1]);
           }
         break;
 
@@ -58,8 +58,9 @@ void Reader::add(uint8_t byte)
           if (data.size() >= 2)
           {
             data.clear();
-            events.push_back(Event(Event::Type::control_change, chan,
-                                   data[0], data[1]));
+            events.emplace_back(Event::Direction::in,
+                                Event::Type::control_change,
+                                chan, data[0], data[1]);
           }
         break;
 

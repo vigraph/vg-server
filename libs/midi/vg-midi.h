@@ -24,6 +24,12 @@ using namespace ViGraph;
 // MIDI event
 struct Event
 {
+  enum class Direction
+  {
+    in,
+    out
+  };
+
   enum class Type
   {
     none,
@@ -32,6 +38,7 @@ struct Event
     control_change
   };
 
+  Direction direction{Direction::in};
   Type type{Type::none};
   uint8_t channel{0}; // Note, from 1 when valid
   uint8_t key{0};     // Key number or controller number (from 0)
@@ -39,8 +46,10 @@ struct Event
 
   // Constructor
   Event() {}
-  Event(Type _type, uint8_t _channel, uint8_t _key, uint16_t _value):
-    type(_type), channel(_channel), key(_key), value(_value) {}
+  Event(Direction _direction, Type _type, uint8_t _channel,
+        uint8_t _key, uint16_t _value):
+    direction(_direction), type(_type),
+    channel(_channel), key(_key), value(_value) {}
 };
 
 //==========================================================================
@@ -64,6 +73,23 @@ class Reader
   // Get an event from the queue
   // Returns Event::Type::none if nothing available (yet)
   Event get();
+};
+
+//==========================================================================
+// MIDI format writer
+class Writer
+{
+private:
+  vector<uint8_t>& data;
+
+public:
+  //-----------------------------------------------------------------------
+  // Constructor
+  Writer(vector<uint8_t>& _data): data{_data} {}
+
+  //-----------------------------------------------------------------------
+  // Write a MIDI event to the buffer
+  void write(const Event &event);
 };
 
 //==========================================================================

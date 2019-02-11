@@ -19,7 +19,8 @@ namespace {
 class MIDIDistributor: public Dataflow::Service, public Distributor
 {
   // MIDI interface implementation
-  void register_event_observer(int channel,
+  void register_event_observer(ViGraph::MIDI::Event::Direction direction,
+                               unsigned min_channel, unsigned max_channel,
                                ViGraph::MIDI::Event::Type type,
                                EventObserver *observer) override;
   void deregister_event_observer(EventObserver *observer) override;
@@ -28,13 +29,19 @@ class MIDIDistributor: public Dataflow::Service, public Distributor
   // Event observers
   struct Observer
   {
-    int channel;
+    ViGraph::MIDI::Event::Direction direction;
+    unsigned min_channel = 0;
+    unsigned max_channel = 0;
     ViGraph::MIDI::Event::Type type;
     EventObserver *observer;
 
-    Observer(int _channel, ViGraph::MIDI::Event::Type _type,
-             EventObserver *_observer):
-      channel(_channel), type(_type), observer(_observer) {}
+    // Constructor
+    Observer(ViGraph::MIDI::Event::Direction direction,
+             unsigned _min_channel,  unsigned _max_channel,
+             ViGraph::MIDI::Event::Type _type, EventObserver *_observer):
+      direction(direction),
+      min_channel(_min_channel), max_channel(_max_channel),
+      type(_type), observer(_observer) {}
   };
 
   list<Observer> observers;
@@ -56,11 +63,13 @@ MIDIDistributor::MIDIDistributor(const Dataflow::Module *module,
 
 //--------------------------------------------------------------------------
 // Register an event handler - channel=0 means all (Omni)
-void MIDIDistributor::register_event_observer(int channel,
-                                                ViGraph::MIDI::Event::Type type,
-                                                EventObserver *observer)
+void MIDIDistributor::register_event_observer(
+                                  ViGraph::MIDI::Event::Direction direction,
+                                  unsigned min_channel, unsigned max_channel,
+                                  ViGraph::MIDI::Event::Type type,
+                                  EventObserver *observer)
 {
-  observers.push_back(Observer(channel, type, observer));
+  observers.emplace_back(direction, min_channel, max_channel, type, observer);
 }
 
 //--------------------------------------------------------------------------
@@ -84,8 +93,13 @@ void MIDIDistributor::handle_event(const ViGraph::MIDI::Event& event)
   // Send event to all interested observers
   for(const auto& o: observers)
   {
-    if ((!o.channel || o.channel == event.channel) // channel 0 is wildcard
-        && o.type == event.type)
+    if (o.direction == event.direction
+        &&
+        (!o.min_channel || // channel 0 is wildcard
+         (event.channel >= o.min_channel && event.channel <= o.max_channel))
+        &&
+        (o.type == ViGraph::MIDI::Event::Type::none ||
+         o.type == event.type))
       o.observer->handle(event);
   }
 }

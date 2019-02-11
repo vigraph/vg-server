@@ -18,6 +18,8 @@ using namespace ViGraph::Dataflow;
 class DelayFilter: public FragmentFilter
 {
   Time::Duration delay;
+  double feedback = 0.5;
+
   struct Buffer
   {
     unsigned pos = 0;
@@ -41,6 +43,7 @@ DelayFilter::DelayFilter(const Dataflow::Module *module,
     Element(module, config), FragmentFilter(module, config)
 {
   delay = Time::Duration{config.get_attr_real("time", 0)};
+  feedback = config.get_attr_real("feedback", 0.5);
 }
 
 //--------------------------------------------------------------------------
@@ -60,6 +63,12 @@ void DelayFilter::set_property(const string& property, const SetParams& sp)
         auto it = tmp.begin();
         if (new_size > b.samples.size())
           it += (new_size - b.samples.size());
+        else
+        {
+          b.pos += (b.samples.size() - new_size);
+          while (b.pos >= b.samples.size())
+            b.pos -= b.samples.size();
+        }
         auto bpos = b.samples.begin() + b.pos;
         it = copy(bpos, b.samples.end(), it);
         copy(b.samples.begin(), bpos, it);
@@ -69,6 +78,8 @@ void DelayFilter::set_property(const string& property, const SetParams& sp)
       }
     }
   }
+  else if (property == "feedback")
+    feedback = sp.v.d;
 }
 
 //--------------------------------------------------------------------------
@@ -90,9 +101,8 @@ void DelayFilter::accept(FragmentPtr fragment)
       {
         auto& s = fragment->waveform[i * fragment->nchannels + c];
         auto& b = buffer[c].samples[buffer[c].pos];
-        sample_t t = s;
-        s = b;
-        b = t;
+        s += feedback * b;
+        b = s;
         if (++buffer[c].pos >= buffer[c].samples.size())
           buffer[c].pos = 0;
       }
@@ -113,6 +123,8 @@ Dataflow::Module module
   {
     { "time", { {"Time to delay for", "0"}, Value::Type::number,
                                             "@time", true } },
+    { "feedback", { {"Amount of feedback (0-?)", "0.5"}, Value::Type::number,
+                                                         "@feedback", true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

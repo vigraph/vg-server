@@ -166,6 +166,42 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
            << index << endl;
     }
   }
+  else if (property == "toggle")
+  {
+    int index{0};
+    update_prop_int(index, sp);
+
+    Log::Detail log;
+    log << "Selector source toggling index " << index << endl;
+
+    Dataflow::Graph *sub = multigraph->get_subgraph(index);
+    if (sub)
+    {
+      auto it = active_starts.find(index);
+      if (it == active_starts.end())
+      {
+        // Mark to start at next tick
+        active_starts[index] = {0.0, 0};
+
+        // Enable it
+        sub->enable();
+      }
+      else
+      {
+        // Remove from active
+        active_starts.erase(index);
+
+        // Disable
+        sub->disable();
+      }
+    }
+    else
+    {
+      Log::Error elog;
+      elog << "Selector requested to disable out-of-range item "
+           << index << endl;
+    }
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -245,7 +281,8 @@ Dataflow::Module module
     { "retrigger", { "Whether to retrigger same item", Value::Type::boolean } },
     { "selected", { "Selected single item", Value::Type::number, true } },
     { "enable",   { "Item to enable", Value::Type::number, true } },
-    { "disable",  { "Item to disable", Value::Type::number, true } }
+    { "disable",  { "Item to disable", Value::Type::number, true } },
+    { "toggle",  { "Item to toggle", Value::Type::number, true } }
   },
   {}, // no inputs
   { "any" },

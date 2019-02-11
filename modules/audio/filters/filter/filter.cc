@@ -26,8 +26,16 @@ class FilterFilter: public FragmentFilter
   Mode mode = Mode::low_pass;
 
   double cutoff = 1.0;
+  double resonance = 1.0;
+  double feedback = 0.0;
+
   unsigned nchannels = 0;
   vector<vector<double>> buff; // Vector of buffers, then vector of channel
+
+  void update_feedback()
+  {
+    feedback = resonance + resonance / (1.0 - min(max(cutoff, 0.0), 0.9999));
+  }
 
   // Source/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -57,7 +65,8 @@ FilterFilter::FilterFilter(const Dataflow::Module *module,
     log << "Unknown mode '" << m << "' in Filter '" << id << "'\n";
   }
 
-  cutoff = config.get_attr_real("cutoff", 1.0);
+  cutoff = min(max(config.get_attr_real("cutoff", 1.0), 0.0), 1.0);
+  resonance = min(max(config.get_attr_real("cutoff", 1.0), 0.0), 1.0);
 
   buff.resize(max(config.get_attr_int("steepness", 1), 1) + 1);
 }
@@ -70,6 +79,9 @@ void FilterFilter::set_property(const string& property, const SetParams& sp)
     update_prop(cutoff, sp);
   else if (property == "steepness")
     buff.resize(max(sp.v.d, 1.0) + 1);
+  else if (property == "resonance")
+    update_prop(resonance, sp);
+  update_feedback();
 }
 
 //--------------------------------------------------------------------------
@@ -92,7 +104,11 @@ void FilterFilter::accept(FragmentPtr fragment)
       auto& s = fragment->waveform[i * fragment->nchannels + c];
       for (auto b = 0u; b < buff.size(); ++b)
       {
-        buff[b][c] += cutoff * ((b ? buff[b - 1][c] : s) - buff[b][c]);
+        if (!b)
+          buff[b][c] += cutoff * (s - buff[b][c] + feedback * (buff[b][c] -
+                                                             buff[b + 1][c]));
+        else
+          buff[b][c] += cutoff * (buff[b - 1][c] - buff[b][c]);
       }
       switch (mode)
       {
@@ -123,6 +139,8 @@ Dataflow::Module module
   {
     { "cutoff", { {"Cutoff level (0-1)", "1"}, Value::Type::number,
                                                "@cutoff", true } },
+    { "resonance", { {"Resonance level (0-1)", "1"}, Value::Type::number,
+                                                     "@resonance", true } },
     { "steepness", { {"Steepness level (1-?)", "1"}, Value::Type::number,
                                                      "@steepness", true } }
   },

@@ -179,6 +179,7 @@ void MIDIInterface::handle(const ViGraph::MIDI::Event& event)
   vector<uint8_t> data;
   auto writer = ViGraph::MIDI::Writer{data};
   writer.write(event);
+  snd_rawmidi_write(midi_out, &data[0], data.size());
 }
 
 //--------------------------------------------------------------------------

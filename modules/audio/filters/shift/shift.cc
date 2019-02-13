@@ -20,6 +20,7 @@ using namespace soundtouch;
 class ShiftFilter: public FragmentFilter
 {
   SoundTouch sound_touch;
+  unsigned nchannels = 0;
 
   // Source/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -52,10 +53,11 @@ void ShiftFilter::set_property(const string& property, const SetParams& sp)
 // Process some data
 void ShiftFilter::accept(FragmentPtr fragment)
 {
-  if (fragment->nchannels != sound_touch.numChannels())
+  if (fragment->nchannels != nchannels)
   {
     sound_touch.flush();
     sound_touch.setChannels(fragment->nchannels);
+    nchannels = fragment->nchannels;
   }
 
   sound_touch.putSamples(&fragment->waveform[0], fragment->waveform.size()/

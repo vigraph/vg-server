@@ -148,7 +148,7 @@ void WavSource::tick(const TickData& td)
 
   auto step = frequency ? (frequency / base_frequency) : 1.0;
   auto pos = step * td.sample_pos(sample_rate);
-  if (!loop && pos >= samples.size())
+  if (!loop && pos >= (samples.size() / channels))
     return;
 
   const auto nsamples = td.samples(sample_rate);
@@ -160,6 +160,7 @@ void WavSource::tick(const TickData& td)
     auto p = pos * channels;
     if (loop && p >= samples.size())
       p = fmod(p, samples.size());
+
     for (auto c = 0u; c < channels; ++c)
     {
       if (p >= samples.size())
@@ -169,8 +170,10 @@ void WavSource::tick(const TickData& td)
       }
 
       auto fs = samples[p + c];
-      auto cs = p + 1 > samples.size() ? 0.0 : samples[p + c + channels];
-      auto is = fs + ((cs - fs) * ((pos * channels) - p));
+      auto cs = p + c + channels > samples.size()
+                ? (loop ? samples[c] : 0.0)
+                : samples[p + c + channels];
+      auto is = fs + ((cs - fs) * fmod(p, 1));
       fragment->waveform.push_back(is);
     }
   }

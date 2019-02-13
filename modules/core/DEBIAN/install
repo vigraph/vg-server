@@ -13,6 +13,7 @@ controls/set/vg-module-core-control-set.so /usr/lib/vigraph/modules/
 controls/smooth/vg-module-core-control-smooth.so /usr/lib/vigraph/modules/
 controls/add/vg-module-core-control-add.so /usr/lib/vigraph/modules/
 controls/multiply/vg-module-core-control-multiply.so /usr/lib/vigraph/modules/
+controls/sequence/vg-module-core-control-sequence.so /usr/lib/vigraph/modules/
 controls/toggle/vg-module-core-control-toggle.so /usr/lib/vigraph/modules/
 controls/wrap/vg-module-core-control-wrap.so /usr/lib/vigraph/modules/
 sources/selector/vg-module-core-source-selector.so /usr/lib/vigraph/modules/

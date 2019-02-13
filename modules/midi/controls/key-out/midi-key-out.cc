@@ -119,14 +119,14 @@ void MIDIKeyOutControl::set_property(const string& property,
   {
     if (distributor)
     {
-      auto n = sp.v.d;
+      auto n = static_cast<uint8_t>(sp.v.d);
       if (sp.v.type == Value::Type::text)
         n = MIDI::get_midi_note(sp.v.s);
+      const auto on = property == "on";
       auto event = MIDI::Event{MIDI::Event::Direction::out,
-                               property == "on"
-                               ?  MIDI::Event::Type::note_on
-                               :  MIDI::Event::Type::note_off,
-                               channel, note, velocity};
+                               on ? MIDI::Event::Type::note_on
+                                  : MIDI::Event::Type::note_off,
+                               channel, n, velocity};
       distributor->handle_event(event);
     }
   }

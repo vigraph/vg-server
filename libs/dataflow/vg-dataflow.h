@@ -131,6 +131,12 @@ struct Value
   Value(Type _type): type(_type) {}
   Value(double _d): type(Type::number), d(_d) {}
   Value(const string& _s): type(Type::text), s(_s) {}
+
+  // Comparison operators
+  bool operator<(const Value& b) const
+  {
+    return type < b.type || d < b.d || s < b.s;
+  }
 };
 
 class Graph;  // forward

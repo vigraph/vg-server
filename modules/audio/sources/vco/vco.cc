@@ -32,6 +32,9 @@ class VCOSource: public Source
   Waveform waveform;
   double freq;  // Hz
 
+  // Parse waveform name
+  bool parse_waveform(const string& name, Waveform& waveform);
+
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
@@ -57,23 +60,32 @@ void VCOSource::configure(const File::Directory&,
     freq = MIDI::get_midi_frequency(MIDI::get_midi_note(note));
 
   const string& wave = config["wave"];
-  if (wave.empty() || wave=="none")
-    waveform = Waveform::none;
-  else if (wave=="saw")
-    waveform = Waveform::saw;
-  else if (wave=="sin")
-    waveform = Waveform::sin;
-  else if (wave=="square")
-    waveform = Waveform::square;
-  else if (wave=="triangle")
-    waveform = Waveform::triangle;
-  else if (wave=="random")
-    waveform = Waveform::random;
-  else
+  if (!parse_waveform(wave, waveform))
   {
     Log::Error log;
     log << "Unknown waveform type " << wave << " in VCO '" << id << "'\n";
   }
+}
+
+//--------------------------------------------------------------------------
+// Parse waveform name
+bool VCOSource::parse_waveform(const string& name, Waveform& waveform)
+{
+  if (name.empty() || name == "none")
+    waveform = Waveform::none;
+  else if (name == "saw")
+    waveform = Waveform::saw;
+  else if (name == "sin")
+    waveform = Waveform::sin;
+  else if (name == "square")
+    waveform = Waveform::square;
+  else if (name == "triangle")
+    waveform = Waveform::triangle;
+  else if (name == "random")
+    waveform = Waveform::random;
+  else
+    return false;
+  return true;
 }
 
 //--------------------------------------------------------------------------
@@ -84,6 +96,8 @@ void VCOSource::set_property(const string& property, const SetParams& sp)
     update_prop(freq, sp);
   else if (property == "note")
     freq = MIDI::get_midi_frequency(MIDI::get_midi_note(sp.v.s));
+  else if (property == "wave")
+    parse_waveform(sp.v.s, waveform);
 }
 
 //--------------------------------------------------------------------------
@@ -143,7 +157,9 @@ Dataflow::Module module
   "audio",
   {
     { "freq",  { "Frequency (Hz)", Value::Type::number, "@freq", true } },
-    { "note",  { "Note (e.g C#4)", Value::Type::text, "@note", true } }
+    { "note",  { "Note (e.g C#4)", Value::Type::text, "@note", true } },
+    { "wave",  { "Waveform type (none, saw, sin, square, triangle, random)",
+                 Value::Type::text, "@wave", true } },
   },
   {},  // no inputs
   { "Audio" }  // outputs

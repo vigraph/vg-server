@@ -1,20 +1,20 @@
 //==========================================================================
-// ViGraph dataflow module:
-//   vector/services/router/router.cc
+// ViGraph dataflow module: core/services/router/router.cc
 //
-// Spots collisions between frames sent by <collision-detect> elements, and
-// triggers collision callbacks on all parties involved.
+// Routes data between senders and receivers
 //
-// Copyright (c) 2018 Paul Clark.  All rights reserved
+// Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../vector-module.h"
-#include "../../vector-services.h"
+#include "../../../module.h"
+#include "../../../module-services.h"
 
 namespace {
 
+using namespace ViGraph::Module;
+
 //==========================================================================
-// Collision Detector implementation
+// Router implementation
 class RouterImpl: public Dataflow::Service, public Router
 {
   map<string, list<Receiver *>> receivers;
@@ -22,7 +22,7 @@ class RouterImpl: public Dataflow::Service, public Router
   // Router implementation
   void register_receiver(const string& tag, Receiver *receiver) override;
   void deregister_receiver(Receiver *receiver) override;
-  void send(const string& tag, FramePtr frame) override;
+  void send(const string& tag, DataPtr data) override;
 
  public:
   // Construct
@@ -48,13 +48,13 @@ void RouterImpl::deregister_receiver(Receiver *receiver)
 
 //--------------------------------------------------------------------------
 // Send frame data on the given tag
-void RouterImpl::send(const string& tag, FramePtr frame)
+void RouterImpl::send(const string& tag, DataPtr data)
 {
   const auto it = receivers.find(tag);
   if (it != receivers.end())
   {
     for (const auto it2: it->second)
-      it2->receive(frame);
+      it2->receive(data);
   }
 }
 
@@ -65,7 +65,7 @@ Dataflow::Module module
   "router",
   "Router",
   "Router service, routes tagged data from senders to receivers",
-  "vector",
+  "core",
   {} // no properties
 };
 

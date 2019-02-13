@@ -7,9 +7,11 @@
 //==========================================================================
 
 #include "../../vector-module.h"
-#include "../../vector-services.h"
+#include "../../../module-services.h"
 
 namespace {
+
+using namespace ViGraph::Module;
 
 //==========================================================================
 // Figure source
@@ -25,7 +27,7 @@ class ReceiveSource: public Dataflow::Source, public Router::Receiver
   void disable() override;
 
   // Receiver implementation
-  void receive(FramePtr frame) override;
+  void receive(DataPtr data) override;
 
 public:
   ReceiveSource(const Dataflow::Module *module, const XML::Element& config):
@@ -39,6 +41,7 @@ void ReceiveSource::configure(const File::Directory&,
                               const XML::Element& config)
 {
   tag = config["from"];
+  if (!tag.empty()) tag = "vector:"+tag;
   auto& engine = graph->get_engine();
   router = engine.get_service<Router>("router");
 }
@@ -61,10 +64,10 @@ void ReceiveSource::disable()
 
 //--------------------------------------------------------------------------
 // Receiver implementation
-void ReceiveSource::receive(FramePtr frame)
+void ReceiveSource::receive(DataPtr data)
 {
   // Copy the frame so we can modify it without affecting others
-  FramePtr copy_frame(new Frame(*frame));
+  FramePtr copy_frame(new Frame(*data.check<Frame>()));
   send(copy_frame);
 }
 

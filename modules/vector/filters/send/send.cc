@@ -7,9 +7,11 @@
 //==========================================================================
 
 #include "../../vector-module.h"
-#include "../../vector-services.h"
+#include "../../../module-services.h"
 
 namespace {
+
+using namespace ViGraph::Module;
 
 //==========================================================================
 // Send filter
@@ -38,6 +40,7 @@ SendFilter::SendFilter(const Dataflow::Module *module,
   Element(module, config), FrameFilter(module, config)
 {
   tag = config["to"];
+  if (!tag.empty()) tag = "vector:"+tag;
   copy = config.get_attr_bool("copy");
 }
 

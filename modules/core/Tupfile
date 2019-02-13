@@ -24,6 +24,7 @@ DEPENDS  = vg-module-core-source-selector \
            vg-module-core-control-beat \
            vg-module-core-control-round \
            vg-module-core-control-smooth \
+           vg-module-core-control-toggle \
            vg-module-core-control-log
 
 PACKAGE  = $(NAME)

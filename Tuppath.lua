@@ -21,6 +21,8 @@ function get_dependency_path(name)
     return 'modules/core/controls/' .. string.sub(name, 24)
   elseif string.sub(name, 1, 22) == 'vg-module-core-source-' then
     return 'modules/core/sources/' .. string.sub(name, 23)
+  elseif string.sub(name, 1, 23) == 'vg-module-core-service-' then
+    return 'modules/core/services/' .. string.sub(name, 24)
 
   elseif string.sub(name, 1, 25) == 'vg-module-vector-control-' then
     return 'modules/vector/controls/' .. string.sub(name, 26)

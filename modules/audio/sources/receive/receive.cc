@@ -1,12 +1,12 @@
 //==========================================================================
-// ViGraph dataflow module: vector/sources/receive/receive.cc
+// ViGraph dataflow module: audio/sources/receive/receive.cc
 //
 // Receive from router source
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../vector-module.h"
+#include "../../audio-module.h"
 #include "../../../module-services.h"
 
 namespace {
@@ -41,7 +41,7 @@ void ReceiveSource::configure(const File::Directory&,
                               const XML::Element& config)
 {
   tag = config["from"];
-  if (!tag.empty()) tag = "vector:"+tag;
+  if (!tag.empty()) tag = "audio:"+tag;
   auto& engine = graph->get_engine();
   router = engine.get_service<Router>("router");
 }
@@ -67,23 +67,23 @@ void ReceiveSource::disable()
 void ReceiveSource::receive(DataPtr data)
 {
   // Copy the frame so we can modify it without affecting others
-  FramePtr copy_frame(new Frame(*data.check<Frame>()));
-  send(copy_frame);
+  FragmentPtr copy_frag(new Fragment(*data.check<Fragment>()));
+  send(copy_frag);
 }
 
 //--------------------------------------------------------------------------
 // Module definition
 Dataflow::Module module
 {
-  "receive",
-  "Vector Receive",
-  "Receive vector data from router",
-  "vector",
+  "audio:receive", // ! until we have namespacing !
+  "Audio Receive",
+  "Receive audio from router",
+  "audio",
   {
     { "from", { "Router tag to receive from", Value::Type::text, "@from" } }
   },
   {}, // no inputs
-  { "VectorFrame" }
+  { "Audio" }
 };
 
 } // anon

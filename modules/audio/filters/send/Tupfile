@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph router service
+# Tupfile for Vigraph send filter module - audio
 #
-# Copyright (c) 2018 Paul Clark. All rights reserved
+# Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-vector-service-router
+NAME    = vg-module-audio-filter-send
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ot-web ext-dl
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl
 
 include_rules

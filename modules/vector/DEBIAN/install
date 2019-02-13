@@ -21,4 +21,3 @@ filters/join/vg-module-vector-filter-join.so /usr/lib/vigraph/modules/
 filters/translate/vg-module-vector-filter-translate.so /usr/lib/vigraph/modules/
 filters/websocket/vg-module-vector-filter-websocket.so /usr/lib/vigraph/modules/
 services/collision-detector/vg-module-vector-service-collision-detector.so /usr/lib/vigraph/modules/
-services/router/vg-module-vector-service-router.so /usr/lib/vigraph/modules/

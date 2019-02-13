@@ -80,7 +80,7 @@ Dataflow::Module module
   "Receive from router",
   "vector",
   {
-    { "tag", { "Group name", Value::Type::number } }
+    { "from", { "Router tag to receive from", Value::Type::text, "@from" } }
   },
   {}, // no inputs
   { "VectorFrame" }

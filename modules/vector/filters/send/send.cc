@@ -75,9 +75,9 @@ Dataflow::Module module
   "Send to router",
   "vector",
   {
-    { "to", { "Group name", Value::Type::number } },
+    { "to", { "Router tag to send to", Value::Type::text, "@to" } },
     { "copy", { "Whether to send a copy in normal flow",
-          Value::Type::boolean } }
+          Value::Type::boolean, "@copy" } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

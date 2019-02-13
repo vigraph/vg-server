@@ -323,8 +323,9 @@ public:
   // loaded and all elements configured, and after normal connection
   virtual void connect() {}
 
-  // Notify that this element is the target of another element
-  virtual void notify_target_of(Element *) {}
+  // Notify that this element is the control target of another element,
+  // with the given property name
+  virtual void notify_target_of(Element */*e*/, const string& /*prop*/) {}
 
   // Set a control value
   virtual void set_property(const string& property, const SetParams&)

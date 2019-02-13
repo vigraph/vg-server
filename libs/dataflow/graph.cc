@@ -164,12 +164,13 @@ void Graph::connect(Element *el)
             throw runtime_error("Can't connect "+el->id+" to "
                                 +target_element->id+"("+p.second.name
                                 +"): property not settable");
+
+          target_element->notify_target_of(el, p.second.name);
         }
       }
 
       // Attach it
       c->attach_target(it.first, target_element);
-      target_element->notify_target_of(el);
       el->downstreams.push_back(target_element);
     }
   }

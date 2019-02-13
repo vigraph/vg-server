@@ -28,8 +28,7 @@ class ModifyControl: public Dataflow::Control
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void tick(const TickData& td) override;
-  // Automatically set wait flag if we are the target of something
-  void notify_target_of(Element *) override { wait = true; }
+  void notify_target_of(Element *, const string& property) override;
 
 public:
   // Construct
@@ -45,6 +44,14 @@ ModifyControl::ModifyControl(const Module *module, const XML::Element& config):
 {
   delta = config.get_attr_real("delta", 1.0);
   wait = config.get_attr_bool("wait");
+}
+
+//--------------------------------------------------------------------------
+// Automatically set wait flag if we are the trigger target of something
+void ModifyControl::notify_target_of(Element *, const string& property)
+{
+  if (property == "trigger")
+    wait = true;
 }
 
 //--------------------------------------------------------------------------

@@ -29,8 +29,7 @@ class RandomControl: public Dataflow::Control
   void set_property(const string& property, const SetParams& sp) override;
   void enable() override;
   void tick(const TickData& td) override;
-  // Automatically set wait flag if we are the target of something
-  void notify_target_of(Element *) override { wait = true; }
+  void notify_target_of(Element *, const string& property) override;
 
 public:
   // Construct
@@ -48,6 +47,14 @@ RandomControl::RandomControl(const Module *module, const XML::Element& config):
   min = config.get_attr_real("min", 0.0);
   max = config.get_attr_real("max", 1.0);
   wait = config.get_attr_bool("wait");
+}
+
+//--------------------------------------------------------------------------
+// Automatically set wait flag if we are the trigger target of something
+void RandomControl::notify_target_of(Element *, const string& property)
+{
+  if (property == "trigger")
+    wait = true;
 }
 
 //--------------------------------------------------------------------------

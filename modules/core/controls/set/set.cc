@@ -27,8 +27,7 @@ class SetControl: public Control
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void tick(const TickData& td) override;
-  // Automatically set wait flag if we are the target of something
-  void notify_target_of(Element *) override { wait = true; }
+  void notify_target_of(Element *, const string& property) override;
   void enable() override;
 
 public:
@@ -54,6 +53,14 @@ SetControl::SetControl(const Module *module, const XML::Element& config):
     type = Value::Type::trigger;
   else
     throw runtime_error("Unknown value type "+type_s+" in <set> "+id);
+}
+
+//--------------------------------------------------------------------------
+// Automatically set wait flag if we are the trigger target of something
+void SetControl::notify_target_of(Element *, const string& property)
+{
+  if (property == "trigger")
+    wait = true;
 }
 
 //--------------------------------------------------------------------------

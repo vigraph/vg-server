@@ -26,8 +26,7 @@ class BeatControl: public Dataflow::Control
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void tick(const TickData& td) override;
-  // Disable auto-active if we are the target of something
-  void notify_target_of(Element *) override { active = false; }
+  void notify_target_of(Element *, const string& property) override;
 
 public:
   // Construct
@@ -36,11 +35,26 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML
-// <beat interval="0.1"/>
+//    <beat interval="0.5"/>
+// or <beat bpm="120"/>
+// or <beat freq="2"/>
 BeatControl::BeatControl(const Module *module, const XML::Element& config):
   Element(module, config), Control(module, config)
 {
-  interval = config.get_attr_real("interval");
+  if (config.has_attr("interval"))
+    interval = config.get_attr_real("interval");
+  else if (config.has_attr("bpm") && config.get_attr_real("bpm") > 0)
+    interval = 60.0 / config.get_attr_real("bpm");
+  else if (config.has_attr("freq") && config.get_attr_real("freq") > 0)
+    interval = 1.0 / config.get_attr_real("freq");
+}
+
+//--------------------------------------------------------------------------
+// Automatically clear active flag if we are the start target of something
+void BeatControl::notify_target_of(Element *, const string& property)
+{
+  if (property == "start")
+    active = false;
 }
 
 //--------------------------------------------------------------------------
@@ -56,6 +70,18 @@ void BeatControl::set_property(const string& property, const SetParams& sp)
     active = false;
   else if (property == "interval")
     update_prop(interval, sp);
+  else if (property == "bpm")
+  {
+    double bpm{0};
+    update_prop(bpm, sp);
+    if (bpm > 0) interval = 60.0 / bpm;
+  }
+  else if (property == "freq")
+  {
+    double freq{0};
+    update_prop(freq, sp);
+    if (freq > 0) interval = 1.0 / freq;
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -87,6 +113,8 @@ Dataflow::Module module
   "core",
   {
     { "interval", { "Interval in seconds", Value::Type::number, true } },
+    { "bpm", { "Beats per minute", Value::Type::number, true } },
+    { "freq", { "Frequency in Hz", Value::Type::number, true } },
     { "start", { "Trigger to start", Value::Type::trigger, true } },
     { "stop",  { "Trigger to stop",  Value::Type::trigger, true } }
   },

@@ -19,6 +19,59 @@ TEST(BeatTest, TestInterval)
   EXPECT_EQ(5, tester.target->sets_called);
 }
 
+TEST(BeatTest, TestBPM)
+{
+  ControlTester tester(loader, Value::Type::trigger);
+  tester.test("<beat bpm='30' property='go'/>", 10);
+  ASSERT_TRUE(tester.target->got("go"));
+  const auto& sp = tester.target->get("go");
+  ASSERT_EQ(Value::Type::trigger, sp.v.type);
+  EXPECT_EQ(5, tester.target->sets_called);
+}
+
+TEST(BeatTest, TestFreq)
+{
+  ControlTester tester(loader, Value::Type::trigger);
+  tester.test("<beat freq='0.5' property='go'/>", 10);
+  ASSERT_TRUE(tester.target->got("go"));
+  const auto& sp = tester.target->get("go");
+  ASSERT_EQ(Value::Type::trigger, sp.v.type);
+  EXPECT_EQ(5, tester.target->sets_called);
+}
+
+TEST(BeatTest, TestSetInterval)
+{
+  ControlTester tester(loader, Value::Type::trigger);
+  tester.test("<set property='interval' value='2'/>",
+              "<beat property='go'/>", 10);
+  ASSERT_TRUE(tester.target->got("go"));
+  const auto& sp = tester.target->get("go");
+  ASSERT_EQ(Value::Type::trigger, sp.v.type);
+  EXPECT_EQ(5, tester.target->sets_called);
+}
+
+TEST(BeatTest, TestSetBPM)
+{
+  ControlTester tester(loader, Value::Type::trigger);
+  tester.test("<set property='bpm' value='30'/>",
+              "<beat property='go'/>", 10);
+  ASSERT_TRUE(tester.target->got("go"));
+  const auto& sp = tester.target->get("go");
+  ASSERT_EQ(Value::Type::trigger, sp.v.type);
+  EXPECT_EQ(5, tester.target->sets_called);
+}
+
+TEST(BeatTest, TestSetFreq)
+{
+  ControlTester tester(loader, Value::Type::trigger);
+  tester.test("<set property='freq' value='0.5'/>",
+              "<beat property='go'/>", 10);
+  ASSERT_TRUE(tester.target->got("go"));
+  const auto& sp = tester.target->get("go");
+  ASSERT_EQ(Value::Type::trigger, sp.v.type);
+  EXPECT_EQ(5, tester.target->sets_called);
+}
+
 TEST(BeatTest, TestIntervalWithTriggerDoesntAutoRun)
 {
   ControlTester tester(loader, Value::Type::trigger);

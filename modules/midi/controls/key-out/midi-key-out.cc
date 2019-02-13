@@ -34,8 +34,7 @@ class MIDIKeyOutControl: public Dataflow::Control
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void tick(const TickData& td) override;
-  // Automatically set wait flag if we are the target of something
-  void notify_target_of(Element *) override { wait = true; }
+  void notify_target_of(Element *, const string& property) override;
   void enable() override;
 
 public:
@@ -77,6 +76,14 @@ void MIDIKeyOutControl::configure(const File::Directory&,
     Log::Error log;
     log << "No <midi-distributor> service loaded\n";
   }
+}
+
+//--------------------------------------------------------------------------
+// Automatically set wait flag if we are the trigger target of something
+void MIDIKeyOutControl::notify_target_of(Element *, const string& property)
+{
+  if (property == "trigger")
+    wait = true;
 }
 
 //--------------------------------------------------------------------------

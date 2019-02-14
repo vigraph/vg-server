@@ -137,6 +137,10 @@ struct Value
   {
     return type < b.type || d < b.d || s < b.s;
   }
+  bool operator==(const Value& b) const
+  {
+    return type == b.type && d == b.d && s == b.s;
+  }
 };
 
 class Graph;  // forward

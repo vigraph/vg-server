@@ -19,6 +19,7 @@ class SpreadControl: public Dataflow::Control
   unsigned capturing = 0;
   unsigned pos = 0;
   unique_ptr<Value> last_on;
+  bool latch = false;
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -34,6 +35,7 @@ public:
 SpreadControl::SpreadControl(const Module *module, const XML::Element& config):
   Element(module, config), Control(module, config)
 {
+  latch = config.get_attr_bool("latch");
 }
 
 //--------------------------------------------------------------------------
@@ -48,7 +50,7 @@ void SpreadControl::set_property(const string& prop,
       send("off", *last_on);
       last_on.reset();
     }
-    if (capturing)
+    if (capturing || latch)
     {
       last_on.reset(new Value{values[pos]});
       send("on", values[pos]);
@@ -68,6 +70,21 @@ void SpreadControl::set_property(const string& prop,
   else if (prop == "off")
   {
     --capturing;
+    if (!latch)
+    {
+      for (auto i = 0u; i < values.size(); ++i)
+      {
+        if (values[i] == sp.v)
+        {
+          values.erase(values.begin() + i);
+          if (pos > i)
+            --pos;
+          if (pos > values.size())
+            pos = 0;
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -83,6 +100,7 @@ Dataflow::Module module
     { "trigger", { "Note trigger", Value::Type::trigger, "@trigger", true }},
     { "on", { "Note on", Value::Type::number, "@on", true }},
     { "off", { "Note off", Value::Type::number, "@off", true }},
+    { "latch", { "Latch", Value::Type::boolean, "@latch", true }},
   },
   {
     { "on", { "Note on", "on", Value::Type::number }},

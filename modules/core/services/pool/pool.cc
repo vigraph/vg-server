@@ -23,6 +23,7 @@ class PoolDistributorImpl: public Dataflow::Service, public PoolDistributor
     {
       Control *worker = nullptr;
       double on = -1.0;
+      double last_on = -1.0;
       Time::Stamp on_at;
 
       Worker(Control *_worker): worker{_worker} {}
@@ -91,8 +92,9 @@ void PoolDistributorImpl::send(const string& pool, const string& prop,
     {
       for (auto& w: pit->second.workers)
       {
-        if (w.on < 0)
+        if (w.last_on == sp.v.d)
         {
+          w.worker->set_property("off", Value{w.on});
           w.worker->set_property("on", sp);
           w.on = sp.v.d;
           w.on_at = Time::Stamp::now();
@@ -100,11 +102,21 @@ void PoolDistributorImpl::send(const string& pool, const string& prop,
         }
       }
       pit->second.workers.sort();
+      for (auto& w: pit->second.workers)
+      {
+        if (w.on < 0)
+        {
+          w.worker->set_property("on", sp);
+          w.on = w.last_on = sp.v.d;
+          w.on_at = Time::Stamp::now();
+          return;
+        }
+      }
       auto& w = pit->second.workers.front();
       if (w.on >= 0)
         w.worker->set_property("off", Value{w.on});
       w.worker->set_property("on", sp);
-      w.on = sp.v.d;
+      w.on = w.last_on = sp.v.d;
       w.on_at = Time::Stamp::now();
     }
     else if (prop == "off")

@@ -25,6 +25,7 @@ class GraphSource: public Dataflow::Source
   void post_tick(const TickData& td) override;
   void enable() override;
   void disable() override;
+  void shutdown() override;
 
 public:
   GraphSource(const Module *module, const XML::Element& config):
@@ -84,6 +85,13 @@ void GraphSource::tick(const TickData& td)
 void GraphSource::post_tick(const TickData& td)
 {
   subgraph->post_tick(td);
+}
+
+//--------------------------------------------------------------------------
+// Shut down the subgraph
+void GraphSource::shutdown()
+{
+  subgraph->shutdown();
 }
 
 //--------------------------------------------------------------------------

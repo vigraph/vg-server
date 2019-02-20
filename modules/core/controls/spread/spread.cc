@@ -16,7 +16,7 @@ namespace {
 class SpreadControl: public Dataflow::Control
 {
   vector<Value> values;
-  unsigned capturing = 0;
+  set<Value> capturing;
   unsigned pos = 0;
   unique_ptr<Value> last_on;
   bool latch = false;
@@ -50,7 +50,7 @@ void SpreadControl::set_property(const string& prop,
       send("off", *last_on);
       last_on.reset();
     }
-    if (capturing || latch)
+    if (latch || !capturing.empty())
     {
       last_on.reset(new Value{values[pos]});
       send("on", values[pos]);
@@ -60,16 +60,17 @@ void SpreadControl::set_property(const string& prop,
   }
   else if (prop == "on")
   {
-    if (!capturing++)
+    if (capturing.empty())
     {
       values.clear();
       pos = 0;
     }
+    capturing.insert(sp.v);
     values.push_back(sp.v);
   }
   else if (prop == "off")
   {
-    --capturing;
+    capturing.erase(sp.v);
     if (!latch)
     {
       for (auto i = 0u; i < values.size(); ++i)

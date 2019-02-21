@@ -228,6 +228,18 @@ void Graph::configure(const File::Directory& base_dir,
   }
 }
 
+//--------------------------------------------------------------------------
+// Configure from source file, with given update check interval
+void Graph::configure(const File::Path& file,
+                      const Time::Duration& check_interval,
+                      Acceptor *acceptor)
+{
+  source_file = file;
+  file_update_check_interval = check_interval;
+  external_acceptor = acceptor;
+  configure_from_source_file();
+}
+
 //------------------------------------------------------------------------
 // (re)configure from source_file
 // Throws a runtime_error if configuration fails
@@ -359,33 +371,6 @@ void Graph::disable()
 // Pre-tick all elements in topological order
 void Graph::pre_tick(const TickData& td)
 {
-  // Check for file update
-  Time::Stamp now = Time::Stamp::now();
-  if (!source_file.str().empty()
-      && now-last_file_update_check >= file_update_check_interval)
-  {
-    time_t mtime = source_file.last_modified();
-    if (mtime != source_file_mtime)
-    {
-      bool was_enabled = is_enabled;
-      shutdown();
-
-      try
-      {
-        configure_from_source_file();
-      }
-      catch (runtime_error e)
-      {
-        Log::Error log;
-        log << "Graph reload failed: " << e.what() << endl;
-      }
-
-      if (was_enabled) enable();  // re-enable if it was previously
-    }
-
-    last_file_update_check = now;
-  }
-
   MT::RWReadLock lock(mutex);
   for(const auto e: topological_order)
     e->pre_tick(td);
@@ -418,6 +403,38 @@ Element *Graph::get_element(const string& id)
     return elements[id].get();
   else
     return nullptr;
+}
+
+//--------------------------------------------------------------------------
+// Does this require an update? (i.e. there is a new config)
+bool Graph::requires_update(File::Path& file, Time::Duration& check_interval,
+                            Acceptor *& acceptor)
+{
+  if (source_file.str().empty())
+    return false;
+
+  const auto now = Time::Stamp::now();
+  const auto throttle = now - last_file_update_check
+                        < file_update_check_interval;
+  if (throttle)
+    return false;
+
+  const auto mtime = source_file.last_modified();
+  if (!mtime)
+    return false;
+
+  if (mtime == source_file_mtime)
+    return false;
+
+  if (!source_file.length())
+    return false;
+
+  source_file_mtime = source_file.last_modified();
+  file = source_file;
+  check_interval = file_update_check_interval;
+  acceptor = external_acceptor;
+  last_file_update_check = now;
+  return true;
 }
 
 //------------------------------------------------------------------------

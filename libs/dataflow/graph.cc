@@ -51,12 +51,25 @@ bool Graph::attach(Element *el)
   Acceptor *acceptor = dynamic_cast<Acceptor *>(el);
   if (!acceptor || unbound_generators.empty()) return false;
 
-  for(auto g: unbound_generators)
+  for(auto p=unbound_generators.begin(); p!=unbound_generators.end();)
   {
-    g->attach(acceptor);
-    g->downstreams.push_back(el);
+    Generator *g = *p;
+
+    // Check type
+    bool found = false;
+    for(const auto& i: el->module->inputs)
+      for(const auto& o: g->module->outputs)
+        if (i.type == o.type || i.type == "any" || o.type == "any")
+          found = true;
+
+    if (found)
+    {
+      g->attach(acceptor);
+      g->downstreams.push_back(el);
+      p = unbound_generators.erase(p);
+    }
+    else ++p;
   }
-  unbound_generators.clear();
   return true;
 }
 
@@ -91,6 +104,18 @@ void Graph::connect(Element *el)
         Acceptor *acceptor = dynamic_cast<Acceptor *>(ae);
         if (acceptor)
         {
+          // Check type
+          bool found = false;
+          for(const auto& i: ae->module->inputs)
+            for(const auto& o: g->module->outputs)
+              if (i.type == o.type || i.type == "any" || o.type == "any")
+                found = true;
+
+          if (!found)
+            throw runtime_error("Graph element " + acceptor_id
+                                + " pointed to by " + el->id
+                                + " has the wrong input type");
+
           g->attach(acceptor);
           disconnected_acceptors.remove(ae);
           el->downstreams.push_back(ae);
@@ -269,7 +294,7 @@ void Graph::configure_internal(const File::Directory& base_dir,
     connect(el);
 
   // Check for acceptors that never received any input
-  for(auto el: disconnected_acceptors)
+  for(auto& el: disconnected_acceptors)
     throw runtime_error("Element "+el->id+" has no inputs");
 
   // Add back any external acceptor that was given in a previous incarnation

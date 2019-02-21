@@ -113,7 +113,7 @@ public:
 
   // Construct
   TestSink(const Module *module, const XML::Element& config):
-    Sink(module, config)
+    Element(module, config), Sink(module, config)
   {
   }
 

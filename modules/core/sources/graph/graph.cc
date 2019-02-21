@@ -183,6 +183,9 @@ void GraphSource::post_tick(const TickData& td)
 // Shut down the subgraph
 void GraphSource::shutdown()
 {
+  update_thread.reset();
+  if (updated_subgraph)
+    updated_subgraph->shutdown();
   subgraph->shutdown();
 }
 

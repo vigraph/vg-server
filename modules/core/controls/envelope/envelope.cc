@@ -29,7 +29,7 @@ class EnvelopeControl: public Dataflow::Control
     decay,
     sustain,
     release
-  } state;
+  } state = State::off;
   bool state_changed{false};
   timestamp_t state_changed_time{0};
   double release_start_value{0};

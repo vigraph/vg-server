@@ -515,6 +515,12 @@ class Graph
   void configure(const File::Directory& base_dir, const XML::Element& config);
 
   //------------------------------------------------------------------------
+  // Configure from source file, with given update check interval
+  void configure(const File::Path& source_file,
+                 const Time::Duration& check_interval,
+                 Acceptor *external_acceptor);
+
+  //------------------------------------------------------------------------
   // Add an element to the graph
   void add(Element *el);
 
@@ -578,6 +584,11 @@ class Graph
   //------------------------------------------------------------------------
   // Get a particular element by ID
   Element *get_element(const string& id);
+
+  //------------------------------------------------------------------------
+  // Does this require an update? (i.e. there is a new config)
+  bool requires_update(File::Path &file, Time::Duration& check_interval,
+                       Acceptor *& external_acceptor);
 
   //------------------------------------------------------------------------
   // Shutdown all elements

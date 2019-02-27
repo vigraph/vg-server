@@ -107,6 +107,7 @@ Registry::NewFactory<TestFilter> TestFilterFactory;
 class TestSink: public Sink
 {
 public:
+  MT::Mutex mutex;
   int received_data = 0;  // Accumulates
   bool pre_tick_called{false};
   bool post_tick_called{false};
@@ -120,6 +121,7 @@ public:
   // Process some data
   void accept(DataPtr data) override
   {
+    MT::Lock lock{mutex};
     auto td = data.check<TestData>();
     received_data += td->n;
   }
@@ -127,10 +129,12 @@ public:
   // Notify of tick
   void pre_tick(const TickData&) override
   {
+    MT::Lock lock{mutex};
     pre_tick_called = true;
   }
   void post_tick(const TickData&) override
   {
+    MT::Lock lock{mutex};
     post_tick_called = true;
   }
 };

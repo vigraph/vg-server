@@ -43,6 +43,7 @@ void CloneSource::configure(const File::Directory& base_dir,
   n = config.get_attr_int("n", 1);
 
   multigraph.reset(new Dataflow::MultiGraph(graph->get_engine()));
+  multigraph->configure(base_dir, config);
 
   // Read our own children as sub-graphs, n times
   for(auto i=0; i<n; i++)

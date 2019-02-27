@@ -16,6 +16,10 @@ namespace ViGraph { namespace Dataflow {
 void MultiGraph::configure(const File::Directory& base_dir,
                            const XML::Element& config)
 {
+  // Set the optional thread pool
+  if (!config.get_attr("thread-pool").empty())
+    thread_pool = engine.get_service<ThreadPool>("thread-pool");
+
   // Load all <graph> elements in config
   for(const auto& p: config.get_children("graph"))
     add_subgraph(base_dir, *p);
@@ -82,8 +86,18 @@ void MultiGraph::disable_all()
 void MultiGraph::pre_tick_all(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
-  for(const auto it: subgraphs)
-    it->pre_tick(td);
+  if (thread_pool)
+  {
+    auto functions = vector<function<void()>>{};
+    for (const auto it: subgraphs)
+      functions.emplace_back([it, &td]() { it->pre_tick(td); });
+    thread_pool->run_and_wait(functions);
+  }
+  else
+  {
+    for(const auto it: subgraphs)
+      it->pre_tick(td);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -91,8 +105,18 @@ void MultiGraph::pre_tick_all(const TickData& td)
 void MultiGraph::tick_all(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
-  for(const auto it: subgraphs)
-    it->tick(td);
+  if (thread_pool)
+  {
+    auto functions = vector<function<void()>>{};
+    for (const auto it: subgraphs)
+      functions.emplace_back([it, &td]() { it->tick(td); });
+    thread_pool->run_and_wait(functions);
+  }
+  else
+  {
+    for(const auto it: subgraphs)
+      it->tick(td);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -100,8 +124,18 @@ void MultiGraph::tick_all(const TickData& td)
 void MultiGraph::post_tick_all(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
-  for(const auto it: subgraphs)
-    it->post_tick(td);
+  if (thread_pool)
+  {
+    auto functions = vector<function<void()>>{};
+    for (const auto it: subgraphs)
+      functions.emplace_back([it, &td]() { it->post_tick(td); });
+    thread_pool->run_and_wait(functions);
+  }
+  else
+  {
+    for(const auto it: subgraphs)
+      it->post_tick(td);
+  }
 }
 
 //------------------------------------------------------------------------

@@ -17,6 +17,7 @@ using namespace ViGraph::Dataflow;
 // Combine filter
 class CombineFilter: public FragmentFilter
 {
+  MT::Mutex mutex;
   enum class Mode
   {
     add,
@@ -57,6 +58,7 @@ CombineFilter::CombineFilter(const Dataflow::Module *module,
 // Process some data
 void CombineFilter::accept(FragmentPtr fragment)
 {
+  MT::Lock lock{mutex};
   // If this is the first, just keep it
   if (!combined)
   {
@@ -100,6 +102,7 @@ void CombineFilter::accept(FragmentPtr fragment)
 // Pre-tick setup
 void CombineFilter::pre_tick(const TickData&)
 {
+  MT::Lock lock{mutex};
   combined.reset();
 }
 
@@ -107,6 +110,7 @@ void CombineFilter::pre_tick(const TickData&)
 // Post-tick flush
 void CombineFilter::post_tick(const TickData&)
 {
+  MT::Lock lock{mutex};
   if (!!combined) send(combined);
 }
 

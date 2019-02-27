@@ -27,7 +27,8 @@ DEPENDS  = vg-module-core-source-selector \
            vg-module-core-control-sequence \
            vg-module-core-control-toggle \
            vg-module-core-control-log \
-           vg-module-core-service-router
+           vg-module-core-service-router \
+           vg-module-core-service-thread-pool
 
 PACKAGE  = $(NAME)
 VERSION  = 0.4.0

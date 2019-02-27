@@ -20,3 +20,4 @@ sources/selector/vg-module-core-source-selector.so /usr/lib/vigraph/modules/
 sources/clone/vg-module-core-source-clone.so /usr/lib/vigraph/modules/
 sources/graph/vg-module-core-source-graph.so /usr/lib/vigraph/modules/
 services/router/vg-module-core-service-router.so /usr/lib/vigraph/modules/
+services/thread-pool/vg-module-core-service-thread-pool.so /usr/lib/vigraph/modules/

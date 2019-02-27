@@ -596,6 +596,21 @@ class Graph
 };
 
 //==========================================================================
+// Thread Pool interface
+class ThreadPool
+{
+public:
+  // Run a function on the first available thread
+  virtual bool run(function<void()> f) = 0;
+
+  // Run a set of functions in parallel and wait for them all to complete
+  virtual void run_and_wait(vector<function<void()>>& vf) = 0;
+
+  // Virtual destructor
+  ~ThreadPool() {}
+};
+
+//==========================================================================
 // MultiGraph - generic container for multiple sub-graphs
 // Used for (e.g.) sub-graph selectors
 class MultiGraph
@@ -605,6 +620,7 @@ class MultiGraph
   vector<shared_ptr<Graph> > subgraphs;          // Owning
   map<string, Graph *> subgraphs_by_id;          // Not owning
   int id_serial{0};
+  shared_ptr<ThreadPool> thread_pool;
 
  public:
   //------------------------------------------------------------------------

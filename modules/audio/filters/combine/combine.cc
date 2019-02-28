@@ -67,31 +67,31 @@ void CombineFilter::accept(FragmentPtr fragment)
   }
   else
   {
-    // Make sure fragment with most channels is in combined, because extending
-    // channels within an existing fragment is no fun
-    if (fragment->nchannels > combined->nchannels)
-      combined.swap(fragment);
-
-    // Extend number of samples if new fragment has more
-    const auto samples_per_channel = fragment->waveform.size()
-                                     / fragment->nchannels;
-    if (samples_per_channel > combined->waveform.size() / combined->nchannels)
-      combined->waveform.resize(samples_per_channel * combined->nchannels);
-
-    // Add new fragment to existing
-    for (auto i = 0u; i < samples_per_channel; ++i)
+    for (const auto& wit: fragment->waveforms)
     {
-      for (auto c = 0u; c < fragment->nchannels; ++c)
+      const auto c = wit.first;
+      const auto& w = wit.second;
+
+      auto cwit = combined->waveforms.find(c);
+      if (cwit == combined->waveforms.end())
       {
-        switch (mode)
+        combined->waveforms[c] = w;
+      }
+      else
+      {
+        auto& cw = cwit->second;
+        cw.resize(max(cw.size(), w.size()));
+        for (auto i = 0u; i < cw.size(); ++i)
         {
-          case Mode::add:
-            combined->waveform[i * combined->nchannels + c]
-                            += fragment->waveform[i * fragment->nchannels + c];
-            break;
-          case Mode::multiply:
-            combined->waveform[i * combined->nchannels + c]
-                            *= fragment->waveform[i * fragment->nchannels + c];
+          switch (mode)
+          {
+            case Mode::add:
+              cw[i] += w[i];
+              break;
+            case Mode::multiply:
+              cw[i] *= w[i];
+              break;
+          }
         }
       }
     }

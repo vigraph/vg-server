@@ -59,15 +59,18 @@ TEST(WavTest, TestFileDefaultFormat)
   f.erase();
   ASSERT_FALSE(!fragment);
 
-  // Should be 44100 samples for each of the 2 channels at 0
-  EXPECT_EQ(88200, fragment->waveform.size());
+  ASSERT_EQ(2, fragment->waveforms.size());
 
-  EXPECT_EQ(0.0, fragment->waveform[0]);
-  EXPECT_EQ(0.0, fragment->waveform[1]);
-  EXPECT_NEAR(0.5, fragment->waveform[2], 0.001);
-  EXPECT_NEAR(0.5, fragment->waveform[3], 0.001);
-  EXPECT_NEAR(1.0, fragment->waveform[4], 0.001);
-  EXPECT_NEAR(1.0, fragment->waveform[5], 0.001);
+  for (const auto& w: fragment->waveforms)
+  {
+    const auto& waveform = w.second;
+    // Should be 44100 samples for each of the 2 channels at 0
+    ASSERT_EQ(44100, waveform.size());
+
+    EXPECT_EQ(0.0, waveform[0]);
+    EXPECT_NEAR(0.5, waveform[1], 0.001);
+    EXPECT_NEAR(1.0, waveform[2], 0.001);
+  }
 }
 
 TEST(WavTest, TestFileFormatThatNeedsConversion)
@@ -103,15 +106,18 @@ TEST(WavTest, TestFileFormatThatNeedsConversion)
   f.erase();
   ASSERT_FALSE(!fragment);
 
-  // Should be 44100 samples for each of the 2 channels at 0
-  EXPECT_EQ(88200, fragment->waveform.size());
+  ASSERT_EQ(2, fragment->waveforms.size());
 
-  EXPECT_EQ(0.0, fragment->waveform[0]);
-  EXPECT_EQ(0.0, fragment->waveform[1]);
-  EXPECT_NEAR(0.5, fragment->waveform[2], 0.001);
-  EXPECT_NEAR(0.5, fragment->waveform[3], 0.001);
-  EXPECT_NEAR(1.0, fragment->waveform[4], 0.001);
-  EXPECT_NEAR(1.0, fragment->waveform[5], 0.001);
+  for (const auto& w: fragment->waveforms)
+  {
+    const auto& waveform = w.second;
+    // Should be 44100 samples for each of the 2 channels at 0
+    ASSERT_EQ(44100, waveform.size());
+
+    EXPECT_EQ(0.0, waveform[0]);
+    EXPECT_NEAR(0.5, waveform[1], 0.001);
+    EXPECT_NEAR(1.0, waveform[2], 0.001);
+  }
 }
 
 TEST(WavTest, TestLoop)
@@ -147,22 +153,31 @@ TEST(WavTest, TestLoop)
   f.erase();
   ASSERT_FALSE(!fragment);
 
-  // Should be 44100 samples for each of the 2 channels at 0
-  EXPECT_EQ(88200, fragment->waveform.size());
+  ASSERT_EQ(2, fragment->waveforms.size());
 
-  for (auto i = 0u; i + 6 < fragment->waveform.size(); i += 6)
+  for (const auto& w: fragment->waveforms)
   {
-    EXPECT_EQ(0.0, fragment->waveform[i]);
-    EXPECT_EQ(0.0, fragment->waveform[i + 1]);
-    EXPECT_NEAR(0.5, fragment->waveform[i + 2], 0.001);
-    EXPECT_NEAR(0.5, fragment->waveform[i + 3], 0.001);
-    EXPECT_NEAR(1.0, fragment->waveform[i + 4], 0.001);
-    EXPECT_NEAR(1.0, fragment->waveform[i + 5], 0.001);
+    const auto& waveform = w.second;
+    // Should be 44100 samples for each of the 2 channels at 0
+    ASSERT_EQ(44100, waveform.size());
+
+    for (auto i = 0u; i + 3 < waveform.size(); i += 3)
+    {
+      EXPECT_EQ(0.0, waveform[i]);
+      EXPECT_NEAR(0.5, waveform[i + 1], 0.001);
+      EXPECT_NEAR(1.0, waveform[i + 2], 0.001);
+    }
   }
 }
 
 int main(int argc, char **argv)
 {
+  if (argc > 1 && string(argv[1]) == "-v")
+  {
+    auto chan_out = new Log::StreamChannel{&cout};
+    Log::logger.connect(chan_out);
+  }
+
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("./vg-module-audio-source-wav.so");
   return RUN_ALL_TESTS();

@@ -14,6 +14,7 @@
 namespace {
 
 using namespace ViGraph::Geometry;
+using namespace ViGraph::Module::Audio;
 
 //==========================================================================
 // Wav source
@@ -21,14 +22,13 @@ class WavSource: public Source
 {
   File::Path file;
   bool loop = false;
-  vector<sample_t> samples;
-  unsigned int channels = 2;
+  map<Speaker, vector<sample_t>> waveforms;
   double base_frequency = 0.0;
   double frequency = 0.0;
 
   //------------------------------------------------------------------------
-  // Load a WAV into samples
-  bool load_wav(const File::Path& f, vector<sample_t>& s);
+  // Load a WAV into waveforms
+  bool load_wav(const File::Path& f, map<Speaker, vector<sample_t>>& w);
 
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
@@ -61,7 +61,7 @@ void WavSource::configure(const File::Directory&,
     return;
   }
 
-  if (!load_wav(file, samples))
+  if (!load_wav(file, waveforms))
     return;
 
   Log::Detail dlog;
@@ -70,7 +70,7 @@ void WavSource::configure(const File::Directory&,
 
 //--------------------------------------------------------------------------
 // Load a WAV into samples
-bool WavSource::load_wav(const File::Path& f, vector<sample_t>& s)
+bool WavSource::load_wav(const File::Path& f, map<Speaker, vector<sample_t>>& w)
 {
   if (!f.exists())
   {
@@ -90,14 +90,22 @@ bool WavSource::load_wav(const File::Path& f, vector<sample_t>& s)
     return false;
   }
 
-  s.resize(length / sizeof(sample_t));
+  vector<sample_t> s(length / sizeof(sample_t));
   memcpy(&s[0], buffer, length);
   SDL_FreeWAV(buffer);
 
-  channels = spec.channels;
+  const auto cmit = channel_mappings.find(spec.channels);
+  if (cmit == channel_mappings.end())
+  {
+    Log::Error log;
+    log << "File with " << spec.channels << " channels not supported\n";
+    return false;
+  }
+  const auto& channel_map = cmit->second;
+
   SDL_AudioCVT cvt;
-  if (SDL_BuildAudioCVT(&cvt, spec.format, channels, spec.freq,
-                              AUDIO_F32, channels, sample_rate) < 0)
+  if (SDL_BuildAudioCVT(&cvt, spec.format, spec.channels, spec.freq,
+                              AUDIO_F32, spec.channels, sample_rate) < 0)
   {
     Log::Error log;
     log << "Cannot prepare file for format conversion: '" << f << "': "
@@ -126,6 +134,18 @@ bool WavSource::load_wav(const File::Path& f, vector<sample_t>& s)
     }
     s.resize(cvt.len_ratio * cvt.len / sizeof(sample_t));
   }
+
+  for (auto i = 0u; i < spec.channels; ++i)
+  {
+    const auto c = channel_map.at(i);
+    w[c].reserve(s.size() / spec.channels);
+  }
+  for (auto i = 0u; i < s.size(); ++i)
+  {
+    const auto c = channel_map.at(i % spec.channels);
+    w[c].push_back(s[i]);
+  }
+
   return true;
 }
 
@@ -143,38 +163,39 @@ void WavSource::set_property(const string& property, const SetParams& sp)
 // Generate a fragment
 void WavSource::tick(const TickData& td)
 {
-  if (samples.empty())
+  if (waveforms.empty())
     return;
 
-  auto step = frequency ? (frequency / base_frequency) : 1.0;
-  auto pos = step * td.sample_pos(sample_rate);
-  if (!loop && pos >= (samples.size() / channels))
-    return;
+  const auto step = frequency ? (frequency / base_frequency) : 1.0;
+  const auto spos = step * td.sample_pos(sample_rate);
 
   const auto nsamples = td.samples(sample_rate);
-  auto fragment = new Fragment(td.t, channels);
-  fragment->waveform.reserve(nsamples * channels);
-
-  for (auto i = 0u; i < nsamples; ++i, pos += step)
+  auto fragment = new Fragment(td.t);
+  for (auto& cit: waveforms)
   {
-    auto p = pos * channels;
-    if (loop && p >= samples.size())
-      p = fmod(p, samples.size());
+    const auto& samples = cit.second;
+    auto& waveform = fragment->waveforms[cit.first];
+    waveform.reserve(nsamples);
 
-    for (auto c = 0u; c < channels; ++c)
+    auto pos = spos;
+    for (auto i = 0u; i < nsamples; ++i, pos += step)
     {
+      auto p = pos;
+      if (loop && p >= samples.size())
+        p = fmod(p, samples.size());
+
       if (p >= samples.size())
       {
-        fragment->waveform.push_back(0.0); // Pad with nothing
+        waveform.push_back(0.0); // Pad with nothing
         continue;
       }
 
-      auto fs = samples[p + c];
-      auto cs = p + c + channels > samples.size()
-                ? (loop ? samples[c] : 0.0)
-                : samples[p + c + channels];
+      auto fs = samples[p];
+      auto cs = p + 1 > samples.size()
+                ? (loop ? samples[0] : 0.0)
+                : samples[p + 1];
       auto is = fs + ((cs - fs) * fmod(p, 1));
-      fragment->waveform.push_back(is);
+      waveform.push_back(is);
     }
   }
 

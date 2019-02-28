@@ -26,10 +26,12 @@ TEST(CombineTest, TestNoWaveform)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at 0
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ(0.0, fragment->waveform[i]);
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ(0.0, waveform[i]);
 }
 
 TEST(CombineTest, TestSquareWave)
@@ -46,9 +48,11 @@ TEST(CombineTest, TestSquareWave)
   ASSERT_FALSE(!fragment);
 
   // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ((i < 22050)?-1:1, fragment->waveform[i]) << i;
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ((i < 22050)?-1:1, waveform[i]) << i;
 }
 
 TEST(CombineTest, TestTwoSquareWaves)
@@ -65,10 +69,12 @@ TEST(CombineTest, TestTwoSquareWaves)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at alternating -2, 2
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ(((i < 22050)?-2:2), fragment->waveform[i]) << i;
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ(((i < 22050)?-2:2), waveform[i]) << i;
 }
 
 TEST(CombineTest, TestMultiplyTwoSineWaves)
@@ -85,11 +91,13 @@ TEST(CombineTest, TestMultiplyTwoSineWaves)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at alternating -2, 2
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR(pow(sin(2*pi*(double)i/fragment->waveform.size()), 2),
-                fragment->waveform[i], 0.0001) << i;
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_NEAR(pow(sin(2*pi*(double)i/waveform.size()), 2),
+                waveform[i], 0.0001) << i;
 }
 
 int main(int argc, char **argv)

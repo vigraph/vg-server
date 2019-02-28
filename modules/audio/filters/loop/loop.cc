@@ -17,8 +17,9 @@ using namespace ViGraph::Dataflow;
 // Loop filter
 class LoopFilter: public FragmentFilter
 {
-  vector<vector<vector<sample_t>>> buffers; // Buffer of buffers per channel
-  unsigned playback_pos = 0;
+  // 3 sets of per channel buffers
+  vector<map<Speaker, vector<sample_t>>> buffers;
+  unsigned long playback_pos = 0;
 
   unsigned playback_buffer = 0;
   unsigned recording_buffer = 1;
@@ -91,33 +92,21 @@ void LoopFilter::accept(FragmentPtr fragment)
   if (recording)
   {
     auto& buffer = buffers[recording_buffer];
-    if (fragment->nchannels > buffer.size())
-    {
-      buffer.resize(fragment->nchannels);
-      auto s = 0u;
-      for (auto& b: buffer)
-      {
-        if (!s)
-          s = b.size();
-        b.resize(s);
-      }
-    }
-    for (auto i = 0u; i < fragment->waveform.size() / fragment->nchannels; ++i)
-    {
-      for (auto c = 0u; c < buffer.size(); ++c)
-      {
-        if (c < fragment->nchannels)
-        {
-          const auto s = fragment->waveform[i * fragment->nchannels + c];
-          buffer[c].emplace_back(s);
-        }
-        else
-        {
-          buffer[c].emplace_back(0.0);
-        }
-      }
-    }
 
+    for (const auto& wit: fragment->waveforms)
+    {
+      const auto c = wit.first;
+      const auto& w = wit.second;
+
+      auto bit = buffer.find(c);
+      if (bit == buffer.end())
+        bit = buffer.emplace(c, vector<sample_t>{}).first;
+
+      auto &b = bit->second;
+      b.reserve(b.size() + w.size());
+      for (auto i = 0u; i < w.size(); ++i)
+        b.emplace_back(w[i]);
+    }
   }
 }
 
@@ -127,68 +116,52 @@ void LoopFilter::tick(const TickData& td)
 {
   if (playing)
   {
-    const auto nsamples = td.samples(sample_rate);
+    auto nsamples = td.samples(sample_rate);
     auto& buffer = buffers[playback_buffer];
-    auto channels = buffer.size();
 
-    if (!channels)
+    auto fragment = new Fragment(td.t);
+    for (const auto& bit: buffer)
     {
-      if (new_recording_ready)
+      const auto c = bit.first;
+      fragment->waveforms[c].reserve(nsamples);
+    }
+
+    while (nsamples)
+    {
+      if (buffer.empty() || buffer.begin()->second.empty())
+        break;
+      auto chunk_size = 0;
+      auto looped = false;
+      for (const auto& bit: buffer)
+      {
+        const auto c = bit.first;
+        const auto& w = bit.second;
+        if (!chunk_size)
+        {
+          if (playback_pos + nsamples > w.size())
+          {
+            chunk_size = w.size() - playback_pos;
+            looped = true;
+          }
+          else
+          {
+            chunk_size = nsamples;
+          }
+        }
+        copy(&w[playback_pos], &w[min(playback_pos + chunk_size, w.size())],
+             back_inserter(fragment->waveforms[c]));
+      }
+      nsamples -= chunk_size;
+
+
+      if (looped && new_recording_ready)
       {
         buffer = buffers[recorded_buffer];
         new_recording_ready = false;
         playback_pos = 0;
-        channels = buffer.size();
       }
     }
-
-    if (channels)
-    {
-      auto samples = buffer.front().size();
-
-      if (!samples)
-      {
-        if (new_recording_ready)
-        {
-          buffer = buffers[recorded_buffer];
-          new_recording_ready = false;
-          playback_pos = 0;
-          channels = buffer.size();
-          if (channels)
-            samples = buffer.front().size();
-        }
-      }
-
-      if (samples)
-      {
-        auto fragment = new Fragment(td.t, channels);
-        fragment->waveform.reserve(nsamples * channels);
-
-        for (auto i = 0u; i < nsamples; ++i, ++playback_pos)
-        {
-          if (playback_pos > samples)
-          {
-            if (new_recording_ready)
-            {
-              buffer = buffers[recorded_buffer];
-              new_recording_ready = false;
-              playback_pos = 0;
-              channels = buffer.size();
-              if (!channels)
-                break;
-              samples = buffer.front().size();
-              if (!samples)
-                break;
-            }
-            playback_pos = 0;
-          }
-
-          for (auto c = 0u; c < channels; ++c)
-            fragment->waveform.push_back(buffer[c][playback_pos]);
-        }
-        send(fragment);
-      }
-    }
+    send(fragment);
   }
 }
 

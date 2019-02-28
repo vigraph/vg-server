@@ -19,8 +19,8 @@ using namespace soundtouch;
 // Shift filter
 class ShiftFilter: public FragmentFilter
 {
-  SoundTouch sound_touch;
-  unsigned nchannels = 0;
+  map<Speaker, SoundTouch> sound_touch;
+  double pitch = 0;
 
   // Source/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -37,8 +37,7 @@ ShiftFilter::ShiftFilter(const Dataflow::Module *module,
                          const XML::Element& config):
     Element(module, config), FragmentFilter(module, config)
 {
-  sound_touch.setSampleRate(sample_rate);
-  sound_touch.setPitchSemiTones(config.get_attr_real("pitch", 0));
+  pitch = config.get_attr_real("pitch", pitch);
 }
 
 //--------------------------------------------------------------------------
@@ -46,30 +45,38 @@ ShiftFilter::ShiftFilter(const Dataflow::Module *module,
 void ShiftFilter::set_property(const string& property, const SetParams& sp)
 {
   if (property == "pitch")
-    sound_touch.setPitchSemiTones(sp.v.d);
+  {
+    pitch = sp.v.d;
+    for (auto &st: sound_touch)
+      st.second.setPitchSemiTones(pitch);
+  }
 }
 
 //--------------------------------------------------------------------------
 // Process some data
 void ShiftFilter::accept(FragmentPtr fragment)
 {
-  if (fragment->nchannels != nchannels)
+  for (auto& wit: fragment->waveforms)
   {
-    sound_touch.flush();
-    sound_touch.setChannels(fragment->nchannels);
-    nchannels = fragment->nchannels;
+    const auto c = wit.first;
+    auto& w = wit.second;
+
+    auto stit = sound_touch.find(c);
+    if (stit == sound_touch.end())
+    {
+      stit = sound_touch.emplace(c, SoundTouch{}).first;
+      stit->second.setChannels(1);
+      stit->second.setSampleRate(sample_rate);
+      stit->second.setPitchSemiTones(pitch);
+    }
+
+    stit->second.putSamples(&w[0], w.size());
+
+    const auto samples = stit->second.receiveSamples(&w[0], w.size());
+    w.resize(samples);
   }
 
-  sound_touch.putSamples(&fragment->waveform[0], fragment->waveform.size()/
-                                                 fragment->nchannels);
-  const auto samples = sound_touch.receiveSamples(&fragment->waveform[0],
-                                                  fragment->waveform.size()
-                                                  / fragment->nchannels);
-  if (samples)
-  {
-    fragment->waveform.resize(samples * fragment->nchannels);
-    send(fragment);
-  }
+  send(fragment);
 }
 
 //--------------------------------------------------------------------------

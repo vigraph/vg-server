@@ -27,10 +27,12 @@ TEST(AmplitudeTest, TestNoWaveform)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at 0
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ(0.0, fragment->waveform[i]);
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ(0.0, waveform[i]);
 }
 
 TEST(AmplitudeTest, TestSquareWave)
@@ -47,10 +49,12 @@ TEST(AmplitudeTest, TestSquareWave)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at -1 or 1
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ((i < 22050)?-1:1, fragment->waveform[i]) << i;
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ((i < 22050)?-1:1, waveform[i]) << i;
 }
 
 int main(int argc, char **argv)

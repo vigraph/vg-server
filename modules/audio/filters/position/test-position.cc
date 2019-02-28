@@ -26,10 +26,16 @@ TEST(PositionTest, TestNoWaveform)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
-  // Should be 88200 samples at 0
-  EXPECT_EQ(88200, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ(0.0, fragment->waveform[i]);
+  ASSERT_EQ(2, fragment->waveforms.size());
+
+  for (const auto& wit: fragment->waveforms)
+  {
+    const auto waveform = wit.second;
+    // Should be 44100 samples at 0
+    EXPECT_EQ(44100, waveform.size());
+    for(auto i=0u; i<waveform.size(); i++)
+      EXPECT_EQ(0.0, waveform[i]);
+  }
 }
 
 TEST(PositionTest, TestSquareWaveCentered)
@@ -45,13 +51,18 @@ TEST(PositionTest, TestSquareWaveCentered)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  ASSERT_EQ(2, fragment->waveforms.size());
+
   const auto centered = sin(pi / 4);
 
-  // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(88200, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR((i < 44100)?-centered:centered, fragment->waveform[i], 0.001)
-      << i;
+  for (const auto& wit: fragment->waveforms)
+  {
+    const auto waveform = wit.second;
+    // Should be 44100 samples at alternating -1, 1
+    EXPECT_EQ(44100, waveform.size());
+    for(auto i=0u; i<waveform.size(); i++)
+      EXPECT_NEAR((i < 22050)?-centered:centered, waveform[i], 0.001) << i;
+  }
 }
 
 TEST(PositionTest, TestSquareWaveFullRight)
@@ -70,11 +81,19 @@ TEST(PositionTest, TestSquareWaveFullRight)
   const auto left = 0.0;
   const auto right = 1.0;
 
+  ASSERT_EQ(2, fragment->waveforms.size());
+
+  const auto& wl = fragment->waveforms[Speaker::front_left];
   // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(88200, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR(((i < 44100)?-1:1) * (i % 2 ? right : left),
-                fragment->waveform[i], 0.001) << i;
+  EXPECT_EQ(44100, wl.size());
+  for(auto i=0u; i<wl.size(); i++)
+    EXPECT_NEAR(((i < 22050)?-1:1) * left, wl[i], 0.001) << i;
+
+  const auto& wr = fragment->waveforms[Speaker::front_right];
+  // Should be 44100 samples at alternating -1, 1
+  EXPECT_EQ(44100, wr.size());
+  for(auto i=0u; i<wr.size(); i++)
+    EXPECT_NEAR(((i < 22050)?-1:1) * right, wr[i], 0.001) << i;
 }
 
 TEST(PositionTest, TestSquareWaveFullLeft)
@@ -93,11 +112,19 @@ TEST(PositionTest, TestSquareWaveFullLeft)
   const auto left = 1.0;
   const auto right = 0.0;
 
+  ASSERT_EQ(2, fragment->waveforms.size());
+
+  const auto& wl = fragment->waveforms[Speaker::front_left];
   // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(88200, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR(((i < 44100)?-1:1) * (i % 2 ? right : left),
-                fragment->waveform[i], 0.001) << i;
+  EXPECT_EQ(44100, wl.size());
+  for(auto i=0u; i<wl.size(); i++)
+    EXPECT_NEAR(((i < 22050)?-1:1) * left, wl[i], 0.001) << i;
+
+  const auto& wr = fragment->waveforms[Speaker::front_right];
+  // Should be 44100 samples at alternating -1, 1
+  EXPECT_EQ(44100, wr.size());
+  for(auto i=0u; i<wr.size(); i++)
+    EXPECT_NEAR(((i < 22050)?-1:1) * right, wr[i], 0.001) << i;
 }
 
 TEST(PositionTest, TestSquareWaveOutOfBoundsToTheRight)
@@ -116,11 +143,19 @@ TEST(PositionTest, TestSquareWaveOutOfBoundsToTheRight)
   const auto left = 0.0;
   const auto right = 1.0;
 
+  ASSERT_EQ(2, fragment->waveforms.size());
+
+  const auto& wl = fragment->waveforms[Speaker::front_left];
   // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(88200, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR(((i < 44100)?-1:1) * (i % 2 ? right : left),
-                fragment->waveform[i], 0.001) << i;
+  EXPECT_EQ(44100, wl.size());
+  for(auto i=0u; i<wl.size(); i++)
+    EXPECT_NEAR(((i < 22050)?-1:1) * left, wl[i], 0.001) << i;
+
+  const auto& wr = fragment->waveforms[Speaker::front_right];
+  // Should be 44100 samples at alternating -1, 1
+  EXPECT_EQ(44100, wr.size());
+  for(auto i=0u; i<wr.size(); i++)
+    EXPECT_NEAR(((i < 22050)?-1:1) * right, wr[i], 0.001) << i;
 }
 
 TEST(PositionTest, TestSquareWaveOutOfBoundsToTheLeft)
@@ -139,11 +174,19 @@ TEST(PositionTest, TestSquareWaveOutOfBoundsToTheLeft)
   const auto left = 1.0;
   const auto right = 0.0;
 
+  ASSERT_EQ(2, fragment->waveforms.size());
+
+  const auto& wl = fragment->waveforms[Speaker::front_left];
   // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(88200, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR(((i < 44100)?-1:1) * (i % 2 ? right : left),
-                fragment->waveform[i], 0.001) << i;
+  EXPECT_EQ(44100, wl.size());
+  for(auto i=0u; i<wl.size(); i++)
+    EXPECT_NEAR(((i < 22050)?-1:1) * left, wl[i], 0.001) << i;
+
+  const auto& wr = fragment->waveforms[Speaker::front_right];
+  // Should be 44100 samples at alternating -1, 1
+  EXPECT_EQ(44100, wr.size());
+  for(auto i=0u; i<wr.size(); i++)
+    EXPECT_NEAR(((i < 22050)?-1:1) * right, wr[i], 0.001) << i;
 }
 
 int main(int argc, char **argv)

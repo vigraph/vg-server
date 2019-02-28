@@ -59,9 +59,14 @@ void AmplitudeFilter::set_property(const string& property,
 void AmplitudeFilter::accept(FragmentPtr fragment)
 {
   auto ssum = 0.0;
-  for (const auto& s: fragment->waveform)
-    ssum += s * s;
-  const auto rms = sqrt(ssum / fragment->waveform.size());
+  auto samples = 0ul;
+  for (const auto& wit: fragment->waveforms)
+  {
+    for (const auto& s: wit.second)
+      ssum += s * s;
+    samples += wit.second.size();
+  }
+  const auto rms = sqrt(ssum / samples);
   Control::send(SetParams{Dataflow::Value{rms * scale + offset}});
   Generator::send(fragment);
 }

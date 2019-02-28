@@ -26,10 +26,12 @@ TEST(AttenuatorTest, TestNoWaveform)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at 0
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ(0.0, fragment->waveform[i]);
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ(0.0, waveform[i]);
 }
 
 TEST(AttenuatorTest, TestSquareWaveReduced)
@@ -45,10 +47,12 @@ TEST(AttenuatorTest, TestSquareWaveReduced)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR((i < 22050)?-0.2:0.2, fragment->waveform[i], 0.001)
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_NEAR((i < 22050)?-0.2:0.2, waveform[i], 0.001)
       << i;
 }
 

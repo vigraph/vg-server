@@ -63,20 +63,25 @@ void PositionFilter::enable()
 // Process some data
 void PositionFilter::accept(FragmentPtr f)
 {
-  if (f->nchannels != 1)
+  const auto wit = f->waveforms.find(Speaker::front_center);
+  if (wit == f->waveforms.end())
     return;
 
   auto fragment = new Fragment(f->timestamp);
-  fragment->nchannels = 2;
-  fragment->waveform.resize(f->waveform.size() * fragment->nchannels);
+  const auto& wc = wit->second;
+  auto& wl = fragment->waveforms[Speaker::front_left];
+  auto& wr = fragment->waveforms[Speaker::front_right];
+  wl.resize(wc.size());
+  wr.resize(wc.size());
+
   auto pos = d.x;
   if (pos > 0.5) pos = 0.5;
   if (pos < -0.5) pos = -0.5;
 
-  for (auto i = 0u; i < f->waveform.size(); ++i)
+  for (auto i = 0u; i < wc.size(); ++i)
   {
-    fragment->waveform[i * 2]      = f->waveform[i] * cos((pos + 0.5) * pi / 2);
-    fragment->waveform[i * 2 + 1]  = f->waveform[i] * sin((pos + 0.5) * pi / 2);
+    wl[i] = wc[i] * cos((pos + 0.5) * pi / 2);
+    wr[i] = wc[i] * sin((pos + 0.5) * pi / 2);
   }
 
   send(fragment);

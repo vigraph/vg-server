@@ -8,6 +8,7 @@
 //==========================================================================
 
 #include "../../audio-module.h"
+#include <algorithm>
 
 namespace {
 
@@ -49,8 +50,9 @@ void AttenuatorFilter::set_property(const string& property, const SetParams& sp)
 // Process some data
 void AttenuatorFilter::accept(FragmentPtr fragment)
 {
-  for(auto& sample: fragment->waveform)
-    sample *= gain;
+  for (auto& it: fragment->waveforms)
+    for (auto& sample: it.second)
+      sample *= gain;
 
   send(fragment);
 }

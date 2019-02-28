@@ -22,7 +22,7 @@ class LinuxALSAOutFilter: public FragmentFilter
 {
   snd_pcm_t *pcm{nullptr};
   unsigned nchannels{2};
-  unsigned tick_samples_required = 0;
+  unsigned long tick_samples_required = 0;
 
   // Write samples to device
   bool write_samples(const vector<sample_t>& samples);
@@ -131,8 +131,8 @@ LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
 bool LinuxALSAOutFilter::write_samples(const vector<sample_t>& samples)
 {
   const auto samples_to_write = min(tick_samples_required,
-                                    static_cast<unsigned>(samples.size()
-                                                          / nchannels));
+                                    static_cast<unsigned long>(samples.size()
+                                                               / nchannels));
   auto n = snd_pcm_writei(pcm, samples.data(), samples_to_write);
   if (n < 0)
   {
@@ -145,7 +145,7 @@ bool LinuxALSAOutFilter::write_samples(const vector<sample_t>& samples)
   }
   else
   {
-    tick_samples_required -= min(static_cast<unsigned>(n),
+    tick_samples_required -= min(static_cast<unsigned long>(n),
                                  tick_samples_required);
   }
   return true;
@@ -155,28 +155,34 @@ bool LinuxALSAOutFilter::write_samples(const vector<sample_t>& samples)
 // Process some data
 void LinuxALSAOutFilter::accept(FragmentPtr fragment)
 {
-  auto waveform = &fragment->waveform;
-  vector<sample_t> s;
-  if (fragment->nchannels != nchannels)
+  auto& waveforms = fragment->waveforms;
+
+  // Find max samples per waveform
+  auto num_samples = 0ul;
+  for (auto& waveform: waveforms)
+    num_samples = max(waveform.second.size(), num_samples);
+
+  // Cap samples at tick requirement
+  num_samples = min(num_samples, tick_samples_required);
+
+  // Build an interleaved output buffer
+  vector<sample_t> samples(num_samples * nchannels);
+  for (auto s = 0ul; s < num_samples; ++s)
   {
-    const auto samples = fragment->waveform.size() / fragment->nchannels;
-    s.resize(nchannels * samples);
-    for (auto i = 0u; i < samples; ++i)
+    auto wit = waveforms.begin();
+    for (auto i = 0u; i < nchannels; ++i)
     {
-      for (auto c = 0u; c < nchannels; ++c)
-      {
-        if (c >= fragment->nchannels)
-          s[i * nchannels + c] = 0.0;
-        else
-          s[i * nchannels + c]
-            = fragment->waveform[i * fragment->nchannels + c];
-      }
+      if (wit != waveforms.end())
+        if (s < wit->second.size())
+          samples[s * nchannels + i] = wit->second[s];
+      ++wit;
     }
-    waveform = &s;
   }
+
+  // Try and write the samples
   while (pcm)  // loop after recover
   {
-    if (!write_samples(*waveform))
+    if (!write_samples(samples))
       continue;
     break;
   }

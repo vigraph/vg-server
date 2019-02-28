@@ -12,6 +12,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <functional>
 #include <cmath>
 #include "ot-xml.h"
 #include "ot-mt.h"

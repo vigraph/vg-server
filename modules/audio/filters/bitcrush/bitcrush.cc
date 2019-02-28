@@ -20,8 +20,12 @@ class BitCrushFilter: public FragmentFilter
   unsigned rate = 1;
   unsigned bits = 32;
 
-  unsigned samples_seen = 0;
-  sample_t last_sample = 0.0;
+  struct State
+  {
+    unsigned samples_seen = 0;
+    sample_t last_sample = 0.0;
+  };
+  map<Speaker, State> state;
 
   // Source/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -56,20 +60,23 @@ void BitCrushFilter::set_property(const string& property, const SetParams& sp)
 // Process some data
 void BitCrushFilter::accept(FragmentPtr fragment)
 {
-  for (auto i = 0u; i < fragment->waveform.size() / fragment->nchannels; ++i)
+  const auto max = pow(2, bits) - 1;
+  for (auto& wit: fragment->waveforms)
   {
-    for (auto c = 0u; c < fragment->nchannels; ++c)
+    const auto c = wit.first;
+    auto& w = wit.second;
+
+    auto& st = state[c];
+    for (auto i = 0u; i < w.size(); ++i)
     {
-      auto& s = fragment->waveform[i * fragment->nchannels + c];
-      if (samples_seen++ % rate)
+      if (st.samples_seen++ % rate)
       {
-        s = last_sample;
+        w[i] = st.last_sample;
       }
       else
       {
-        const auto max = pow(2, bits) - 1;
-        s = (2.0 * (round(((s + 1.0) * 0.5) * max) / max)) - 1.0;
-        last_sample = s;
+        w[i] = (2.0 * (round(((w[i] + 1.0) * 0.5) * max) / max)) - 1.0;
+        st.last_sample = w[i];
       }
     }
   }

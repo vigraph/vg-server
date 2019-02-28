@@ -26,10 +26,12 @@ TEST(BitCrushTest, TestNoWaveform)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at 0
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR(0.0, fragment->waveform[i], 0.001);
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_NEAR(0.0, waveform[i], 0.001);
 }
 
 TEST(BitCrushTest, Test2BitSinWave)
@@ -45,16 +47,18 @@ TEST(BitCrushTest, Test2BitSinWave)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at 4 quantised values
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
     EXPECT_NEAR((i < 5122) ? 0.333
                 : (i < 16929) ? 1.0
                 : (i < 22050) ? 0.333
                 : (i < 27172) ? -0.333
                 : (i < 38979) ? -1.0
                 : -0.333,
-                fragment->waveform[i], 0.001) << i;
+                waveform[i], 0.001) << i;
 }
 
 int main(int argc, char **argv)

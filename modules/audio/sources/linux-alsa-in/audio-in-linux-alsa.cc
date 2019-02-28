@@ -13,6 +13,7 @@
 namespace {
 
 using namespace ViGraph::Dataflow;
+using namespace ViGraph::Module::Audio;
 
 const auto default_device{"default"};
 
@@ -21,7 +22,7 @@ const auto default_device{"default"};
 class LinuxALSAInSource: public Source
 {
   snd_pcm_t *pcm = nullptr;
-  int nchannels = 2;
+  vector<Speaker> channel_mapping;
 
   // Read samples from device
   bool read_samples(vector<sample_t>& samples);
@@ -47,7 +48,14 @@ LinuxALSAInSource::LinuxALSAInSource(const Dataflow::Module *module,
   log.summary << "Opening audio input on ALSA device '" << device << "'\n";
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
 
-  nchannels = config.get_attr_int("channels", 2);
+  auto nchannels = config.get_attr_int("channels", 2);
+
+  const auto cmit = channel_mappings.find(nchannels);
+  if (cmit == channel_mappings.end())
+    throw runtime_error(string("Unsupported channel count: ") +
+                        Text::itos(nchannels));
+  channel_mapping = cmit->second;
+
   log.detail << "ALSA: " << nchannels << " channels\n";
   const auto start_threshold = config.get_attr_int("start-threshold", 1000);
 
@@ -127,7 +135,7 @@ LinuxALSAInSource::LinuxALSAInSource(const Dataflow::Module *module,
 // Read samples from device
 bool LinuxALSAInSource::read_samples(vector<sample_t>& samples)
 {
-  const auto samples_to_read = samples.size() / nchannels;
+  const auto samples_to_read = samples.size() / channel_mapping.size();
   auto n = snd_pcm_readi(pcm, &samples[0], samples_to_read);
   if (n < 0)
   {
@@ -146,12 +154,18 @@ bool LinuxALSAInSource::read_samples(vector<sample_t>& samples)
 void LinuxALSAInSource::tick(const TickData& td)
 {
   const auto nsamples = td.samples(sample_rate);
-  auto fragment = new Fragment(td.t, nchannels);
-  fragment->waveform.resize(nsamples * nchannels);
+  auto fragment = new Fragment(td.t);
+  auto samples = vector<sample_t>(nsamples * channel_mapping.size());
   while (pcm)  // loop after recover
   {
-    if (!read_samples(fragment->waveform))
+    if (!read_samples(samples))
       continue;
+
+    for (auto i = 0u; i < samples.size(); ++i)
+    {
+      const auto c = channel_mapping[i % channel_mapping.size()];
+      fragment->waveforms[c][i / channel_mapping.size()] = samples[i];
+    }
     break;
   }
 

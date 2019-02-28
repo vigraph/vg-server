@@ -125,7 +125,8 @@ void VCOSource::tick(const TickData& td)
   {
     const auto nsamples = td.samples(sample_rate);
     auto fragment = new Fragment(td.t);  // mono
-    fragment->waveform.reserve(nsamples);
+    auto& samples = fragment->waveforms[Speaker::front_center];
+    samples.resize(nsamples);
     auto theta = freq * td.sample_pos(sample_rate) / sample_rate;
     theta -= floor(theta); // Wrap to 0..1
     for (auto i=0u; i<nsamples; i++)
@@ -159,7 +160,7 @@ void VCOSource::tick(const TickData& td)
         break;
       }
 
-      fragment->waveform.push_back(v);
+      samples[i] = v;
       theta += freq/sample_rate;
       theta -= floor(theta); // Wrap to 0..1
     }

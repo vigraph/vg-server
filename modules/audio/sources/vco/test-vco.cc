@@ -25,10 +25,13 @@ TEST(VCOTest, TestNoWaveform)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  ASSERT_EQ(1, fragment->waveforms.size());
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at 0
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ(0.0, fragment->waveform[i]);
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ(0.0, waveform[i]);
 }
 
 TEST(VCOTest, TestSquareWaveSingleCycle)
@@ -43,10 +46,13 @@ TEST(VCOTest, TestSquareWaveSingleCycle)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  ASSERT_EQ(1, fragment->waveforms.size());
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ((i < 22050)?-1:1, fragment->waveform[i]) << i;
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ((i < 22050)?-1:1, waveform[i]) << i;
 }
 
 TEST(VCOTest, TestSquareWaveMultiCycle)
@@ -61,10 +67,13 @@ TEST(VCOTest, TestSquareWaveMultiCycle)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  ASSERT_EQ(1, fragment->waveforms.size());
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_EQ((i%4410 < 2205)?-1:1, fragment->waveform[i]) << i;
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ((i%4410 < 2205)?-1:1, waveform[i]) << i;
 }
 
 TEST(VCOTest, TestSawWaveSingleCycle)
@@ -79,11 +88,13 @@ TEST(VCOTest, TestSawWaveSingleCycle)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  ASSERT_EQ(1, fragment->waveforms.size());
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples linearly increasing
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR((double)i/fragment->waveform.size()*2-1,
-                fragment->waveform[i], 0.0001) << i;
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_NEAR((double)i/waveform.size()*2-1, waveform[i], 0.0001) << i;
 }
 
 TEST(VCOTest, TestTriangleWaveSingleCycle)
@@ -98,12 +109,15 @@ TEST(VCOTest, TestTriangleWaveSingleCycle)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  ASSERT_EQ(1, fragment->waveforms.size());
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples linearly increasing up and down
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR(i<22050?(double)i/fragment->waveform.size()*4-1
-                       :(1-(double)i/fragment->waveform.size())*4-1,
-                fragment->waveform[i], 0.0001) << i;
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_NEAR(i<22050?(double)i/waveform.size()*4-1
+                       :(1-(double)i/waveform.size())*4-1,
+                waveform[i], 0.0001) << i;
 }
 
 TEST(VCOTest, TestSinWaveSingleCycle)
@@ -118,11 +132,13 @@ TEST(VCOTest, TestSinWaveSingleCycle)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  ASSERT_EQ(1, fragment->waveforms.size());
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples in sin -1..1
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
-    EXPECT_NEAR(sin(2*pi*(double)i/fragment->waveform.size()),
-                fragment->waveform[i], 0.0001) << i;
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_NEAR(sin(2*pi*(double)i/waveform.size()), waveform[i], 0.0001) << i;
 }
 
 TEST(VCOTest, TestRandomSingleCycle)
@@ -137,12 +153,15 @@ TEST(VCOTest, TestRandomSingleCycle)
   Fragment *fragment = gen.get_fragment();
   ASSERT_FALSE(!fragment);
 
+  ASSERT_EQ(1, fragment->waveforms.size());
+  const auto& waveform = fragment->waveforms[Speaker::front_center];
+
   // Should be 44100 samples random between -1 and 1
-  EXPECT_EQ(44100, fragment->waveform.size());
-  for(auto i=0u; i<fragment->waveform.size(); i++)
+  EXPECT_EQ(44100, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
   {
-    EXPECT_GE(1.0, fragment->waveform[i]) << i;
-    EXPECT_LE(-1.0,  fragment->waveform[i]) << i;
+    EXPECT_GE(1.0, waveform[i]) << i;
+    EXPECT_LE(-1.0, waveform[i]) << i;
   }
 }
 

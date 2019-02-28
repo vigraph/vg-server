@@ -25,7 +25,7 @@ class DelayFilter: public FragmentFilter
     unsigned pos = 0;
     vector<sample_t> samples;
   };
-  vector<Buffer> buffer; // Buffer per channel
+  map<Speaker, Buffer> buffer; // Buffer per speaker
 
   // Source/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -57,8 +57,9 @@ void DelayFilter::set_property(const string& property, const SetParams& sp)
     {
       const auto new_size = static_cast<unsigned long>(delay.seconds()
                                                        * sample_rate);
-      for (auto& b: buffer)
+      for (auto& bit: buffer)
       {
+        auto& b = bit.second;
         auto tmp = vector<sample_t>(max(new_size, b.samples.size()));
         auto it = tmp.begin();
         if (new_size > b.samples.size())
@@ -88,23 +89,25 @@ void DelayFilter::accept(FragmentPtr fragment)
 {
   if (delay)
   {
-    if (fragment->nchannels > buffer.size())
+    for (auto& wit: fragment->waveforms)
     {
-      buffer.resize(fragment->nchannels);
-      for (auto& b: buffer)
-        b.samples.resize(delay.seconds() * sample_rate);
-    }
-
-    for (auto i = 0u; i < fragment->waveform.size() / fragment->nchannels; ++i)
-    {
-      for (auto c = 0u; c < fragment->nchannels; ++c)
+      const auto c = wit.first;
+      auto& w = wit.second;
+      auto bit = buffer.find(c);
+      if (bit == buffer.end())
       {
-        auto& s = fragment->waveform[i * fragment->nchannels + c];
-        auto& b = buffer[c].samples[buffer[c].pos];
+        bit = buffer.emplace(c, Buffer{}).first;
+        bit->second.samples.resize(delay.seconds() * sample_rate);
+      }
+      auto& buf = bit->second;
+      for (auto i = 0u; i < w.size(); ++i)
+      {
+        auto& s = w[i];
+        auto& b = buf.samples[buf.pos];
         s += feedback * b;
         b = s;
-        if (++buffer[c].pos >= buffer[c].samples.size())
-          buffer[c].pos = 0;
+        if (++buf.pos >= buf.samples.size())
+          buf.pos = 0;
       }
     }
   }

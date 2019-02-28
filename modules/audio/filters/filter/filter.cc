@@ -28,9 +28,9 @@ class FilterFilter: public FragmentFilter
   double cutoff = 1.0;
   double resonance = 1.0;
   double feedback = 0.0;
+  unsigned steepness = 1;
 
-  unsigned nchannels = 0;
-  vector<vector<double>> buff; // Vector of buffers, then vector of channel
+  map<Speaker, vector<double>> buff; // Vector of buffers per speaker
 
   void update_feedback()
   {
@@ -67,8 +67,7 @@ FilterFilter::FilterFilter(const Dataflow::Module *module,
 
   cutoff = min(max(config.get_attr_real("cutoff", 1.0), 0.0), 1.0);
   resonance = min(max(config.get_attr_real("cutoff", 1.0), 0.0), 1.0);
-
-  buff.resize(max(config.get_attr_int("steepness", 1), 1) + 1);
+  steepness = config.get_attr_int("steepness", steepness);
 }
 
 //--------------------------------------------------------------------------
@@ -78,7 +77,13 @@ void FilterFilter::set_property(const string& property, const SetParams& sp)
   if (property == "cutoff")
     update_prop(cutoff, sp);
   else if (property == "steepness")
-    buff.resize(max(sp.v.d, 1.0) + 1);
+  {
+    steepness = max(sp.v.d, 1.0);
+    for (auto& bit: buff)
+    {
+      bit.second.resize(steepness + 1);
+    }
+  }
   else if (property == "resonance")
     update_prop(resonance, sp);
   update_feedback();
@@ -88,38 +93,38 @@ void FilterFilter::set_property(const string& property, const SetParams& sp)
 // Process some data
 void FilterFilter::accept(FragmentPtr fragment)
 {
-  if (fragment->nchannels > nchannels)
+  for (auto& wit: fragment->waveforms)
   {
-    nchannels = fragment->nchannels;
-    for (auto& b: buff)
-    {
-      b.resize(nchannels);
-    }
-  }
+    const auto c = wit.first;
+    auto& w = wit.second;
 
-  for (auto i = 0u; i < fragment->waveform.size() / fragment->nchannels; ++i)
-  {
-    for (auto c = 0u; c < fragment->nchannels; ++c)
+    auto bit = buff.find(c);
+    if (bit == buff.end())
     {
-      auto& s = fragment->waveform[i * fragment->nchannels + c];
-      for (auto b = 0u; b < buff.size(); ++b)
+      bit = buff.emplace().first;
+      bit->second.resize(steepness + 1);
+    }
+    auto& bf = bit->second;
+
+    for (auto i = 0u; i < w.size(); ++i)
+    {
+      for (auto b = 0u; b < bf.size(); ++b)
       {
         if (!b)
-          buff[b][c] += cutoff * (s - buff[b][c] + feedback * (buff[b][c] -
-                                                             buff[b + 1][c]));
+          bf[b] += cutoff * (w[i] - bf[b] + feedback * (bf[b] - bf[b + 1]));
         else
-          buff[b][c] += cutoff * (buff[b - 1][c] - buff[b][c]);
+          bf[b] += cutoff * (bf[b - 1] - bf[b]);
       }
       switch (mode)
       {
         case Mode::low_pass:
-          s = buff.back()[c];
+          w[i] = bf.back();
           break;
         case Mode::high_pass:
-          s = s - buff.back()[c];
+          w[i] = w[i] - bf.back();
           break;
         case Mode::band_pass:
-          s = buff.front()[c] - buff.back()[c];
+          w[i] = bf.front() - bf.back();
           break;
       }
     }

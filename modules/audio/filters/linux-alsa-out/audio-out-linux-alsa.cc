@@ -23,6 +23,7 @@ class LinuxALSAOutFilter: public FragmentFilter
   snd_pcm_t *pcm{nullptr};
   unsigned nchannels{2};
   unsigned long tick_samples_required = 0;
+  vector<sample_t> output_buffer;
 
   // Write samples to device
   bool write_samples(const vector<sample_t>& samples);
@@ -166,7 +167,7 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
   num_samples = min(num_samples, tick_samples_required);
 
   // Build an interleaved output buffer
-  vector<sample_t> samples(num_samples * nchannels);
+  output_buffer.resize(num_samples * nchannels);
   for (auto s = 0ul; s < num_samples; ++s)
   {
     auto wit = waveforms.begin();
@@ -174,7 +175,7 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
     {
       if (wit != waveforms.end())
         if (s < wit->second.size())
-          samples[s * nchannels + i] = wit->second[s];
+          output_buffer[s * nchannels + i] = wit->second[s];
       ++wit;
     }
   }
@@ -182,7 +183,7 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
   // Try and write the samples
   while (pcm)  // loop after recover
   {
-    if (!write_samples(samples))
+    if (!write_samples(output_buffer))
       continue;
     break;
   }
@@ -205,10 +206,11 @@ void LinuxALSAOutFilter::post_tick(const TickData &)
 {
   if (tick_samples_required)
   {
-    auto null_samples = vector<sample_t>(nchannels * tick_samples_required);
+    output_buffer.resize(nchannels * tick_samples_required);
+    fill(output_buffer.begin(), output_buffer.end(), 0);
     while (pcm)  // loop after recover
     {
-      if (!write_samples(null_samples))
+      if (!write_samples(output_buffer))
         continue;
       break;
     }

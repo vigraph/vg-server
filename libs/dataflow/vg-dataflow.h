@@ -713,7 +713,6 @@ public:
     { return new E(module, config); }
   };
 
-private:
   struct ModuleInfo
   {
     const Module *module;
@@ -724,7 +723,6 @@ private:
   };
   map<string, ModuleInfo> modules;
 
-public:
   //------------------------------------------------------------------------
   // Constructor
   Registry() {}

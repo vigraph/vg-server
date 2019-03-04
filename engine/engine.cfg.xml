@@ -76,9 +76,6 @@
     <!-- HTTP port -->
     <http port="33380"/>
 
-    <!-- URL prefix, including leading and trailing / -->
-    <url prefix="/"/>
-
   </rest>
 
 </engine>

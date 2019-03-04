@@ -37,24 +37,6 @@ public:
 };
 
 //==========================================================================
-// URLHandler
-class RESTURLHandler: public Web::URLHandler
-{
-  string prefix;
-
-  bool handle_delete(const Web::HTTPMessage& request);
-  bool handle_post(const Web::HTTPMessage& request);
-  bool handle_request(const Web::HTTPMessage& request,
-                      Web::HTTPMessage& response,
-                      const SSL::ClientDetails& client);
-
-public:
-  RESTURLHandler(const string& _prefix):
-    URLHandler(_prefix+"*"), prefix(_prefix)
-  {}
-};
-
-//==========================================================================
 // Global state
 // Singleton instance of server-wide state
 class Server: public Daemon::Application

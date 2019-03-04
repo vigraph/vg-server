@@ -19,7 +19,7 @@
   <!-- Global services -->
   <services>
     <collision-detector/>
-    <midi device="virtual"/>
+    <midi-distributor/>
     <key-distributor/>
   </services>
 
@@ -28,6 +28,7 @@
 
   <!-- The dataflow graph -->
   <graph>
+    <midi device="virtual"/>
     <midi-key-in channel="1">
       <target id="rebase-on" property-on="enable"/>
       <target id="rebase-off" property-off="disable"/>

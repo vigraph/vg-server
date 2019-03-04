@@ -161,10 +161,12 @@ void LinuxALSAInSource::tick(const TickData& td)
     if (!read_samples(samples))
       continue;
 
-    for (auto i = 0u; i < samples.size(); ++i)
+    for (auto c = 0u; c < channel_mapping.size(); ++c)
     {
-      const auto c = channel_mapping[i % channel_mapping.size()];
-      fragment->waveforms[c][i / channel_mapping.size()] = samples[i];
+      auto& wc = fragment->waveforms[channel_mapping[c]];
+      wc.reserve(samples.size() / channel_mapping.size());
+      for (auto i = 0u; i < samples.size(); i += channel_mapping.size())
+        wc.push_back(samples[i + c]);
     }
     break;
   }

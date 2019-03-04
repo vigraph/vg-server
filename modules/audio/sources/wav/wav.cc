@@ -135,13 +135,12 @@ bool WavSource::load_wav(const File::Path& f, map<Speaker, vector<sample_t>>& w)
     s.resize(cvt.len_ratio * cvt.len / sizeof(sample_t));
   }
 
-  for (auto i = 0u; i < spec.channels; ++i)
+  for (auto c = 0u; c < spec.channels; ++c)
   {
-    const auto c = channel_map.at(i);
-    auto& wc = w[c];
+    auto& wc = w[channel_map.at(c)];
     wc.reserve(s.size() / spec.channels);
-    for (auto j = 0u; j < s.size(); j += spec.channels)
-      wc.push_back(s[j + i]);
+    for (auto i = 0u; i < s.size(); i += spec.channels)
+      wc.push_back(s[i + c]);
   }
 
   return true;

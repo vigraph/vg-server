@@ -21,15 +21,37 @@ namespace
 }
 
 //==========================================================================
-// URLHandler
+// /graph URL Handler
+// Operations:  GET, PUT, POST, DELETE
+
+// URL format:
+// /graph                     Entire top-level graph (GET only!)
+// /graph/<id>                Top-level element by <id>
+// /graph/<id>/<sid>...       Next-level element by ID hierarchy
+// /graph/<id>.<prop>         Property or output of top level element
+// /graph/<id>/<sid>.<prop>   Property or output of nested element
+// /graph/<id>/<prop>.<sprop> Nested property of element
+
+class GraphURLHandler: public Web::URLHandler
+{
+  bool handle_delete(const Web::HTTPMessage& request);
+  bool handle_post(const Web::HTTPMessage& request);
+  bool handle_request(const Web::HTTPMessage& request,
+                      Web::HTTPMessage& response,
+                      const SSL::ClientDetails& client);
+
+public:
+  GraphURLHandler(): URLHandler("/graph*")
+  {}
+};
 
 //--------------------------------------------------------------------------
 // Handle a POST request
 // Returns whether request was valid
-bool RESTURLHandler::handle_post(const Web::HTTPMessage& request)
+bool GraphURLHandler::handle_post(const Web::HTTPMessage& request)
 {
   Log::Streams log;
-  log.detail << "REST: POST request\n";
+  log.detail << "REST Graph: POST request\n";
 
   // Parse JSON
   istringstream iss(request.body);
@@ -53,10 +75,10 @@ bool RESTURLHandler::handle_post(const Web::HTTPMessage& request)
 //--------------------------------------------------------------------------
 // Handle a DELETE request
 // Returns whether request was valid
-bool RESTURLHandler::handle_delete(const Web::HTTPMessage& /* request */)
+bool GraphURLHandler::handle_delete(const Web::HTTPMessage& /* request */)
 {
   Log::Streams log;
-  log.detail << "REST: DELETE request\n";
+  log.detail << "REST Graph: DELETE request\n";
 
   // !!!
 
@@ -65,13 +87,14 @@ bool RESTURLHandler::handle_delete(const Web::HTTPMessage& /* request */)
 
 //--------------------------------------------------------------------------
 // Handle the request
-bool RESTURLHandler::handle_request(const Web::HTTPMessage& request,
+bool GraphURLHandler::handle_request(const Web::HTTPMessage& request,
                                     Web::HTTPMessage& response,
                                     const SSL::ClientDetails& /* client */)
 {
   const auto& fullpath = request.url.get_path();
-  if (fullpath.size() < prefix.size()) return false;  // Shouldn't happen
-  // const auto& path = string(fullpath, prefix.size());
+  if (fullpath.size() < 6) return false;  // minimum /graph - shouldn't happen
+  auto path = string(fullpath, 6);
+  if (!path.empty() && path[0] == '/') path.erase(0);
   // const auto& bits = Text::split(path, '/');
 
   if (request.method == "POST")
@@ -99,6 +122,87 @@ bool RESTURLHandler::handle_request(const Web::HTTPMessage& request,
 }
 
 //==========================================================================
+// /meta URL Handler
+// Operations:  GET
+
+// URL format:
+// /meta                      Total metadata structure
+// /meta/<type>               Metadata for specific type
+
+class MetaURLHandler: public Web::URLHandler
+{
+  bool handle_get(const string& path, Web::HTTPMessage& response);
+  bool handle_request(const Web::HTTPMessage& request,
+                      Web::HTTPMessage& response,
+                      const SSL::ClientDetails& client);
+
+public:
+  MetaURLHandler(): URLHandler("/meta*")
+  {}
+};
+
+//--------------------------------------------------------------------------
+// Handle a GET request
+// Returns whether request was valid
+bool MetaURLHandler::handle_get(const string& path,
+                                Web::HTTPMessage& response)
+{
+  Log::Streams log;
+
+  try
+  {
+    if (path.empty())
+    {
+      log.detail << "REST Meta: GET request\n";
+    }
+    else
+    {
+      JSON::Value json(JSON::Value::OBJECT);
+      log.detail << "REST Meta: GET request for " << path << endl;
+
+      // const auto& bits = Text::split(path, '/');
+
+      // !!!
+      json.set("path", path);
+      response.body = json.str();
+    }
+  }
+  catch (JSON::Exception e)
+  {
+    log.error << "JSON output error: " << e.error << endl;
+  }
+
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Handle the request
+bool MetaURLHandler::handle_request(const Web::HTTPMessage& request,
+                                    Web::HTTPMessage& response,
+                                    const SSL::ClientDetails& /* client */)
+{
+  const auto& fullpath = request.url.get_path();
+  if (fullpath.size() < 5) return false;  // minimum /meta - shouldn't happen
+  auto path = string(fullpath, 5);
+  if (!path.empty() && path[0] == '/') path.erase(path.begin());
+
+  if (request.method == "GET")
+  {
+    if (!handle_get(path, response))
+    {
+      response.code = 400;
+      response.reason = "Bad request";
+    }
+  }
+  else
+  {
+    response.code = 405;
+    response.reason = "Method not allowed";
+  }
+  return true;
+}
+
+//==========================================================================
 // REST interface
 //--------------------------------------------------------------------------
 // Constructor
@@ -112,8 +216,8 @@ RESTInterface::RESTInterface(const XML::Element& config)
   log.summary << "REST: Starting HTTP server at port " << hport << endl;
   http_server.reset(new Web::SimpleHTTPServer(hport, server_ident));
 
-  const auto& prefix = xpath["url/@prefix"];
-  http_server->add(new RESTURLHandler(prefix));
+  http_server->add(new GraphURLHandler());
+  http_server->add(new MetaURLHandler());
 
   // Allow cross-origin fetch from anywhere
   http_server->set_cors_origin();

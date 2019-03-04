@@ -64,7 +64,11 @@ void ShiftFilter::accept(FragmentPtr fragment)
     auto stit = sound_touch.find(c);
     if (stit == sound_touch.end())
     {
-      stit = sound_touch.emplace(c, SoundTouch{}).first;
+      // SoundTouch doesn't copy well, so this defers construction until
+      // it's in place
+      stit = sound_touch.emplace(piecewise_construct,
+                                 forward_as_tuple(c),
+                                 forward_as_tuple()).first;
       stit->second.setChannels(1);
       stit->second.setSampleRate(sample_rate);
       stit->second.setPitchSemiTones(pitch);

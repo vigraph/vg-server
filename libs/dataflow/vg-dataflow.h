@@ -508,7 +508,13 @@ class Graph
 
   //------------------------------------------------------------------------
   // Get engine
-  Engine& get_engine() { return engine; }
+  Engine& get_engine() const
+  { return engine; }
+
+  //------------------------------------------------------------------------
+  // Get all elements (for inspection)
+  const map<string, shared_ptr<Element> >& get_elements() const
+  { return elements; }
 
   //------------------------------------------------------------------------
   // Configure with XML, with a base directory for files

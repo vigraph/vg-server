@@ -56,6 +56,7 @@ void ShiftFilter::set_property(const string& property, const SetParams& sp)
 // Process some data
 void ShiftFilter::accept(FragmentPtr fragment)
 {
+  auto max_samples = 0xffffffffffffffff;
   for (auto& wit: fragment->waveforms)
   {
     const auto c = wit.first;
@@ -75,12 +76,24 @@ void ShiftFilter::accept(FragmentPtr fragment)
     }
 
     stit->second.putSamples(&w[0], w.size());
-
-    const auto samples = stit->second.receiveSamples(&w[0], w.size());
-    w.resize(samples);
+    max_samples = min(max_samples,
+                      min(w.size(), static_cast<unsigned long>(
+                                    stit->second.numSamples())));
   }
 
-  send(fragment);
+  if (max_samples)
+  {
+    for (auto& wit: fragment->waveforms)
+    {
+      const auto c = wit.first;
+      auto& w = wit.second;
+      auto stit = sound_touch.find(c);
+      const auto samples = stit->second.receiveSamples(&w[0], max_samples);
+      w.resize(samples);
+    }
+
+    send(fragment);
+  }
 }
 
 //--------------------------------------------------------------------------

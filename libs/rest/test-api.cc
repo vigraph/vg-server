@@ -94,10 +94,42 @@ TEST(APITest, TestGETWithThreeItemsGraphRoot)
   ASSERT_EQ(API::Result::Code::ok, result.code);
   ASSERT_EQ(JSON::Value::Type::ARRAY, result.value.type);
   EXPECT_EQ(3, result.value.a.size());
-  // Note ordered by ID
+  // Note ordered by dependency
   EXPECT_EQ("s1", result.value.a[0]["id"].as_str());
-  EXPECT_EQ("s2", result.value.a[1]["id"].as_str());
-  EXPECT_EQ("test-filter", result.value.a[2]["id"].as_str());
+  EXPECT_EQ("test-filter", result.value.a[1]["id"].as_str());
+  EXPECT_EQ("s2", result.value.a[2]["id"].as_str());
+}
+
+TEST(APITest, TestGETGraphRootWithNestedGraph)
+{
+  const string& xml = R"(
+    <graph>
+      <test-subgraph id='sg1'>
+        <test-source id='s1'/>
+      </test-subgraph>
+      <test-filter/>
+      <test-sink id='s2'/>
+    </graph>
+  )";
+
+  construct_graph(xml, engine.get_graph());
+
+  API rest(engine);
+  JSON::Value data;
+  API::Result result = rest.handle_request("GET", "/graph", data);
+  ASSERT_EQ(API::Result::Code::ok, result.code);
+  ASSERT_EQ(JSON::Value::Type::ARRAY, result.value.type);
+  EXPECT_EQ(3, result.value.a.size());
+  // Note ordered by dependency
+  JSON::Value& sg1 = result.value.a[0];
+  EXPECT_EQ("sg1", sg1["id"].as_str());
+  const JSON::Value& subelements = sg1["elements"];
+  ASSERT_EQ(JSON::Value::Type::ARRAY, subelements.type);
+  ASSERT_EQ(1, subelements.a.size());
+  EXPECT_EQ("s1", subelements.a[0]["id"].as_str());
+
+  EXPECT_EQ("test-filter", result.value.a[1]["id"].as_str());
+  EXPECT_EQ("s2", result.value.a[2]["id"].as_str());
 }
 
 } // anonymous namespace

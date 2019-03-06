@@ -183,6 +183,28 @@ TEST(GraphTest, TestGraphTickAndMultipleSources)
   EXPECT_EQ(12, sink->received_data);
 }
 
+TEST(GraphTest, TestGraphGetJSON)
+{
+  const string& xml = R"(
+    <graph>
+      <test-source id='s1'/>
+      <test-filter id='f1'/>
+      <test-filter id='f2'/>
+    </graph>
+  )";
+
+  Graph graph(engine);
+  construct_graph(xml, graph);
+
+  JSON::Value value = graph.get_json();
+  ASSERT_EQ(JSON::Value::Type::ARRAY, value.type);
+  ASSERT_EQ(3, value.a.size());
+  // Note ordered by dependency
+  EXPECT_EQ("s1", value.a[0]["id"].as_str());
+  EXPECT_EQ("f1", value.a[1]["id"].as_str());
+  EXPECT_EQ("f2", value.a[2]["id"].as_str());
+}
+
 TEST(GraphTest, TestGraphShutdown)
 {
   const string& xml = R"(

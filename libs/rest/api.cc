@@ -23,17 +23,8 @@ API::Result API::handle_graph_request(const string& verb,
     if (verb != "GET")
       return API::Result(API::Result::Code::method_not_allowed);
 
-    API::Result result(API::Result::Code::ok, "", JSON::Value::Type::ARRAY);
-
-    const auto& elements = engine.get_graph().get_elements();
-    for(const auto it: elements)
-    {
-      const auto& e = *(it.second);
-      JSON::Value eo(JSON::Value::Type::OBJECT);
-      eo.set("id", e.id);
-
-      result.value.add(eo);
-    }
+    API::Result result(API::Result::Code::ok);
+    result.value = engine.get_graph().get_json();
     return result;
   }
   else

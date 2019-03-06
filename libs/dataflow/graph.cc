@@ -405,6 +405,17 @@ Element *Graph::get_element(const string& id)
     return nullptr;
 }
 
+//------------------------------------------------------------------------
+// Get state as JSON array of elements
+JSON::Value Graph::get_json() const
+{
+  JSON::Value value(JSON::Value::Type::ARRAY);
+  MT::RWReadLock lock(mutex);
+  for(const auto e: topological_order)
+    value.add(e->get_json());
+  return value;
+}
+
 //--------------------------------------------------------------------------
 // Does this require an update? (i.e. there is a new config)
 bool Graph::requires_update(File::Path& file, Time::Duration& check_interval,

@@ -11,6 +11,15 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
+// Get state as JSON
+JSON::Value Element::get_json() const
+{
+  JSON::Value value(JSON::Value::Type::OBJECT);
+  value.set("id", id);
+  return value;
+}
+
+//------------------------------------------------------------------------
 // Get type of a control property - uses module by default
 Value::Type Element::get_property_type(const string& property)
 {

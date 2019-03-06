@@ -6,6 +6,6 @@
 
 NAME    = vg-dataflow
 TYPE    = lib
-DEPENDS = ot-xml ot-mt ot-init ot-text ot-log ot-time ot-file
+DEPENDS = ot-xml ot-mt ot-init ot-text ot-log ot-time ot-file ot-json
 
 include_rules

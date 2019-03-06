@@ -14,7 +14,6 @@ namespace {
 // Join filter
 class JoinFilter: public FrameFilter
 {
-  MT::Mutex mutex;
   shared_ptr<Frame> join{nullptr};
 
   // Process some data
@@ -35,7 +34,6 @@ public:
 // Process some data
 void JoinFilter::accept(FramePtr frame)
 {
-  MT::Lock lock{mutex};
   // If this is the first, just keep it
   if (!join)
   {
@@ -54,7 +52,6 @@ void JoinFilter::accept(FramePtr frame)
 // Pre-tick setup
 void JoinFilter::pre_tick(const TickData&)
 {
-  MT::Lock lock{mutex};
   join.reset();
 }
 
@@ -62,7 +59,6 @@ void JoinFilter::pre_tick(const TickData&)
 // Post-tick flush
 void JoinFilter::post_tick(const TickData& td)
 {
-  MT::Lock lock{mutex};
   if (!!join)
   {
     // Reset disparate local timebases to our master

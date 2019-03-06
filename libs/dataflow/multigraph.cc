@@ -18,7 +18,10 @@ void MultiGraph::configure(const File::Directory& base_dir,
 {
   // Set the optional thread pool
   if (!config.get_attr("thread-pool").empty())
+  {
     thread_pool = engine.get_service<ThreadPool>("thread-pool");
+    thread_serialiser.reset(new ThreadSerialiser{});
+  }
 
   // Load all <graph> elements in config
   for(const auto& p: config.get_children("graph"))
@@ -50,8 +53,17 @@ Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
 void MultiGraph::attach_to_all(Acceptor *a)
 {
   MT::RWReadLock lock(mutex);
-  for(const auto it: subgraphs)
-    it->attach(a);
+  if (thread_serialiser)
+  {
+    thread_serialiser->attach(a);
+    for(const auto it: subgraphs)
+      it->attach(thread_serialiser.get());
+  }
+  else
+  {
+    for(const auto it: subgraphs)
+      it->attach(a);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -59,8 +71,17 @@ void MultiGraph::attach_to_all(Acceptor *a)
 void MultiGraph::attach_to_all(Element *el)
 {
   MT::RWReadLock lock(mutex);
-  for(const auto it: subgraphs)
-    it->attach(el);
+  if (thread_serialiser)
+  {
+    thread_serialiser->attach(el);
+    for(const auto it: subgraphs)
+      it->attach(thread_serialiser.get());
+  }
+  else
+  {
+    for(const auto it: subgraphs)
+      it->attach(el);
+  }
 }
 
 //------------------------------------------------------------------------

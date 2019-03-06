@@ -641,7 +641,41 @@ class MultiGraph
   vector<shared_ptr<Graph> > subgraphs;          // Owning
   map<string, Graph *> subgraphs_by_id;          // Not owning
   int id_serial{0};
+
+  // Serialiser for accepts when using thread pool
+  class ThreadSerialiser: public Acceptor
+  {
+  private:
+    MT::Mutex mutex;
+    Acceptor *external_acceptor = nullptr;
+
+  public:
+    //----------------------------------------------------------------------
+    // Accept data
+    void accept(DataPtr data)
+    {
+      MT::Lock lock{mutex};
+      if (external_acceptor)
+        external_acceptor->accept(data);
+    }
+
+    //----------------------------------------------------------------------
+    // Attach a pure Acceptor (for testing only)
+    void attach(Acceptor *a)
+    {
+      external_acceptor = a;
+    }
+
+    //----------------------------------------------------------------------
+    // Attach an Acceptor Element
+    void attach(Element *el)
+    {
+      external_acceptor = dynamic_cast<Acceptor *>(el);
+    }
+  };
+
   shared_ptr<ThreadPool> thread_pool;
+  unique_ptr<ThreadSerialiser> thread_serialiser;
 
  public:
   //------------------------------------------------------------------------

@@ -64,6 +64,61 @@ Module TestSourceModule
 Registry::NewFactory<TestSource> TestSourceFactory;
 
 //==========================================================================
+// Test Subgraph
+class TestSubgraph: public Source
+{
+  unique_ptr<Graph> subgraph;
+
+ public:
+  // Construct
+  TestSubgraph(const Module *module, const XML::Element& config):
+    Element(module, config), Source(module, config)
+  {
+  }
+
+  // Configure
+  void configure(const File::Directory& base_dir,
+                 const XML::Element& config) override
+  {
+    subgraph.reset(new Graph(graph->get_engine()));
+    subgraph->configure(base_dir, config);
+  }
+
+  void attach(Dataflow::Acceptor *acceptor) override
+  {
+    subgraph->attach(acceptor);
+  }
+
+  void tick(const TickData& td) override
+  {
+    subgraph->tick(td);
+  }
+
+  JSON::Value get_json() const override
+  {
+    JSON::Value value = Element::get_json();
+    value.set("elements", subgraph->get_json());
+    return value;
+  }
+
+  // Shutdown
+  void shutdown() override
+  {
+    subgraph->shutdown();
+  }
+};
+
+Module TestSubgraphModule
+{
+  "test-subgraph", "", "", "test",
+  {},
+  {}, // no inputs
+  { "any" }
+};
+
+Registry::NewFactory<TestSubgraph> TestSubgraphFactory;
+
+//==========================================================================
 // Test Filter
 class TestFilter: public Filter
 {
@@ -156,6 +211,7 @@ Engine engine;
 void register_elements()
 {
   engine.element_registry.add(TestSourceModule, TestSourceFactory);
+  engine.element_registry.add(TestSubgraphModule, TestSubgraphFactory);
   engine.element_registry.add(TestFilterModule, TestFilterFactory);
   engine.element_registry.add(TestSinkModule, TestSinkFactory);
 }

@@ -20,6 +20,7 @@
 #include "ot-text.h"
 #include "ot-time.h"
 #include "ot-file.h"
+#include "ot-json.h"
 
 namespace ViGraph { namespace Dataflow {
 
@@ -332,6 +333,9 @@ public:
   // with the given property name
   virtual void notify_target_of(Element */*e*/, const string& /*prop*/) {}
 
+  // Get state as JSON
+  virtual JSON::Value get_json() const;
+
   // Set a control value
   virtual void set_property(const string& property, const SetParams&)
   { throw runtime_error("No such property "+property+" on element "+id); }
@@ -477,7 +481,7 @@ private:
 class Graph
 {
   Engine& engine;
-  MT::RWMutex mutex;
+  mutable MT::RWMutex mutex;
   map<string, shared_ptr<Element> > elements;   // By ID
 
   // Source
@@ -597,6 +601,10 @@ class Graph
   //------------------------------------------------------------------------
   // Get a particular element by ID
   Element *get_element(const string& id);
+
+  //------------------------------------------------------------------------
+  // Get state as a JSON array of elements
+  JSON::Value get_json() const;
 
   //------------------------------------------------------------------------
   // Does this require an update? (i.e. there is a new config)

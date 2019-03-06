@@ -61,6 +61,15 @@ TEST(ElementTest, TestElementControlUpdateIncrementSetting)
   EXPECT_DOUBLE_EQ(1.5, e.x);
 }
 
+TEST(ElementTest, TestElementGetJSON)
+{
+  XML::Element xml("element", "id", "foo");
+  TestElement e(xml);
+  JSON::Value value = e.get_json();
+  ASSERT_EQ(JSON::Value::Type::OBJECT, value.type);
+  ASSERT_EQ("foo", value["id"].as_str());
+}
+
 } // anonymous namespace
 
 int main(int argc, char **argv)

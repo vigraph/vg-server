@@ -20,9 +20,11 @@ class AmplitudeFilter: public FragmentFilter, public Dataflow::Control
 {
   double scale{1.0};
   double offset{0.0};
+  double amplitude{0.0};
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
+  void pre_tick(const TickData& td) override;
 
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
@@ -58,7 +60,7 @@ void AmplitudeFilter::set_property(const string& property,
 // Process some data
 void AmplitudeFilter::accept(FragmentPtr fragment)
 {
-  auto ssum = 0.0;
+  auto ssum = 0.0l;
   auto samples = 0ul;
   for (const auto& wit: fragment->waveforms)
   {
@@ -66,9 +68,15 @@ void AmplitudeFilter::accept(FragmentPtr fragment)
       ssum += s * s;
     samples += wit.second.size();
   }
-  const auto rms = sqrt(ssum / samples);
-  Control::send(SetParams{Dataflow::Value{rms * scale + offset}});
+  amplitude = sqrt(ssum / samples);
   Generator::send(fragment);
+}
+
+//--------------------------------------------------------------------------
+// Send latest reading
+void AmplitudeFilter::pre_tick(const TickData&)
+{
+  Control::send(SetParams{Dataflow::Value{amplitude * scale + offset}});
 }
 
 //--------------------------------------------------------------------------

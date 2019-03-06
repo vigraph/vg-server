@@ -354,7 +354,7 @@ public:
   virtual void pre_tick(const TickData&) {}
 
   // Tick
-  virtual void tick(const TickData&) {};
+  virtual void tick(const TickData&) {}
 
   // Notify of a tick just ended
   virtual void post_tick(const TickData&) {}
@@ -416,7 +416,7 @@ class Filter: public Generator, public Acceptor
 // Initial source - Generator with a tick()
 class Source: public Generator
 {
- public:
+public:
   using Generator::Generator;
 };
 
@@ -446,6 +446,12 @@ class Control: virtual public Element
     map<string, Property> properties;  // Our name -> property name/type
     Element *element{nullptr};
   };
+
+private:
+  // Hide these tick calls because Controls should do all their work in the
+  // pre-tick phase
+  void tick(const TickData&) final {}
+  void post_tick(const TickData&) final {}
 
  protected:
   XML::Element config;

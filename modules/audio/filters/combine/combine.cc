@@ -80,8 +80,13 @@ void CombineFilter::accept(FragmentPtr fragment)
       else
       {
         auto& cw = cwit->second;
-        cw.resize(max(cw.size(), w.size()));
-        for (auto i = 0u; i < cw.size(); ++i)
+        const auto cl = cw.size();
+        if (w.size() > cl)
+        {
+          cw.resize(w.size());
+          copy(&w[cl], &w[w.size() - cl], &cw[cl]);
+        }
+        for (auto i = 0u; i < min(cl, w.size()); ++i)
         {
           switch (mode)
           {

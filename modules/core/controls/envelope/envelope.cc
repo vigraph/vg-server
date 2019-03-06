@@ -37,7 +37,7 @@ class EnvelopeControl: public Dataflow::Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
   void enable() override;
 
 public:
@@ -104,7 +104,7 @@ void EnvelopeControl::enable()
 
 //--------------------------------------------------------------------------
 // Tick
-void EnvelopeControl::tick(const TickData& td)
+void EnvelopeControl::pre_tick(const TickData& td)
 {
   // Check for state change
   if (state_changed)

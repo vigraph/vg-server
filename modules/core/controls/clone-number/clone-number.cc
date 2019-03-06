@@ -17,7 +17,7 @@ namespace {
 class CloneNumberControl: public Dataflow::Control
 {
   // Control virtuals
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
 
 public:
   // Construct
@@ -35,7 +35,7 @@ CloneNumberControl::CloneNumberControl(const Module *module,
 
 //--------------------------------------------------------------------------
 // Tick
-void CloneNumberControl::tick(const TickData& /*td*/)
+void CloneNumberControl::pre_tick(const TickData& /*td*/)
 {
   Value v = graph->get_variable("clone-number");
   if (v.type != Value::Type::invalid)

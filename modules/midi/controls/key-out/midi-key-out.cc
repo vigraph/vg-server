@@ -33,7 +33,7 @@ class MIDIKeyOutControl: public Dataflow::Control
   void set_property(const string& property, const SetParams& sp) override;
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
   void enable() override;
 
@@ -148,7 +148,7 @@ void MIDIKeyOutControl::enable()
 
 //--------------------------------------------------------------------------
 // Tick
-void MIDIKeyOutControl::tick(const TickData& /*td*/)
+void MIDIKeyOutControl::pre_tick(const TickData& /*td*/)
 {
   if (wait)
   {

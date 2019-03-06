@@ -21,7 +21,7 @@ class CloneFractionControl: public Dataflow::Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
 
 public:
   // Construct
@@ -52,7 +52,7 @@ void CloneFractionControl::set_property(const string& property,
 
 //--------------------------------------------------------------------------
 // Tick
-void CloneFractionControl::tick(const TickData& /*td*/)
+void CloneFractionControl::pre_tick(const TickData& /*td*/)
 {
   Value v = graph->get_variable("clone-fraction");
   if (v.type != Value::Type::invalid)

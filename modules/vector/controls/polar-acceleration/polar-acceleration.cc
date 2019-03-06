@@ -23,7 +23,7 @@ class PolarAccelerationControl: public Dataflow::Control
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
 
 public:
   // Construct
@@ -55,7 +55,7 @@ void PolarAccelerationControl::set_property(const string& property,
 
 //--------------------------------------------------------------------------
 // Tick
-void PolarAccelerationControl::tick(const TickData& td)
+void PolarAccelerationControl::pre_tick(const TickData& td)
 {
   if (last_tick >= 0.0)
   {

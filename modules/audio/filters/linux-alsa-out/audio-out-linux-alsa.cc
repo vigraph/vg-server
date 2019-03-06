@@ -168,25 +168,19 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
 
   // Build an interleaved output buffer
   output_buffer.resize(num_samples * nchannels);
+  fill(output_buffer.begin(), output_buffer.end(), 0.0);
   auto wit = waveforms.begin();
   for (auto i = 0u; i < nchannels; ++i)
   {
-    if (wit != waveforms.end())
+    if (wit == waveforms.end())
+      break;
+    for (auto s = 0ul; s < num_samples; ++s)
     {
-      for (auto s = 0ul; s < num_samples; ++s)
-      {
-        if (s < wit->second.size())
-          output_buffer[s * nchannels + i] = wit->second[s];
-        else
-          output_buffer[s * nchannels + i] = 0.0;
-      }
-      ++wit;
+      if (s >= wit->second.size())
+        break;
+      output_buffer[s * nchannels + i] = wit->second[s];
     }
-    else
-    {
-      for (auto s = 0ul; s < num_samples; ++s)
-        output_buffer[s * nchannels + i] = 0.0;
-    }
+    ++wit;
   }
 
   // Try and write the samples

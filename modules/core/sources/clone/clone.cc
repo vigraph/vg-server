@@ -109,7 +109,7 @@ Dataflow::Module module
     { "n", { { "Number of copies to clone", "1" }, Value::Type::number } }
   },
   {}, // no inputs
-  { "VectorFrame" },
+  { "any" },
   true // container
 };
 

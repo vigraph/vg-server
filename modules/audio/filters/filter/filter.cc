@@ -30,7 +30,7 @@ class FilterFilter: public FragmentFilter
   double feedback = 0.0;
   unsigned steepness = 1;
 
-  map<Speaker, vector<double>> buff; // Vector of buffers per speaker
+  map<Speaker, vector<sample_t>> buffers; // Vector of buffers per speaker
 
   void update_feedback()
   {
@@ -67,7 +67,7 @@ FilterFilter::FilterFilter(const Dataflow::Module *module,
 
   cutoff = min(max(config.get_attr_real("cutoff", 1.0), 0.0), 1.0);
   resonance = min(max(config.get_attr_real("cutoff", 1.0), 0.0), 1.0);
-  steepness = config.get_attr_int("steepness", steepness);
+  steepness = max(config.get_attr_int("steepness", steepness), 1);
 }
 
 //--------------------------------------------------------------------------
@@ -79,7 +79,7 @@ void FilterFilter::set_property(const string& property, const SetParams& sp)
   else if (property == "steepness")
   {
     steepness = max(sp.v.d, 1.0);
-    for (auto& bit: buff)
+    for (auto& bit: buffers)
     {
       bit.second.resize(steepness + 1);
     }
@@ -98,11 +98,10 @@ void FilterFilter::accept(FragmentPtr fragment)
     const auto c = wit.first;
     auto& w = wit.second;
 
-    auto bit = buff.find(c);
-    if (bit == buff.end())
+    auto bit = buffers.find(c);
+    if (bit == buffers.end())
     {
-      bit = buff.emplace().first;
-      bit->second.resize(steepness + 1);
+      bit = buffers.emplace(c, vector<sample_t>(steepness + 1)).first;
     }
     auto& bf = bit->second;
 

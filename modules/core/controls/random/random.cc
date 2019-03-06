@@ -28,7 +28,7 @@ class RandomControl: public Dataflow::Control
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void enable() override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
@@ -78,7 +78,7 @@ void RandomControl::enable()
 
 //--------------------------------------------------------------------------
 // Tick
-void RandomControl::tick(const TickData& /*td*/)
+void RandomControl::pre_tick(const TickData& /*td*/)
 {
   if (wait)
   {

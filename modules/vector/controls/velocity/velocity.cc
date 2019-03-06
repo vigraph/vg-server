@@ -25,7 +25,7 @@ class VelocityControl: public Dataflow::Control
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
   void enable() override;
 
 public:
@@ -78,7 +78,7 @@ void VelocityControl::enable()
 
 //--------------------------------------------------------------------------
 // Tick
-void VelocityControl::tick(const TickData& td)
+void VelocityControl::pre_tick(const TickData& td)
 {
   if (wait)
   {

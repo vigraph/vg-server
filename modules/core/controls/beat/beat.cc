@@ -25,7 +25,7 @@ class BeatControl: public Dataflow::Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
@@ -86,7 +86,7 @@ void BeatControl::set_property(const string& property, const SetParams& sp)
 
 //--------------------------------------------------------------------------
 // Tick
-void BeatControl::tick(const TickData& td)
+void BeatControl::pre_tick(const TickData& td)
 {
   if (!active) return;
 

@@ -19,7 +19,7 @@ TEST(VelocityTest, TestZeroVelocityDoesNothing)
     </graph>
   )";
 
-  FrameGenerator gen(xml, loader);
+  FrameGenerator gen(xml, loader, 2);
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
@@ -44,7 +44,7 @@ TEST(VelocityTest, TestMovement)
     </graph>
   )";
 
-  FrameGenerator gen(xml, loader);
+  FrameGenerator gen(xml, loader, 2);
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
@@ -72,7 +72,7 @@ TEST(VelocityTest, TestSetVelocity)
     </graph>
   )";
 
-  FrameGenerator gen(xml, loader);
+  FrameGenerator gen(xml, loader, 2);
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
@@ -101,7 +101,7 @@ TEST(VelocityTest, TestSetVelocityWithMax)
     </graph>
   )";
 
-  FrameGenerator gen(xml, loader);
+  FrameGenerator gen(xml, loader, 2);
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 

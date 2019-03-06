@@ -46,7 +46,7 @@ class LFOControl: public Dataflow::Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
   void enable() override;
 
 public:
@@ -118,7 +118,7 @@ void LFOControl::enable()
 
 //--------------------------------------------------------------------------
 // Tick
-void LFOControl::tick(const TickData& td)
+void LFOControl::pre_tick(const TickData& td)
 {
   auto t = td.t;
 

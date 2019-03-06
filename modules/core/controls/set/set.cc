@@ -26,7 +26,7 @@ class SetControl: public Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
   void enable() override;
 
@@ -82,7 +82,7 @@ void SetControl::enable()
 
 //--------------------------------------------------------------------------
 // Tick
-void SetControl::tick(const TickData& /*td*/)
+void SetControl::pre_tick(const TickData& /*td*/)
 {
   if (wait)
   {

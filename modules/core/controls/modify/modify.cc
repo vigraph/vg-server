@@ -27,7 +27,7 @@ class ModifyControl: public Dataflow::Control
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
@@ -66,7 +66,7 @@ void ModifyControl::set_property(const string& property, const SetParams& sp)
 
 //--------------------------------------------------------------------------
 // Tick
-void ModifyControl::tick(const TickData& /*td*/)
+void ModifyControl::pre_tick(const TickData& /*td*/)
 {
   if (wait)
   {

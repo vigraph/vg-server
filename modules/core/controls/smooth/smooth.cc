@@ -40,7 +40,7 @@ SmoothControl::SmoothControl(const Module *module, const XML::Element& config):
   Element(module, config), Control(module, config)
 {
   property = config["property"];
-  rc = config.get_attr_real("time", rc);
+  rc = fabs(config.get_attr_real("time", rc));
 }
 
 //--------------------------------------------------------------------------
@@ -56,19 +56,25 @@ void SmoothControl::set_property(const string& prop, const SetParams& sp)
 {
   if (prop == property)
   {
-    // Smooth the value and pass on
-    const auto dt = tick_interval.seconds();
-    const auto div = rc + dt;
-    if (!div)
-      return;
-    const auto a =  dt / div;
-    value = a * sp.v.d + (1 - a) * value;
-    SetParams nsp(Dataflow::Value{value});
-    send(nsp);
+    if (rc)
+    {
+      // Smooth the value and pass on
+      const auto dt = tick_interval.seconds();
+      const auto div = rc + dt;
+      const auto a =  dt / div;
+      value = a * sp.v.d + (1 - a) * value;
+      SetParams nsp(Dataflow::Value{value});
+      send(nsp);
+    }
+    else
+    {
+      value = sp.v.d;
+      send(sp);
+    }
   }
   else if (prop == "time")
   {
-    update_prop(rc, sp);
+    rc = fabs(sp.v.d);
   }
 }
 

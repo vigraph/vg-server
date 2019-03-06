@@ -38,7 +38,7 @@ class MIDIInterface: public Dataflow::Control,
 
   // Control virtuals
   void configure(const File::Directory&, const XML::Element& config) override;
-  void tick(const TickData& td) override;
+  void pre_tick(const TickData& td) override;
   void shutdown() override;
 
   // Event observer implementation
@@ -159,7 +159,7 @@ void MIDIInterface::run()
 
 //--------------------------------------------------------------------------
 // Tick
-void MIDIInterface::tick(const TickData&)
+void MIDIInterface::pre_tick(const TickData&)
 {
   for(;;)
   {

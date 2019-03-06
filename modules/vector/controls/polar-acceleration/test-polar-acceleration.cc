@@ -20,7 +20,7 @@ TEST(PolarAccelerationTest, TestZeroAccelerationDoesNothing)
     </graph>
   )";
 
-  FrameGenerator gen(xml, loader);
+  FrameGenerator gen(xml, loader, 2);
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
@@ -46,7 +46,7 @@ TEST(PolarAccelerationTest, TestAccelerationRight)
     </graph>
   )";
 
-  FrameGenerator gen(xml, loader);
+  FrameGenerator gen(xml, loader, 2);
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
@@ -72,7 +72,7 @@ TEST(PolarAccelerationTest, TestAccelerationUp)
     </graph>
   )";
 
-  FrameGenerator gen(xml, loader);
+  FrameGenerator gen(xml, loader, 2);
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 

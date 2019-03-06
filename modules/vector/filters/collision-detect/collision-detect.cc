@@ -20,6 +20,7 @@ class CollisionDetectFilter: public FrameFilter, public Dataflow::Control,
 {
   string group_name;
   shared_ptr<CollisionDetector> detector;
+  unsigned long tick_collisions = 0;
 
   // Filter/Element virtuals
   void configure(const File::Directory& base_dir,
@@ -28,6 +29,9 @@ class CollisionDetectFilter: public FrameFilter, public Dataflow::Control,
 
   // CollisionObserver virtual
   void collided() override;
+
+  // Control virtuals
+  void pre_tick(const TickData& td) override;
 
 public:
   // Construct
@@ -70,7 +74,18 @@ void CollisionDetectFilter::accept(FramePtr frame)
 // Handle a collision
 void CollisionDetectFilter::collided()
 {
-  Control::send(SetParams{Dataflow::Value{}});  // trigger
+  ++tick_collisions;
+}
+
+//--------------------------------------------------------------------------
+// Send any collisions
+void CollisionDetectFilter::pre_tick(const TickData&)
+{
+  while (tick_collisions)
+  {
+    Control::send(SetParams{Dataflow::Value{}});  // trigger
+    --tick_collisions;
+  }
 }
 
 //--------------------------------------------------------------------------

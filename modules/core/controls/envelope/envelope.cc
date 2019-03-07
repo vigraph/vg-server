@@ -18,7 +18,7 @@ class EnvelopeControl: public Dataflow::Control
   // Configured state
   timestamp_t attack{0.0};   // Time for attack
   timestamp_t decay{0.0};    // Time for decay
-  double sustain{1.0};       // Time to sustain
+  double sustain{1.0};       // Value to sustain at
   timestamp_t release{0.0};  // Time to release
 
   // Dynamic state
@@ -28,7 +28,8 @@ class EnvelopeControl: public Dataflow::Control
     attack,
     decay,
     sustain,
-    release
+    release,
+    complete
   } state = State::off;
   bool state_changed{false};
   timestamp_t state_changed_time{0};
@@ -68,6 +69,7 @@ void EnvelopeControl::set_property(const string& property, const SetParams& sp)
   {
     state = State::attack;  // Note whatever previous state was, to restart
     state_changed = true;
+    send("trigger", Dataflow::Value{});
   }
   else if (property == "clear")
   {
@@ -78,6 +80,8 @@ void EnvelopeControl::set_property(const string& property, const SetParams& sp)
       case State::sustain:
         state = State::release;
         state_changed = true;
+        // In case of immediate attack before next tick
+        attack_start_value = release_start_value;
         break;
 
       default:;
@@ -118,8 +122,8 @@ void EnvelopeControl::pre_tick(const TickData& td)
   switch (state)
   {
     case State::off:
-      attack_start_value = value = 0;
-    break;
+      attack_start_value = release_start_value = value = 0;
+      return;
 
     case State::attack:
       if (delta >= attack)
@@ -159,7 +163,7 @@ void EnvelopeControl::pre_tick(const TickData& td)
       if (delta >= release)
       {
         value = 0;
-        state = State::off;
+        state = State::complete;
         state_changed_time = td.t;
       }
       else
@@ -168,9 +172,14 @@ void EnvelopeControl::pre_tick(const TickData& td)
       }
       attack_start_value = value;
     break;
+
+    case State::complete:
+      send("clear", Dataflow::Value{});
+      state = State::off;
+      return;
   }
 
-  send(Dataflow::Value{value});
+  send("", Dataflow::Value{value});
 }
 
 //--------------------------------------------------------------------------
@@ -189,7 +198,11 @@ Dataflow::Module module
     { "trigger", { "Trigger to start attack", Value::Type::trigger, true } },
     { "clear",   { "Trigger to start release", Value::Type::trigger, true } }
   },
-  { { "", { "Envelope value", "", Value::Type::number }}}
+  {
+    { "", { "Envelope value", "", Value::Type::number }},
+    { "trigger", { "Envelope started", "trigger", Value::Type::trigger } },
+    { "clear",   { "Envelope complete", "clear", Value::Type::trigger } }
+  }
 };
 
 } // anon

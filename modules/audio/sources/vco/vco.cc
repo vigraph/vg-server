@@ -32,6 +32,8 @@ class VCOSource: public Source
   Waveform waveform;
   double freq;  // Hz
   bool enabled = true;
+  bool need_start_td = false;
+  TickData start_td;
 
   // Parse waveform name
   bool parse_waveform(const string& name, Waveform& waveform);
@@ -102,11 +104,22 @@ void VCOSource::set_property(const string& property, const SetParams& sp)
     parse_waveform(sp.v.s, waveform);
   else if (property == "on")
   {
+    const auto f = MIDI::get_midi_frequency(sp.v.d);
+    if (!(enabled && freq == f))
+      need_start_td = true;
     enabled = true;
-    freq = MIDI::get_midi_frequency(sp.v.d);
+    freq = f;
   }
-  else if (property == "off")
+  else if (property == "trigger")
+  {
+    if (!enabled)
+      need_start_td = true;
+    enabled = true;
+  }
+  else if (property == "off" || property == "clear")
+  {
     enabled = false;
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -123,11 +136,16 @@ void VCOSource::tick(const TickData& td)
 {
   if (enabled)
   {
+    if (need_start_td)
+    {
+      start_td = td;
+      need_start_td = false;
+    }
     const auto nsamples = td.samples(sample_rate);
     auto fragment = new Fragment(td.t);  // mono
     auto& samples = fragment->waveforms[Speaker::front_center];
     samples.resize(nsamples);
-    auto theta = freq * td.sample_pos(sample_rate) / sample_rate;
+    auto theta = freq * td.sample_pos(sample_rate, start_td) / sample_rate;
     theta -= floor(theta); // Wrap to 0..1
     for (auto i=0u; i<nsamples; i++)
     {
@@ -183,6 +201,8 @@ Dataflow::Module module
                  Value::Type::text, "@wave", true } },
     { "on", { "Note on", Value::Type::number, "@on", true }},
     { "off", { "Note off", Value::Type::number, "@off", true }},
+    { "trigger", { "Trigger on", Value::Type::trigger, true }},
+    { "clear", { "Trigger off", Value::Type::trigger, true }},
   },
   {},  // no inputs
   { "Audio" }  // outputs

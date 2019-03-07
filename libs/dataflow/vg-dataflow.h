@@ -43,6 +43,7 @@ struct TickData
   uint64_t global_n = 0;      // Absolute tick number
 
   // Constructors
+  TickData() {}
   TickData(timestamp_t _t, uint64_t _n, const Time::Duration& _interval):
     t{_t}, n{_n}, interval{_interval}, global_t{_t}, global_n{_n}
   {}
@@ -70,6 +71,17 @@ struct TickData
       floor(interval.seconds() * (global_n) * sample_rate));
     const auto first_local_tick_total = static_cast<uint64_t>(
       floor(interval.seconds() * (global_n - n) * sample_rate));
+    return last_tick_total - first_local_tick_total;
+  }
+
+  //------------------------------------------------------------------------
+  // Get the current sample position based on a start-of-time TickData
+  uint64_t sample_pos(double sample_rate, const TickData &start_td) const
+  {
+    const auto last_tick_total = static_cast<uint64_t>(
+      floor(interval.seconds() * (global_n) * sample_rate));
+    const auto first_local_tick_total = static_cast<uint64_t>(
+      floor(interval.seconds() * start_td.global_n * sample_rate));
     return last_tick_total - first_local_tick_total;
   }
 };

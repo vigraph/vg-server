@@ -19,7 +19,7 @@ TEST(AmplitudeTest, TestNoWaveform)
     <graph>
       <vco/>
       <amplitude property="gain"/>
-      <attenuator gain="1.0"/>
+      <attenuator gain="1.0" interpolate="false"/>
     </graph>
   )";
 
@@ -41,7 +41,7 @@ TEST(AmplitudeTest, TestSquareWave)
     <graph>
       <vco wave="square" freq="1"/>
       <amplitude target="a" property="gain"/>
-      <attenuator id="a" gain="0.0"/>
+      <attenuator id="a" gain="0.0" interpolate="false"/>
     </graph>
   )";
 

@@ -29,6 +29,7 @@ class FilterFilter: public FragmentFilter
   double resonance = 1.0;
   double feedback = 0.0;
   unsigned steepness = 1;
+  bool enabled = true;
 
   map<Speaker, vector<sample_t>> buffers; // Vector of buffers per speaker
 
@@ -40,6 +41,7 @@ class FilterFilter: public FragmentFilter
   // Source/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void accept(FragmentPtr fragment) override;
+  void notify_target_of(Element *, const string& property) override;
 
 public:
   FilterFilter(const Dataflow::Module *module, const XML::Element& config);
@@ -55,9 +57,9 @@ FilterFilter::FilterFilter(const Dataflow::Module *module,
   const string& m = config["mode"];
   if (m.empty() || m == "low-pass")
     mode = Mode::low_pass;
-  else if (m == "high_pass")
+  else if (m == "high-pass")
     mode = Mode::high_pass;
-  else if (m == "band_pass")
+  else if (m == "band-pass")
     mode = Mode::band_pass;
   else
   {
@@ -86,6 +88,13 @@ void FilterFilter::set_property(const string& property, const SetParams& sp)
   }
   else if (property == "resonance")
     update_prop(resonance, sp);
+  else if (property == "trigger")
+    enabled = true;
+  else if (property == "clear")
+  {
+    enabled = false;
+    buffers.clear();
+  }
   update_feedback();
 }
 
@@ -93,43 +102,54 @@ void FilterFilter::set_property(const string& property, const SetParams& sp)
 // Process some data
 void FilterFilter::accept(FragmentPtr fragment)
 {
-  for (auto& wit: fragment->waveforms)
+  if (enabled)
   {
-    const auto c = wit.first;
-    auto& w = wit.second;
-
-    auto bit = buffers.find(c);
-    if (bit == buffers.end())
+    for (auto& wit: fragment->waveforms)
     {
-      bit = buffers.emplace(c, vector<sample_t>(steepness + 1)).first;
-    }
-    auto& bf = bit->second;
+      const auto c = wit.first;
+      auto& w = wit.second;
 
-    for (auto i = 0u; i < w.size(); ++i)
-    {
-      for (auto b = 0u; b < bf.size(); ++b)
+      auto bit = buffers.find(c);
+      if (bit == buffers.end())
       {
-        if (!b)
-          bf[b] += cutoff * (w[i] - bf[b] + feedback * (bf[b] - bf[b + 1]));
-        else
-          bf[b] += cutoff * (bf[b - 1] - bf[b]);
+        bit = buffers.emplace(c, vector<sample_t>(steepness + 1)).first;
       }
-      switch (mode)
+      auto& bf = bit->second;
+
+      for (auto i = 0u; i < w.size(); ++i)
       {
-        case Mode::low_pass:
-          w[i] = bf.back();
-          break;
-        case Mode::high_pass:
-          w[i] = w[i] - bf.back();
-          break;
-        case Mode::band_pass:
-          w[i] = bf.front() - bf.back();
-          break;
+        for (auto b = 0u; b < bf.size(); ++b)
+        {
+          if (!b)
+            bf[b] += cutoff * (w[i] - bf[b] + feedback * (bf[b] - bf[b + 1]));
+          else
+            bf[b] += cutoff * (bf[b - 1] - bf[b]);
+        }
+        switch (mode)
+        {
+          case Mode::low_pass:
+            w[i] = bf.back();
+            break;
+          case Mode::high_pass:
+            w[i] = w[i] - bf.back();
+            break;
+          case Mode::band_pass:
+            w[i] = bf.front() - bf.back();
+            break;
+        }
       }
     }
   }
 
   send(fragment);
+}
+
+//--------------------------------------------------------------------------
+// If recipient of triggers default to disabled
+void FilterFilter::notify_target_of(Element *, const string& property)
+{
+  if (property == "trigger")
+    enabled = false;
 }
 
 //--------------------------------------------------------------------------
@@ -146,7 +166,9 @@ Dataflow::Module module
     { "resonance", { {"Resonance level (0-1)", "1"}, Value::Type::number,
                                                      "@resonance", true } },
     { "steepness", { {"Steepness level (1-?)", "1"}, Value::Type::number,
-                                                     "@steepness", true } }
+                                                     "@steepness", true } },
+    { "trigger", { "Trigger on", Value::Type::trigger, true } },
+    { "clear", { "Clear", Value::Type::trigger, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

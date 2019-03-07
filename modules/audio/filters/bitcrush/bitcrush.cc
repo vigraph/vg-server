@@ -26,10 +26,12 @@ class BitCrushFilter: public FragmentFilter
     sample_t last_sample = 0.0;
   };
   map<Speaker, State> state;
+  bool enabled = true;
 
   // Source/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void accept(FragmentPtr fragment) override;
+  void notify_target_of(Element *, const string& property) override;
 
 public:
   BitCrushFilter(const Dataflow::Module *module, const XML::Element& config);
@@ -54,34 +56,49 @@ void BitCrushFilter::set_property(const string& property, const SetParams& sp)
     rate = max(static_cast<int>(sp.v.d), 1);
   else if (property == "bits")
     bits = min(max(static_cast<int>(sp.v.d), 1), 32);
+  else if (property == "trigger")
+    enabled = true;
+  else if (property == "clear")
+    enabled = false;
 }
 
 //--------------------------------------------------------------------------
 // Process some data
 void BitCrushFilter::accept(FragmentPtr fragment)
 {
-  const auto max = pow(2, bits) - 1;
-  for (auto& wit: fragment->waveforms)
+  if (enabled)
   {
-    const auto c = wit.first;
-    auto& w = wit.second;
-
-    auto& st = state[c];
-    for (auto i = 0u; i < w.size(); ++i)
+    const auto max = pow(2, bits) - 1;
+    for (auto& wit: fragment->waveforms)
     {
-      if (st.samples_seen++ % rate)
+      const auto c = wit.first;
+      auto& w = wit.second;
+
+      auto& st = state[c];
+      for (auto i = 0u; i < w.size(); ++i)
       {
-        w[i] = st.last_sample;
-      }
-      else
-      {
-        w[i] = (2.0 * (round(((w[i] + 1.0) * 0.5) * max) / max)) - 1.0;
-        st.last_sample = w[i];
+        if (st.samples_seen++ % rate)
+        {
+          w[i] = st.last_sample;
+        }
+        else
+        {
+          w[i] = (2.0 * (round(((w[i] + 1.0) * 0.5) * max) / max)) - 1.0;
+          st.last_sample = w[i];
+        }
       }
     }
   }
 
   send(fragment);
+}
+
+//--------------------------------------------------------------------------
+// If recipient of triggers default to disabled
+void BitCrushFilter::notify_target_of(Element *, const string& property)
+{
+  if (property == "trigger")
+    enabled = false;
 }
 
 //--------------------------------------------------------------------------
@@ -97,6 +114,8 @@ Dataflow::Module module
                                            "@rate", true } },
     { "bits", { {"Bit depth", "1-32"}, Value::Type::number,
                                        "@bits", true } },
+    { "trigger", { "Trigger on", Value::Type::trigger, true } },
+    { "clear", { "Clear", Value::Type::trigger, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

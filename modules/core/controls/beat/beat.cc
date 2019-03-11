@@ -23,10 +23,14 @@ class BeatControl: public Dataflow::Control
   bool active{true};  // unless cancelled by trigger connection
   Dataflow::timestamp_t last_trigger{-1000000.0};
 
+  // Reset state
+  void reset();
+
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
+  void enable() override { reset(); }
 
 public:
   // Construct
@@ -50,6 +54,13 @@ BeatControl::BeatControl(const Module *module, const XML::Element& config):
 }
 
 //--------------------------------------------------------------------------
+// Reset state
+void BeatControl::reset()
+{
+  last_trigger = -1000000.0;  // restart timebase
+}
+
+//--------------------------------------------------------------------------
 // Automatically clear active flag if we are the start target of something
 void BeatControl::notify_target_of(Element *, const string& property)
 {
@@ -64,7 +75,7 @@ void BeatControl::set_property(const string& property, const SetParams& sp)
   if (property == "start")
   {
     active = true;
-    last_trigger = -1000000.0;  // restart timebase
+    reset();
   }
   else if (property == "stop")
     active = false;

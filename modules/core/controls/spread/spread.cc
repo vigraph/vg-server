@@ -21,8 +21,12 @@ class SpreadControl: public Dataflow::Control
   unique_ptr<Value> last_on;
   bool latch = false;
 
+  // Reset state
+  void reset();
+
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
+  void enable() override { reset(); }
 
 public:
   // Construct
@@ -36,6 +40,17 @@ SpreadControl::SpreadControl(const Module *module, const XML::Element& config):
   Element(module, config), Control(module, config)
 {
   latch = config.get_attr_bool("latch");
+}
+
+//--------------------------------------------------------------------------
+// Reset state of the control
+void SpreadControl::reset()
+{
+  cout << "Reset" << endl;
+  values.clear();
+  capturing.clear();
+  pos = 0;
+  last_on.reset();
 }
 
 //--------------------------------------------------------------------------

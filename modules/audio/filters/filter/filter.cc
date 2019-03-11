@@ -88,9 +88,9 @@ void FilterFilter::set_property(const string& property, const SetParams& sp)
   }
   else if (property == "resonance")
     update_prop(resonance, sp);
-  else if (property == "trigger")
+  else if (property == "enable")
     enabled = true;
-  else if (property == "clear")
+  else if (property == "disable")
   {
     enabled = false;
     buffers.clear();
@@ -148,7 +148,7 @@ void FilterFilter::accept(FragmentPtr fragment)
 // If recipient of triggers default to disabled
 void FilterFilter::notify_target_of(Element *, const string& property)
 {
-  if (property == "trigger")
+  if (property == "enable")
     enabled = false;
 }
 
@@ -167,8 +167,8 @@ Dataflow::Module module
                                                      "@resonance", true } },
     { "steepness", { {"Steepness level (1-?)", "1"}, Value::Type::number,
                                                      "@steepness", true } },
-    { "trigger", { "Trigger on", Value::Type::trigger, true } },
-    { "clear", { "Clear", Value::Type::trigger, true } },
+    { "enable", { "Enable the filter", Value::Type::trigger, true } },
+    { "disable", { "Disable the filter", Value::Type::trigger, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

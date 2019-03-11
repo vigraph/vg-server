@@ -52,9 +52,9 @@ void ShiftFilter::set_property(const string& property, const SetParams& sp)
     for (auto &st: sound_touch)
       st.second.setPitchSemiTones(pitch);
   }
-  else if (property == "trigger")
+  else if (property == "enable")
     enabled = true;
-  else if (property == "clear")
+  else if (property == "disable")
   {
     enabled = false;
     sound_touch.clear();
@@ -116,7 +116,7 @@ void ShiftFilter::accept(FragmentPtr fragment)
 // If recipient of triggers default to disabled
 void ShiftFilter::notify_target_of(Element *, const string& property)
 {
-  if (property == "trigger")
+  if (property == "enable")
     enabled = false;
 }
 
@@ -131,8 +131,8 @@ Dataflow::Module module
   {
     { "pitch", { {"Pitch semi tones (-60 to +60", "0"}, Value::Type::number,
                                                         "@pitch", true } },
-    { "trigger", { "Trigger on", Value::Type::trigger, true } },
-    { "clear", { "Clear", Value::Type::trigger, true } },
+    { "enable", { "Enable the filter", Value::Type::trigger, true } },
+    { "disable", { "Disable the filter", Value::Type::trigger, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

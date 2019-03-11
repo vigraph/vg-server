@@ -56,9 +56,9 @@ void BitCrushFilter::set_property(const string& property, const SetParams& sp)
     rate = max(static_cast<int>(sp.v.d), 1);
   else if (property == "bits")
     bits = min(max(static_cast<int>(sp.v.d), 1), 32);
-  else if (property == "trigger")
+  else if (property == "enable")
     enabled = true;
-  else if (property == "clear")
+  else if (property == "disable")
     enabled = false;
 }
 
@@ -97,7 +97,7 @@ void BitCrushFilter::accept(FragmentPtr fragment)
 // If recipient of triggers default to disabled
 void BitCrushFilter::notify_target_of(Element *, const string& property)
 {
-  if (property == "trigger")
+  if (property == "enable")
     enabled = false;
 }
 
@@ -114,8 +114,8 @@ Dataflow::Module module
                                            "@rate", true } },
     { "bits", { {"Bit depth", "1-32"}, Value::Type::number,
                                        "@bits", true } },
-    { "trigger", { "Trigger on", Value::Type::trigger, true } },
-    { "clear", { "Clear", Value::Type::trigger, true } },
+    { "enable", { "Enable the filter", Value::Type::trigger, true } },
+    { "disable", { "Disable the filter", Value::Type::trigger, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

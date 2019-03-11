@@ -46,7 +46,6 @@ SpreadControl::SpreadControl(const Module *module, const XML::Element& config):
 // Reset state of the control
 void SpreadControl::reset()
 {
-  cout << "Reset" << endl;
   values.clear();
   capturing.clear();
   pos = 0;

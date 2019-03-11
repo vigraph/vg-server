@@ -133,7 +133,7 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
 
   if (!note || event.key == note)
   {
-    log << "MIDI " << (int)event.channel << ": key " << (int)event.key
+    log << "MIDI IN " << (int)event.channel << ": key " << (int)event.key
         << " " << (is_on?"ON":"OFF") << " @" << event.value << endl;
   }
 

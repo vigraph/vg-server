@@ -106,6 +106,9 @@ void MIDIKeyOutControl::set_property(const string& property,
   {
     if (distributor)
     {
+      Log::Detail log;
+      log << "MIDI OUT " << (int)channel << ": key " << (int)note
+          << " ON @" << (int)velocity << endl;
       auto event = MIDI::Event{MIDI::Event::Direction::out,
                                MIDI::Event::Type::note_on,
                                channel, note, velocity};
@@ -116,6 +119,9 @@ void MIDIKeyOutControl::set_property(const string& property,
   {
     if (distributor)
     {
+      Log::Detail log;
+      log << "MIDI OUT " << (int)channel << ": key " << (int)note
+          << " OFF @" << (int)velocity << endl;
       auto event = MIDI::Event{MIDI::Event::Direction::out,
                                MIDI::Event::Type::note_off,
                                channel, note, velocity};
@@ -130,6 +136,9 @@ void MIDIKeyOutControl::set_property(const string& property,
       if (sp.v.type == Value::Type::text)
         n = MIDI::get_midi_note(sp.v.s);
       const auto on = property == "on";
+      Log::Detail log;
+      log << "MIDI OUT " << (int)channel << ": key " << (int)note
+          << " " << (on ? "ON" : "OFF") << " @" << (int)velocity << endl;
       auto event = MIDI::Event{MIDI::Event::Direction::out,
                                on ? MIDI::Event::Type::note_on
                                   : MIDI::Event::Type::note_off,

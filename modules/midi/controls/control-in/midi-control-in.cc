@@ -25,6 +25,7 @@ class MIDIControlInControl: public Dataflow::Control,
   int number{0};
   double scale{1.0};
   double offset{0.0};
+  bool enabled = false;
 
   // Control virtuals
   void configure(const File::Directory& base_dir,
@@ -35,6 +36,7 @@ class MIDIControlInControl: public Dataflow::Control,
   void handle(const ViGraph::MIDI::Event& event) override;
   void enable() override;
   void disable() override;
+  void notify_target_of(Element *, const string& property) override;
 
 public:
   // Construct
@@ -79,23 +81,28 @@ void MIDIControlInControl::set_property(const string& property,
     update_prop(scale, sp);
   else if (property == "offset")
     update_prop(offset, sp);
+  else if (property == "enable")
+    enable();
+  else if (property == "disable")
+    disable();
 }
 
 //--------------------------------------------------------------------------
 // Enable - register for events
 void MIDIControlInControl::enable()
 {
-  Log::Detail log;
-  log << "MIDI controller enable on channel " << channel
-      << " controller " << number << endl;
-
-  if (distributor)
+  if (distributor && !enabled)
   {
+    Log::Detail log;
+    log << "MIDI controller enable on channel " << channel
+        << " controller " << number << endl;
+
     distributor->register_event_observer(
                                   ViGraph::MIDI::Event::Direction::in,
                                   channel, channel,
                                   ViGraph::MIDI::Event::Type::control_change,
                                   this);
+    enabled = true;
   }
 }
 
@@ -103,12 +110,15 @@ void MIDIControlInControl::enable()
 // Disable - deregister for events
 void MIDIControlInControl::disable()
 {
-  Log::Detail log;
-  log << "MIDI control disable on channel " << channel
-      << " controller " << number << endl;
+  if (distributor && enabled)
+  {
+    Log::Detail log;
+    log << "MIDI control disable on channel " << channel
+        << " controller " << number << endl;
 
-  if (distributor)
     distributor->deregister_event_observer(this);
+    enabled = false;
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -122,6 +132,14 @@ void MIDIControlInControl::handle(const ViGraph::MIDI::Event& event)
         << " -> " << event.value << endl;
     send(Dataflow::Value(scale*event.value/127.0+offset));
   }
+}
+
+//--------------------------------------------------------------------------
+// If recipient of triggers default to disabled
+void MIDIControlInControl::notify_target_of(Element *, const string& property)
+{
+  if (property == "enable")
+    disable();
 }
 
 //--------------------------------------------------------------------------
@@ -140,7 +158,9 @@ Dataflow::Module module
     { "scale",  { {"Scale to apply to control value", "1.0"},
           Value::Type::number, "@scale", true } },
     { "offset", { {"Offset to apply to control value", "0"},
-          Value::Type::number, "@offset", true } }
+          Value::Type::number, "@offset", true } },
+    { "enable", { "Enable the control", Value::Type::trigger, true } },
+    { "disable", { "Disable the control", Value::Type::trigger, true } },
   },
   { { "", { "Control value", "value", Value::Type::number }}}
 };

@@ -53,6 +53,38 @@ TEST(SetTest, TestSetWithWaitTriggeredHasEffect)
   ASSERT_TRUE(tester.target->got("foo"));
 }
 
+TEST(SetTest, TestTriggerNotDelayedIfDelayNotSet)
+{
+  ControlTester tester(loader, Value::Type::trigger);
+  tester.test("<set type='trigger' property='trigger'/>",
+              "<set type='trigger' property='trigger'/>", 1);
+  EXPECT_TRUE(tester.target->got("trigger"));
+}
+
+TEST(SetTest, TestZeroDelayTriggersNextTick)
+{
+  ControlTester tester(loader, Value::Type::trigger);
+  tester.test("<set type='trigger' property='trigger'/>",
+              "<set delay='0' type='trigger' property='trigger'/>", 2);
+  EXPECT_TRUE(tester.target->got("trigger"));
+}
+
+TEST(SetTest, TestSetDelayDoesntTriggerEarly)
+{
+  ControlTester tester(loader, Value::Type::trigger);
+  tester.test("<set type='trigger' property='trigger'/>",
+              "<set delay='2' type='trigger' property='trigger'/>", 2);
+  EXPECT_FALSE(tester.target->got("trigger"));
+}
+
+TEST(SetTest, TestSetDelayTriggers)
+{
+  ControlTester tester(loader, Value::Type::trigger);
+  tester.test("<set type='trigger' property='trigger'/>",
+              "<set delay='2' type='trigger' property='trigger'/>", 3);
+  EXPECT_TRUE(tester.target->got("trigger"));
+}
+
 int main(int argc, char **argv)
 {
   if (argc > 1 && string(argv[1]) == "-v")

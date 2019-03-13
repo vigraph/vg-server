@@ -34,7 +34,7 @@ public:
 // Construct from XML
 //   <wrap value="0.0" min="0.0" max="1.0" property="x"/>
 WrapControl::WrapControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   property = config["property"];
   min = config.get_attr_real("min", 0.0);

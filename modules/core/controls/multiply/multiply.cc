@@ -34,7 +34,7 @@ public:
 // Construct from XML
 //   <multiply factor="2" property="x"/>
 MultiplyControl::MultiplyControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   property = config["property"];
   factor = config.get_attr_real("factor", 1.0);

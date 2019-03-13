@@ -41,7 +41,7 @@ public:
 //  </pattern>
 PatternFilter::PatternFilter(const Dataflow::Module *module,
                              const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   phase = config.get_attr_real("phase");
   repeats = config.get_attr_int("repeats", 1);

@@ -29,7 +29,7 @@ public:
 // <clone-number property="..."/>
 CloneNumberControl::CloneNumberControl(const Module *module,
                                        const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
 }
 

@@ -42,7 +42,7 @@ public:
 //   <bitcrush time="0.125" />
 BitCrushFilter::BitCrushFilter(const Dataflow::Module *module,
                          const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config)
+    FragmentFilter(module, config)
 {
   rate = max(config.get_attr_int("rate", 1), 1);
   bits = min(max(config.get_attr_int("bits", 32), 1), 32);

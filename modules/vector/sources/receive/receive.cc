@@ -31,7 +31,7 @@ class ReceiveSource: public Dataflow::Source, public Router::Receiver
 
 public:
   ReceiveSource(const Dataflow::Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config) {}
+    Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------

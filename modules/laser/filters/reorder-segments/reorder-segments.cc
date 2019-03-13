@@ -32,7 +32,7 @@ public:
 //  <reorder-segments/>
 ReorderSegmentsFilter::ReorderSegmentsFilter(const Dataflow::Module *module,
                                              const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
 }
 

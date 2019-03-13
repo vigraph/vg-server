@@ -28,7 +28,7 @@ class ILDASource: public Dataflow::Source
 
 public:
   ILDASource(const Dataflow::Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config) {}
+    Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------

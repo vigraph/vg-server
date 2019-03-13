@@ -27,7 +27,7 @@ class SVGSource: public Source
 
 public:
   SVGSource(const Dataflow::Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config) {}
+    Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------

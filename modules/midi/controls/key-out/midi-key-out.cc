@@ -48,7 +48,7 @@ public:
 //   <midi-key-out channel="1" note="48"/> - sends triggers for ON/OFF 48
 MIDIKeyOutControl::MIDIKeyOutControl(const Dataflow::Module *module,
                                      const XML::Element& config):
-  Element(module, config), Control(module, config, true)
+  Control(module, config, true)
 {
   channel = config.get_attr_int("channel");
   auto ns = config["note"];

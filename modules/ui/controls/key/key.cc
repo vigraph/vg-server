@@ -108,7 +108,7 @@ public:
 //   <key code='up' when='released' target=.../>
 UIKeyControl::UIKeyControl(const Dataflow::Module *module,
                            const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   const auto& code_str = config["code"];
   if (code_str.empty()) throw runtime_error("No key code given in "+id);

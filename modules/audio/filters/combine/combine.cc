@@ -39,7 +39,7 @@ public:
 //   <combine/>
 CombineFilter::CombineFilter(const Dataflow::Module *module,
                              const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config)
+    FragmentFilter(module, config)
 {
   const string& m = config["mode"];
   if (m.empty() || m == "add")

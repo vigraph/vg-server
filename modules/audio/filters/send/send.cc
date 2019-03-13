@@ -37,7 +37,7 @@ public:
 //  <send to="tag"/>
 SendFilter::SendFilter(const Dataflow::Module *module,
                        const XML::Element& config):
-  Element(module, config), FragmentFilter(module, config)
+  FragmentFilter(module, config)
 {
   tag = config["to"];
   if (!tag.empty()) tag = "audio:"+tag;

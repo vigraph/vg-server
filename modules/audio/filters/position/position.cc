@@ -35,7 +35,7 @@ public:
 //   <position x="0.5" y="1.0" z="0.33"/>
 PositionFilter::PositionFilter(const Dataflow::Module *module,
                                const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config)
+    FragmentFilter(module, config)
 {
   d.x = config.get_attr_real("x");
   d.y = config.get_attr_real("y");

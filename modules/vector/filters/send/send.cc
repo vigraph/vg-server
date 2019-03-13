@@ -37,7 +37,7 @@ public:
 //  <send to="tag"/>
 SendFilter::SendFilter(const Dataflow::Module *module,
                        const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   tag = config["to"];
   if (!tag.empty()) tag = "vector:"+tag;

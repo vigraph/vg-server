@@ -34,7 +34,7 @@ public:
 //  <colour h='0.33' s='1' l='0.5'/>
 ColourFilter::ColourFilter(const Dataflow::Module *module,
                            const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   if (!(*config).empty())
     c = Colour::RGB(*config);

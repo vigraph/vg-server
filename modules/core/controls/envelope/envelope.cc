@@ -53,7 +53,7 @@ public:
 // Default are hard on/off, no decay
 EnvelopeControl::EnvelopeControl(const Module *module,
                                  const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   attack = config.get_attr_real("attack", 0.0);
   decay = config.get_attr_real("decay", 0.0);

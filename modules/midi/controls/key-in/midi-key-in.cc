@@ -45,7 +45,7 @@ public:
 //   <midi-key-in channel="1" note="48"/> - sends triggers for ON/OFF 48
 MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
                                    const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   channel = config.get_attr_int("channel");
   auto ns = config["note"];

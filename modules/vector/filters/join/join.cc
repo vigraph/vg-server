@@ -26,7 +26,7 @@ class JoinFilter: public FrameFilter
 public:
   // Construct
   JoinFilter(const Dataflow::Module *module, const XML::Element& config):
-    Element(module, config), FrameFilter(module, config)
+    FrameFilter(module, config)
   {}
 };
 

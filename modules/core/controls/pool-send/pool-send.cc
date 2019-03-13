@@ -35,7 +35,7 @@ public:
 //   <pool-send pool="x"/>
 PoolSendControl::PoolSendControl(const Dataflow::Module *module,
                                  const XML::Element& config):
-  Element(module, config), Control(module, config, true)
+  Control(module, config, true)
 {
   pool = config["pool"];
 }

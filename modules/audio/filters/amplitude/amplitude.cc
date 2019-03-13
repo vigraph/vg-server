@@ -16,17 +16,15 @@ using namespace ViGraph::Dataflow;
 
 //==========================================================================
 // VU meter filter
-class AmplitudeFilter: public FragmentFilter, public Dataflow::Control
+class AmplitudeFilter: public FragmentFilter, public Dataflow::ControlImpl
 {
   double scale{1.0};
   double offset{0.0};
   double amplitude{0.0};
 
-  // Control virtuals
+  // Source/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void pre_tick(const TickData& td) override;
-
-  // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
 
 public:
@@ -36,10 +34,9 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML:
 //   <amplitude/>
-AmplitudeFilter::AmplitudeFilter(const Dataflow::Module *module,
-                             const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config),
-    Control(module, config)
+AmplitudeFilter::AmplitudeFilter(const Dataflow::Module *_module,
+                                 const XML::Element& _config):
+  FragmentFilter(_module, _config), ControlImpl(_module, _config)
 {
   scale = config.get_attr_real("scale", 1.0);
   offset = config.get_attr_real("offset");
@@ -76,7 +73,7 @@ void AmplitudeFilter::accept(FragmentPtr fragment)
 // Send latest reading
 void AmplitudeFilter::pre_tick(const TickData&)
 {
-  Control::send(SetParams{Dataflow::Value{amplitude * scale + offset}});
+  ControlImpl::send(SetParams{Dataflow::Value{amplitude * scale + offset}});
 }
 
 //--------------------------------------------------------------------------

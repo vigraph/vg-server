@@ -37,7 +37,7 @@ public:
 //   <shift pitch="0.125" />
 ShiftFilter::ShiftFilter(const Dataflow::Module *module,
                          const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config)
+    FragmentFilter(module, config)
 {
   pitch = config.get_attr_real("pitch", pitch);
 }

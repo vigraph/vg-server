@@ -30,7 +30,7 @@ public:
 // Construct from XML
 //   <toggle property="x"/>
 ToggleControl::ToggleControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
 }
 

@@ -33,7 +33,7 @@ public:
 //  <rotate x="0.25" y="0" z="0"/>
 RotateFilter::RotateFilter(const Dataflow::Module *module,
                            const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   rx = config.get_attr_real("x");
   ry = config.get_attr_real("y");

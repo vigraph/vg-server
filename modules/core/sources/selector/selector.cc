@@ -46,7 +46,7 @@ class SelectorSource: public Dataflow::Source
 
 public:
   SelectorSource(const Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config) {}
+    Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------

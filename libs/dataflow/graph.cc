@@ -131,13 +131,13 @@ void Graph::connect(Element *el)
   }
 
   // If it's a control, connect it to its targets
-  Control *c = dynamic_cast<Control *>(el);
+  ControlImpl *c = dynamic_cast<ControlImpl *>(el);
   if (c)
   {
     const auto& targets = c->get_targets();
     for(const auto& it: targets)
     {
-      const Control::Target& target = it.second;
+      const ControlImpl::Target& target = it.second;
       // Check properties exist and are the right type
       if (target.properties.empty())
         throw runtime_error("Control "+el->id+" has no properties\n");

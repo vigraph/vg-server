@@ -318,9 +318,6 @@ public:
   Element *next_element{nullptr};
   list<Element *> downstreams; // All data and control connections, for toposort
 
-  // Default constructor for virtual inheritance
-  Element() {}
-
   // Basic construction with XML - just sets ID
   // Extend this to read basic config which doesn't take much time or
   // require registry - i.e. just reading basic config attributes
@@ -393,7 +390,7 @@ class Acceptor
 
 //==========================================================================
 // Generator - something that generates data on a single output
-class Generator: virtual public Element
+class Generator: public Element
 {
  protected:
   string acceptor_id;   // If specified
@@ -434,16 +431,18 @@ public:
 
 //==========================================================================
 // Final sink - Element with Acceptor
-class Sink: virtual public Element, public Acceptor
+class Sink: public Element, public Acceptor
 {
  public:
   using Element::Element;
 };
 
 //==========================================================================
-// Control - sets one or more properties on a target Element
-class Control: virtual public Element
+// ControlImpl - implementation mixin for Control
+class ControlImpl
 {
+  string control_id;
+
  public:
   struct Property
   {
@@ -459,20 +458,14 @@ class Control: virtual public Element
     Element *element{nullptr};
   };
 
-private:
-  // Hide these tick calls because Controls should do all their work in the
-  // pre-tick phase
-  void tick(const TickData&) final {}
-  void post_tick(const TickData&) final {}
-
  protected:
   XML::Element config;
   map<string, Target> targets;  // By element ID
 
  public:
   // Construct with XML
-  Control(const Module *_module, const XML::Element& _config,
-          bool targets_are_optional = false);
+  ControlImpl(const Module *_module, const XML::Element& _config,
+              bool targets_are_optional = false);
 
   // Get targets
   const map<string, Target>& get_targets() { return targets; }
@@ -481,11 +474,29 @@ private:
   void attach_target(const string& id, Element *element);
 
   // Send a value to the target using only (first) property
-  void send(const SetParams& sp);
+  void send(const Element::SetParams& sp);
 
   // Send a named value to the target
   // name is our name for it
-  void send(const string& name, const SetParams& sp);
+  void send(const string& name, const Element::SetParams& sp);
+};
+
+//==========================================================================
+// Control - sets one or more properties on a target Element
+class Control: public Element, public ControlImpl
+{
+ public:
+  Control(const Module *_module, const XML::Element& _config,
+          bool targets_are_optional = false):
+    Element(_module, _config),
+    ControlImpl(_module, _config, targets_are_optional)
+  {}
+
+ private:
+  // Hide these tick calls because Controls should do all their work in the
+  // pre-tick phase
+  void tick(const TickData&) final {}
+  void post_tick(const TickData&) final {}
 };
 
 //==========================================================================

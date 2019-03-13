@@ -32,7 +32,7 @@ public:
 // Construct from XML
 BeamifyFilter::BeamifyFilter(const Dataflow::Module *module,
                              const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   span = config.get_attr_int("span");
   n = config.get_attr_int("n");

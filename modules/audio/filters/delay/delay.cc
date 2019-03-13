@@ -40,7 +40,7 @@ public:
 //   <delay time="0.125" />
 DelayFilter::DelayFilter(const Dataflow::Module *module,
                          const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config)
+    FragmentFilter(module, config)
 {
   delay = Time::Duration{config.get_attr_real("time", 0)};
   feedback = config.get_attr_real("feedback", 0.5);

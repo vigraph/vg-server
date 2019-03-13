@@ -46,7 +46,7 @@ class VCOSource: public Source
 
 public:
   VCOSource(const Dataflow::Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config) {}
+    Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------

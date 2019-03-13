@@ -31,7 +31,7 @@ public:
 // Construct from XML
 //   <round property="x" n="1" d="2" />
 RoundControl::RoundControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   property = config["property"];
   n = config.get_attr_int("n", n);

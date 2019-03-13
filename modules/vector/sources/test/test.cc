@@ -27,7 +27,7 @@ class TestSource: public Dataflow::Source
 
 public:
   TestSource(const Dataflow::Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config) {}
+    Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------

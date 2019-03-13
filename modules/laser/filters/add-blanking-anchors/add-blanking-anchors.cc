@@ -40,7 +40,7 @@ public:
 AddBlankingAnchorsFilter::AddBlankingAnchorsFilter(
                                          const Dataflow::Module *module,
                                          const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   leading = config.get_attr_int("leading", default_leading);
   trailing = config.get_attr_int("trailing", default_trailing);

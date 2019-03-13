@@ -34,7 +34,7 @@ public:
 // Construct from XML
 //   <add offset="0.1" property="x"/>
 AddControl::AddControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   property = config["property"];
   offset = config.get_attr_real("offset");

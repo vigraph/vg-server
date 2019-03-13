@@ -42,7 +42,7 @@ public:
 //      type="{real|integer|boolean}"
 //      property="..."/>
 RandomControl::RandomControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   min = config.get_attr_real("min", 0.0);
   max = config.get_attr_real("max", 1.0);

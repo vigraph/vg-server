@@ -40,7 +40,7 @@ public:
 AddVertexRepeatsFilter::AddVertexRepeatsFilter(
                                          const Dataflow::Module *module,
                                          const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   repeats = config.get_attr_int("repeats", default_repeats);
   max_angle = config.get_attr_real("max-angle", default_max_angle);

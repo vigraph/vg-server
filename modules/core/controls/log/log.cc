@@ -29,7 +29,7 @@ public:
 // Construct from XML
 // <log>A message</log>
 LogControl::LogControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config, true)  // no targets
+  Control(module, config, true)  // no targets
 {
   message = *config;
 }

@@ -38,7 +38,7 @@ public:
 //   <pool-receive pool="x"/>
 PoolReceiveControl::PoolReceiveControl(const Dataflow::Module *module,
                                        const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   pool = config["pool"];
 }

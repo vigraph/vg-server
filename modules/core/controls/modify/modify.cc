@@ -40,7 +40,7 @@ public:
 // <modify delta="42" type="{real|integer}" wait="yes"
 //      property="..."/>
 ModifyControl::ModifyControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   delta = config.get_attr_real("delta", 1.0);
   wait = config.get_attr_bool("wait");

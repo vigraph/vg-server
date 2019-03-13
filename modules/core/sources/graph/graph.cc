@@ -83,7 +83,7 @@ class GraphSource: public Dataflow::Source
 
 public:
   GraphSource(const Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config) {}
+    Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------

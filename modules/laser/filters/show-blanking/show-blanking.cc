@@ -32,7 +32,7 @@ public:
 //  <show-blanking colour="red"/>
 ShowBlankingFilter::ShowBlankingFilter(const Dataflow::Module *module,
                                        const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   blank_colour = Colour::RGB(config.get_attr("colour", default_blank_colour));
 }

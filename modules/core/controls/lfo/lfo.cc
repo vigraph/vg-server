@@ -81,7 +81,7 @@ void LFOControl::set_waveform(const string& wave)
 //       type="{real|integer|boolean}"
 //       property="..."/>
 LFOControl::LFOControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   set_waveform(config.get_attr("wave", "sin"));
   once = config.get_attr_bool("once");

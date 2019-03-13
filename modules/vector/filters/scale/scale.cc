@@ -34,7 +34,7 @@ public:
 //  <scale x="0.5" y="1.0" z="2.0"/>
 ScaleFilter::ScaleFilter(const Dataflow::Module *module,
                          const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   if (config.has_attr("all"))
     sx = sy = sz = config.get_attr_real("all", 1.0);

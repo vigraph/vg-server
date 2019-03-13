@@ -34,7 +34,7 @@ public:
 //  <fade r="0.9" g="1.0" b="1.1"/>
 FadeFilter::FadeFilter(const Dataflow::Module *module,
                                  const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   if (config.has_attr("all"))
     fr = fg = fb = config.get_attr_real("all", 1.0);

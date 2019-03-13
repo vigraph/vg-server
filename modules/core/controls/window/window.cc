@@ -32,7 +32,7 @@ public:
 // Construct from XML
 //   <window min="-0.5" max="0.5" property="x"/>
 WindowControl::WindowControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   property = config["property"];
   min = config.get_attr_real("min", min);

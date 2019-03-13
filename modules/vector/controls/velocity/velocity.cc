@@ -40,7 +40,7 @@ public:
 //           property-x="x" property-y="y" property-z="z"/>
 VelocityControl::VelocityControl(const Dataflow::Module *module,
                                  const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   v.x = config.get_attr_real("x");
   v.y = config.get_attr_real("y");

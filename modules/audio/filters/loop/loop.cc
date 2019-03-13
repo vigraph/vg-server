@@ -43,7 +43,7 @@ public:
 //   <loop />
 LoopFilter::LoopFilter(const Dataflow::Module *module,
                          const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config)
+    FragmentFilter(module, config)
 {
   buffers.resize(3);
 }

@@ -41,7 +41,7 @@ public:
 //   <audio-out/>
 LinuxALSAInSource::LinuxALSAInSource(const Dataflow::Module *module,
                                        const XML::Element& config):
-    Element(module, config), Source(module, config)
+    Source(module, config)
 {
   Log::Streams log;
   const auto& device = config.get_attr("device", default_device);

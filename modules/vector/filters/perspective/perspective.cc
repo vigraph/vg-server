@@ -31,7 +31,7 @@ public:
 //  <perspective distance="10"/>
 PerspectiveFilter::PerspectiveFilter(const Dataflow::Module *module,
                                      const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   distance = config.get_attr_real("d", 1);
 }

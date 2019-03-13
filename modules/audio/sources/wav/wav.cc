@@ -38,7 +38,7 @@ class WavSource: public Source
 
 public:
   WavSource(const Dataflow::Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config) {}
+    Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------

@@ -35,7 +35,7 @@ public:
 //  <infill-lines max-distance="0.01"/>
 InfillLinesFilter::InfillLinesFilter(const Dataflow::Module *module,
                                      const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   max_distance_lit = config.get_attr_real("lit");
   max_distance_blanked = config.get_attr_real("blanked");

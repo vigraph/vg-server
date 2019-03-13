@@ -41,7 +41,7 @@ public:
 //      type="{number|trigger}"
 //      property="..."/>
 SetControl::SetControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   value = config.get_attr_real("value");
   wait = config.get_attr_bool("wait");

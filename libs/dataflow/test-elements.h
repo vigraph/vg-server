@@ -29,7 +29,7 @@ public:
 
   // Construct
   TestSource(const Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config)
+    Source(module, config)
   {
   }
 
@@ -72,7 +72,7 @@ class TestSubgraph: public Source
  public:
   // Construct
   TestSubgraph(const Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config)
+    Source(module, config)
   {
   }
 
@@ -127,7 +127,7 @@ public:
 
   // Construct
   TestFilter(const Module *module, const XML::Element& config):
-    Element(module, config), Filter(module, config)
+    Filter(module, config)
   {
   }
 
@@ -169,7 +169,7 @@ public:
 
   // Construct
   TestSink(const Module *module, const XML::Element& config):
-    Element(module, config), Sink(module, config)
+    Sink(module, config)
   {
   }
 

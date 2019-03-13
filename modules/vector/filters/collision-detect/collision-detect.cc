@@ -15,7 +15,7 @@ const string default_group_name = "default";
 
 //==========================================================================
 // CollisionDetect filter
-class CollisionDetectFilter: public FrameFilter, public Dataflow::Control,
+class CollisionDetectFilter: public FrameFilter, public Dataflow::ControlImpl,
                              public CollisionDetector::CollisionObserver
 {
   string group_name;
@@ -26,12 +26,10 @@ class CollisionDetectFilter: public FrameFilter, public Dataflow::Control,
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void accept(FramePtr frame) override;
+  void pre_tick(const TickData& td) override;
 
   // CollisionObserver virtual
   void collided() override;
-
-  // Control virtuals
-  void pre_tick(const TickData& td) override;
 
 public:
   // Construct
@@ -44,8 +42,8 @@ public:
 //  <collision-detect/>
 CollisionDetectFilter::CollisionDetectFilter(const Dataflow::Module *module,
                                              const XML::Element& config):
-  Element(module, config), FrameFilter(module, config),
-  Control(module, config, true)  // optional targets
+  FrameFilter(module, config),
+  ControlImpl(module, config, true)  // optional targets
 {
   group_name = config.get_attr("group", default_group_name);
 }
@@ -83,7 +81,7 @@ void CollisionDetectFilter::pre_tick(const TickData&)
 {
   while (tick_collisions)
   {
-    Control::send(SetParams{Dataflow::Value{}});  // trigger
+    ControlImpl::send(SetParams{Dataflow::Value{}});  // trigger
     --tick_collisions;
   }
 }

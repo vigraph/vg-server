@@ -35,7 +35,7 @@ public:
 //   <attenuator gain="0.5"/>
 AttenuatorFilter::AttenuatorFilter(const Dataflow::Module *module,
                                    const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config)
+    FragmentFilter(module, config)
 {
   gain = config.get_attr_real("gain", 1.0);
   interpolate = config.get_attr_bool("interpolate", interpolate);

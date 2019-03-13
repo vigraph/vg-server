@@ -32,7 +32,7 @@ public:
 //  <translate x="0.5" y="1.0" z="0.33"/>
 TranslateFilter::TranslateFilter(const Dataflow::Module *module,
                                  const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   d.x = config.get_attr_real("x");
   d.y = config.get_attr_real("y");

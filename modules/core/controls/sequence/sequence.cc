@@ -36,7 +36,7 @@ public:
 //     <value>two</value>
 //   </sequence>
 SequenceControl::SequenceControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   property = config["property"];
   loop = config.get_attr_bool("loop", loop);

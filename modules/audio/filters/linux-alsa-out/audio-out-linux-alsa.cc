@@ -44,7 +44,7 @@ public:
 //   <audio-out/>
 LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
                                        const XML::Element& config):
-    Element(module, config), FragmentFilter(module, config)
+    FragmentFilter(module, config)
 {
   Log::Streams log;
   const auto& device = config.get_attr("device", default_device);

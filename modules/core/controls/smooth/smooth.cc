@@ -37,7 +37,7 @@ public:
 // Construct from XML
 //   <smooth property="x"/>
 SmoothControl::SmoothControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   property = config["property"];
   rc = fabs(config.get_attr_real("time", rc));

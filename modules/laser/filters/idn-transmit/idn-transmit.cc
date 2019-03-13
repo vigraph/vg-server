@@ -43,7 +43,7 @@ class IDNTransmitFilter: public FrameFilter
 
 public:
   IDNTransmitFilter(const Dataflow::Module *module, const XML::Element& config):
-    Element(module, config), FrameFilter(module, config) {}
+    FrameFilter(module, config) {}
 };
 
 //--------------------------------------------------------------------------

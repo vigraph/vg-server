@@ -43,7 +43,7 @@ public:
 // or <beat bpm="120"/>
 // or <beat freq="2"/>
 BeatControl::BeatControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   if (config.has_attr("interval"))
     interval = config.get_attr_real("interval");

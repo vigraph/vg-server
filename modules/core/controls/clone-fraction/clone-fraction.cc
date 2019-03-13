@@ -33,7 +33,7 @@ public:
 // <clone-fraction scale="1.0" offset="0" property="..."/>
 CloneFractionControl::CloneFractionControl(const Module *module,
                                        const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   scale = config.get_attr_real("scale", 1.0);
   offset = config.get_attr_real("offset");

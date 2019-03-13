@@ -73,7 +73,7 @@ public:
 //   <midi device='default' channel-offset="16"/>
 MIDIInterface::MIDIInterface(const Dataflow::Module *module,
                              const XML::Element& config):
-  Element(module, config), Control(module, config, true)  // no props
+  Control(module, config, true)  // no props
 {
   channel_offset = config.get_attr_int("channel-offset");
 }

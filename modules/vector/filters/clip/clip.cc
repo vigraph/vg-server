@@ -36,7 +36,7 @@ public:
 // </clip>
 ClipFilter::ClipFilter(const Dataflow::Module *module,
                        const XML::Element& config):
-  Element(module, config), FrameFilter(module, config)
+  FrameFilter(module, config)
 {
   const XML::Element& min_e = config.get_child("min");
   min.x = min_e.get_attr_real("x", -0.5);

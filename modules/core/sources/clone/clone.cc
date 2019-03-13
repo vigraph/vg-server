@@ -29,7 +29,7 @@ class CloneSource: public Dataflow::Source
 
 public:
   CloneSource(const Module *module, const XML::Element& config):
-    Element(module, config), Source(module, config) {}
+    Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------

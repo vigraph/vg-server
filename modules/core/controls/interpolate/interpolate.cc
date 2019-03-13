@@ -43,7 +43,7 @@ public:
 // Note both 'at's are optional and assumed 0,1 in this simple case
 InterpolateControl::InterpolateControl(const Module *module,
                                        const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   const auto& point_es = config.get_children("point");
   const auto np = point_es.size();

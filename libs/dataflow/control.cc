@@ -11,9 +11,10 @@
 namespace ViGraph { namespace Dataflow {
 
 // Construct with XML
-Control::Control(const Module *_module, const XML::Element& _config,
-                 bool targets_are_optional):
-  Element(_module, _config), config(_config)
+ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
+                         bool targets_are_optional):
+  control_id(_config["id"].empty()?_config.name:_config["id"]),
+  config(_config)
 {
   // Simple single target
   const string& target_id = config["target"];
@@ -43,7 +44,7 @@ Control::Control(const Module *_module, const XML::Element& _config,
   {
     const auto& it = properties.find(p.first);
     if (it == properties.end())
-      throw runtime_error("Element "+id+" has no property "+p.first);
+      throw runtime_error("Element "+control_id+" has no property "+p.first);
     it->second.name = p.second;
   }
 
@@ -82,14 +83,14 @@ Control::Control(const Module *_module, const XML::Element& _config,
     {
       const auto& it = properties.find(p.first);
       if (it == properties.end())
-        throw runtime_error("Element "+id+" has no property "+p.first);
+        throw runtime_error("Element "+control_id+" has no property "+p.first);
       target.properties[p.first] = Property(p.second, it->second.type);
     }
   }
 }
 
 // Attach to a target element
-void Control::attach_target(const string& id, Element *element)
+void ControlImpl::attach_target(const string& id, Element *element)
 {
   // If we just have the one default one, use this
   auto it = targets.find(id);
@@ -98,7 +99,7 @@ void Control::attach_target(const string& id, Element *element)
 }
 
 // Send a value to the target using only (first) property
-void Control::send(const SetParams& sp)
+void ControlImpl::send(const Element::SetParams& sp)
 {
   for(const auto& it: targets)
   {
@@ -113,7 +114,7 @@ void Control::send(const SetParams& sp)
 
 // Send a named value to the target
 // name is our name for it
-void Control::send(const string& name, const SetParams& sp)
+void ControlImpl::send(const string& name, const Element::SetParams& sp)
 {
   for(const auto& it: targets)
   {

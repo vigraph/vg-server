@@ -35,7 +35,7 @@ public:
 //                 property-x="x" property-y="y"/>
 PolarVelocityControl::PolarVelocityControl(const Dataflow::Module *module,
                                            const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   angle = config.get_attr_real("angle");
   velocity = config.get_attr_real("v");

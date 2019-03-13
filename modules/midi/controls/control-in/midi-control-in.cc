@@ -50,7 +50,7 @@ public:
 //                    scale="1.0" offset="0.0" .../>
 MIDIControlInControl::MIDIControlInControl(const Dataflow::Module *module,
                                            const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   channel = config.get_attr_int("channel");
   number = config.get_attr_int("number");

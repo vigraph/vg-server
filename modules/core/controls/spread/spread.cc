@@ -37,7 +37,7 @@ public:
 // Construct from XML
 //   <spread offset="0.1" property="x"/>
 SpreadControl::SpreadControl(const Module *module, const XML::Element& config):
-  Element(module, config), Control(module, config)
+  Control(module, config)
 {
   latch = config.get_attr_bool("latch");
 }

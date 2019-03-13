@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for Vigraph <wait> core control module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-core-control-wait
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl              \
+          vg-module-core-control-set
+
+include_rules

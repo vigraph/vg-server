@@ -16,6 +16,7 @@ namespace {
 // Figure source
 class FigureSource: public Source
 {
+public:
   // Waveform
   enum class Waveform
   {
@@ -44,11 +45,14 @@ class FigureSource: public Source
   static const int default_points = 100;
   int points{default_points};
 
+private:
   // Calculated waves
   vector<coord_t> x_waveform;
   vector<coord_t> y_waveform;
 
   // Internals
+  string get_waveform_name(const Axis& axis);
+  void set_waveform(Axis& axis, const string& wave);
   void calculate_waveform(const Axis& axis, vector<coord_t>& waveform);
   void read_axis(const XML::Element& aconfig, Axis& axis);
 
@@ -61,14 +65,58 @@ class FigureSource: public Source
 public:
   FigureSource(const Dataflow::Module *module, const XML::Element& config):
     Source(module, config) {}
+
+  // Property getter/setters
+  string get_waveform_x() { return get_waveform_name(x_axis); }
+  void set_waveform_x(const string& wave) { set_waveform(x_axis, wave); }
+  string get_waveform_y() { return get_waveform_name(y_axis); }
+  void set_waveform_y(const string& wave) { set_waveform(y_axis, wave); }
 };
+
+//--------------------------------------------------------------------------
+// Get waveform name for an axis
+string FigureSource::get_waveform_name(const Axis& axis)
+{
+  switch (axis.waveform)
+  {
+    case Waveform::none:     return "none";
+    case Waveform::saw:      return "saw";
+    case Waveform::sin:      return "sin";
+    case Waveform::square:   return "square";
+    case Waveform::triangle: return "triangle";
+    case Waveform::random:   return "random";
+  }
+}
+
+//--------------------------------------------------------------------------
+// Get waveform name for an axis
+void FigureSource::set_waveform(Axis& axis, const string& wave)
+{
+  if (wave.empty() || wave=="none")
+    axis.waveform = Waveform::none;
+  else if (wave=="saw")
+    axis.waveform = Waveform::saw;
+  else if (wave=="sin")
+    axis.waveform = Waveform::sin;
+  else if (wave=="square")
+    axis.waveform = Waveform::square;
+  else if (wave=="triangle")
+    axis.waveform = Waveform::triangle;
+  else if (wave=="random")
+    axis.waveform = Waveform::random;
+  else
+  {
+    Log::Error log;
+    log << "Unknown waveform type " << wave << " in figure '" << id << "'\n";
+    axis.waveform = Waveform::none;
+  }
+}
 
 //--------------------------------------------------------------------------
 // Precalculate a waveform
 void FigureSource::calculate_waveform(const Axis& axis,
                                      vector<coord_t>& waveform)
 {
-
   // Special case for 'none', for speed - all points are the same
   if (axis.waveform == Waveform::none)
   {
@@ -156,25 +204,7 @@ void FigureSource::calculate_waveform(const Axis& axis,
 void FigureSource::read_axis(const XML::Element& aconfig, Axis& axis)
 {
   axis.pos = aconfig.get_attr_real("pos");
-  const string& wave = aconfig["wave"];
-  if (wave.empty() || wave=="none")
-    axis.waveform = Waveform::none;
-  else if (wave=="saw")
-    axis.waveform = Waveform::saw;
-  else if (wave=="sin")
-    axis.waveform = Waveform::sin;
-  else if (wave=="square")
-    axis.waveform = Waveform::square;
-  else if (wave=="triangle")
-    axis.waveform = Waveform::triangle;
-  else if (wave=="random")
-    axis.waveform = Waveform::random;
-  else
-  {
-    Log::Error log;
-    log << "Unknown waveform type " << wave << " in figure '" << id << "'\n";
-  }
-
+  set_waveform(axis, aconfig["wave"]);
   axis.freq = aconfig.get_attr_real("freq", 1.0);
   axis.phase = aconfig.get_attr_real("phase");
   axis.scale = aconfig.get_attr_real("scale", 1.0);
@@ -251,14 +281,23 @@ Dataflow::Module module
   "vector",
   {
     { "points", { "Number of points",
-          Value::Type::number } },
+          Value::Type::number,
+          static_cast<int Element::*>(&FigureSource::points) } },
     { "closed", { "Whether the path is closed",
-          Value::Type::boolean } },
+          Value::Type::boolean,
+          static_cast<bool Element::*>(&FigureSource::closed) } },
     { "x.wave",  { "Waveform on X axis",
-          Value::Type::choice, "x/@wave",
+          Value::Type::choice,
+          Dataflow::Module::Property::Member{
+          static_cast<string (Element::*)()>(&FigureSource::get_waveform_x),
+          static_cast<void (Element::*)(const string&)>(&FigureSource::set_waveform_x) },
+          "x/@wave",
           { "none", "saw", "sin", "square", "triangle", "random" } } },
     { "x.pos",   { "Base position on X axis",
-          Value::Type::number, "x/@pos",   true } },
+          Value::Type::number,
+          // !!! Can't do this!?
+          // static_cast<double Element::*>(&FigureSource::x_axis.pos),
+          "x/@pos", true } },
     { "x.freq",  { "Frequency for X axis",
           Value::Type::number, "x/@freq",  true } },
     { "x.phase", { "Phase (0..1) on X axis",
@@ -266,7 +305,11 @@ Dataflow::Module module
     { "x.scale", { { "Scale of X axis", "1.0" },
           Value::Type::number, "x/@scale", true } },
     { "y.wave",  { "Waveform on Y axis",
-          Value::Type::choice, "y/@wave",
+          Value::Type::choice,
+          Dataflow::Module::Property::Member{
+          static_cast<string (Element::*)()>(&FigureSource::get_waveform_y),
+          static_cast<void (Element::*)(const string&)>(&FigureSource::set_waveform_y) },
+          "y/@wave",
           { "none", "saw", "sin", "square", "triangle", "random" } } },
     { "y.pos",   { "Base position on Y axis",
           Value::Type::number, "y/@pos",   true } },

@@ -159,6 +159,7 @@ struct Value
 
 class Graph;  // forward
 class Engine;
+class Element;
 
 //==========================================================================
 // Module metadata
@@ -184,18 +185,83 @@ struct Module
   {
     PropertyDescription desc;
     Value::Type type;
+
+    // Member accessor data
+    struct Member
+    {
+      // Simple member pointers
+      double Element::* d_ptr{nullptr};
+      int Element::* i_ptr{nullptr};
+      string Element::* s_ptr{nullptr};
+      bool Element::* b_ptr{nullptr};
+
+      // Getter/setter functions
+      double (Element::* get_d)(){nullptr};
+      int (Element::* get_i)(){nullptr};
+      string (Element::* get_s)(){nullptr};
+      bool (Element::* get_b)(){nullptr};
+
+      void (Element::* set_d)(double){nullptr};
+      void (Element::* set_i)(int){nullptr};
+      void (Element::* set_s)(const string& ){nullptr};
+      void (Element::* set_b)(bool){nullptr};
+
+      // Trigger function
+      void (Element::* trigger)(){nullptr};
+
+      // Constructors to set each of the above
+      Member() {}
+      Member(double Element::* _p): d_ptr(_p) {}
+      Member(int Element::* _p): i_ptr(_p) {}
+      Member(string Element::* _p): s_ptr(_p) {}
+      Member(bool Element::* _p): b_ptr(_p) {}
+
+      Member(double (Element::* _get)(),
+             void (Element::* _set)(double)): get_d(_get), set_d(_set) {}
+      Member(int (Element::* _get)(),
+             void (Element::* _set)(int)): get_i(_get), set_i(_set) {}
+      Member(string (Element::* _get)(),
+             void (Element::* _set)(const string&)): get_s(_get), set_s(_set) {}
+      Member(bool (Element::* _get)(),
+             void (Element::* _set)(bool)): get_b(_get), set_b(_set) {}
+
+      Member(void (Element::* _f)()): trigger(_f) {}
+    } member;
     string xpath;              // Relative xpath for config
     set<string> options;       // Options for choice
     bool settable{false};
-    Property(const PropertyDescription& _desc, Value::Type _type, bool _set=false):
+
+    // !!! Constructors without member data - remove once all converted
+    Property(const PropertyDescription& _desc, Value::Type _type,
+             bool _set=false):
       desc(_desc), type(_type), settable(_set) {}
+
     Property(const PropertyDescription& _desc, Value::Type _type,
              const string& _xpath, bool _set=false):
-      desc(_desc), type(_type), xpath(_xpath), settable(_set) {}
+      desc(_desc), type(_type),
+      xpath(_xpath), settable(_set) {}
+
     Property(const PropertyDescription& _desc, Value::Type _type,
-             const string& _xpath, const set<string>& _options, bool _set=false):
-      desc(_desc), type(_type), xpath(_xpath), options(_options),
-        settable(_set) {}
+             const string& _xpath,
+             const set<string>& _options, bool _set=false):
+      desc(_desc), type(_type),
+      xpath(_xpath), options(_options), settable(_set) {}
+
+    // Constructors with member data
+    Property(const PropertyDescription& _desc, Value::Type _type,
+             const Member& _member, bool _set=false):
+      desc(_desc), type(_type), member(_member), settable(_set) {}
+
+    Property(const PropertyDescription& _desc, Value::Type _type,
+             const Member& _member, const string& _xpath, bool _set=false):
+      desc(_desc), type(_type), member(_member),
+      xpath(_xpath), settable(_set) {}
+
+    Property(const PropertyDescription& _desc, Value::Type _type,
+             const Member& _member, const string& _xpath,
+             const set<string>& _options, bool _set=false):
+      desc(_desc), type(_type), member(_member),
+      xpath(_xpath), options(_options), settable(_set) {}
   };
 
   map<string, Property> properties;

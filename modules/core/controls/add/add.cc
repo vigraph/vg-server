@@ -15,9 +15,6 @@ namespace {
 // Add control
 class AddControl: public Dataflow::Control
 {
-  string property;
-  double offset;
-
   // Mimic of controlled value
   double value{0.0};
 
@@ -26,6 +23,9 @@ class AddControl: public Dataflow::Control
   Dataflow::Value::Type get_property_type(const string& property) override;
 
 public:
+  string property;
+  double offset;
+
   // Construct
   AddControl(const Module *module, const XML::Element& config);
 };
@@ -76,8 +76,12 @@ Dataflow::Module module
   "Add an offset to a control value",
   "core",
   {
-    { "property", { "Property to set", Value::Type::text } },
-    { "offset", { "Offset amount", Value::Type::number } },
+    { "property",
+      { "Property to set", Value::Type::text,
+          static_cast<string Element::*>(&AddControl::property) } },
+    { "offset",
+      { "Offset amount", Value::Type::number,
+          static_cast<double Element::*>(&AddControl::offset) } },
   },
   { { "", { "Value output", "", Value::Type::number }}}
 };

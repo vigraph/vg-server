@@ -19,6 +19,9 @@ class SetControl: public Control
   double value{0.0};
   Value::Type type{Value::Type::number};
   bool wait{false};
+  Time::Duration delay{-1.0};
+  Dataflow::timestamp_t delayed_until = -1.0;
+  bool do_delay = false;
 
   // Dynamic state
   bool done{false};
@@ -45,6 +48,8 @@ SetControl::SetControl(const Module *module, const XML::Element& config):
 {
   value = config.get_attr_real("value");
   wait = config.get_attr_bool("wait");
+  if (config.has_attr("delay"))
+    delay = Time::Duration{config["delay"]};
 
   const string& type_s = config["type"];
   if (type_s.empty() || type_s=="number")
@@ -68,22 +73,43 @@ void SetControl::notify_target_of(Element *, const string& property)
 void SetControl::set_property(const string& property, const SetParams& sp)
 {
   if (property == "trigger")
+  {
     triggered = true;
+    if (delay.seconds() >= 0)
+      do_delay = true;
+  }
   else if (property == "value")
+  {
     update_prop(value, sp);
+    if (delay.seconds() >= 0)
+      do_delay = true;
+  }
 }
 
 //--------------------------------------------------------------------------
 // Enable (reset)
 void SetControl::enable()
 {
-  triggered = done = false;
+  triggered = done = do_delay = false;
+  delayed_until = -1.0;
 }
 
 //--------------------------------------------------------------------------
 // Tick
-void SetControl::pre_tick(const TickData& /*td*/)
+void SetControl::pre_tick(const TickData& td)
 {
+  // Apply delay if necessary
+  if (do_delay)
+  {
+    delayed_until = td.t + delay.seconds();
+    do_delay = false;
+    return;
+  }
+
+  if (delayed_until >= 0 && delayed_until > td.t)
+    return;
+  delayed_until = -1.0;
+
   if (wait)
   {
     if (!triggered) return;

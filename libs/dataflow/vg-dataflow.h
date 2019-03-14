@@ -21,6 +21,7 @@
 #include "ot-time.h"
 #include "ot-file.h"
 #include "ot-json.h"
+#include "ot-log.h"
 
 namespace ViGraph { namespace Dataflow {
 
@@ -731,6 +732,68 @@ class MultiGraph
   map<string, Graph *> subgraphs_by_id;          // Not owning
   int id_serial{0};
 
+  // Thread
+  class Thread
+  {
+  private:
+    shared_ptr<Graph> graph;
+    thread t;
+    TickData td;
+    enum class Task
+    {
+      pre_tick,
+      tick,
+      post_tick,
+      exit,
+    } task = Task::exit;
+    MT::Condition start_c;
+    MT::Condition done_c;
+
+    //----------------------------------------------------------------------
+    // Run a task
+    void run(const TickData& _td, Task _task);
+
+    //----------------------------------------------------------------------
+    // Main thread loop
+    void loop();
+
+  public:
+    //----------------------------------------------------------------------
+    // Constructor
+    Thread(shared_ptr<Graph> _graph):
+      graph{_graph}, t{&Thread::loop, this}
+    {}
+
+    //----------------------------------------------------------------------
+    // Run pre-tick
+    void pre_tick(const TickData& _td)
+    {
+      run(_td, Task::pre_tick);
+    }
+
+    //----------------------------------------------------------------------
+    // Run tick
+    void tick(const TickData& _td)
+    {
+      run(_td, Task::tick);
+    }
+
+    //----------------------------------------------------------------------
+    // Run post-tick
+    void post_tick(const TickData& _td)
+    {
+      run(_td, Task::post_tick);
+    }
+
+    //----------------------------------------------------------------------
+    // Wait for run to finish
+    void wait();
+
+    //----------------------------------------------------------------------
+    // Destructor
+    ~Thread();
+  };
+
   // Serialiser for accepts when using thread pool
   class ThreadSerialiser: public Acceptor
   {
@@ -763,8 +826,10 @@ class MultiGraph
     }
   };
 
-  shared_ptr<ThreadPool> thread_pool;
+  bool threaded = false;
+
   unique_ptr<ThreadSerialiser> thread_serialiser;
+  map<Graph *, Thread> threads;
 
  public:
   //------------------------------------------------------------------------

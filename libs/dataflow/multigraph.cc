@@ -17,9 +17,9 @@ void MultiGraph::configure(const File::Directory& base_dir,
                            const XML::Element& config)
 {
   // Set the optional thread pool
-  if (!config.get_attr("thread-pool").empty())
+  if (config.get_attr_bool("thread"))
   {
-    thread_pool = engine.get_service<ThreadPool>("thread-pool");
+    threaded = true;
     thread_serialiser.reset(new ThreadSerialiser{});
   }
 
@@ -45,6 +45,9 @@ Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
   MT::RWWriteLock lock(mutex);
   subgraphs.push_back(shared_ptr<Graph>(sub));
   subgraphs_by_id[id] = sub;
+  if (threaded)
+    threads.emplace(piecewise_construct,
+                    forward_as_tuple(sub), forward_as_tuple(subgraphs.back()));
   return sub;
 }
 
@@ -107,12 +110,12 @@ void MultiGraph::disable_all()
 void MultiGraph::pre_tick_all(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
-  if (thread_pool)
+  if (threaded)
   {
-    auto functions = vector<function<void()>>{};
-    for (const auto it: subgraphs)
-      functions.emplace_back([it, &td]() { it->pre_tick(td); });
-    thread_pool->run_and_wait(functions);
+    for (auto& it: threads)
+      it.second.pre_tick(td);
+    for (auto& it: threads)
+      it.second.wait();
   }
   else
   {
@@ -126,12 +129,12 @@ void MultiGraph::pre_tick_all(const TickData& td)
 void MultiGraph::tick_all(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
-  if (thread_pool)
+  if (threaded)
   {
-    auto functions = vector<function<void()>>{};
-    for (const auto it: subgraphs)
-      functions.emplace_back([it, &td]() { it->tick(td); });
-    thread_pool->run_and_wait(functions);
+    for (auto& it: threads)
+      it.second.tick(td);
+    for (auto& it: threads)
+      it.second.wait();
   }
   else
   {
@@ -145,12 +148,12 @@ void MultiGraph::tick_all(const TickData& td)
 void MultiGraph::post_tick_all(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
-  if (thread_pool)
+  if (threaded)
   {
-    auto functions = vector<function<void()>>{};
-    for (const auto it: subgraphs)
-      functions.emplace_back([it, &td]() { it->post_tick(td); });
-    thread_pool->run_and_wait(functions);
+    for (auto& it: threads)
+      it.second.post_tick(td);
+    for (auto& it: threads)
+      it.second.wait();
   }
   else
   {
@@ -190,5 +193,62 @@ void MultiGraph::shutdown()
     it->shutdown();
 }
 
+//==========================================================================
+// MultiGraph::Thread
+
+//--------------------------------------------------------------------------
+// Run a task
+void MultiGraph::Thread::run(const TickData& _td, Task _task)
+{
+  td = _td;
+  task = _task;
+  start_c.signal();
+}
+
+//--------------------------------------------------------------------------
+// Main thread loop
+void MultiGraph::Thread::loop()
+{
+  auto stop = false;
+  while (!stop)
+  {
+    start_c.wait();
+    start_c.clear();
+    switch (task)
+    {
+      case Task::pre_tick:
+        graph->pre_tick(td);
+        break;
+      case Task::tick:
+        graph->tick(td);
+        break;
+      case Task::post_tick:
+        graph->post_tick(td);
+        break;
+      case Task::exit:
+        stop = true;
+        break;
+    }
+    done_c.signal();
+  }
+}
+
+//--------------------------------------------------------------------------
+// Wait for run to finish
+void MultiGraph::Thread::wait()
+{
+  done_c.wait();
+  done_c.clear();
+}
+
+//--------------------------------------------------------------------------
+// Destructor
+MultiGraph::Thread::~Thread()
+{
+  task = Task::exit;
+  start_c.signal();
+  wait();
+  t.join();
+}
 
 }} // namespaces

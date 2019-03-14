@@ -31,6 +31,7 @@ class VCOSource: public Source
   };
   Waveform waveform;
   double freq;  // Hz
+  double pulse_width = 0.5;
   bool enabled = true;
   double theta = 0.0;
 
@@ -57,6 +58,8 @@ void VCOSource::configure(const File::Directory&,
                           const XML::Element& config)
 {
   freq = config.get_attr_real("freq");
+  pulse_width = max(0.0, min(1.0, config.get_attr_real("pulse-width",
+                                                       pulse_width)));
 
   auto note = config["note"];
   if (!note.empty())
@@ -99,6 +102,8 @@ void VCOSource::set_property(const string& property, const SetParams& sp)
     update_prop(freq, sp);
   else if (property == "note")
     freq = MIDI::get_midi_frequency(MIDI::get_midi_note(sp.v.s));
+  else if (property == "pulse-width")
+    pulse_width = max(0.0, min(1.0, sp.v.d));
   else if (property == "wave")
     parse_waveform(sp.v.s, waveform);
   else if (property == "on")
@@ -154,7 +159,7 @@ void VCOSource::tick(const TickData& td)
         break;
 
         case Waveform::square:
-          v = theta >= 0.5 ? 1.0 : -1.0;
+          v = theta >= (1.0 - pulse_width) ? 1.0 : -1.0;
         break;
 
         case Waveform::triangle:

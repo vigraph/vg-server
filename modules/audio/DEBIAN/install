@@ -1,6 +1,7 @@
 filters/linux-alsa-out/vg-module-audio-filter-linux-alsa-out.so /usr/lib/vigraph/modules/
 filters/amplitude/vg-module-audio-filter-amplitude.so /usr/lib/vigraph/modules
 filters/attenuator/vg-module-audio-filter-attenuator.so /usr/lib/vigraph/modules/
+filters/audio-to-vector/vg-module-audio-filter-audio-to-vector.so /usr/lib/vigraph/modules/
 filters/combine/vg-module-audio-filter-combine.so /usr/lib/vigraph/modules
 filters/delay/vg-module-audio-filter-delay.so /usr/lib/vigraph/modules
 filters/filter/vg-module-audio-filter-filter.so /usr/lib/vigraph/modules

@@ -79,11 +79,7 @@ void SetControl::set_property(const string& property, const SetParams& sp)
       do_delay = true;
   }
   else if (property == "value")
-  {
     update_prop(value, sp);
-    if (delay.seconds() >= 0)
-      do_delay = true;
-  }
 }
 
 //--------------------------------------------------------------------------

@@ -155,7 +155,8 @@ void VCOSource::tick(const TickData& td)
         break;
 
         case Waveform::sin:
-          v = sin(theta*2*pi);
+          v = theta < pulse_width ? sin(theta*pi/pulse_width)
+                                  : sin((theta-1.0)*pi/(1.0-pulse_width));
         break;
 
         case Waveform::square:

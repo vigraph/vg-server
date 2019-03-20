@@ -29,6 +29,8 @@ class LFOControl: public Dataflow::Control
   };
 
   Waveform waveform{Waveform::saw};
+
+public:
   bool once{false};
   bool wait{false};
   double period{0.0};
@@ -36,13 +38,11 @@ class LFOControl: public Dataflow::Control
   double offset{0.0};
   double phase{0.0};
 
+private:
   // Dynamic state
   bool running{false};
   bool triggered{false};
   timestamp_t trigger_time{0};
-
-  // Internals
-  void set_waveform(const string& wave);
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -52,7 +52,28 @@ class LFOControl: public Dataflow::Control
 public:
   // Construct
   LFOControl(const Module *module, const XML::Element& config);
+
+  // Property getter/setters
+  string get_waveform();
+  void set_waveform(const string& wave);
+
+  // Trigger function
+  void trigger() { triggered = true; }
 };
+
+//--------------------------------------------------------------------------
+// Get waveform name
+string LFOControl::get_waveform()
+{
+  switch (waveform)
+  {
+    case Waveform::saw:      return "saw";
+    case Waveform::sin:      return "sin";
+    case Waveform::square:   return "square";
+    case Waveform::triangle: return "triangle";
+    case Waveform::random:   return "random";
+  }
+}
 
 //--------------------------------------------------------------------------
 // Set the wave from string
@@ -173,22 +194,38 @@ Dataflow::Module module
   "core",
   {
     { "wave",  { { "Waveform", "sin" },
-          Value::Type::choice, "@wave",
+          Value::Type::choice,
+          { static_cast<string (Element::*)()>(&LFOControl::get_waveform),
+            static_cast<void (Element::*)(const string&)>(&LFOControl::set_waveform) },
           { "saw", "sin", "square", "triangle", "random" } } },
     { "once", { { "Run only one cycle", "false" },
-          Value::Type::boolean } },
+          Value::Type::boolean,
+          static_cast<bool Element::*>(&LFOControl::once),
+          true } },
     { "wait", { { "Wait to be triggered", "false" },
-          Value::Type::boolean } },
+          Value::Type::boolean,
+          static_cast<bool Element::*>(&LFOControl::wait),
+          true } },
     { "period", { { "Period in seconds", "1.0" },
-          Value::Type::number, true } },
+          Value::Type::number,
+          static_cast<double Element::*>(&LFOControl::period),
+          true } },
     { "scale", { { "Scale (amplitude)", "1.0" },
-          Value::Type::number, true } },
+          Value::Type::number,
+          static_cast<double Element::*>(&LFOControl::scale),
+          true } },
     { "offset", { "Baseline offset",
-          Value::Type::number, true } },
+          Value::Type::number,
+          static_cast<double Element::*>(&LFOControl::offset),
+          true } },
     { "phase", { "Phase shift (0..1)",
-          Value::Type::number, true } },
+          Value::Type::number,
+          static_cast<double Element::*>(&LFOControl::phase),
+          true } },
     { "trigger", { "Trigger to start",
-          Value::Type::trigger, true } }
+          Value::Type::trigger,
+          static_cast<void (Element::*)()>(&LFOControl::trigger),
+          true } }
   },
   { { "", { "Wave output", "", Value::Type::number }}}
 };

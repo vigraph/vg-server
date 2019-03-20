@@ -229,6 +229,9 @@ struct Module
              void (Element::* _set)(const string&)): get_s(_get), set_s(_set) {}
       Member(bool (Element::* _get)(),
              void (Element::* _set)(bool)): get_b(_get), set_b(_set) {}
+      Member(JSON::Value (Element::* _get)(),
+             void (Element::* _set)(const JSON::Value&)):
+        get_json(_get), set_json(_set) {}
 
       Member(void (Element::* _f)()): trigger(_f) {}
     } member;

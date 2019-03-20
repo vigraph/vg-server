@@ -32,6 +32,10 @@ class InterpolateControl: public Control
 public:
   // Construct
   InterpolateControl(const Module *module, const XML::Element& config);
+
+  // Getter/setters
+  JSON::Value get_curve();
+  void set_curve(const JSON::Value& json);
 };
 
 //--------------------------------------------------------------------------
@@ -61,6 +65,49 @@ InterpolateControl::InterpolateControl(const Module *module,
     {
       if (ait.first != "at")
         p.values[ait.first] = Text::stof(ait.second);
+    }
+
+    points.push_back(p);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Get curve as JSON value
+JSON::Value InterpolateControl::get_curve()
+{
+  JSON::Value json(JSON::Value::ARRAY);
+  for(const auto& p: points)
+  {
+    JSON::Value o(JSON::Value::OBJECT);
+    o.set("at", p.at);
+    for(const auto& pit: p.values)
+      o.set(pit.first, pit.second);
+  }
+
+  return json;
+}
+
+//--------------------------------------------------------------------------
+// Set curve from JSON value
+void InterpolateControl::set_curve(const JSON::Value& json)
+{
+  if (json.type != JSON::Value::ARRAY) return;
+  points.clear();
+  double default_at = 0.0;
+  const auto np = json.a.size();
+  for(const auto& o: json.a)
+  {
+    if (o.type != JSON::Value::OBJECT) continue;
+    double at = o["at"].as_float(default_at);
+    if (np > 1) default_at += 1.0 / (np-1);
+
+    Point p(at);
+
+    // Add other attributes as values
+    for(const auto& pit: o.o)
+    {
+      if (pit.first != "at")
+        p.values[pit.first] = pit.second.as_float();
     }
 
     points.push_back(p);
@@ -125,7 +172,13 @@ Dataflow::Module module
   "Animate one or more properties using key frame interpolation",
   "core",
   {
-    { "t",  { "Proportion to interpolate (0..1)", Value::Type::number, true } }
+    { "t",  { "Proportion to interpolate (0..1)", Value::Type::number, true }},
+    { "curve",  { "Interpolation curve", "curve",
+        { static_cast<JSON::Value (Element::*)()>
+            (&InterpolateControl::get_curve),
+          static_cast<void (Element::*)(const JSON::Value&)>
+            (&InterpolateControl::set_curve) },
+          } }
   },
   { { "", { "Any value", "", Value::Type::any }}} // Flexible controlled property
 };

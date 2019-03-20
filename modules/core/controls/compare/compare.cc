@@ -16,7 +16,7 @@ namespace {
 class CompareControl: public Dataflow::Control
 {
 public:
-  string property;
+  double value{0.0};
   double min = 0.0;
   double max = 1.0;
   bool on_change = false;
@@ -26,7 +26,6 @@ private:
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  Dataflow::Value::Type get_property_type(const string& property) override;
 
 public:
   // Construct
@@ -35,11 +34,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML
-//   <compare min="-0.5" max="0.5" property="x"/>
+//   <compare min="-0.5" max="0.5" .../>
 CompareControl::CompareControl(const Module *module, const XML::Element& config):
   Control(module, config)
 {
-  property = config["property"];
   min = config.get_attr_real("min", min);
   max = config.get_attr_real("max", max);
   on_change = config.get_attr_bool("on-change", on_change);
@@ -50,7 +48,7 @@ CompareControl::CompareControl(const Module *module, const XML::Element& config)
 void CompareControl::set_property(const string& prop,
                                const SetParams& sp)
 {
-  if (prop != property) return;
+  if (prop != "value") return;
 
   if (sp.v.d > max || sp.v.d < min)
   {
@@ -71,17 +69,6 @@ void CompareControl::set_property(const string& prop,
 }
 
 //--------------------------------------------------------------------------
-// Get control property types
-Dataflow::Value::Type
-  CompareControl::get_property_type(const string& prop)
-{
-  if (prop == property)
-    return Dataflow::Value::Type::number;
-
-  return Dataflow::Value::Type::invalid;
-}
-
-//--------------------------------------------------------------------------
 // Module definition
 Dataflow::Module module
 {
@@ -90,8 +77,9 @@ Dataflow::Module module
   "Compare a value",
   "core",
   {
-    { "property", { "Property to compare", Value::Type::text,
-          static_cast<string Element::*>(&CompareControl::property) } },
+    { "value", { "Value input", Value::Type::number,
+          static_cast<double Element::*>(&CompareControl::value), true } },
+    // !!! Make these settable too!
     { "min", { "Minimum value", Value::Type::number,
           static_cast<double Element::*>(&CompareControl::min) } },
     { "max", { { "Maximum value", "1.0" }, Value::Type::number,

@@ -288,9 +288,8 @@ Dataflow::Module module
           static_cast<bool Element::*>(&FigureSource::closed) } },
     { "x.wave",  { "Waveform on X axis",
           Value::Type::choice,
-          Dataflow::Module::Property::Member{
-          static_cast<string (Element::*)()>(&FigureSource::get_waveform_x),
-          static_cast<void (Element::*)(const string&)>(&FigureSource::set_waveform_x) },
+          { static_cast<string (Element::*)()>(&FigureSource::get_waveform_x),
+            static_cast<void (Element::*)(const string&)>(&FigureSource::set_waveform_x) },
           { "none", "saw", "sin", "square", "triangle", "random" } } },
     { "x.pos",   { "Base position on X axis",
           Value::Type::number,

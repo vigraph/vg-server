@@ -15,12 +15,14 @@ namespace {
 // Envelope control
 class EnvelopeControl: public Dataflow::Control
 {
+public:
   // Configured state
   timestamp_t attack{0.0};   // Time for attack
   timestamp_t decay{0.0};    // Time for decay
   double sustain{1.0};       // Value to sustain at
   timestamp_t release{0.0};  // Time to release
 
+private:
   // Dynamic state
   enum class State
   {
@@ -191,11 +193,15 @@ Dataflow::Module module
   "Provide an ADSR envelope on trigger/release",
   "core",
   {
-    { "attack",  { "Attack time", Value::Type::number, true } },
-    { "decay",   { "Decay time", Value::Type::number, true } },
-    { "sustain", { "Sustain level", Value::Type::number, true } },
-    { "release", { "Release time", Value::Type::number, true } },
-    { "trigger", { "Trigger to start attack", Value::Type::trigger, true } },
+    { "attack",  { "Attack time", Value::Type::number,
+          static_cast<double Element::*>(&EnvelopeControl::attack), true } },
+    { "decay",   { "Decay time", Value::Type::number,
+          static_cast<double Element::*>(&EnvelopeControl::decay), true } },
+    { "sustain", { "Sustain level", Value::Type::number,
+          static_cast<double Element::*>(&EnvelopeControl::sustain), true } },
+    { "release", { "Release time", Value::Type::number,
+          static_cast<double Element::*>(&EnvelopeControl::release), true } },
+    { "trigger", { "Trigger to start attack", Value::Type::trigger,true } },
     { "clear",   { "Trigger to start release", Value::Type::trigger, true } }
   },
   {

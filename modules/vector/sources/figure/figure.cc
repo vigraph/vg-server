@@ -291,34 +291,32 @@ Dataflow::Module module
           Dataflow::Module::Property::Member{
           static_cast<string (Element::*)()>(&FigureSource::get_waveform_x),
           static_cast<void (Element::*)(const string&)>(&FigureSource::set_waveform_x) },
-          "x/@wave",
           { "none", "saw", "sin", "square", "triangle", "random" } } },
     { "x.pos",   { "Base position on X axis",
           Value::Type::number,
           // !!! Can't do this!?
           // static_cast<double Element::*>(&FigureSource::x_axis.pos),
-          "x/@pos", true } },
+          true } },
     { "x.freq",  { "Frequency for X axis",
-          Value::Type::number, "x/@freq",  true } },
+          Value::Type::number, true } },
     { "x.phase", { "Phase (0..1) on X axis",
-          Value::Type::number, "x/@phase", true } },
+          Value::Type::number, true } },
     { "x.scale", { { "Scale of X axis", "1.0" },
-          Value::Type::number, "x/@scale", true } },
+          Value::Type::number, true } },
     { "y.wave",  { "Waveform on Y axis",
           Value::Type::choice,
           Dataflow::Module::Property::Member{
           static_cast<string (Element::*)()>(&FigureSource::get_waveform_y),
           static_cast<void (Element::*)(const string&)>(&FigureSource::set_waveform_y) },
-          "y/@wave",
           { "none", "saw", "sin", "square", "triangle", "random" } } },
     { "y.pos",   { "Base position on Y axis",
-          Value::Type::number, "y/@pos",   true } },
+          Value::Type::number,  true } },
     { "y.freq",  { "Frequence for Y axis",
-          Value::Type::number, "y/@freq",  true } },
+          Value::Type::number, true } },
     { "y.phase", { "Phase (0..1) on Y axis",
-          Value::Type::number, "y/@phase", true } },
+          Value::Type::number, true } },
     { "y.scale", { { "Scale of Y axis", "1.0" },
-          Value::Type::number, "y/@scale", true } }
+          Value::Type::number, true } }
   },
   {},  // no inputs
   { "VectorFrame" }  // outputs

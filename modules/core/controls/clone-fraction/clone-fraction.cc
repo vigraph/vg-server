@@ -16,9 +16,11 @@ namespace {
 // CloneFraction control
 class CloneFractionControl: public Dataflow::Control
 {
+public:
   double scale{1.0};
   double offset{0.0};
 
+private:
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void pre_tick(const TickData& td) override;
@@ -74,9 +76,13 @@ Dataflow::Module module
   "core",
   {
     { "scale",  { {"Scale to apply to fraction", "1.0"},
-          Value::Type::number, "@scale", true } },
+          Value::Type::number,
+            static_cast<double Element::*>(&CloneFractionControl::scale),
+            true } },
     { "offset", { {"Offset to apply to fraction", "0"},
-          Value::Type::number, "@offset", true } }
+          Value::Type::number,
+            static_cast<double Element::*>(&CloneFractionControl::offset),
+            true } }
   },
   { { "", { "Clone fraction", "", Value::Type::number }}}
 };

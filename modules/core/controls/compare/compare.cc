@@ -15,10 +15,13 @@ namespace {
 // Compare control
 class CompareControl: public Dataflow::Control
 {
+public:
   string property;
   double min = 0.0;
   double max = 1.0;
   bool on_change = false;
+
+private:
   bool last_result = false;
 
   // Control/Element virtuals
@@ -87,11 +90,15 @@ Dataflow::Module module
   "Compare a value",
   "core",
   {
-    { "property", { "Property to compare", Value::Type::text } },
-    { "min", { "Minimum value", Value::Type::number } },
-    { "max", { { "Maximum value", "1.0" }, Value::Type::number } },
+    { "property", { "Property to compare", Value::Type::text,
+          static_cast<string Element::*>(&CompareControl::property) } },
+    { "min", { "Minimum value", Value::Type::number,
+          static_cast<double Element::*>(&CompareControl::min) } },
+    { "max", { { "Maximum value", "1.0" }, Value::Type::number,
+          static_cast<double Element::*>(&CompareControl::max) } },
     { "on-change", { { "Send triggers only on change", "false" },
-                     Value::Type::boolean } },
+          Value::Type::boolean,
+            static_cast<bool Element::*>(&CompareControl::on_change) } },
   },
   {
     { "trigger", { "Match", "trigger", Value::Type::trigger }},

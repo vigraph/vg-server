@@ -15,15 +15,11 @@ namespace {
 // Add control
 class AddControl: public Dataflow::Control
 {
-  // Mimic of controlled value
-  double value{0.0};
-
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  Dataflow::Value::Type get_property_type(const string& property) override;
 
 public:
-  string property;
+  double value{0.0};
   double offset;
 
   // Construct
@@ -32,11 +28,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML
-//   <add offset="0.1" property="x"/>
+//   <add offset="0.1"/>
 AddControl::AddControl(const Module *module, const XML::Element& config):
   Control(module, config)
 {
-  property = config["property"];
   offset = config.get_attr_real("offset");
 }
 
@@ -45,26 +40,14 @@ AddControl::AddControl(const Module *module, const XML::Element& config):
 void AddControl::set_property(const string& prop,
                               const SetParams& sp)
 {
-  if (prop != property) return;
-
-  // Keep our copy up to date
-  update_prop(value, sp);
+  if (prop == "value")
+    update_prop(value, sp);
+  else if (prop == "offset")
+    update_prop(offset, sp);
 
   // Add the offset and pass on
-  value += offset;
-  SetParams nsp(Dataflow::Value{value});
+  SetParams nsp(Dataflow::Value{value+offset});
   send(nsp);
-}
-
-//--------------------------------------------------------------------------
-// Get control property types
-Dataflow::Value::Type
-  AddControl::get_property_type(const string& prop)
-{
-  if (prop == property)
-    return Dataflow::Value::Type::number;
-
-  return Dataflow::Value::Type::invalid;
 }
 
 //--------------------------------------------------------------------------
@@ -76,9 +59,9 @@ Dataflow::Module module
   "Add an offset to a control value",
   "core",
   {
-    { "property",
-      { "Property to set", Value::Type::text,
-          static_cast<string Element::*>(&AddControl::property) } },
+    { "value",
+      { "Base value", Value::Type::number,
+          static_cast<double Element::*>(&AddControl::value) } },
     { "offset",
       { "Offset amount", Value::Type::number,
           static_cast<double Element::*>(&AddControl::offset) } },

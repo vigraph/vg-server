@@ -128,7 +128,8 @@ struct Value
     boolean,       // True / False
     choice,        // Fixed choice set
     file,          // Filename
-    any            // Set at run time
+    other,         // Special type defined separately
+    any,           // Set at run time
   };
 
   // If only enum classes could have members ;-)
@@ -186,6 +187,7 @@ struct Module
   {
     PropertyDescription desc;
     Value::Type type;
+    string other_type;  // If type == other
 
     // Member accessor data
     struct Member
@@ -201,11 +203,13 @@ struct Module
       int (Element::* get_i)(){nullptr};
       string (Element::* get_s)(){nullptr};
       bool (Element::* get_b)(){nullptr};
+      JSON::Value (Element::* get_json)(){nullptr};
 
       void (Element::* set_d)(double){nullptr};
       void (Element::* set_i)(int){nullptr};
       void (Element::* set_s)(const string& ){nullptr};
       void (Element::* set_b)(bool){nullptr};
+      void (Element::* set_json)(const JSON::Value& json){nullptr};
 
       // Trigger function
       void (Element::* trigger)(){nullptr};
@@ -230,8 +234,8 @@ struct Module
     } member;
     string xpath;              // Relative xpath for config
     set<string> options;       // Options for choice
-    bool settable{false};
-
+    bool settable{false};      // Can be connected to and changed dynamically
+    bool alias{false};         // Another way of representing an earlier value
     // !!! Constructors without member data - remove once all converted
     Property(const PropertyDescription& _desc, Value::Type _type,
              bool _set=false):
@@ -248,21 +252,24 @@ struct Module
       desc(_desc), type(_type),
       xpath(_xpath), options(_options), settable(_set) {}
 
-    // Constructors with member data
+    // New versions: Constructors with member data, no xpath
     Property(const PropertyDescription& _desc, Value::Type _type,
-             const Member& _member, bool _set=false):
-      desc(_desc), type(_type), member(_member), settable(_set) {}
+             const Member& _member, bool _set=false, bool _alias=false):
+      desc(_desc), type(_type), member(_member), settable(_set),
+      alias(_alias) {}
 
+    // choice value
     Property(const PropertyDescription& _desc, Value::Type _type,
-             const Member& _member, const string& _xpath, bool _set=false):
-      desc(_desc), type(_type), member(_member),
-      xpath(_xpath), settable(_set) {}
-
-    Property(const PropertyDescription& _desc, Value::Type _type,
-             const Member& _member, const string& _xpath,
+             const Member& _member,
              const set<string>& _options, bool _set=false):
       desc(_desc), type(_type), member(_member),
-      xpath(_xpath), options(_options), settable(_set) {}
+        options(_options), settable(_set) {}
+
+    // complex value ('other')
+    Property(const PropertyDescription& _desc, const string& _type,
+             const Member& _member, bool _set=false):
+      desc(_desc), type(Value::Type::other), other_type(_type),
+        member(_member), settable(_set) {}
   };
 
   map<string, Property> properties;

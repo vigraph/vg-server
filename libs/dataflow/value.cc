@@ -24,6 +24,7 @@ string Value::type_str(Value::Type t)
     case Value::Type::boolean: return "boolean";
     case Value::Type::choice:  return "choice";
     case Value::Type::file:    return "file";
+    case Value::Type::other:   return "other";
     case Value::Type::any:     return "any";
   }
 }

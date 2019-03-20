@@ -12,7 +12,7 @@ ModuleLoader loader;
 TEST(AddTest, TestAddZeroDoesNothing)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='0.2'/>",
+  tester.test("<set property='value' value='0.2'/>",
               "<add property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");
@@ -23,12 +23,24 @@ TEST(AddTest, TestAddZeroDoesNothing)
 TEST(AddTest, TestAddValue)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='0.2'/>",
+  tester.test("<set property='value' value='0.2'/>",
               "<add property='x' offset='0.13'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");
   ASSERT_EQ(Value::Type::number, sp.v.type);
   EXPECT_NEAR(0.33, sp.v.d, 1e-5);
+}
+
+TEST(AddTest, TestModifyAddOffset)
+{
+  ControlTester tester(loader);
+  tester.test("<set target='add' property='value' value='0.2'/>",
+              "<set target='add' property='offset' value='0.3'/>",
+              "<add id='add' property='x'/>");
+  ASSERT_TRUE(tester.target->got("x"));
+  const auto& sp = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, sp.v.type);
+  EXPECT_NEAR(0.5, sp.v.d, 1e-5);
 }
 
 int main(int argc, char **argv)

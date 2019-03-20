@@ -744,7 +744,6 @@ class MultiGraph
   {
   private:
     shared_ptr<Graph> graph;
-    thread t;
     TickData td;
     enum class Task
     {
@@ -755,6 +754,7 @@ class MultiGraph
     } task = Task::exit;
     MT::Condition start_c;
     MT::Condition done_c;
+    thread t; // This must be after the conditions
 
     //----------------------------------------------------------------------
     // Run a task

@@ -30,7 +30,7 @@ class MIDIInterface: public Dataflow::Control,
   snd_rawmidi_t *midi_in{nullptr};
   snd_rawmidi_t *midi_out{nullptr};
   unique_ptr<MIDIInThread> thread;
-  bool running;
+  bool running = false;
   ViGraph::MIDI::Reader reader;
 
   friend class MIDIInThread;

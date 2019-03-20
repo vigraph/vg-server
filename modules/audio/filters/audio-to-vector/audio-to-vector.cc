@@ -24,6 +24,12 @@ private:
   string tag;
   FramePtr frame{new Frame{0}};
   shared_ptr<Router> router;
+  enum class Mode
+  {
+    multi,
+    combined,
+    first
+  } mode = Mode::multi;
 
   // Filter/Element virtuals
   void configure(const File::Directory& base_dir,
@@ -45,6 +51,18 @@ AudioToVectorFilter::AudioToVectorFilter(const Dataflow::Module *module,
   tag = config["to"];
   if (!tag.empty())
     tag = "vector:" + tag;
+  auto m = config["mode"];
+  if (m.empty() || m == "multi")
+    mode = Mode::multi;
+  else if (m == "combined")
+    mode = Mode::combined;
+  else if (m == "first")
+    mode = Mode::first;
+  else
+  {
+    Log::Error log;
+    log << "Unknown mode '" << m << "' in " << id << endl;
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -60,21 +78,52 @@ void AudioToVectorFilter::configure(const File::Directory&,
 // Process some data
 void AudioToVectorFilter::accept(FragmentPtr fragment)
 {
+  frame->points.resize(0);
+  auto c = 0u;
+  auto s = 0u;
+  const auto channels = fragment->waveforms.size();
   for (const auto& wit: fragment->waveforms)
   {
-    for (const auto& s: wit.second)
+    const auto& w = wit.second;
+    if (mode == Mode::multi)
+      frame->points.resize(frame->points.size() + w.size());
+    else
+      frame->points.resize(max(frame->points.size(), w.size()));
+    for (auto i = 0u; i < w.size(); ++i)
     {
-      frame->points.emplace_back(static_cast<double>(frame->points.size())
-                                 / wit.second.size() - 0.5,
-                                 max(-1.0f, min(1.0f, s)) / 2,
-                                 frame->points.empty() ? Colour::black
-                                                       : Colour::white);
+      const auto a = max(-1.0f, min(1.0f, w[i]));
+      switch (mode)
+      {
+        case Mode::multi:
+          frame->points[s] = {static_cast<double>(i) / w.size() - 0.5,
+                              ((a + 1.0) / 2) / channels
+                                - static_cast<double>(c + 1) / channels,
+                              i ? Colour::white : Colour::black};
+          break;
+        case Mode::combined:
+          if (c)
+            frame->points[i].y += (a / channels) / 2;
+          else
+            frame->points[i] = {static_cast<double>(i) / w.size() - 0.5,
+                                (a / channels) / 2,
+                                i ? Colour::white : Colour::black};
+          break;
+        case Mode::first:
+          frame->points[i] = {static_cast<double>(i) / w.size() - 0.5,
+                              a / 2, i ? Colour::white : Colour::black};
+          break;
+      }
+      ++s;
     }
+    if (mode == Mode::first)
+      break;
+    ++c;
+  }
+  if (!frame->points.empty())
+  {
     if (router && !tag.empty())
       router->send(tag, frame);
     frame->points.clear();
-    // Single channel only for now
-    break;
   }
   send(fragment);
 }

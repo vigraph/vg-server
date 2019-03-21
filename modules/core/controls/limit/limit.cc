@@ -15,17 +15,12 @@ namespace {
 // Limit control
 class LimitControl: public Dataflow::Control
 {
-  string property;
+public:
   double min, max;
-  double initial_value;
-
-  // Mimic of controlled value
   double value{0.0};
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
-  Dataflow::Value::Type get_property_type(const string& property) override;
-  void enable() override;
 
 public:
   // Construct
@@ -34,21 +29,13 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML
-//   <limit value="0.0" min="-0.5" max="0.5" property="x"/>
+//   <limit value="0.0" min="-0.5" max="0.5" .../>
 LimitControl::LimitControl(const Module *module, const XML::Element& config):
   Control(module, config)
 {
-  property = config["property"];
   min = config.get_attr_real("min", 0.0);
   max = config.get_attr_real("max", 1.0);
-  value = initial_value = config.get_attr_real("value");
-}
-
-//--------------------------------------------------------------------------
-// Enable (reset)
-void LimitControl::enable()
-{
-  value = initial_value;
+  value = config.get_attr_real("value");
 }
 
 //--------------------------------------------------------------------------
@@ -56,7 +43,7 @@ void LimitControl::enable()
 void LimitControl::set_property(const string& prop,
                                const SetParams& sp)
 {
-  if (prop != property) return;
+  if (prop != "value") return;
 
   // Keep our copy up to date
   update_prop(value, sp);
@@ -72,17 +59,6 @@ void LimitControl::set_property(const string& prop,
 }
 
 //--------------------------------------------------------------------------
-// Get control property types
-Dataflow::Value::Type
-  LimitControl::get_property_type(const string& prop)
-{
-  if (prop == property)
-    return Dataflow::Value::Type::number;
-
-  return Dataflow::Value::Type::invalid;
-}
-
-//--------------------------------------------------------------------------
 // Module definition
 Dataflow::Module module
 {
@@ -91,9 +67,13 @@ Dataflow::Module module
   "Hard limit on a value",
   "core",
   {
-    { "property", { "Property to set", Value::Type::text } },
-    { "min", { "Minimum value", Value::Type::number } },
-    { "max", { { "Maximum value", "1.0" }, Value::Type::number } }
+    { "value",
+      { "Base value", Value::Type::number,
+          static_cast<double Element::*>(&LimitControl::value), true } },
+    { "min", { "Minimum value", Value::Type::number,
+          static_cast<double Element::*>(&LimitControl::min) } },
+    { "max", { { "Maximum value", "1.0" }, Value::Type::number,
+          static_cast<double Element::*>(&LimitControl::max) } }
   },
   { { "", { "Value output", "", Value::Type::number }}}
 };

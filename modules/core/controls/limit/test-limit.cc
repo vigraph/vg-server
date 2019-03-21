@@ -12,7 +12,7 @@ ModuleLoader loader;
 TEST(LimitTest, TestLimitDoesNothingInRange)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='0.2'/>",
+  tester.test("<set property='value' value='0.2'/>",
               "<limit property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");
@@ -23,7 +23,7 @@ TEST(LimitTest, TestLimitDoesNothingInRange)
 TEST(LimitTest, TestDefaultLimitAbsoluteValueUpper)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='1.5'/>",
+  tester.test("<set property='value' value='1.5'/>",
               "<limit property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");
@@ -34,7 +34,7 @@ TEST(LimitTest, TestDefaultLimitAbsoluteValueUpper)
 TEST(LimitTest, TestDefaultLimitAbsoluteValueLower)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='-0.5'/>",
+  tester.test("<set property='value' value='-0.5'/>",
               "<limit property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");
@@ -45,7 +45,7 @@ TEST(LimitTest, TestDefaultLimitAbsoluteValueLower)
 TEST(LimitTest, TestSpecifiedLimitAbsoluteValueUpper)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='5.5'/>",
+  tester.test("<set property='value' value='5.5'/>",
               "<limit property='x' min='3' max='4'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");
@@ -56,7 +56,7 @@ TEST(LimitTest, TestSpecifiedLimitAbsoluteValueUpper)
 TEST(LimitTest, TestSpecifiedLimitAbsoluteValueLower)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='-0.5'/>",
+  tester.test("<set property='value' value='-0.5'/>",
               "<limit property='x' min='3' max='4'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");
@@ -67,7 +67,7 @@ TEST(LimitTest, TestSpecifiedLimitAbsoluteValueLower)
 TEST(LimitTest, TestLimitDeltaValue)
 {
   ControlTester tester(loader);
-  tester.test("<modify property='x' delta='1.5'/>",
+  tester.test("<modify property='value' delta='1.5'/>",
               "<limit property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");

@@ -13,7 +13,6 @@ DEPENDS  = vg-module-vector-source-test \
            vg-module-vector-source-receive \
            vg-module-vector-control-velocity \
            vg-module-vector-control-polar-velocity \
-           vg-module-vector-control-polar-acceleration \
            vg-module-vector-filter-depth-fade \
            vg-module-vector-filter-translate \
            vg-module-vector-filter-colour \

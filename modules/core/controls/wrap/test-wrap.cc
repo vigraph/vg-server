@@ -64,19 +64,6 @@ TEST(WrapTest, TestSpecifiedWrapAbsoluteValueLower)
   EXPECT_NEAR(3.7, sp.v.d, 1e-5);
 }
 
-TEST(WrapTest, TestWrapDeltaValue)
-{
-  ControlTester tester(loader);
-  tester.test("<modify property='x' delta='1.3'/>",
-              "<wrap property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  // Wrap converts to absolute set
-  EXPECT_FALSE(sp.increment);
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.3, sp.v.d, 1e-5);
-}
-
 int main(int argc, char **argv)
 {
   if (argc > 1 && string(argv[1]) == "-v")
@@ -87,7 +74,6 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../set/vg-module-core-control-set.so");
-  loader.load("../modify/vg-module-core-control-modify.so");
   loader.load("./vg-module-core-control-wrap.so");
   return RUN_ALL_TESTS();
 }

@@ -364,28 +364,23 @@ public:
   // Control value setting parameters
   struct SetParams
   {
-    Value v;                // Value to set (increment)
-    bool increment{false};  // True if incremental
+    Value v;                // Value to set
 
     // Default for maps
     SetParams() {}
 
     // Simple set
     SetParams(const Value& _v): v(_v) {}
-
-    // Incremental set
-    SetParams(const Value& _v, bool _inc): v(_v), increment(_inc) {}
   };
 
 protected:
   // Param setting helpers
   static void update_prop(double &prop, const SetParams& sp)
-  { if (sp.increment) prop+=sp.v.d; else prop = sp.v.d; }
+  { prop = sp.v.d; }
   static void update_prop_int(int &prop, const SetParams& sp)
-  { int i=static_cast<int>(sp.v.d);
-    if (sp.increment) prop+=i; else prop = i; }
+  { prop=static_cast<int>(sp.v.d);}
   static void update_prop(bool &prop, const SetParams& sp)
-  { if (sp.increment) prop = !prop; else prop = !!sp.v.d; }
+  { prop = !!sp.v.d; }
 
 public:
   const Module *module{nullptr};

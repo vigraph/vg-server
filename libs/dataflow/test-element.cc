@@ -49,18 +49,6 @@ TEST(ElementTest, TestElementControlUpdateDirectSetting)
   EXPECT_EQ(1.0, e.x);
 }
 
-TEST(ElementTest, TestElementControlUpdateIncrementSetting)
-{
-  XML::Element xml("element", "id", "foo");
-  TestElement e(xml);
-
-  Value v(1.0);
-  Element::SetParams spx(v, true);
-  e.x = 0.5;
-  e.set_property("x", spx);
-  EXPECT_DOUBLE_EQ(1.5, e.x);
-}
-
 TEST(ElementTest, TestElementGetJSON)
 {
   XML::Element xml("element", "id", "foo");

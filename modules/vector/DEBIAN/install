@@ -1,5 +1,4 @@
 controls/polar-velocity/vg-module-vector-control-polar-velocity.so /usr/lib/vigraph/modules/
-controls/polar-acceleration/vg-module-vector-control-polar-acceleration.so /usr/lib/vigraph/modules/
 controls/velocity/vg-module-vector-control-velocity.so /usr/lib/vigraph/modules/
 sources/figure/vg-module-vector-source-figure.so /usr/lib/vigraph/modules/
 sources/receive/vg-module-vector-source-receive.so /usr/lib/vigraph/modules/

@@ -18,7 +18,7 @@ DEPENDS  = vg-module-core-source-selector \
            vg-module-core-control-interpolate \
            vg-module-core-control-add \
            vg-module-core-control-multiply \
-           vg-module-core-control-modify \
+           vg-module-core-control-count \
            vg-module-core-control-wrap \
            vg-module-core-control-limit \
            vg-module-core-control-random \

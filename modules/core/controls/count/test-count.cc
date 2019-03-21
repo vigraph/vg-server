@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: core/controls/modify/test-modify.cc
+// ViGraph dataflow module: core/controls/count/test-count.cc
 //
-// Tests for <modify> control
+// Tests for <count> control
 //
 // Copyright (c) 2018 Paul Clark.  All rights reserved
 //==========================================================================
@@ -9,48 +9,46 @@
 #include "../../../module-test.h"
 ModuleLoader loader;
 
-TEST(ModifyTest, TestModifyDefault)
+TEST(CountTest, TestCountDefault)
 {
   ControlTester tester(loader);
-  tester.test("<modify property='foo'/>");
+  tester.test("<count property='foo'/>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& sp = tester.target->get("foo");
-  EXPECT_TRUE(sp.increment);
   ASSERT_EQ(Value::Type::number, sp.v.type);
   EXPECT_EQ(1, sp.v.d);
 }
 
-TEST(ModifyTest, TestModifySpecified)
+TEST(CountTest, TestCountSpecified)
 {
   ControlTester tester(loader);
-  tester.test("<modify property='foo' delta='42'/>");
+  tester.test("<count property='foo' delta='42'/>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& sp = tester.target->get("foo");
-  EXPECT_TRUE(sp.increment);
   ASSERT_EQ(Value::Type::number, sp.v.type);
   EXPECT_EQ(42, sp.v.d);
 }
 
-TEST(ModifyTest, TestModifyWithWaitNotTriggeredHasNoEffect)
+TEST(CountTest, TestCountWithWaitNotTriggeredHasNoEffect)
 {
   ControlTester tester(loader);
-  tester.test("<modify property='foo' wait='yes'/>");
+  tester.test("<count property='foo' wait='yes'/>");
   ASSERT_FALSE(tester.target->got("foo"));
 }
 
-TEST(ModifyTest, TestModifyWithAutoWaitNotTriggeredHasNoEffect)
+TEST(CountTest, TestCountWithAutoWaitNotTriggeredHasNoEffect)
 {
   ControlTester tester(loader);
   tester.test("<set property='trigger' type='trigger' wait='yes'/>",
-              "<modify property='foo'/>", 2);
+              "<count property='foo'/>", 2);
   ASSERT_FALSE(tester.target->got("foo"));
 }
 
-TEST(ModifyTest, TestModifyWithWaitTriggeredHasEffect)
+TEST(CountTest, TestCountWithWaitTriggeredHasEffect)
 {
   ControlTester tester(loader);
   tester.test("<set property='trigger' type='trigger'/>",
-              "<modify property='foo' wait='yes'/>", 2);
+              "<count property='foo' wait='yes'/>");
   ASSERT_TRUE(tester.target->got("foo"));
 }
 
@@ -63,7 +61,7 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-control-modify.so");
+  loader.load("./vg-module-core-control-count.so");
   loader.load("../set/vg-module-core-control-set.so");
   return RUN_ALL_TESTS();
 }

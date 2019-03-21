@@ -64,19 +64,6 @@ TEST(LimitTest, TestSpecifiedLimitAbsoluteValueLower)
   EXPECT_NEAR(3.0, sp.v.d, 1e-5);
 }
 
-TEST(LimitTest, TestLimitDeltaValue)
-{
-  ControlTester tester(loader);
-  tester.test("<modify property='value' delta='1.5'/>",
-              "<limit property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  // Limit converts to absolute set
-  EXPECT_FALSE(sp.increment);
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(1.0, sp.v.d, 1e-5);
-}
-
 int main(int argc, char **argv)
 {
   if (argc > 1 && string(argv[1]) == "-v")
@@ -87,7 +74,6 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../set/vg-module-core-control-set.so");
-  loader.load("../modify/vg-module-core-control-modify.so");
   loader.load("./vg-module-core-control-limit.so");
   return RUN_ALL_TESTS();
 }

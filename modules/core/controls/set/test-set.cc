@@ -15,7 +15,6 @@ TEST(SetTest, TestAbsoluteValueSet)
   tester.test("<set property='foo' value='42'/>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& sp = tester.target->get("foo");
-  EXPECT_FALSE(sp.increment);
   ASSERT_EQ(Value::Type::number, sp.v.type);
   EXPECT_EQ(42, sp.v.d);
 }
@@ -26,7 +25,6 @@ TEST(SetTest, TestAbsoluteValueSetTrigger)
   tester.test("<set property='foo' type='trigger'/>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& sp = tester.target->get("foo");
-  EXPECT_FALSE(sp.increment);
   EXPECT_EQ(Value::Type::trigger, sp.v.type);
 }
 

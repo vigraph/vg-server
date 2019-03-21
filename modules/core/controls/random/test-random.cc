@@ -17,7 +17,6 @@ TEST(RandomTest, TestDefaultMinMax)
     tester.test("<random property='foo'/>");
     ASSERT_TRUE(tester.target->got("foo"));
     const auto& sp = tester.target->get("foo");
-    EXPECT_FALSE(sp.increment);
     ASSERT_EQ(Value::Type::number, sp.v.type);
     EXPECT_LE(0.0, sp.v.d);
     EXPECT_GE(1.0, sp.v.d);
@@ -32,7 +31,6 @@ TEST(RandomTest, TestSpecifiedMinMax)
     tester.test("<random property='foo' min='0.4' max='0.6'/>");
     ASSERT_TRUE(tester.target->got("foo"));
     const auto& sp = tester.target->get("foo");
-    EXPECT_FALSE(sp.increment);
     ASSERT_EQ(Value::Type::number, sp.v.type);
     EXPECT_LE(0.4, sp.v.d);
     EXPECT_GE(0.6, sp.v.d);

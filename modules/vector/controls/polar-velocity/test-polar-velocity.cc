@@ -16,7 +16,7 @@ TEST(PolarVelocityTest, TestZeroVelocityDoesNothing)
   const string& xml = R"(
     <graph>
       <figure points='1'/>
-      <polar-velocity v="0" angle="0"/>
+      <polar-velocity x="1" y="2" v="0" angle="0"/>
       <translate/>
     </graph>
   )";
@@ -29,8 +29,8 @@ TEST(PolarVelocityTest, TestZeroVelocityDoesNothing)
   EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
-    EXPECT_EQ(0.0, p.x);
-    EXPECT_EQ(0.0, p.y);
+    EXPECT_EQ(1.0, p.x);
+    EXPECT_EQ(2.0, p.y);
     EXPECT_EQ(0.0, p.z);
   }
 }
@@ -141,9 +141,11 @@ TEST(PolarVelocityTest, TestSetAngleAndVelocity)
   const string& xml = R"(
     <graph>
       <figure points='1'/>
-      <set target="m2dp" value="1.0" property="v"/>
-      <set target="m2dp" value="0.25" property="angle"/>
-      <polar-velocity id="m2dp" v="0" angle="0"/>
+      <set target="pv" value="1.0" property="x"/>
+      <set target="pv" value="2.0" property="y"/>
+      <set target="pv" value="1.0" property="v"/>
+      <set target="pv" value="0.25" property="angle"/>
+      <polar-velocity id="pv" v="0" angle="0"/>
       <translate/>
     </graph>
   )";
@@ -152,12 +154,12 @@ TEST(PolarVelocityTest, TestSetAngleAndVelocity)
   Frame *frame = gen.get_frame();
   ASSERT_FALSE(!frame);
 
-  // Should be 2 points at 0, 1
+  // Should be 2 points at 1, 3
   EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
-    EXPECT_NEAR(0.0, p.x, 1e-5);
-    EXPECT_NEAR(1.0, p.y, 1e-5);
+    EXPECT_NEAR(1.0, p.x, 1e-5);
+    EXPECT_NEAR(3.0, p.y, 1e-5);
     EXPECT_EQ(0.0, p.z);
   }
 }

@@ -15,7 +15,9 @@ namespace {
 // Velocity control
 class VelocityControl: public Dataflow::Control
 {
-  Vector v;
+  Vector v;   // Velocity
+  Vector p;   // Position
+  Vector start_p;
   double max{0.0};
   bool wait{false};
 
@@ -35,16 +37,21 @@ public:
 
 //--------------------------------------------------------------------------
 // Construct from XML
-// <velocity x="0.1" y="0.1" z="0.0"
+// <velocity x="1" y="1" z="1"
+//           dx="0.1" dy="0.1" dz="0.0"
 //           max = "0.5" wait="false"
 //           property-x="x" property-y="y" property-z="z"/>
 VelocityControl::VelocityControl(const Dataflow::Module *module,
                                  const XML::Element& config):
   Control(module, config)
 {
-  v.x = config.get_attr_real("x");
-  v.y = config.get_attr_real("y");
-  v.z = config.get_attr_real("z");
+  start_p.x = config.get_attr_real("x");
+  start_p.y = config.get_attr_real("y");
+  start_p.z = config.get_attr_real("z");
+  p = start_p;
+  v.x = config.get_attr_real("dx");
+  v.y = config.get_attr_real("dy");
+  v.z = config.get_attr_real("dz");
   max = config.get_attr_real("max");
   wait = config.get_attr_bool("wait");
 }
@@ -55,9 +62,13 @@ void VelocityControl::set_property(const string& property,
                                    const SetParams& sp)
 {
   if (property == "trigger") triggered = true;
-  else if (property == "x") update_prop(v.x, sp);
-  else if (property == "y") update_prop(v.y, sp);
-  else if (property == "z") update_prop(v.z, sp);
+  // !!! Need setters to replicate this rest of start_p and p
+  else if (property == "x") { update_prop(start_p.x, sp); p.x=start_p.x; }
+  else if (property == "y") { update_prop(start_p.y, sp); p.y=start_p.y; }
+  else if (property == "z") { update_prop(start_p.z, sp); p.z=start_p.z; }
+  else if (property == "dx") update_prop(v.x, sp);
+  else if (property == "dy") update_prop(v.y, sp);
+  else if (property == "dz") update_prop(v.z, sp);
   else if (property == "max") update_prop(max, sp);
 
   // Check against max magnitude
@@ -74,6 +85,7 @@ void VelocityControl::enable()
 {
   triggered = false;
   last_tick = -1.0;
+  p = start_p;
 }
 
 //--------------------------------------------------------------------------
@@ -90,12 +102,10 @@ void VelocityControl::pre_tick(const TickData& td)
   {
     auto delta_t = td.t - last_tick;
     auto delta = v * delta_t;
-    SetParams setx(Dataflow::Value{delta.x}, true);
-    send("x", setx);
-    SetParams sety(Dataflow::Value{delta.y}, true);
-    send("y", sety);
-    SetParams setz(Dataflow::Value{delta.z}, true);
-    send("z", setz);
+    p += delta;
+    send("x", Dataflow::Value{p.x});
+    send("y", Dataflow::Value{p.y});
+    send("z", Dataflow::Value{p.z});
   }
 
   last_tick = td.t;
@@ -110,6 +120,9 @@ Dataflow::Module module
   "Apply Cartesian velocity to a Translate",
   "vector",
   {
+    { "x", { "Current X co-ordinate", Value::Type::number, true } },
+    { "y", { "Current Y co-ordinate", Value::Type::number, true } },
+    { "z", { "Current Z co-ordinate", Value::Type::number, true } },
     { "x", { "X component of velocity", Value::Type::number, true } },
     { "y", { "Y component of velocity", Value::Type::number, true } },
     { "z", { "Z component of velocity", Value::Type::number, true } },
@@ -118,9 +131,9 @@ Dataflow::Module module
     { "trigger", { "Trigger to set value", Value::Type::trigger, true } }
   },
   {
-    { "x", { "X component of velocity", "x", Value::Type::number }},
-    { "y", { "Y component of velocity", "y", Value::Type::number }},
-    { "z", { "Z component of velocity", "z", Value::Type::number }}
+    { "x", { "X co-ordinate", "x", Value::Type::number }},
+    { "y", { "Y co-ordinate", "y", Value::Type::number }},
+    { "z", { "Z co-ordinate", "z", Value::Type::number }}
   }
 };
 

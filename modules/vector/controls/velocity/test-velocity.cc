@@ -39,7 +39,7 @@ TEST(VelocityTest, TestMovement)
   const string& xml = R"(
     <graph>
       <figure points='1'/>
-      <velocity x="1" y="2" z="-0.5"/>
+      <velocity x="1" y="2" z="3" dx="1" dy="2" dz="-0.5"/>
       <translate/>
     </graph>
   )";
@@ -52,9 +52,9 @@ TEST(VelocityTest, TestMovement)
   EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
-    EXPECT_NEAR(1.0, p.x, 1e-5);
-    EXPECT_NEAR(2.0, p.y, 1e-5);
-    EXPECT_NEAR(-0.5, p.z, 1e-5);
+    EXPECT_NEAR(2.0, p.x, 1e-5);
+    EXPECT_NEAR(4.0, p.y, 1e-5);
+    EXPECT_NEAR(2.5, p.z, 1e-5);
   }
 }
 
@@ -66,7 +66,10 @@ TEST(VelocityTest, TestSetVelocity)
       <figure points='1'/>
       <set target="v" value="1.0" property="x"/>
       <set target="v" value="2.0" property="y"/>
-      <set target="v" value="-0.5" property="z"/>
+      <set target="v" value="3.0" property="z"/>
+      <set target="v" value="1.0" property="dx"/>
+      <set target="v" value="2.0" property="dy"/>
+      <set target="v" value="-0.5" property="dz"/>
       <velocity id="v"/>
       <translate/>
     </graph>
@@ -80,9 +83,9 @@ TEST(VelocityTest, TestSetVelocity)
   EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
-    EXPECT_NEAR(1.0, p.x, 1e-5);
-    EXPECT_NEAR(2.0, p.y, 1e-5);
-    EXPECT_NEAR(-0.5, p.z, 1e-5);
+    EXPECT_NEAR(2.0, p.x, 1e-5);
+    EXPECT_NEAR(4.0, p.y, 1e-5);
+    EXPECT_NEAR(2.5, p.z, 1e-5);
   }
 }
 
@@ -92,9 +95,9 @@ TEST(VelocityTest, TestSetVelocityWithMax)
   const string& xml = R"(
     <graph>
       <figure points='1'/>
-      <set target="v" value="1.0" property="x"/>
-      <set target="v" value="2.0" property="y"/>
-      <set target="v" value="-2.0" property="z"/>
+      <set target="v" value="1.0" property="dx"/>
+      <set target="v" value="2.0" property="dy"/>
+      <set target="v" value="-2.0" property="dz"/>
       <set target="v" value="1.5" property="max"/>
       <velocity id="v"/>
       <translate/>

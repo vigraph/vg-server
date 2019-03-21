@@ -1,10 +1,9 @@
 //==========================================================================
-// ViGraph dataflow module: controls/modify/modify.cc
+// ViGraph dataflow module: controls/count/count.cc
 //
-// Control to modify properties on other elements with a delta
-// (or flip for boolean)
+// Control to count with a delta on each tick or trigger
 //
-// Copyright (c) 2018 Paul Clark.  All rights reserved
+// Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../../../module.h"
@@ -14,41 +13,51 @@
 namespace {
 
 //==========================================================================
-// Modify control
-class ModifyControl: public Dataflow::Control
+// Count control
+class CountControl: public Dataflow::Control
 {
   // Configured state
+  double start_value{0.0};
   double delta{0.0};
   bool wait{false};
 
   // Dynamic state
-  bool done{false};
+  double value{0.0};
   bool triggered{false};
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
   void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
+  void enable() override;
 
 public:
   // Construct
-  ModifyControl(const Module *module, const XML::Element& config);
+  CountControl(const Module *module, const XML::Element& config);
 };
 
 //--------------------------------------------------------------------------
 // Construct from XML
-// <modify delta="42" type="{real|integer}" wait="yes"
-//      property="..."/>
-ModifyControl::ModifyControl(const Module *module, const XML::Element& config):
+// <count value="41" delta="1" wait="yes" .../>
+CountControl::CountControl(const Module *module, const XML::Element& config):
   Control(module, config)
 {
+  value = start_value = config.get_attr_real("value", 0.0);
   delta = config.get_attr_real("delta", 1.0);
   wait = config.get_attr_bool("wait");
 }
 
 //--------------------------------------------------------------------------
+// Enable (reset)
+void CountControl::enable()
+{
+  triggered = false;
+  value = start_value;
+}
+
+//--------------------------------------------------------------------------
 // Automatically set wait flag if we are the trigger target of something
-void ModifyControl::notify_target_of(Element *, const string& property)
+void CountControl::notify_target_of(Element *, const string& property)
 {
   if (property == "trigger")
     wait = true;
@@ -56,43 +65,40 @@ void ModifyControl::notify_target_of(Element *, const string& property)
 
 //--------------------------------------------------------------------------
 // Set a control property
-void ModifyControl::set_property(const string& property, const SetParams& sp)
+void CountControl::set_property(const string& property, const SetParams& sp)
 {
   if (property == "trigger")
     triggered = true;
+  else if (property == "value")
+    update_prop(value, sp);
   else if (property == "delta")
     update_prop(delta, sp);
 }
 
 //--------------------------------------------------------------------------
 // Tick
-void ModifyControl::pre_tick(const TickData& /*td*/)
+void CountControl::pre_tick(const TickData& /*td*/)
 {
   if (wait)
   {
     if (!triggered) return;
     triggered = false;
   }
-  else
-  {
-    // Only run once
-    if (done) return;
-    done = true;
-  }
 
-  SetParams sp(Dataflow::Value{delta}, true); // increment
-  send(sp);
+  value += delta;
+  send(Dataflow::Value{value});
 }
 
 //--------------------------------------------------------------------------
 // Module definition
 Dataflow::Module module
 {
-  "modify",
-  "Modify",
-  "Modify (increment/decrement) a value on another element",
+  "count",
+  "Count",
+  "Count a value up or down",
   "core",
   {
+    { "value", { "Current value", Value::Type::number, true } },
     { "delta", { "Value to change by", Value::Type::number, true } },
     { "wait",  { "Whether to wait for a trigger", Value::Type::number } },
     { "trigger", { "Trigger to make modification", Value::Type::trigger, true}}
@@ -102,4 +108,4 @@ Dataflow::Module module
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(ModifyControl, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(CountControl, module)

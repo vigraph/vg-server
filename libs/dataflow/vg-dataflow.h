@@ -395,15 +395,11 @@ public:
   // require registry - i.e. just reading basic config attributes
   Element(const Module *_module, const XML::Element& config):
     module(_module), id(config["id"]) {}
-  Element(const XML::Element& config): id(config["id"]) {} // for test
-  Element(const string& _id): id(_id) {}  // for test
 
   // Configure with XML config
-  // Implement this for configuration which could take time, or needs
-  // Engine registries to create sub-graphs / access services
-  // Throw a runtime_error if configuration fails
-  virtual void configure(const File::Directory& /*base_dir*/,
-                         const XML::Element& /*config*/) {}
+  // Throws a runtime_error if configuration fails
+  virtual void configure(const File::Directory& base_dir,
+                         const XML::Element& config);
 
   // Connect to other elements in the graph, for cases where the normal
   // graph connection isn't sufficient.  Called when the graph is already

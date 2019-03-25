@@ -49,6 +49,19 @@ public:
 // Test control - accepts any property and remembers it
 class TestTarget: public Element
 {
+  struct Module module_data =
+  {
+    "test",
+    "Test",
+    "Test target",
+    "test",
+    {
+      { "x", { "Test property", Value::Type::number,
+               Dataflow::Module::Property::Member(), true } }
+    },
+    { }
+  };
+
 public:
   map<string, SetParams> properties;
   Value::Type prop_type{Value::Type::number};
@@ -63,7 +76,7 @@ public:
 public:
   // Construct
  TestTarget(Value::Type _prop_type = Value::Type::number):
-  Element("test"), prop_type(_prop_type) {}
+  Element(&module_data, XML::Element("test")), prop_type(_prop_type) {}
 
   // Test helpers
   bool got(const string& prop) { return properties.find(prop)!=properties.end(); }

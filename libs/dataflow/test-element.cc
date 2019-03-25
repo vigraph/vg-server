@@ -17,17 +17,34 @@ namespace {
 //==========================================================================
 // Test Element
 // Just for testing control updates
+
+extern Module test_module;
 class TestElement: public Element
 {
  public:
-  using Element::Element;
+  TestElement(const XML::Element& cfg): Element(&test_module, cfg) {}
   double x{0.0};
 
+  // !!! Remove once set_property replaced
   virtual void set_property(const string& property, const SetParams& sp)
   {
     if (property == "x")
       update_prop(x, sp);
   }
+};
+
+Module test_module
+{
+  "test",
+  "Test",
+  "Test element",
+  "test",
+  {
+    { "x", { "Test property", Value::Type::number,
+             static_cast<double Element::*>(&TestElement::x),
+             true } }
+  },
+  { }
 };
 
 TEST(ElementTest, TestElementConstructionFromXML)

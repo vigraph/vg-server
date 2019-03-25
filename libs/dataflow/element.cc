@@ -29,6 +29,14 @@ Value::Type Element::get_property_type(const string& property)
   return pit->second.type;
 }
 
+//------------------------------------------------------------------------
+// Configure all properties from XML
+// Throws a runtime_error if configuration fails
+void Element::configure(const File::Directory& /*base_dir*/,
+                        const XML::Element& /*config*/)
+{
+
+}
 
 
 }} // namespaces

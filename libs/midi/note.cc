@@ -61,6 +61,37 @@ int get_midi_number(const string& note)
 }
 
 //==========================================================================
+// MIDI Note from number
+// Returns midi note or empty string on error
+string get_midi_note(int number)
+{
+  auto s = string{};
+
+  if (number < 21 || number > 127)
+    return s;
+
+  switch (number % 12)
+  {
+    case 0: s += "C"; break;
+    case 1: s += "C#"; break;
+    case 2: s += "D"; break;
+    case 3: s += "D#"; break;
+    case 4: s += "E"; break;
+    case 5: s += "F"; break;
+    case 6: s += "F#"; break;
+    case 7: s += "G"; break;
+    case 8: s += "G#"; break;
+    case 9: s += "A"; break;
+    case 10: s += "A#"; break;
+    case 11: s += "B"; break;
+  }
+
+  s += Text::itos((number / 12) - 1);
+
+  return s;
+}
+
+//==========================================================================
 // MIDI Note frequency
 double get_midi_frequency(int number)
 {

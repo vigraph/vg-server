@@ -16,45 +16,53 @@ using namespace ViGraph::MIDI;
 
 TEST(MIDINoteTest, TestBaseOctave)
 {
-  ASSERT_EQ(60, get_midi_number("C"));
-  ASSERT_EQ(62, get_midi_number("D"));
-  ASSERT_EQ(64, get_midi_number("e"));
-  ASSERT_EQ(65, get_midi_number("F"));
-  ASSERT_EQ(67, get_midi_number("  G"));
-  ASSERT_EQ(69, get_midi_number("A"));
-  ASSERT_EQ(71, get_midi_number("B"));
+  EXPECT_EQ(60, get_midi_number("C"));
+  EXPECT_EQ(62, get_midi_number("D"));
+  EXPECT_EQ(64, get_midi_number("e"));
+  EXPECT_EQ(65, get_midi_number("F"));
+  EXPECT_EQ(67, get_midi_number("  G"));
+  EXPECT_EQ(69, get_midi_number("A"));
+  EXPECT_EQ(71, get_midi_number("B"));
 }
 
 TEST(MIDINoteTest, TestVariousOctaves)
 {
-  ASSERT_EQ(24, get_midi_number("C1"));
-  ASSERT_EQ(38, get_midi_number("D 2"));
-  ASSERT_EQ(52, get_midi_number("E3"));
-  ASSERT_EQ(65, get_midi_number("F4"));
-  ASSERT_EQ(79, get_midi_number("g5"));
-  ASSERT_EQ(93, get_midi_number("A6"));
-  ASSERT_EQ(107, get_midi_number("B7"));
+  EXPECT_EQ(24, get_midi_number("C1"));
+  EXPECT_EQ(38, get_midi_number("D 2"));
+  EXPECT_EQ(52, get_midi_number("E3"));
+  EXPECT_EQ(65, get_midi_number("F4"));
+  EXPECT_EQ(79, get_midi_number("g5"));
+  EXPECT_EQ(93, get_midi_number("A6"));
+  EXPECT_EQ(107, get_midi_number("B7"));
 }
 
 TEST(MIDINoteTest, TestSharps)
 {
-  ASSERT_EQ(49, get_midi_number("C#3"));
-  ASSERT_EQ(82, get_midi_number("A# 5"));
-  ASSERT_EQ(102, get_midi_number("f#7"));
+  EXPECT_EQ(49, get_midi_number("C#3"));
+  EXPECT_EQ(82, get_midi_number("A# 5"));
+  EXPECT_EQ(102, get_midi_number("f#7"));
 }
 
 TEST(MIDINoteTest, TestFlats)
 {
-  ASSERT_EQ(58, get_midi_number(" bb3"));
-  ASSERT_EQ(80, get_midi_number("Ab5"));
-  ASSERT_EQ(102, get_midi_number("Gb7 "));
+  EXPECT_EQ(58, get_midi_number(" bb3"));
+  EXPECT_EQ(80, get_midi_number("Ab5"));
+  EXPECT_EQ(102, get_midi_number("Gb7 "));
 }
 
 TEST(MIDINoteTest, TestFrequency)
 {
-  ASSERT_NEAR(311.13, get_midi_frequency(63), 0.01);
-  ASSERT_NEAR(3322.44, get_midi_frequency(104), 0.01);
-  ASSERT_NEAR(7040.00, get_midi_frequency(117), 0.01);
+  EXPECT_NEAR(311.13, get_midi_frequency(63), 0.01);
+  EXPECT_NEAR(3322.44, get_midi_frequency(104), 0.01);
+  EXPECT_NEAR(7040.00, get_midi_frequency(117), 0.01);
+}
+
+TEST(MIDINoteTest, TestNumberToNote)
+{
+  EXPECT_EQ("A#2", get_midi_note(46));
+  EXPECT_EQ("C3", get_midi_note(48));
+  EXPECT_EQ("G9", get_midi_note(127));
+  EXPECT_EQ("A0", get_midi_note(21));
 }
 
 } // anonymous namespace

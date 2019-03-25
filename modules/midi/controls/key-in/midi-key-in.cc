@@ -20,11 +20,14 @@ namespace {
 class MIDIKeyInControl: public Dataflow::Control,
                         public Distributor::EventObserver
 {
-  shared_ptr<Distributor> distributor;
+public:
   int channel{0};
   int number{-1};
   int min{-1};
   int max{-1};
+
+private:
+  shared_ptr<Distributor> distributor;
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -39,6 +42,10 @@ class MIDIKeyInControl: public Dataflow::Control,
 public:
   // Construct
   MIDIKeyInControl(const Dataflow::Module *module, const XML::Element& config);
+
+  // Property getter/setters
+  string get_note() { return MIDI::get_midi_note(number); }
+  void set_note(const string& note) { number = MIDI::get_midi_number(note); }
 };
 
 //--------------------------------------------------------------------------
@@ -168,14 +175,19 @@ Dataflow::Module module
   "Generic MIDI Key Input",
   "midi",
   {
-    { "channel", { {"MIDI channel (0=all)", "0"}, Value::Type::number } },
-    { "note", { {"Note (C3, A4#)", ""}, Value::Type::number, true } },
-    { "number", { {"Note number (-1=disable)", "-1"},
-                  Value::Type::number, true } },
-    { "min", { {"Minimum note number (-1=disable)", "-1"},
-                Value::Type::number, true } },
-    { "max", { {"Maximum note number (-1=disable)", "-1"},
-                Value::Type::number, true } },
+    { "channel", { "MIDI channel (0=all)", Value::Type::number,
+      static_cast<int Element::*>(&MIDIKeyInControl::channel) } },
+    { "number", { "Note number (-1=disable)", Value::Type::number,
+      static_cast<int Element::*>(&MIDIKeyInControl::number), true } },
+    { "note", {"Note (C3, A4#)", Value::Type::text,
+    { static_cast<string (Element::*)()>(&MIDIKeyInControl::get_note),
+      static_cast<void (Element::*)(const string&)>(
+          &MIDIKeyInControl::set_note) },
+      true, true } },
+    { "min", { "Minimum note number (-1=disable)", Value::Type::number,
+      static_cast<int Element::*>(&MIDIKeyInControl::min), true } },
+    { "max", { "Maximum note number (-1=disable)", Value::Type::number,
+      static_cast<int Element::*>(&MIDIKeyInControl::max), true } },
   },
   {
     { "trigger", { "Note trigger", "trigger", Value::Type::trigger }},

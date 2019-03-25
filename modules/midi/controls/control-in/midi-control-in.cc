@@ -20,11 +20,14 @@ namespace {
 class MIDIControlInControl: public Dataflow::Control,
                             public Distributor::EventObserver
 {
-  shared_ptr<Distributor> distributor;
+public:
   int channel{0};
   int number{0};
   double scale{1.0};
   double offset{0.0};
+
+private:
+  shared_ptr<Distributor> distributor;
   bool enabled = false;
 
   // Control virtuals
@@ -34,14 +37,16 @@ class MIDIControlInControl: public Dataflow::Control,
   // Event observer implementation
   void set_property(const string& property, const SetParams& sp) override;
   void handle(const ViGraph::MIDI::Event& event) override;
-  void enable() override;
-  void disable() override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
   // Construct
   MIDIControlInControl(const Dataflow::Module *module,
                        const XML::Element& config);
+
+  // Event observer implementation
+  void enable() override;
+  void disable() override;
 };
 
 //--------------------------------------------------------------------------
@@ -151,18 +156,20 @@ Dataflow::Module module
   "Generic MIDI Control Input",
   "midi",
   {
-    { "channel", { {"MIDI channel (0=all)", "0"},
-          Value::Type::number, "@channel" } },
-    { "number", { {"Control number", "0"},
-          Value::Type::number, "@number" } },
-    { "scale",  { {"Scale to apply to control value", "1.0"},
-          Value::Type::number, "@scale", true } },
-    { "offset", { {"Offset to apply to control value", "0"},
-          Value::Type::number, "@offset", true } },
-    { "enable", { "Enable the control", Value::Type::trigger, true } },
-    { "disable", { "Disable the control", Value::Type::trigger, true } },
+    { "channel", { "MIDI channel (0=all)", Value::Type::number,
+      static_cast<int Element::*>(&MIDIControlInControl::channel) } },
+    { "number", { "Control number", Value::Type::number,
+      static_cast<int Element::*>(&MIDIControlInControl::number), true } },
+    { "scale",  { "Scale to apply to control value", Value::Type::number,
+      static_cast<double Element::*>(&MIDIControlInControl::scale), true } },
+    { "offset", { "Offset to apply to control value", Value::Type::number,
+      static_cast<double Element::*>(&MIDIControlInControl::offset), true } },
+    { "enable", { "Enable the control", Value::Type::trigger,
+    static_cast<void (Element::*)()>(&MIDIControlInControl::enable), true } },
+    { "disable", { "Disable the control", Value::Type::trigger,
+    static_cast<void (Element::*)()>(&MIDIControlInControl::disable), true } },
   },
-  { { "", { "Control value", "value", Value::Type::number }}}
+  { { "value", { "Control value", "value", Value::Type::number }}}
 };
 
 } // anon

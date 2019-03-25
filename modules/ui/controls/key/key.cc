@@ -85,8 +85,14 @@ const map<string, int> key_name_to_code{
 class UIKeyControl: public Dataflow::Control,
                     public KeyDistributor::KeyObserver
 {
+private:
   shared_ptr<KeyDistributor> distributor;
   int code{0};
+  enum class When
+  {
+    pressed,
+    released,
+  } when = When::pressed;
 
   // Control virtuals
   void configure(const File::Directory& base_dir,
@@ -100,6 +106,12 @@ class UIKeyControl: public Dataflow::Control,
 public:
   // Construct
   UIKeyControl(const Dataflow::Module *module, const XML::Element& config);
+
+  // Property getter/setters
+  string get_code();
+  void set_code(const string& code);
+  string get_when();
+  void set_when(const string& when);
 };
 
 //--------------------------------------------------------------------------
@@ -112,13 +124,9 @@ UIKeyControl::UIKeyControl(const Dataflow::Module *module,
 {
   const auto& code_str = config["code"];
   if (code_str.empty()) throw runtime_error("No key code given in "+id);
-  const auto& kit = key_name_to_code.find(code_str);
-  if (kit != key_name_to_code.end())
-    code = kit->second;
-  else
-    code = static_cast<int>(code_str[0]);
+  set_code(code_str);
 
-  if (config["when"] == "released") code = -code;
+  set_when(config["when"]);
 }
 
 //--------------------------------------------------------------------------
@@ -141,7 +149,8 @@ void UIKeyControl::enable()
 {
   if (distributor)
   {
-    distributor->register_key_observer(code, this);
+    distributor->register_key_observer(when == When::released ? -code : code,
+                                       this);
   }
 }
 
@@ -161,6 +170,51 @@ void UIKeyControl::handle_key(int /*code*/)
 }
 
 //--------------------------------------------------------------------------
+// Get key code
+string UIKeyControl::get_code()
+{
+  for (const auto& p: key_name_to_code)
+  {
+    if (p.second == code)
+      return p.first;
+  }
+  return {};
+}
+
+//--------------------------------------------------------------------------
+// Set key code
+void UIKeyControl::set_code(const string& c)
+{
+  if (c.empty())
+    return;
+  const auto& kit = key_name_to_code.find(c);
+  if (kit != key_name_to_code.end())
+    code = kit->second;
+  else
+    code = static_cast<int>(c[0]);
+}
+
+//--------------------------------------------------------------------------
+// Get when
+string UIKeyControl::get_when()
+{
+  switch (when)
+  {
+    case When::pressed:
+      return "pressed";
+    case When::released:
+      return "released";
+  }
+}
+
+//--------------------------------------------------------------------------
+// Set when
+void UIKeyControl::set_when(const string& w)
+{
+  when = (w == "released" ? When::released : When::pressed);
+}
+
+//--------------------------------------------------------------------------
 // Module definition
 Dataflow::Module module
 {
@@ -169,12 +223,16 @@ Dataflow::Module module
   "Generic Key Input",
   "ui",
   {
-    { "code", { {"Key code", "0"}, Value::Type::number,
-                                     "@code" } },
-    { "when", { {"Event trigger - pressed | released", "pressed"},
-                Value::Type::text, "@when" } }
+    { "code", { "Key code", Value::Type::text,
+    { static_cast<string (Element::*)()>(&UIKeyControl::get_code),
+      static_cast<void (Element::*)(const string&)>(&UIKeyControl::set_code) },
+          true } },
+    { "when", { "Event trigger - pressed | released", Value::Type::text,
+    { static_cast<string (Element::*)()>(&UIKeyControl::get_when),
+      static_cast<void (Element::*)(const string&)>(&UIKeyControl::set_when) },
+          {"pressed", "released"}, true } }
   },
-  { { "", { "Key trigger", "trigger", Value::Type::trigger }}}
+  { { "trigger", { "Key trigger", "trigger", Value::Type::trigger }}}
 };
 
 } // anon

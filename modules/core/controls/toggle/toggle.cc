@@ -15,11 +15,14 @@ namespace {
 // Toggle control
 class ToggleControl: public Dataflow::Control
 {
+  bool multi = false;
   bool state = false;
+  Value v;
   map<Value, bool> multistate;
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
+  void notify_target_of(Element *, const string& property) override;
 
 public:
   // Construct
@@ -39,17 +42,32 @@ ToggleControl::ToggleControl(const Module *module, const XML::Element& config):
 void ToggleControl::set_property(const string& prop,
                                  const SetParams& sp)
 {
-  if (prop == "trigger")
+  if (prop == "value")
   {
-    state = !state;
-    send(state ? "trigger" : "clear", {});
+    v = sp.v;
   }
-  else if (prop == "on")
+  else if (prop == "trigger")
   {
-    auto& s = multistate[sp.v];
-    s = !s;
-    send(s ? "on" : "off", sp);
+    if (multi)
+    {
+      auto& s = multistate[v];
+      s = !s;
+      send(s ? "trigger" : "clear", {});
+    }
+    else
+    {
+      state = !state;
+      send(state ? "trigger" : "clear", {});
+    }
   }
+}
+
+//--------------------------------------------------------------------------
+// Set to multi-value toggle if target of value
+void ToggleControl::notify_target_of(Element *, const string& property)
+{
+  if (property == "value")
+    multi = true;
 }
 
 //--------------------------------------------------------------------------
@@ -58,18 +76,15 @@ Dataflow::Module module
 {
   "toggle",
   "Toggle",
-  "Toggle an a control on/off",
+  "Toggle a control on/off",
   "core",
   {
-    { "trigger", { "Note trigger", Value::Type::trigger, "@trigger", true }},
-    { "on", { "Note on", Value::Type::number, "@on", true }},
-    { "off", { "Note off", Value::Type::number, "@off", true }},
+    { "value", { "Set value to toggle on", Value::Type::number, true }},
+    { "trigger", { "Trigger toggle", Value::Type::trigger, true }},
   },
   {
-    { "trigger", { "Note trigger", "trigger", Value::Type::trigger }},
-    { "clear", { "Note clear", "clear", Value::Type::trigger }},
-    { "on", { "Note on", "on", Value::Type::number }},
-    { "off", { "Note off", "off", Value::Type::number }},
+    { "trigger", { "Trigger on", "trigger", Value::Type::trigger }},
+    { "clear", { "Clear", "clear", Value::Type::trigger }},
   }
 };
 

@@ -15,10 +15,11 @@ namespace {
 // Spread control
 class SpreadControl: public Dataflow::Control
 {
+  Value value;
   vector<Value> values;
   set<Value> capturing;
   unsigned pos = 0;
-  unique_ptr<Value> last_on;
+  unique_ptr<Value> last_sent;
   bool latch = false;
 
   // Reset state
@@ -49,7 +50,7 @@ void SpreadControl::reset()
   values.clear();
   capturing.clear();
   pos = 0;
-  last_on.reset();
+  last_sent.reset();
 }
 
 //--------------------------------------------------------------------------
@@ -57,39 +58,44 @@ void SpreadControl::reset()
 void SpreadControl::set_property(const string& prop,
                                  const SetParams& sp)
 {
-  if (prop == "trigger")
+  if (prop == "value")
   {
-    if (last_on)
+    value = sp.v;
+  }
+  else if (prop == "next")
+  {
+    if (last_sent)
     {
-      send("off", *last_on);
-      last_on.reset();
+      send("value", *last_sent);
+      send("clear", {});
     }
     if (latch || !capturing.empty())
     {
-      last_on.reset(new Value{values[pos]});
-      send("on", values[pos]);
+      last_sent.reset(new Value{values[pos]});
+      send("value", *last_sent);
+      send("trigger", {});
       if (++pos >= values.size())
         pos = 0;
     }
   }
-  else if (prop == "on")
+  else if (prop == "trigger")
   {
     if (capturing.empty())
     {
       values.clear();
       pos = 0;
     }
-    capturing.insert(sp.v);
-    values.push_back(sp.v);
+    capturing.insert(value);
+    values.push_back(value);
   }
-  else if (prop == "off")
+  else if (prop == "clear")
   {
-    capturing.erase(sp.v);
+    capturing.erase(value);
     if (!latch)
     {
       for (auto i = 0u; i < values.size(); ++i)
       {
-        if (values[i] == sp.v)
+        if (values[i] == value)
         {
           values.erase(values.begin() + i);
           if (pos > i)
@@ -112,14 +118,16 @@ Dataflow::Module module
   "Spread a collection of values over time",
   "core",
   {
-    { "trigger", { "Note trigger", Value::Type::trigger, "@trigger", true }},
-    { "on", { "Note on", Value::Type::number, "@on", true }},
-    { "off", { "Note off", Value::Type::number, "@off", true }},
+    { "value", { "A value", Value::Type::number, true }},
+    { "trigger", { "Trigger value", Value::Type::trigger, true }},
+    { "clear", { "Clear value", Value::Type::trigger, true }},
+    { "next", { "Send next value", Value::Type::trigger, true }},
     { "latch", { "Latch", Value::Type::boolean, "@latch", true }},
   },
   {
-    { "on", { "Note on", "on", Value::Type::number }},
-    { "off", { "Note off", "off", Value::Type::number }},
+    { "value", { "Value", "value", Value::Type::number }},
+    { "trigger", { "Trigger value", "trigger", Value::Type::trigger }},
+    { "clear", { "Clear value", "clear", Value::Type::trigger }},
   }
 
 };

@@ -7,7 +7,7 @@
 //==========================================================================
 
 #include "../../../module.h"
-#include "../../core-services.h"
+#include "../../../core/core-services.h"
 
 using namespace ViGraph::Module::Core;
 
@@ -19,6 +19,7 @@ class PoolSendControl: public Dataflow::Control
 {
   shared_ptr<PoolDistributor> distributor;
   string pool;
+  unsigned index = 0;
 
   // Control/Element virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -58,8 +59,12 @@ void PoolSendControl::configure(const File::Directory&, const XML::Element&)
 void PoolSendControl::set_property(const string& prop,
                                    const SetParams& sp)
 {
-  if (distributor && (prop == "on" || prop == "off"))
-    distributor->send(pool, prop, sp);
+  if (distributor)
+  {
+    if (prop == "number")
+      index = sp.v.d;
+    distributor->send(pool, index, prop, sp);
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -67,12 +72,14 @@ void PoolSendControl::set_property(const string& prop,
 Dataflow::Module module
 {
   "pool-send",
-  "PoolSend",
-  "PoolSend a control on/off",
+  "Pool Send",
+  "Send MIDI controls to a pool",
   "core",
   {
-    { "on", { "Note on", Value::Type::number, "@on", true }},
-    { "off", { "Note off", Value::Type::number, "@off", true }},
+    { "number", { "Note number", Value::Type::number, true }},
+    { "velocity", { "Velocity", Value::Type::number, true }},
+    { "trigger", { "Trigger note on", Value::Type::trigger, true }},
+    { "clear", { "Trigger note off", Value::Type::trigger, true }},
   },
   { }
 };

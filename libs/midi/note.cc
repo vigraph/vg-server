@@ -16,9 +16,9 @@ using namespace ObTools;
 
 //-----------------------------------------------------------------------
 // Post a raw MIDI byte into the reader
-int get_midi_note(const string& name)
+int get_midi_number(const string& note)
 {
-  auto s = Text::tolower(Text::remove_space(name));
+  auto s = Text::tolower(Text::remove_space(note));
   if (s.empty())
     return - 1;
 
@@ -62,9 +62,9 @@ int get_midi_note(const string& name)
 
 //==========================================================================
 // MIDI Note frequency
-double get_midi_frequency(int note)
+double get_midi_frequency(int number)
 {
-  return 440.0 * pow(2, (note - 69) / 12.0);
+  return 440.0 * pow(2, (number - 69) / 12.0);
 }
 
 }} // namespaces

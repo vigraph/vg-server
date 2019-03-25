@@ -7,7 +7,7 @@
 //==========================================================================
 
 #include "../../../module.h"
-#include "../../core-services.h"
+#include "../../../core/core-services.h"
 
 using namespace ViGraph::Module::Core;
 
@@ -79,10 +79,6 @@ void PoolReceiveControl::set_property(const string& prop,
                                       const SetParams& sp)
 {
   send(prop, sp);
-  if (prop == "on")
-    send("trigger", {});
-  else if (prop == "off")
-    send("clear", {});
 }
 
 //--------------------------------------------------------------------------
@@ -95,10 +91,10 @@ Dataflow::Module module
   "core",
   { },
   {
+    { "number", { "Note number", "number", Value::Type::number }},
+    { "velocity", { "Velocity", "velocity", Value::Type::number }},
     { "trigger", { "Note trigger", "trigger", Value::Type::trigger }},
     { "clear", { "Note clear", "clear", Value::Type::trigger }},
-    { "on", { "Note on", "on", Value::Type::number }},
-    { "off", { "Note off", "off", Value::Type::number }},
   }
 };
 

@@ -63,7 +63,11 @@ void VCOSource::configure(const File::Directory&,
 
   auto note = config["note"];
   if (!note.empty())
-    freq = MIDI::get_midi_frequency(MIDI::get_midi_note(note));
+    freq = MIDI::get_midi_frequency(MIDI::get_midi_number(note));
+
+  auto number = config.get_attr_int("number", -1);
+  if (number >= 0)
+    freq = MIDI::get_midi_frequency(number);
 
   const string& wave = config["wave"];
   if (!parse_waveform(wave, waveform))
@@ -101,22 +105,18 @@ void VCOSource::set_property(const string& property, const SetParams& sp)
   if (property == "freq")
     update_prop(freq, sp);
   else if (property == "note")
-    freq = MIDI::get_midi_frequency(MIDI::get_midi_note(sp.v.s));
+    freq = MIDI::get_midi_frequency(MIDI::get_midi_number(sp.v.s));
+  else if (property == "number")
+    freq = MIDI::get_midi_frequency(sp.v.d);
   else if (property == "pulse-width")
     pulse_width = max(0.0, min(1.0, sp.v.d));
   else if (property == "wave")
     parse_waveform(sp.v.s, waveform);
-  else if (property == "on")
-  {
-    const auto f = MIDI::get_midi_frequency(sp.v.d);
-    enabled = true;
-    freq = f;
-  }
   else if (property == "trigger")
   {
     enabled = true;
   }
-  else if (property == "off" || property == "clear")
+  else if (property == "clear")
   {
     enabled = false;
   }
@@ -126,7 +126,7 @@ void VCOSource::set_property(const string& property, const SetParams& sp)
 // If recipient of on/offs default to disabled
 void VCOSource::notify_target_of(Element *, const string& property)
 {
-  if (property == "on")
+  if (property == "trigger")
     enabled = false;
 }
 
@@ -189,12 +189,11 @@ Dataflow::Module module
   "Simple Voltage Controlled Oscillator",
   "audio",
   {
-    { "freq",  { "Frequency (Hz)", Value::Type::number, "@freq", true } },
-    { "note",  { "Note (e.g C#4)", Value::Type::text, "@note", true } },
+    { "freq",  { "Frequency (Hz)", Value::Type::number, true } },
+    { "note",  { "Note name (e.g C#4)", Value::Type::text, true } },
+    { "number",  { "MIDI note number (0-127)", Value::Type::number, true } },
     { "wave",  { "Waveform type (none, saw, sin, square, triangle, random)",
-                 Value::Type::text, "@wave", true } },
-    { "on", { "Note on", Value::Type::number, "@on", true }},
-    { "off", { "Note off", Value::Type::number, "@off", true }},
+                 Value::Type::text, true } },
     { "trigger", { "Trigger on", Value::Type::trigger, true }},
     { "clear", { "Trigger off", Value::Type::trigger, true }},
   },

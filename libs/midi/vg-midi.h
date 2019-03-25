@@ -95,11 +95,11 @@ public:
 //==========================================================================
 // MIDI Notes
 // Returns midi note number or -1 on error
-int get_midi_note(const string& name);
+int get_midi_number(const string& note);
 
 //==========================================================================
 // MIDI Note frequency
-double get_midi_frequency(int note);
+double get_midi_frequency(int number);
 
 //==========================================================================
 }} //namespaces

@@ -374,7 +374,8 @@ public:
 
   void configure_from_element(const XML::Element& config,
                               const string& prefix);
-  void configure_property(const string& name, const string& value);
+  void configure_property(const string& name, const Module::Property& prop,
+                          const string& value);
   void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
 

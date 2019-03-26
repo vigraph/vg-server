@@ -35,31 +35,45 @@ Value::Type Element::get_property_type(const string& property)
 void Element::configure(const File::Directory& /*base_dir*/,
                         const XML::Element& config)
 {
-  configure_from_element(config, "");
+  // Check all properties to see if attribute exists
+  for(const auto pit: module->properties)
+  {
+    // Can be either direct name ('points') or sub-element ('x.freq')
+    const auto& name = pit.first;
+    vector<string> bits = Text::split(name, '.');
+    string value;
+
+    switch (bits.size())
+    {
+      case 1:
+        if (!config.has_attr(bits[0])) continue;
+        value = config[bits[0]];
+        break;
+
+      case 2:
+      {
+        // Look down a level
+        const auto& sub = config.get_child(bits[0]);
+        if (!sub.has_attr(bits[1])) continue;
+        value = sub[bits[1]];
+        break;
+      }
+
+      default: throw runtime_error("Weird property name "+name);
+    }
+
+    configure_property(name, pit.second, value);
+  }
+
   setup();
 }
 
 //------------------------------------------------------------------------
-// Configure from an element, with attribute prefix
-void Element::configure_from_element(const XML::Element& config,
-                                     const string& prefix)
-{
-  for(const auto ait: config.attrs)
-    configure_property(prefix+ait.first, ait.second);
-
-  // Recurse to children with prefix 'foo.'
-  for(const auto eit: config.children)
-    configure_from_element(*eit, prefix+eit->name+".");
-}
-
-//------------------------------------------------------------------------
 // Configure with an property name and string value
-void Element::configure_property(const string& name, const string& value)
+void Element::configure_property(const string& name,
+                                 const Module::Property& prop,
+                                 const string& value)
 {
-  const auto pit = module->properties.find(name);
-  if (pit == module->properties.end()) return;  // Ignore
-  const auto& prop = pit->second;
-
   Value v(Value::Type::invalid);
   switch (prop.type)
   {

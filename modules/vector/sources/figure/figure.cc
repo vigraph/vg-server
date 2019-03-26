@@ -4,173 +4,7 @@
 // Generic abstract figure source, usable for lines, circles, waves,
 // Lissajous etc.
 //
-// Copyright (c) 2017 Paul Clark.  All rights reserved
-//==========================================================================
-
-#include "../../vector-module.h"
-#include <cmath>
-
-namespace {
-
-//==========================================================================
-// Figure source
-class FigureSource: public Source
-{
-public:
-  // Waveform
-  enum class Waveform
-  {
-    none,
-    saw,
-    sin,
-    square,
-    triangle,
-    random
-  };
-
-  // Axis wave parameters - X and Y
-  struct Axis
-  {
-    double pos{0.0};
-    Waveform waveform{Waveform::none};
-    double freq{1.0};
-    double phase{0.0};
-    double scale{1.0};
-  };
-
-  Axis x_axis, y_axis;
-  bool closed{false};
-
-  // Overall figure parameters
-  static const int default_points = 100;
-  int points{default_points};
-
-private:
-  // Calculated waves
-  vector<coord_t> x_waveform;
-  vector<coord_t> y_waveform;
-
-  // Internals
-  string get_waveform_name(const Axis& axis);
-  void set_waveform(Axis& axis, const string& wave);
-  void calculate_waveform(const Axis& axis, vector<coord_t>& waveform);
-  void read_axis(const XML::Element& aconfig, Axis& axis);
-
-  // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
-  void set_property(const string& property, const SetParams& sp) override;
-  void tick(const TickData& td) override;
-
-public:
-  FigureSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
-
-  // Property getter/setters
-  string get_waveform_x() { return get_waveform_name(x_axis); }
-  void set_waveform_x(const string& wave) { set_waveform(x_axis, wave); }
-  string get_waveform_y() { return get_waveform_name(y_axis); }
-  void set_waveform_y(const string& wave) { set_waveform(y_axis, wave); }
-};
-
-//--------------------------------------------------------------------------
-// Get waveform name for an axis
-string FigureSource::get_waveform_name(const Axis& axis)
-{
-  switch (axis.waveform)
-  {
-    case Waveform::none:     return "none";
-    case Waveform::saw:      return "saw";
-    case Waveform::sin:      return "sin";
-    case Waveform::square:   return "square";
-    case Waveform::triangle: return "triangle";
-    case Waveform::random:   return "random";
-  }
-}
-
-//--------------------------------------------------------------------------
-// Get waveform name for an axis
-void FigureSource::set_waveform(Axis& axis, const string& wave)
-{
-  if (wave.empty() || wave=="none")
-    axis.waveform = Waveform::none;
-  else if (wave=="saw")
-    axis.waveform = Waveform::saw;
-  else if (wave=="sin")
-    axis.waveform = Waveform::sin;
-  else if (wave=="square")
-    axis.waveform = Waveform::square;
-  else if (wave=="triangle")
-    axis.waveform = Waveform::triangle;
-  else if (wave=="random")
-    axis.waveform = Waveform::random;
-  else
-  {
-    Log::Error log;
-    log << "Unknown waveform type " << wave << " in figure '" << id << "'\n";
-    axis.waveform = Waveform::none;
-  }
-}
-
-//--------------------------------------------------------------------------
-// Precalculate a waveform
-void FigureSource::calculate_waveform(const Axis& axis,
-                                     vector<coord_t>& waveform)
-{
-  // Special case for 'none', for speed - all points are the same
-  if (axis.waveform == Waveform::none)
-  {
-    waveform.assign(points, axis.pos);
-  }
-  else
-  {
-    // Generic solution
-    waveform.clear();
-    waveform.reserve(points);
-
-    for(int i=0; i<points; i++)
-    {
-      // Proportion of wave (0..freq)
-      double theta = axis.phase + axis.freq*i/points;
-      double theta1 = theta - floor(theta); // Repeating 0..1
-
-      double offset;  // Offset from baseline (-0.5 .. 0.5)
-
-      switch (axis.waveform)
-      {
-        case Waveform::none:  // but handled above
-          offset = 0.0;
-        break;
-
-        case Waveform::saw:
-          offset = theta1 - 0.5;
-        break;
-
-        case Waveform::sin:
-          offset = sin(theta1*2*pi)/2;
-        break;
-
-        case Waveform::square:
-          offset = theta1 >= 0.5 ? 0.5 : -0.5;
-        break;
-
-        case Waveform::triangle:
-          offset = (theta1 < 0.5 ? theta1 : 1-theta1)*2-0.5;
-        break;
-
-        case Waveform::random:
-          offset = (double)rand() / RAND_MAX - 0.5;
-        break;
-      }
-
-      waveform.push_back(axis.pos + axis.scale * offset);
-    }
-  }
-}
-
-//--------------------------------------------------------------------------
-// Construct from XML:
-//   <figure> attributes:
+// <figure> attributes:
 //    points: number of points per frame (default 100)
 //    closed: whether to add a final point equal to first
 //   <x> <y> axis sub-elements have attributes:
@@ -199,55 +33,207 @@ void FigureSource::calculate_waveform(const Axis& axis,
 //   <x wave="sin" freq="5"/>
 //   <y wave="sin" freq="3"/>
 // </figure>
+//
+// Copyright (c) 2017 Paul Clark.  All rights reserved
+//==========================================================================
 
-// Read an axis
-void FigureSource::read_axis(const XML::Element& aconfig, Axis& axis)
+#include "../../vector-module.h"
+#include <cmath>
+
+namespace {
+
+//==========================================================================
+// Figure source
+class FigureSource: public Source
 {
-  axis.pos = aconfig.get_attr_real("pos");
-  set_waveform(axis, aconfig["wave"]);
-  axis.freq = aconfig.get_attr_real("freq", 1.0);
-  axis.phase = aconfig.get_attr_real("phase");
-  axis.scale = aconfig.get_attr_real("scale", 1.0);
+public:
+  // Waveform
+  enum class Waveform
+  {
+    none,
+    saw,
+    sin,
+    square,
+    triangle,
+    random
+  };
+
+  // Axis wave parameters - X and Y
+  double x_pos{0.0};
+  Waveform x_waveform{Waveform::none};
+  double x_freq{1.0};
+  double x_phase{0.0};
+  double x_scale{1.0};
+
+  double y_pos{0.0};
+  Waveform y_waveform{Waveform::none};
+  double y_freq{1.0};
+  double y_phase{0.0};
+  double y_scale{1.0};
+
+  bool closed{false};
+
+  // Overall figure parameters
+  static const int default_points = 100;
+  int points{default_points};
+
+private:
+  // Calculated waves
+  vector<coord_t> x_wave;
+  vector<coord_t> y_wave;
+
+  // Internals
+  string get_waveform_name(Waveform waveform);
+  void set_waveform(Waveform& waveform, const string& wave);
+  void calculate_waveform(double pos, Waveform waveform, double freq,
+                          double phase, double scale,
+                          vector<coord_t>& wave);
+
+  // Source/Element virtuals
+  void update() override;
+  void setup() override;
+  void set_property(const string& property, const SetParams& sp) override;
+  void tick(const TickData& td) override;
+
+public:
+  FigureSource(const Dataflow::Module *module, const XML::Element& config):
+    Source(module, config) {}
+
+  // Property getter/setters
+  string get_waveform_x() { return get_waveform_name(x_waveform); }
+  void set_waveform_x(const string& wave) { set_waveform(x_waveform, wave); }
+  string get_waveform_y() { return get_waveform_name(y_waveform); }
+  void set_waveform_y(const string& wave) { set_waveform(y_waveform, wave); }
+};
+
+//--------------------------------------------------------------------------
+// Get waveform name for an axis
+string FigureSource::get_waveform_name(Waveform waveform)
+{
+  switch (waveform)
+  {
+    case Waveform::none:     return "none";
+    case Waveform::saw:      return "saw";
+    case Waveform::sin:      return "sin";
+    case Waveform::square:   return "square";
+    case Waveform::triangle: return "triangle";
+    case Waveform::random:   return "random";
+  }
 }
 
-// Configure from XML
-void FigureSource::configure(const File::Directory&,
-                             const XML::Element& config)
+//--------------------------------------------------------------------------
+// Get waveform name for an axis
+void FigureSource::set_waveform(Waveform& waveform, const string& wave)
 {
-  // General config
-  points = config.get_attr_int("points", default_points);
-  closed = config.get_attr_bool("closed");
+  if (wave.empty() || wave=="none")
+    waveform = Waveform::none;
+  else if (wave=="saw")
+    waveform = Waveform::saw;
+  else if (wave=="sin")
+    waveform = Waveform::sin;
+  else if (wave=="square")
+    waveform = Waveform::square;
+  else if (wave=="triangle")
+    waveform = Waveform::triangle;
+  else if (wave=="random")
+    waveform = Waveform::random;
+  else
+  {
+    Log::Error log;
+    log << "Unknown waveform type " << wave << " in figure '" << id << "'\n";
+    waveform = Waveform::none;
+  }
+}
 
-  // Axis config
-  read_axis(config.get_child("x"), x_axis);
-  read_axis(config.get_child("y"), y_axis);
+//--------------------------------------------------------------------------
+// Precalculate a waveform
+void FigureSource::calculate_waveform(double pos, Waveform waveform,
+                                      double freq, double phase, double scale,
+                                      vector<coord_t>& wave)
+{
+  // Special case for 'none', for speed - all points are the same
+  if (waveform == Waveform::none)
+  {
+    wave.assign(points, pos);
+  }
+  else
+  {
+    // Generic solution
+    wave.clear();
+    wave.reserve(points);
 
+    for(int i=0; i<points; i++)
+    {
+      // Proportion of wave (0..freq)
+      double theta = phase + freq*i/points;
+      double theta1 = theta - floor(theta); // Repeating 0..1
+
+      double offset;  // Offset from baseline (-0.5 .. 0.5)
+
+      switch (waveform)
+      {
+        case Waveform::none:  // but handled above
+          offset = 0.0;
+        break;
+
+        case Waveform::saw:
+          offset = theta1 - 0.5;
+        break;
+
+        case Waveform::sin:
+          offset = sin(theta1*2*pi)/2;
+        break;
+
+        case Waveform::square:
+          offset = theta1 >= 0.5 ? 0.5 : -0.5;
+        break;
+
+        case Waveform::triangle:
+          offset = (theta1 < 0.5 ? theta1 : 1-theta1)*2-0.5;
+        break;
+
+        case Waveform::random:
+          offset = (double)rand() / RAND_MAX - 0.5;
+        break;
+      }
+
+      wave.push_back(pos + scale * offset);
+    }
+  }
+}
+
+//--------------------------------------------------------------------------
+// Setup after automatic configuration
+void FigureSource::setup()
+{
   // Set waveforms
-  calculate_waveform(x_axis, x_waveform);
-  calculate_waveform(y_axis, y_waveform);
+  calculate_waveform(x_pos, x_waveform, x_freq, x_phase, x_scale, x_wave);
+  calculate_waveform(y_pos, y_waveform, y_freq, y_phase, y_scale, y_wave);
+}
+
+//--------------------------------------------------------------------------
+// Update after property set
+void FigureSource::update()
+{
+  setup();
 }
 
 //--------------------------------------------------------------------------
 // Set a control property
+// !!! Remove once set_property automated
 void FigureSource::set_property(const string& property, const SetParams& sp)
 {
   // Assume type is OK from graph construction
-
-  bool u_x{false}, u_y{false};
-
-       if (property == "x.pos")   { update_prop(x_axis.pos, sp);   u_x = true; }
-  else if (property == "y.pos")   { update_prop(y_axis.pos, sp);   u_y = true; }
-  else if (property == "x.freq")  { update_prop(x_axis.freq, sp);  u_x = true; }
-  else if (property == "y.freq")  { update_prop(y_axis.freq, sp);  u_y = true; }
-  else if (property == "x.phase") { update_prop(x_axis.phase, sp); u_x = true; }
-  else if (property == "y.phase") { update_prop(y_axis.phase, sp); u_y = true; }
-  else if (property == "x.scale") { update_prop(x_axis.scale, sp); u_x = true; }
-  else if (property == "y.scale") { update_prop(y_axis.scale, sp); u_y = true; }
-  else if (property == "points")  { update_prop_int(points, sp);
-                                    u_x = u_y = true; }
-
-  if (u_x) calculate_waveform(x_axis, x_waveform);
-  if (u_y) calculate_waveform(y_axis, y_waveform);
+       if (property == "x.pos")   { update_prop(x_pos, sp);   }
+  else if (property == "y.pos")   { update_prop(y_pos, sp);   }
+  else if (property == "x.freq")  { update_prop(x_freq, sp);  }
+  else if (property == "y.freq")  { update_prop(y_freq, sp);  }
+  else if (property == "x.phase") { update_prop(x_phase, sp); }
+  else if (property == "y.phase") { update_prop(y_phase, sp); }
+  else if (property == "x.scale") { update_prop(x_scale, sp); }
+  else if (property == "y.scale") { update_prop(y_scale, sp); }
+  else if (property == "points")  { update_prop_int(points, sp); }
+  update();
 }
 
 //--------------------------------------------------------------------------
@@ -258,12 +244,11 @@ void FigureSource::tick(const TickData& td)
 
   // Blank to start
   if (points)
-    frame->points.push_back(Point(x_waveform[0], y_waveform[0]));
+    frame->points.push_back(Point(x_wave[0], y_wave[0]));
 
   // Fill with lit points
   for(int i=0; i<points; i++)
-    frame->points.push_back(Point(x_waveform[i], y_waveform[i],
-                                  Colour::white));
+    frame->points.push_back(Point(x_wave[i], y_wave[i], Colour::white));
 
   // Optionally close the frame back to starting point, but lit
   if (closed && points)
@@ -282,10 +267,12 @@ Dataflow::Module module
   {
     { "points", { "Number of points",
           Value::Type::number,
-          static_cast<int Element::*>(&FigureSource::points) } },
+          static_cast<int Element::*>(&FigureSource::points),
+          true } },
     { "closed", { "Whether the path is closed",
           Value::Type::boolean,
-          static_cast<bool Element::*>(&FigureSource::closed) } },
+          static_cast<bool Element::*>(&FigureSource::closed),
+          true } },
     { "x.wave",  { "Waveform on X axis",
           Value::Type::choice,
           { static_cast<string (Element::*)()>(&FigureSource::get_waveform_x),
@@ -293,15 +280,20 @@ Dataflow::Module module
           { "none", "saw", "sin", "square", "triangle", "random" } } },
     { "x.pos",   { "Base position on X axis",
           Value::Type::number,
-          // !!! Can't do this!?
-          // static_cast<double Element::*>(&FigureSource::x_axis.pos),
+          static_cast<double Element::*>(&FigureSource::x_pos),
           true } },
     { "x.freq",  { "Frequency for X axis",
-          Value::Type::number, true } },
+          Value::Type::number,
+          static_cast<double Element::*>(&FigureSource::x_freq),
+          true } },
     { "x.phase", { "Phase (0..1) on X axis",
-          Value::Type::number, true } },
+          Value::Type::number,
+          static_cast<double Element::*>(&FigureSource::x_phase),
+          true } },
     { "x.scale", { { "Scale of X axis", "1.0" },
-          Value::Type::number, true } },
+          Value::Type::number,
+            static_cast<double Element::*>(&FigureSource::x_scale),
+            true } },
     { "y.wave",  { "Waveform on Y axis",
           Value::Type::choice,
           Dataflow::Module::Property::Member{
@@ -309,13 +301,21 @@ Dataflow::Module module
           static_cast<void (Element::*)(const string&)>(&FigureSource::set_waveform_y) },
           { "none", "saw", "sin", "square", "triangle", "random" } } },
     { "y.pos",   { "Base position on Y axis",
-          Value::Type::number,  true } },
-    { "y.freq",  { "Frequence for Y axis",
-          Value::Type::number, true } },
+          Value::Type::number,
+          static_cast<double Element::*>(&FigureSource::y_pos),
+          true } },
+    { "y.freq",  { "Frequency for Y axis",
+          Value::Type::number,
+          static_cast<double Element::*>(&FigureSource::y_freq),
+          true } },
     { "y.phase", { "Phase (0..1) on Y axis",
-          Value::Type::number, true } },
+          Value::Type::number,
+          static_cast<double Element::*>(&FigureSource::y_phase),
+          true } },
     { "y.scale", { { "Scale of Y axis", "1.0" },
-          Value::Type::number, true } }
+          Value::Type::number,
+            static_cast<double Element::*>(&FigureSource::y_scale),
+            true } }
   },
   {},  // no inputs
   { "VectorFrame" }  // outputs

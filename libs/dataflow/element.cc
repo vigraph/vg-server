@@ -35,43 +35,55 @@ Value::Type Element::get_property_type(const string& property)
 void Element::configure(const File::Directory& /*base_dir*/,
                         const XML::Element& config)
 {
+  configure_from_element(config, "");
+  setup();
+}
+
+//------------------------------------------------------------------------
+// Configure from an element, with attribute prefix
+void Element::configure_from_element(const XML::Element& config,
+                                     const string& prefix)
+{
   for(const auto ait: config.attrs)
+    configure_property(prefix+ait.first, ait.second);
+
+  // Recurse to children with prefix 'foo.'
+  for(const auto eit: config.children)
+    configure_from_element(*eit, prefix+eit->name+".");
+}
+
+//------------------------------------------------------------------------
+// Configure with an property name and string value
+void Element::configure_property(const string& name, const string& value)
+{
+  const auto pit = module->properties.find(name);
+  if (pit == module->properties.end()) return;  // Ignore
+  const auto& prop = pit->second;
+
+  Value v(Value::Type::invalid);
+  switch (prop.type)
   {
-    const auto& name = ait.first;
-    const auto& value = ait.second;
+    case Value::Type::number:
+      v = Value(Text::stof(value));
+      break;
 
-    // !!! Handle subelements (x.freq etc.)
+    case Value::Type::text:
+    case Value::Type::choice:
+    case Value::Type::file:
+    case Value::Type::other:
+      v = Value(value);
+      break;
 
-    const auto pit = module->properties.find(name);
-    if (pit == module->properties.end()) continue;  // Ignore
-    const auto& prop = pit->second;
+    case Value::Type::boolean:
+      v = Value(Text::stob(value)?1.0:0.0);
+      break;
 
-    Value v(Value::Type::invalid);
-    switch (prop.type)
-    {
-      case Value::Type::number:
-        v = Value(Text::stof(value));
-        break;
-
-      case Value::Type::text:
-      case Value::Type::choice:
-      case Value::Type::file:
-      case Value::Type::other:
-        v = Value(value);
-        break;
-
-      case Value::Type::boolean:
-        v = Value(Value::Type::boolean);
-        v.d = config.get_attr_bool(value)?1.0:0.0;
-        break;
-
-        // Triggers, invalid, any are ignored
-      default:;
-    }
-
-    if (v.type != Value::Type::invalid)
-      set_property(name, prop, v);
+      // Triggers, invalid, any are ignored
+    default:;
   }
+
+  if (v.type != Value::Type::invalid)
+    set_property(name, prop, v);
 }
 
 //------------------------------------------------------------------------
@@ -86,8 +98,16 @@ void Element::set_property(const string& /*prop_name*/,
     case Value::Type::number:
       if (member.d_ptr)
         this->*member.d_ptr = v.d;
-      if (member.set_d)
+      else if (member.i_ptr)
+        this->*member.i_ptr = static_cast<int>(round(v.d));
+      else if (member.b_ptr)
+        this->*member.b_ptr = v.d?true:false;
+      else if (member.set_d)
         (this->*member.set_d)(v.d);
+      else if (member.set_i)
+        (this->*member.set_i)(static_cast<int>(round(v.d)));
+      else if (member.set_b)
+        (this->*member.set_b)(v.d?1.0:0.0);
       // Fail once all modules have these!!!
       // else
         //        throw runtime_error("No member pointers for property "+prop_name
@@ -102,12 +122,9 @@ void Element::set_property(const string& /*prop_name*/,
       // !!! error handle as above
       break;
 
-    case Value::Type::boolean:
-      if (member.b_ptr)
-        this->*member.b_ptr = v.d?true:false;
-      if (member.set_b)
-        (this->*member.set_b)(v.d?true:false);
-      // !!! error handle as above
+    case Value::Type::trigger:
+      if (member.trigger)
+        (this->*member.trigger)();
       break;
 
     default:;

@@ -29,7 +29,6 @@ class BeatControl: public Dataflow::Control
   void reset();
 
   // Control virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
   void enable() override { reset(); }
@@ -76,21 +75,6 @@ void BeatControl::trigger_start()
 void BeatControl::trigger_stop()
 {
   active = false;
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-// !!! Remove once setter functions called on trigger
-void BeatControl::set_property(const string& property, const SetParams& sp)
-{
-  // Call up to set number properties
-  Element::set_property(property, sp);
-
-  // Set trigger properties manually
-  if (property == "start")
-    trigger_start();
-  else if (property == "stop")
-    trigger_stop();
 }
 
 //--------------------------------------------------------------------------

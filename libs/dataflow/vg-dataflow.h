@@ -196,16 +196,19 @@ struct Module
       double Element::* d_ptr{nullptr};
       string Element::* s_ptr{nullptr};
       bool Element::* b_ptr{nullptr};
+      int Element::* i_ptr{nullptr};
 
       // Getter/setter functions
       double (Element::* get_d)(){nullptr};
       string (Element::* get_s)(){nullptr};
       bool (Element::* get_b)(){nullptr};
+      int (Element::* get_i)(){nullptr};
       JSON::Value (Element::* get_json)(){nullptr};
 
       void (Element::* set_d)(double){nullptr};
       void (Element::* set_s)(const string& ){nullptr};
       void (Element::* set_b)(bool){nullptr};
+      void (Element::* set_i)(int){nullptr};
       void (Element::* set_json)(const JSON::Value& json){nullptr};
 
       // Trigger function
@@ -216,6 +219,7 @@ struct Module
       Member(double Element::* _p): d_ptr(_p) {}
       Member(string Element::* _p): s_ptr(_p) {}
       Member(bool Element::* _p): b_ptr(_p) {}
+      Member(int Element::* _p): i_ptr(_p) {}
 
       Member(double (Element::* _get)(),
              void (Element::* _set)(double)): get_d(_get), set_d(_set) {}
@@ -223,6 +227,8 @@ struct Module
              void (Element::* _set)(const string&)): get_s(_get), set_s(_set) {}
       Member(bool (Element::* _get)(),
              void (Element::* _set)(bool)): get_b(_get), set_b(_set) {}
+      Member(int (Element::* _get)(),
+             void (Element::* _set)(int)): get_i(_get), set_i(_set) {}
       Member(JSON::Value (Element::* _get)(),
              void (Element::* _set)(const JSON::Value&)):
         get_json(_get), set_json(_set) {}
@@ -366,8 +372,10 @@ public:
     SetParams(const Value& _v): v(_v) {}
   };
 
-  void set_property(const string& prop_name,
-                    const Module::Property& prop,
+  void configure_from_element(const XML::Element& config,
+                              const string& prefix);
+  void configure_property(const string& name, const string& value);
+  void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
 
 protected:
@@ -395,8 +403,12 @@ public:
 
   // Configure with XML config
   // Throws a runtime_error if configuration fails
+  // !!! Should be able to make this final once all automated
   virtual void configure(const File::Directory& base_dir,
                          const XML::Element& config);
+
+  // Setup after automatic configuration
+  virtual void setup() {}
 
   // Connect to other elements in the graph, for cases where the normal
   // graph connection isn't sufficient.  Called when the graph is already

@@ -35,8 +35,7 @@ class BeatControl: public Dataflow::Control
   void enable() override { reset(); }
 
 public:
-  // Construct
-  BeatControl(const Module *module, const XML::Element& config);
+  using Control::Control;
 
   // Property getter/setters
   double get_freq() { return (interval > 0) ? 1.0/interval : 0; }
@@ -48,22 +47,6 @@ public:
   void trigger_start();
   void trigger_stop();
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//    <beat interval="0.5"/>
-// or <beat bpm="120"/>
-// or <beat freq="2"/>
-BeatControl::BeatControl(const Module *module, const XML::Element& config):
-  Control(module, config)
-{
-  if (config.has_attr("interval"))
-    interval = config.get_attr_real("interval");
-  else if (config.has_attr("bpm") && config.get_attr_real("bpm") > 0)
-    interval = 60.0 / config.get_attr_real("bpm");
-  else if (config.has_attr("freq") && config.get_attr_real("freq") > 0)
-    interval = 1.0 / config.get_attr_real("freq");
-}
 
 //--------------------------------------------------------------------------
 // Reset state
@@ -97,27 +80,17 @@ void BeatControl::trigger_stop()
 
 //--------------------------------------------------------------------------
 // Set a control property
+// !!! Remove once setter functions called on trigger
 void BeatControl::set_property(const string& property, const SetParams& sp)
 {
-  // ! old form - remove when automated from Module pointers
+  // Call up to set number properties
+  Element::set_property(property, sp);
+
+  // Set trigger properties manually
   if (property == "start")
     trigger_start();
   else if (property == "stop")
     trigger_stop();
-  else if (property == "interval")
-    update_prop(interval, sp);
-  else if (property == "bpm")
-  {
-    double bpm{0};
-    update_prop(bpm, sp);
-    if (bpm > 0) interval = 60.0 / bpm;
-  }
-  else if (property == "freq")
-  {
-    double freq{0};
-    update_prop(freq, sp);
-    if (freq > 0) interval = 1.0 / freq;
-  }
 }
 
 //--------------------------------------------------------------------------

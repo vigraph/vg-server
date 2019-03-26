@@ -194,19 +194,16 @@ struct Module
     {
       // Simple member pointers
       double Element::* d_ptr{nullptr};
-      int Element::* i_ptr{nullptr};
       string Element::* s_ptr{nullptr};
       bool Element::* b_ptr{nullptr};
 
       // Getter/setter functions
       double (Element::* get_d)(){nullptr};
-      int (Element::* get_i)(){nullptr};
       string (Element::* get_s)(){nullptr};
       bool (Element::* get_b)(){nullptr};
       JSON::Value (Element::* get_json)(){nullptr};
 
       void (Element::* set_d)(double){nullptr};
-      void (Element::* set_i)(int){nullptr};
       void (Element::* set_s)(const string& ){nullptr};
       void (Element::* set_b)(bool){nullptr};
       void (Element::* set_json)(const JSON::Value& json){nullptr};
@@ -217,14 +214,11 @@ struct Module
       // Constructors to set each of the above
       Member() {}
       Member(double Element::* _p): d_ptr(_p) {}
-      Member(int Element::* _p): i_ptr(_p) {}
       Member(string Element::* _p): s_ptr(_p) {}
       Member(bool Element::* _p): b_ptr(_p) {}
 
       Member(double (Element::* _get)(),
              void (Element::* _set)(double)): get_d(_get), set_d(_set) {}
-      Member(int (Element::* _get)(),
-             void (Element::* _set)(int)): get_i(_get), set_i(_set) {}
       Member(string (Element::* _get)(),
              void (Element::* _set)(const string&)): get_s(_get), set_s(_set) {}
       Member(bool (Element::* _get)(),
@@ -235,7 +229,7 @@ struct Module
 
       Member(void (Element::* _f)()): trigger(_f) {}
     } member;
-    string xpath;              // Relative xpath for config
+
     set<string> options;       // Options for choice
     bool settable{false};      // Can be connected to and changed dynamically
     bool alias{false};         // Another way of representing an earlier value
@@ -245,15 +239,13 @@ struct Module
       desc(_desc), type(_type), settable(_set) {}
 
     Property(const PropertyDescription& _desc, Value::Type _type,
-             const string& _xpath, bool _set=false):
-      desc(_desc), type(_type),
-      xpath(_xpath), settable(_set) {}
+             const string& /*_xpath*/, bool _set=false):
+      desc(_desc), type(_type), settable(_set) {}
 
     Property(const PropertyDescription& _desc, Value::Type _type,
-             const string& _xpath,
+             const string& /*_xpath*/,
              const set<string>& _options, bool _set=false):
-      desc(_desc), type(_type),
-      xpath(_xpath), options(_options), settable(_set) {}
+      desc(_desc), type(_type), options(_options), settable(_set) {}
 
     // New versions: Constructors with member data, no xpath
     Property(const PropertyDescription& _desc, Value::Type _type,
@@ -362,6 +354,7 @@ class Element
 {
 public:
   // Control value setting parameters
+  // !!! Remove once old set_property is gone
   struct SetParams
   {
     Value v;                // Value to set
@@ -372,6 +365,10 @@ public:
     // Simple set
     SetParams(const Value& _v): v(_v) {}
   };
+
+  void set_property(const string& prop_name,
+                    const Module::Property& prop,
+                    const Value& v);
 
 protected:
   // Param setting helpers
@@ -414,8 +411,11 @@ public:
   virtual JSON::Value get_json() const;
 
   // Set a control value
-  virtual void set_property(const string& property, const SetParams&)
-  { throw runtime_error("No such property "+property+" on element "+id); }
+  // !!! Convert to Value& once all module set_properties are gone
+  virtual void set_property(const string& property, const SetParams&);
+
+  // Update after setting a property
+  virtual void update() {}
 
   // Get type of a control property - uses module by default but overridable
   // for testing

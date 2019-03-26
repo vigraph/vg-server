@@ -16,35 +16,18 @@ namespace {
 class AddControl: public Dataflow::Control
 {
   // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
+  void update();
 
 public:
   double value{0.0};
   double offset;
-
-  // Construct
-  AddControl(const Module *module, const XML::Element& config);
+  using Control::Control;
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML
-//   <add offset="0.1"/>
-AddControl::AddControl(const Module *module, const XML::Element& config):
-  Control(module, config)
+// Update after value set
+void AddControl::update()
 {
-  offset = config.get_attr_real("offset");
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void AddControl::set_property(const string& prop,
-                              const SetParams& sp)
-{
-  if (prop == "value")
-    update_prop(value, sp);
-  else if (prop == "offset")
-    update_prop(offset, sp);
-
   // Add the offset and pass on
   SetParams nsp(Dataflow::Value{value+offset});
   send(nsp);
@@ -61,10 +44,10 @@ Dataflow::Module module
   {
     { "value",
       { "Base value", Value::Type::number,
-          static_cast<double Element::*>(&AddControl::value) } },
+          static_cast<double Element::*>(&AddControl::value), true } },
     { "offset",
       { "Offset amount", Value::Type::number,
-          static_cast<double Element::*>(&AddControl::offset) } },
+          static_cast<double Element::*>(&AddControl::offset), true } },
   },
   { { "", { "Value output", "", Value::Type::number }}}
 };

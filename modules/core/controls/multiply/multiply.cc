@@ -3,6 +3,8 @@
 //
 // Control to multiply a control value by a factor
 //
+//  <multiply factor="2" .../>
+//
 // Copyright (c) 2018 Paul Clark.  All rights reserved
 //==========================================================================
 
@@ -15,61 +17,21 @@ namespace {
 // Multiply control
 class MultiplyControl: public Dataflow::Control
 {
-  string property;
-  double factor;
-
-  // Mimic of controlled value
-  double value{0.0};
-
   // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
-  Dataflow::Value::Type get_property_type(const string& property) override;
+  void update();
 
 public:
-  // Construct
-  MultiplyControl(const Module *module, const XML::Element& config);
+  double value{0.0};
+  double factor{1.0};
+  using Control::Control;
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML
-//   <multiply factor="2" property="x"/>
-MultiplyControl::MultiplyControl(const Module *module, const XML::Element& config):
-  Control(module, config)
+// Update after value set
+void MultiplyControl::update()
 {
-  property = config["property"];
-  factor = config.get_attr_real("factor", 1.0);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void MultiplyControl::set_property(const string& prop,
-                               const SetParams& sp)
-{
-  if (prop == "factor")
-  {
-    update_prop(factor, sp);
-  }
-  else if (prop == property)
-  {
-    // Keep our copy up to date
-    update_prop(value, sp);
-
-    // Multiply the value
-    value *= factor;
-    SetParams nsp(Dataflow::Value{value});
-    send(nsp);
-  }
-}
-
-//--------------------------------------------------------------------------
-// Get control property types
-Dataflow::Value::Type
-  MultiplyControl::get_property_type(const string& prop)
-{
-  if (prop == "factor" || prop==property)
-    return Dataflow::Value::Type::number;
-
-  return Dataflow::Value::Type::invalid;
+  // Multiply by factor and pass on
+  send(Dataflow::Value{value*factor});
 }
 
 //--------------------------------------------------------------------------
@@ -81,11 +43,14 @@ Dataflow::Module module
   "Multiply a control value",
   "core",
   {
-    { "property", { "Property to set", Value::Type::text } },
-    { "factor", { { "Factor to multiply with", "1.0" },
-          Value::Type::number, true } }
+    { "value",
+      { "Base value", Value::Type::number,
+          static_cast<double Element::*>(&MultiplyControl::value), true } },
+    { "factor",
+      { { "Factor to multiply with", "1.0" }, Value::Type::number,
+          static_cast<double Element::*>(&MultiplyControl::factor), true } }
   },
-  { { "", { "Value output", "", Value::Type::number }}}
+  { { "value", { "Value output", "value", Value::Type::number }}}
 };
 
 } // anon

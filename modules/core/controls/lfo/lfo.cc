@@ -3,6 +3,13 @@
 //
 // LFO control to apply waveforms to properties
 //
+// <lfo wave="{saw|sin|square|triangle}"
+//      once="yes|no"
+//      wait="yes|no"
+//      period="1.0" scale="1.0" offset="0.0" phase="0.0"
+//       type="{real|integer|boolean}"
+//       property="..."/>
+//
 // Copyright (c) 2017 Paul Clark.  All rights reserved
 //==========================================================================
 
@@ -19,6 +26,16 @@ using namespace ViGraph::Geometry;
 // LFO control
 class LFOControl: public Dataflow::Control
 {
+  // Dynamic state
+  bool running{false};
+  bool triggered{false};
+  timestamp_t trigger_time{0};
+
+  // Control virtuals
+  void pre_tick(const TickData& td) override;
+  void enable() override;
+
+public:
   enum class Waveform
   {
     saw,
@@ -29,29 +46,13 @@ class LFOControl: public Dataflow::Control
   };
 
   Waveform waveform{Waveform::saw};
-
-public:
   bool once{false};
   bool wait{false};
   double period{0.0};
-  double scale{0.0};
+  double scale{1.0};
   double offset{0.0};
   double phase{0.0};
-
-private:
-  // Dynamic state
-  bool running{false};
-  bool triggered{false};
-  timestamp_t trigger_time{0};
-
-  // Control virtuals
-  void set_property(const string& property, const SetParams& sp) override;
-  void pre_tick(const TickData& td) override;
-  void enable() override;
-
-public:
-  // Construct
-  LFOControl(const Module *module, const XML::Element& config);
+  using Control::Control;
 
   // Property getter/setters
   string get_waveform();
@@ -91,42 +92,6 @@ void LFOControl::set_waveform(const string& wave)
     waveform = Waveform::random;
   else
     throw runtime_error("Unknown waveform type "+wave+" in "+id);
-}
-
-//--------------------------------------------------------------------------
-// Construct from XML
-// <lfo wave="{saw|sin|square|triangle}"
-//      once="yes|no"
-//      wait="yes|no"
-//      period="1.0" scale="1.0" offset="0.0" phase="0.0"
-//       type="{real|integer|boolean}"
-//       property="..."/>
-LFOControl::LFOControl(const Module *module, const XML::Element& config):
-  Control(module, config)
-{
-  set_waveform(config.get_attr("wave", "sin"));
-  once = config.get_attr_bool("once");
-  wait = config.get_attr_bool("wait");
-  period = config.get_attr_real("period", 1.0);
-  scale = config.get_attr_real("scale", 1.0);
-  offset = config.get_attr_real("offset");
-  phase = config.get_attr_real("phase");
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void LFOControl::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "period")
-    update_prop(period, sp);
-  else if (property == "scale")
-    update_prop(scale, sp);
-  else if (property == "offset")
-    update_prop(offset, sp);
-  else if (property == "phase")
-    update_prop(phase, sp);
-  else if (property == "trigger")
-    triggered = true;
 }
 
 //--------------------------------------------------------------------------
@@ -197,7 +162,7 @@ Dataflow::Module module
           Value::Type::choice,
           { static_cast<string (Element::*)()>(&LFOControl::get_waveform),
             static_cast<void (Element::*)(const string&)>(&LFOControl::set_waveform) },
-          { "saw", "sin", "square", "triangle", "random" } } },
+          { "saw", "sin", "square", "triangle", "random" }, true } },
     { "once", { { "Run only one cycle", "false" },
           Value::Type::boolean,
           static_cast<bool Element::*>(&LFOControl::once),
@@ -227,7 +192,7 @@ Dataflow::Module module
           static_cast<void (Element::*)()>(&LFOControl::trigger),
           true } }
   },
-  { { "", { "Wave output", "", Value::Type::number }}}
+  { { "value", { "Wave output", "value", Value::Type::number }}}
 };
 
 } // anon

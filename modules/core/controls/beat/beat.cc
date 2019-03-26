@@ -93,7 +93,7 @@ void BeatControl::pre_tick(const TickData& td)
   }
   else return;  // Wait
 
-  send(SetParams{Dataflow::Value{}});  // trigger
+  trigger();
 }
 
 //--------------------------------------------------------------------------
@@ -125,7 +125,7 @@ Dataflow::Module module
           static_cast<void (Element::*)()>(&BeatControl::trigger_stop),
           true } }
   },
-  { { "", { "Trigger output", "trigger", Value::Type::trigger }}}
+  { { "trigger", { "Trigger output", "trigger", Value::Type::trigger }}}
 };
 
 } // anon

@@ -20,18 +20,8 @@ class CloneNumberControl: public Dataflow::Control
   void pre_tick(const TickData& td) override;
 
 public:
-  // Construct
-  CloneNumberControl(const Module *module, const XML::Element& config);
+  using Control::Control;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-// <clone-number property="..."/>
-CloneNumberControl::CloneNumberControl(const Module *module,
-                                       const XML::Element& config):
-  Control(module, config)
-{
-}
 
 //--------------------------------------------------------------------------
 // Tick
@@ -39,10 +29,7 @@ void CloneNumberControl::pre_tick(const TickData& /*td*/)
 {
   Value v = graph->get_variable("clone-number");
   if (v.type != Value::Type::invalid)
-  {
-    SetParams sp(v);
-    send(sp);
-  }
+    send(v);
 }
 
 //--------------------------------------------------------------------------
@@ -54,7 +41,7 @@ Dataflow::Module module
   "Get the number (1..N) of a clone",
   "core",
   { },
-  { { "", { "Clone number", "", Value::Type::number }}}
+  { { "value", { "Clone number", "value", Value::Type::number }}}
 };
 
 } // anon

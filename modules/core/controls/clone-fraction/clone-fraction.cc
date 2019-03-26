@@ -3,6 +3,8 @@
 //
 // Control to randomise properties on other elements
 //
+// <clone-fraction scale="1.0" offset="0" .../>
+//
 // Copyright (c) 2018 Paul Clark.  All rights reserved
 //==========================================================================
 
@@ -22,35 +24,12 @@ public:
 
 private:
   // Control virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void pre_tick(const TickData& td) override;
 
 public:
   // Construct
-  CloneFractionControl(const Module *module, const XML::Element& config);
+  using Control::Control;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-// <clone-fraction scale="1.0" offset="0" property="..."/>
-CloneFractionControl::CloneFractionControl(const Module *module,
-                                       const XML::Element& config):
-  Control(module, config)
-{
-  scale = config.get_attr_real("scale", 1.0);
-  offset = config.get_attr_real("offset");
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void CloneFractionControl::set_property(const string& property,
-                                        const SetParams& sp)
-{
-  if (property == "scale")
-    update_prop(scale, sp);
-  else if (property == "offset")
-    update_prop(offset, sp);
-}
 
 //--------------------------------------------------------------------------
 // Tick
@@ -61,8 +40,7 @@ void CloneFractionControl::pre_tick(const TickData& /*td*/)
   {
     v.d *= scale;
     v.d += offset;
-    SetParams sp(v);
-    send(sp);
+    send(v);
   }
 }
 

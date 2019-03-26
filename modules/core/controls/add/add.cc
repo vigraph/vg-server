@@ -7,7 +7,6 @@
 //==========================================================================
 
 #include "../../../module.h"
-#include <cmath>
 
 namespace {
 
@@ -20,7 +19,7 @@ class AddControl: public Dataflow::Control
 
 public:
   double value{0.0};
-  double offset;
+  double offset{0.0};
   using Control::Control;
 };
 
@@ -29,8 +28,7 @@ public:
 void AddControl::update()
 {
   // Add the offset and pass on
-  SetParams nsp(Dataflow::Value{value+offset});
-  send(nsp);
+  send(Dataflow::Value{value+offset});
 }
 
 //--------------------------------------------------------------------------
@@ -49,7 +47,7 @@ Dataflow::Module module
       { "Offset amount", Value::Type::number,
           static_cast<double Element::*>(&AddControl::offset), true } },
   },
-  { { "", { "Value output", "", Value::Type::number }}}
+  { { "value", { "Value output", "value", Value::Type::number }}}
 };
 
 } // anon

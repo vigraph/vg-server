@@ -12,7 +12,7 @@ ModuleLoader loader;
 TEST(InterpolateTest, TestInterpolateWithNoPointsHasNoEffect)
 {
   ControlTester tester(loader);
-  tester.test("<set value='1'/>",
+  tester.test("<set value='1' property='t'/>",
               "<interpolate property='foo'/>");
   ASSERT_FALSE(tester.target->got("foo"));
 }
@@ -20,7 +20,7 @@ TEST(InterpolateTest, TestInterpolateWithNoPointsHasNoEffect)
 TEST(InterpolateTest, TestInterpolateWithOnePointHasEffect)
 {
   ControlTester tester(loader);
-  tester.test("<set value='1'/>",
+  tester.test("<set value='1' property='t'/>",
               "<interpolate>"
                 "<point foo='1'/>"
               "</interpolate>");
@@ -33,7 +33,7 @@ TEST(InterpolateTest, TestInterpolateWithOnePointHasEffect)
 TEST(InterpolateTest, TestInterpolateWithTwoPoints)
 {
   ControlTester tester(loader);
-  tester.test("<set value='0.5'/>",
+  tester.test("<set value='0.5' property='t'/>",
               "<interpolate>"
                 "<point foo='1'/>"
                 "<point foo='2'/>"
@@ -47,7 +47,7 @@ TEST(InterpolateTest, TestInterpolateWithTwoPoints)
 TEST(InterpolateTest, TestInterpolateWithThreePointsOnBoundary)
 {
   ControlTester tester(loader);
-  tester.test("<set value='0.5'/>",
+  tester.test("<set value='0.5' property='t'/>",
               "<interpolate>"
                 "<point foo='1'/>"
                 "<point foo='2'/>"
@@ -62,7 +62,7 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsOnBoundary)
 TEST(InterpolateTest, TestInterpolateWithThreePoints)
 {
   ControlTester tester(loader);
-  tester.test("<set value='0.75'/>",
+  tester.test("<set value='0.75' property='t'/>",
               "<interpolate>"
                 "<point foo='1'/>"
                 "<point foo='2'/>"
@@ -77,7 +77,7 @@ TEST(InterpolateTest, TestInterpolateWithThreePoints)
 TEST(InterpolateTest, TestInterpolateWithThreePointsAtEnd)
 {
   ControlTester tester(loader);
-  tester.test("<set value='1'/>",
+  tester.test("<set value='1' property='t'/>",
               "<interpolate>"
                 "<point foo='1'/>"
                 "<point foo='2'/>"
@@ -92,7 +92,7 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsAtEnd)
 TEST(InterpolateTest, TestInterpolateWithMissingValueUsesLast)
 {
   ControlTester tester(loader);
-  tester.test("<set value='0.75'/>",
+  tester.test("<set value='0.75' property='t'/>",
               "<interpolate>"
                 "<point foo='1'/>"
                 "<point foo='2'/>"
@@ -107,7 +107,7 @@ TEST(InterpolateTest, TestInterpolateWithMissingValueUsesLast)
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPoints)
 {
   ControlTester tester(loader);
-  tester.test("<set value='0.2'/>",
+  tester.test("<set value='0.2' property='t'/>",
               "<interpolate>"
                 "<point foo='1'/>"
                 "<point at='0.4' foo='2'/>"
@@ -121,7 +121,7 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPoints)
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsAfterLast)
 {
   ControlTester tester(loader);
-  tester.test("<set value='0.5'/>",
+  tester.test("<set value='0.5' property='t'/>",
               "<interpolate>"
                 "<point foo='1'/>"
                 "<point at='0.4' foo='2'/>"
@@ -135,7 +135,7 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsAfterLast)
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsLargeAtValues)
 {
   ControlTester tester(loader);
-  tester.test("<set value='500'/>",
+  tester.test("<set value='500' property='t'/>",
               "<interpolate>"
                 "<point foo='1'/>"
                 "<point at='1000' foo='2'/>"
@@ -149,7 +149,7 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsLargeAtValues)
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtThreePoints)
 {
   ControlTester tester(loader);
-  tester.test("<set value='2.25'/>",
+  tester.test("<set value='2.25' property='t'/>",
               "<interpolate>"
                 "<point at='1.0' foo='1'/>"
                 "<point at='2.0' foo='2'/>"

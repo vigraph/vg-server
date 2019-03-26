@@ -12,7 +12,7 @@ ModuleLoader loader;
 TEST(MultiplyTest, TestMultiplyDefaultDoesNothing)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='0.2'/>",
+  tester.test("<set property='value' value='0.2'/>",
               "<multiply property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");
@@ -23,7 +23,7 @@ TEST(MultiplyTest, TestMultiplyDefaultDoesNothing)
 TEST(MultiplyTest, TestMultiplyBy2)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='1.5'/>",
+  tester.test("<set property='value' value='1.5'/>",
               "<multiply factor='2' property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");
@@ -35,7 +35,7 @@ TEST(MultiplyTest, TestMultiplyBySetFactor)
 {
   ControlTester tester(loader);
   tester.test("<set target='m' property='factor' value='2'/>",
-              "<set property='x' value='1.5'/>",
+              "<set property='value' value='1.5'/>",
               "<multiply id='m' property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
   const auto& sp = tester.target->get("x");

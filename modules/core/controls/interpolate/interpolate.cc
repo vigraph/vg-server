@@ -26,9 +26,6 @@ class InterpolateControl: public Control
 
   vector<Point> points;
 
-  // Control virtuals
-  void set_property(const string& property, const SetParams& sp) override;
-
 public:
   // Construct
   InterpolateControl(const Module *module, const XML::Element& config);
@@ -36,6 +33,8 @@ public:
   // Getter/setters
   JSON::Value get_curve();
   void set_curve(const JSON::Value& json);
+  double get_t() { return 0.0; }
+  void set_t(double t);
 };
 
 //--------------------------------------------------------------------------
@@ -45,6 +44,7 @@ public:
 //   <point at="1" x="0.5"/>
 // </interpolate>
 // Note both 'at's are optional and assumed 0,1 in this simple case
+// !!! No way to replace this at the moment
 InterpolateControl::InterpolateControl(const Module *module,
                                        const XML::Element& config):
   Control(module, config)
@@ -115,12 +115,10 @@ void InterpolateControl::set_curve(const JSON::Value& json)
 }
 
 //--------------------------------------------------------------------------
-// Set a control property
-void InterpolateControl::set_property(const string& /*property*/,
-                                      const SetParams& sp)
+// Set 't'
+void InterpolateControl::set_t(double t)
 {
   if (!points.size()) return;
-  double t = sp.v.d;
 
   // Values to send
   map<string, double> values;
@@ -172,7 +170,10 @@ Dataflow::Module module
   "Animate one or more properties using key frame interpolation",
   "core",
   {
-    { "t",  { "Proportion to interpolate (0..1)", Value::Type::number, true }},
+    { "t",  { "Proportion to interpolate (0..1)", Value::Type::number,
+        { static_cast<double (Element::*)()>(&InterpolateControl::get_t),
+          static_cast<void (Element::*)(double)>(&InterpolateControl::set_t) },
+          true }},
     { "curve",  { "Interpolation curve", "curve",
         { static_cast<JSON::Value (Element::*)()>
             (&InterpolateControl::get_curve),

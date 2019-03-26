@@ -3,6 +3,8 @@
 //
 // Control to count with a delta on each tick or trigger
 //
+// <count value="41" delta="1" wait="yes" .../>
+//
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
@@ -16,35 +18,29 @@ namespace {
 // Count control
 class CountControl: public Dataflow::Control
 {
-  // Configured state
   double start_value{0.0};
-  double delta{0.0};
-  bool wait{false};
-
-  // Dynamic state
-  double value{0.0};
   bool triggered{false};
 
   // Control virtuals
-  void set_property(const string& property, const SetParams& sp) override;
+  void setup() override;
   void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
   void enable() override;
 
 public:
-  // Construct
-  CountControl(const Module *module, const XML::Element& config);
+  double value{0.0};
+  double delta{1.0};
+  bool wait{false};
+  using Control::Control;
+
+  void trigger();
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML
-// <count value="41" delta="1" wait="yes" .../>
-CountControl::CountControl(const Module *module, const XML::Element& config):
-  Control(module, config)
+// Setup after configuration
+void CountControl::setup()
 {
-  value = start_value = config.get_attr_real("value", 0.0);
-  delta = config.get_attr_real("delta", 1.0);
-  wait = config.get_attr_bool("wait");
+  start_value = value;
 }
 
 //--------------------------------------------------------------------------
@@ -64,15 +60,10 @@ void CountControl::notify_target_of(Element *, const string& property)
 }
 
 //--------------------------------------------------------------------------
-// Set a control property
-void CountControl::set_property(const string& property, const SetParams& sp)
+// Trigger
+void CountControl::trigger()
 {
-  if (property == "trigger")
-    triggered = true;
-  else if (property == "value")
-    update_prop(value, sp);
-  else if (property == "delta")
-    update_prop(delta, sp);
+  triggered = true;
 }
 
 //--------------------------------------------------------------------------
@@ -98,10 +89,14 @@ Dataflow::Module module
   "Count a value up or down",
   "core",
   {
-    { "value", { "Current value", Value::Type::number, true } },
-    { "delta", { "Value to change by", Value::Type::number, true } },
-    { "wait",  { "Whether to wait for a trigger", Value::Type::number } },
-    { "trigger", { "Trigger to make modification", Value::Type::trigger, true}}
+    { "value", { "Current value", Value::Type::number,
+          static_cast<double Element::*>(&CountControl::value), true } },
+    { "delta", { "Value to change by", Value::Type::number,
+          static_cast<double Element::*>(&CountControl::delta), true } },
+    { "wait",  { "Whether to wait for a trigger", Value::Type::boolean,
+          static_cast<bool Element::*>(&CountControl::wait), true } },
+    { "trigger", { "Trigger to make modification", Value::Type::trigger,
+          static_cast<void (Element::*)()>(&CountControl::trigger), true } }
   },
   { { "", { "Modified value", "", Value::Type::number }}}
 };

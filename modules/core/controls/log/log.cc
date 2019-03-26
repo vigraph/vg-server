@@ -28,6 +28,7 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML
 // <log>A message</log>
+// !!! Needs replacing!
 LogControl::LogControl(const Module *module, const XML::Element& config):
   Control(module, config, true)  // no targets
 {

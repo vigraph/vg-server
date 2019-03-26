@@ -560,6 +560,12 @@ class ControlImpl
   // Send a named value to the target
   // name is our name for it
   void send(const string& name, const Element::SetParams& sp);
+
+  // Trigger first target property
+  void trigger() { send(Dataflow::Value{}); }
+
+  // Trigger named property
+  void trigger(const string& name) { send(name, Dataflow::Value{}); }
 };
 
 //==========================================================================

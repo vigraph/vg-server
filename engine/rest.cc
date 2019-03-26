@@ -34,6 +34,7 @@ namespace
 
 class GraphURLHandler: public Web::URLHandler
 {
+  //  Dataflow::Engine& engine;
   bool handle_delete(const Web::HTTPMessage& request);
   bool handle_post(const Web::HTTPMessage& request);
   bool handle_request(const Web::HTTPMessage& request,
@@ -41,7 +42,8 @@ class GraphURLHandler: public Web::URLHandler
                       const SSL::ClientDetails& client);
 
 public:
-  GraphURLHandler(): URLHandler("/graph*")
+  GraphURLHandler(Dataflow::Engine& /*_engine*/):
+    URLHandler("/graph*")//, engine(_engine)
   {}
 };
 
@@ -131,15 +133,93 @@ bool GraphURLHandler::handle_request(const Web::HTTPMessage& request,
 
 class MetaURLHandler: public Web::URLHandler
 {
+  Dataflow::Engine& engine;
   bool handle_get(const string& path, Web::HTTPMessage& response);
   bool handle_request(const Web::HTTPMessage& request,
                       Web::HTTPMessage& response,
                       const SSL::ClientDetails& client);
+  JSON::Value get_metadata_for_module(const Dataflow::Module& module);
 
 public:
-  MetaURLHandler(): URLHandler("/meta*")
+  MetaURLHandler(Dataflow::Engine& _engine):
+    URLHandler("/meta*"), engine(_engine)
   {}
 };
+
+//--------------------------------------------------------------------------
+// Get metadata JSON for a particular module
+JSON::Value MetaURLHandler::get_metadata_for_module(
+                                           const Dataflow::Module& module)
+{
+  JSON::Value json(JSON::Value::OBJECT);
+  json.set("id", module.id);
+  json.set("name", module.name);
+  json.set("description", module.description);
+  json.set("section", module.section);
+
+  // !!! Type, determine from presence of controlled_properties, inputs, outputs?
+  // Properties
+  if (!module.properties.empty())
+  {
+    JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::ARRAY));
+    for(const auto pit: module.properties)
+    {
+      JSON::Value& pj = propsj.add(JSON::Value(JSON::Value::OBJECT));
+      pj.set("id", pit.first);
+      const auto& prop = pit.second;
+      pj.set("description", prop.desc.description);
+      if (prop.type == Dataflow::Value::Type::other)
+        pj.set("type", prop.other_type);
+      else
+        pj.set("type", Dataflow::Value::type_str(prop.type));
+      if (prop.settable)
+        pj.set("settable", JSON::Value(JSON::Value::TRUE));
+    }
+  }
+
+  // Controlled properties
+  if (!module.controlled_properties.empty())
+  {
+    JSON::Value& propsj = json.set("control-outputs",
+                                   JSON::Value(JSON::Value::ARRAY));
+    for(const auto pit: module.controlled_properties)
+    {
+      JSON::Value& pj = propsj.add(JSON::Value(JSON::Value::OBJECT));
+      pj.set("id", pit.first);
+      const auto& prop = pit.second;
+      pj.set("description", prop.description);
+      pj.set("type", Dataflow::Value::type_str(prop.type));
+    }
+  }
+
+  // Inputs
+  if (!module.inputs.empty())
+  {
+    JSON::Value& inputsj = json.set("inputs", JSON::Value(JSON::Value::ARRAY));
+    for(const auto input: module.inputs)
+    {
+      JSON::Value& ij = inputsj.add(JSON::Value(JSON::Value::OBJECT));
+      ij.set("type", input.type);
+      if (input.multiple)
+        ij.set("multiple", JSON::Value(JSON::Value::TRUE));
+    }
+  }
+
+  // Outputs
+  if (!module.outputs.empty())
+  {
+    JSON::Value& outsj = json.set("outputs", JSON::Value(JSON::Value::ARRAY));
+    for(const auto output: module.outputs)
+    {
+      JSON::Value& oj = outsj.add(JSON::Value(JSON::Value::OBJECT));
+      oj.set("type", output.type);
+      if (output.multiple)
+        oj.set("multiple", JSON::Value(JSON::Value::TRUE));
+    }
+  }
+
+  return json;
+}
 
 //--------------------------------------------------------------------------
 // Handle a GET request
@@ -148,23 +228,34 @@ bool MetaURLHandler::handle_get(const string& path,
                                 Web::HTTPMessage& response)
 {
   Log::Streams log;
+  Dataflow::Registry& registry = engine.element_registry;
 
   try
   {
     if (path.empty())
     {
       log.detail << "REST Meta: GET request\n";
+      JSON::Value json(JSON::Value::ARRAY);
+      for(const auto mit: registry.modules)
+        json.add(get_metadata_for_module(*mit.second.module));
+      response.body = json.str(true);
     }
     else
     {
-      JSON::Value json(JSON::Value::OBJECT);
       log.detail << "REST Meta: GET request for " << path << endl;
-
-      // const auto& bits = Text::split(path, '/');
-
-      // !!!
-      json.set("path", path);
-      response.body = json.str();
+      const auto mit = registry.modules.find(path);
+      if (mit == registry.modules.end())
+      {
+        log.error << "No such module '" << path
+                  << "' requested in REST /meta\n";
+        response.code = 404;
+        response.reason = "Not found";
+      }
+      else
+      {
+        JSON::Value json = get_metadata_for_module(*mit->second.module);
+        response.body = json.str(true);
+      }
     }
   }
   catch (JSON::Exception e)
@@ -206,7 +297,8 @@ bool MetaURLHandler::handle_request(const Web::HTTPMessage& request,
 // REST interface
 //--------------------------------------------------------------------------
 // Constructor
-RESTInterface::RESTInterface(const XML::Element& config)
+RESTInterface::RESTInterface(const XML::Element& config,
+                             Dataflow::Engine& engine)
 {
   Log::Streams log;
   XML::ConstXPathProcessor xpath(config);
@@ -216,8 +308,8 @@ RESTInterface::RESTInterface(const XML::Element& config)
   log.summary << "REST: Starting HTTP server at port " << hport << endl;
   http_server.reset(new Web::SimpleHTTPServer(hport, server_ident));
 
-  http_server->add(new GraphURLHandler());
-  http_server->add(new MetaURLHandler());
+  http_server->add(new GraphURLHandler(engine));
+  http_server->add(new MetaURLHandler(engine));
 
   // Allow cross-origin fetch from anywhere
   http_server->set_cors_origin();

@@ -12,9 +12,6 @@
 
 namespace ViGraph { namespace Engine {
 
-// Global singletons
-Server server;
-
 // Defaults
 const auto default_licence = "/etc/vigraph/licence.xml";
 const double default_frequency = 25;
@@ -185,7 +182,7 @@ void Server::reconfigure()
   // (re-)create the REST interface
   rest.reset();
   const XML::Element& rest_e = config_xml.get_child("rest");
-  if (!!rest_e) rest.reset(new RESTInterface(rest_e));
+  if (!!rest_e) rest.reset(new RESTInterface(rest_e, engine));
 }
 
 //--------------------------------------------------------------------------

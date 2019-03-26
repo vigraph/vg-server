@@ -32,7 +32,7 @@ class RESTInterface
   unique_ptr<Net::TCPServerThread> http_server_thread;
 
 public:
-  RESTInterface(const XML::Element& config);
+  RESTInterface(const XML::Element& config, Dataflow::Engine& _engine);
   ~RESTInterface();
 };
 
@@ -68,6 +68,11 @@ public:
   //------------------------------------------------------------------------
   // Constructor
   Server(const string& _licence_file = "");
+
+  //------------------------------------------------------------------------
+  // Get the engine
+  Dataflow::Engine& get_engine() { cout << "Get engine " << &engine << endl;
+    return engine; }
 
   //------------------------------------------------------------------------
   // Time to sleep until next tick (microseconds)
@@ -111,9 +116,6 @@ public:
   // Virtual Destructor
   ~Server();
 };
-
- // Declared in server.cc
-extern Server server;
 
 //==========================================================================
 }} //namespaces

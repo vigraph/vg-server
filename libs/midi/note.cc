@@ -16,9 +16,9 @@ using namespace ObTools;
 
 //-----------------------------------------------------------------------
 // Post a raw MIDI byte into the reader
-int get_midi_note(const string& name)
+int get_midi_number(const string& note)
 {
-  auto s = Text::tolower(Text::remove_space(name));
+  auto s = Text::tolower(Text::remove_space(note));
   if (s.empty())
     return - 1;
 
@@ -61,10 +61,41 @@ int get_midi_note(const string& name)
 }
 
 //==========================================================================
-// MIDI Note frequency
-double get_midi_frequency(int note)
+// MIDI Note from number
+// Returns midi note or empty string on error
+string get_midi_note(int number)
 {
-  return 440.0 * pow(2, (note - 69) / 12.0);
+  auto s = string{};
+
+  if (number < 21 || number > 127)
+    return s;
+
+  switch (number % 12)
+  {
+    case 0: s += "C"; break;
+    case 1: s += "C#"; break;
+    case 2: s += "D"; break;
+    case 3: s += "D#"; break;
+    case 4: s += "E"; break;
+    case 5: s += "F"; break;
+    case 6: s += "F#"; break;
+    case 7: s += "G"; break;
+    case 8: s += "G#"; break;
+    case 9: s += "A"; break;
+    case 10: s += "A#"; break;
+    case 11: s += "B"; break;
+  }
+
+  s += Text::itos((number / 12) - 1);
+
+  return s;
+}
+
+//==========================================================================
+// MIDI Note frequency
+double get_midi_frequency(int number)
+{
+  return 440.0 * pow(2, (number - 69) / 12.0);
 }
 
 }} // namespaces

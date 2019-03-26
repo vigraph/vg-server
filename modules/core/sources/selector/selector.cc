@@ -16,6 +16,7 @@ namespace {
 class SelectorSource: public Dataflow::Source
 {
   bool retrigger{false};
+  int index = -1;
   unique_ptr<Dataflow::MultiGraph> multigraph;
   struct Start
   {
@@ -79,17 +80,17 @@ void SelectorSource::attach(Dataflow::Acceptor *acceptor)
 // Set a control property
 void SelectorSource::set_property(const string& property, const SetParams& sp)
 {
-  if (property == "selected")
+  if (property == "value")
   {
-    int index = -1;
+    update_prop_int(index, sp);
+  }
+  else if (property == "select")
+  {
+    int old_index = -1;
 
     // Find single old one, if any, to allow increment
     if (active_starts.size() == 1)
-      index = active_starts.begin()->first;
-
-    // Update it
-    int old_index = index;
-    update_prop_int(index, sp);
+      old_index = active_starts.begin()->first;
 
     if ((retrigger || index != old_index) && index >= 0)
     {
@@ -119,9 +120,6 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
   }
   else if (property == "enable")
   {
-    int index{0};
-    update_prop_int(index, sp);
-
     Log::Detail log;
     log << "Selector source enabling index " << index << endl;
 
@@ -144,9 +142,6 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
   }
   else if (property == "disable")
   {
-    int index{0};
-    update_prop_int(index, sp);
-
     Log::Detail log;
     log << "Selector source disabling index " << index << endl;
 
@@ -168,9 +163,6 @@ void SelectorSource::set_property(const string& property, const SetParams& sp)
   }
   else if (property == "toggle")
   {
-    int index{0};
-    update_prop_int(index, sp);
-
     Log::Detail log;
     log << "Selector source toggling index " << index << endl;
 
@@ -279,10 +271,11 @@ Dataflow::Module module
   "core",
   {
     { "retrigger", { "Whether to retrigger same item", Value::Type::boolean } },
-    { "selected", { "Selected single item", Value::Type::number, true } },
-    { "enable",   { "Item to enable", Value::Type::number, true } },
-    { "disable",  { "Item to disable", Value::Type::number, true } },
-    { "toggle",  { "Item to toggle", Value::Type::number, true } }
+    { "value", { "Value to act upon", Value::Type::number, true } },
+    { "select", { "Select single item", Value::Type::trigger, true } },
+    { "enable",   { "Item to enable", Value::Type::trigger, true } },
+    { "disable",  { "Item to disable", Value::Type::trigger, true } },
+    { "toggle",  { "Item to toggle", Value::Type::trigger, true } }
   },
   {}, // no inputs
   { "any" },

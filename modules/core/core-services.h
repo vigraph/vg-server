@@ -25,7 +25,8 @@ public:
   virtual void deregister_worker(Control *worker) = 0;
 
   // Send frame data on the given tag
-  virtual void send(const string& pool, const string& prop,
+  virtual void send(const string& pool,
+                    unsigned index, const string& property,
                     const Dataflow::Control::SetParams& sp) = 0;
 
   // Virtual destructor

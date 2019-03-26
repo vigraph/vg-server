@@ -22,15 +22,24 @@ class PoolDistributorImpl: public Dataflow::Service, public PoolDistributor
     struct Worker
     {
       Control *worker = nullptr;
-      double on = -1.0;
-      double last_on = -1.0;
-      Time::Stamp on_at;
+      unsigned last_index = 0;
+      bool cleared = true;
+      Time::Stamp last_used;
 
       Worker(Control *_worker): worker{_worker} {}
 
       bool operator<(const Worker& b)
       {
-        return on_at < b.on_at;
+        return last_used < b.last_used;
+      }
+
+      void send(unsigned index, const string& property,
+                const Dataflow::Control::SetParams& sp)
+      {
+        worker->set_property(property, sp);
+        last_index = index;
+        cleared = (property == "clear");
+        last_used = Time::Stamp::now();
       }
     };
     list<Worker> workers;
@@ -40,7 +49,8 @@ class PoolDistributorImpl: public Dataflow::Service, public PoolDistributor
   // Pool implementation
   void register_worker(const string& pool, Control *worker) override;
   void deregister_worker(Control *worker) override;
-  void send(const string& pool, const string& prop,
+  void send(const string& pool, unsigned index,
+            const string& property,
             const Dataflow::Control::SetParams& sp) override;
 
  public:
@@ -68,8 +78,8 @@ void PoolDistributorImpl::deregister_worker(Control *worker)
     {
       if (it->worker == worker)
       {
-        if (it->on >= 0)
-          it->worker->set_property("off", Value{it->on});
+        if (!it->cleared)
+          it->worker->set_property("clear", {});
         p.second.workers.erase(it++);
       }
       else
@@ -82,55 +92,41 @@ void PoolDistributorImpl::deregister_worker(Control *worker)
 
 //--------------------------------------------------------------------------
 // Send frame data on the given tag
-void PoolDistributorImpl::send(const string& pool, const string& prop,
-                           const SetParams& sp)
+void PoolDistributorImpl::send(const string& pool,
+                               unsigned index,
+                               const string& property,
+                               const SetParams& sp)
 {
   const auto pit = pools.find(pool);
   if (pit != pools.end() && !pit->second.workers.empty())
   {
-    if (prop == "on")
+    // Look for matching index
+    for (auto& w: pit->second.workers)
     {
-      for (auto& w: pit->second.workers)
+      if (w.last_index == index)
       {
-        if (w.last_on == sp.v.d)
-        {
-          w.worker->set_property("off", Value{w.on});
-          w.worker->set_property("on", sp);
-          w.on = sp.v.d;
-          w.on_at = Time::Stamp::now();
-          return;
-        }
-      }
-      pit->second.workers.sort();
-      for (auto& w: pit->second.workers)
-      {
-        if (w.on < 0)
-        {
-          w.worker->set_property("on", sp);
-          w.on = w.last_on = sp.v.d;
-          w.on_at = Time::Stamp::now();
-          return;
-        }
-      }
-      auto& w = pit->second.workers.front();
-      if (w.on >= 0)
-        w.worker->set_property("off", Value{w.on});
-      w.worker->set_property("on", sp);
-      w.on = w.last_on = sp.v.d;
-      w.on_at = Time::Stamp::now();
-    }
-    else if (prop == "off")
-    {
-      for (auto& w: pit->second.workers)
-      {
-        if (w.on == sp.v.d)
-        {
-          w.worker->set_property("off", sp);
-          w.on = -1.0;
-          return;
-        }
+        w.send(index, property, sp);
+        return;
       }
     }
+
+    // Look for worker that has been cleared the longest
+    pit->second.workers.sort();
+    for (auto& w: pit->second.workers)
+    {
+      if (w.cleared)
+      {
+        w.send(index, property, sp);
+        return;
+      }
+    }
+
+    // Pick the one that hasn't been used for the longest time
+    // (front due to sorting)
+    auto& w = pit->second.workers.front();
+    // Clear previous recipient
+    w.worker->set_property("clear", {});
+    w.send(index, property, sp);
   }
 }
 
@@ -140,7 +136,7 @@ Dataflow::Module module
 {
   "pool-distributor",
   "Pool Distributor",
-  "Pool Distributor service, finds next available provider for an on/off",
+  "Pool Distributor service distributes messages based on pool name and index",
   "core",
   {} // no properties
 };

@@ -20,9 +20,14 @@ namespace {
 class MIDIKeyInControl: public Dataflow::Control,
                         public Distributor::EventObserver
 {
-  shared_ptr<Distributor> distributor;
+public:
   int channel{0};
-  int note{0};
+  int number{-1};
+  int min{-1};
+  int max{-1};
+
+private:
+  shared_ptr<Distributor> distributor;
 
   // Control virtuals
   void set_property(const string& property, const SetParams& sp) override;
@@ -37,6 +42,10 @@ class MIDIKeyInControl: public Dataflow::Control,
 public:
   // Construct
   MIDIKeyInControl(const Dataflow::Module *module, const XML::Element& config);
+
+  // Property getter/setters
+  string get_note() { return MIDI::get_midi_note(number); }
+  void set_note(const string& note) { number = MIDI::get_midi_number(note); }
 };
 
 //--------------------------------------------------------------------------
@@ -48,15 +57,17 @@ MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
   Control(module, config)
 {
   channel = config.get_attr_int("channel");
-  auto ns = config["note"];
-  if (!ns.empty())
-  {
-    auto n = MIDI::get_midi_note(ns);
-    if (n < 0)
-      note = Text::stoi(ns);
-    else
-      note = n;
-  }
+
+  auto note = config["note"];
+  if (!note.empty())
+    number = MIDI::get_midi_number(note);
+
+  auto num = config.get_attr_int("number", number);
+  if (num >= 0)
+    number = num;
+
+  min = config.get_attr_int("min", min);
+  max = config.get_attr_int("max", max);
 }
 
 //--------------------------------------------------------------------------
@@ -78,17 +89,14 @@ void MIDIKeyInControl::configure(const File::Directory&,
 void MIDIKeyInControl::set_property(const string& property,
                                     const SetParams& sp)
 {
-  if (property == "note")
-  {
-    if (sp.v.type == Value::Type::text)
-    {
-      note = MIDI::get_midi_note(sp.v.s);
-    }
-    else
-    {
-      update_prop_int(note, sp);
-    }
-  }
+  if (property == "number")
+    update_prop_int(number, sp);
+  else if (property == "note")
+    number = MIDI::get_midi_number(sp.v.s);
+  else if (property == "min")
+    update_prop_int(min, sp);
+  else if (property == "max")
+    update_prop_int(max, sp);
 }
 
 //--------------------------------------------------------------------------
@@ -128,29 +136,34 @@ void MIDIKeyInControl::disable()
 // Handle event
 void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
 {
-  Log::Detail log;
+  if (number >= 0 && event.key != number)
+    return;
+
+  if (min >= 0 && event.key < min)
+    return;
+
+  if (max >= 0 && event.key > max)
+    return;
+
   bool is_on = event.type==ViGraph::MIDI::Event::Type::note_on;
 
-  if (!note || event.key == note)
-  {
-    log << "MIDI IN " << (int)event.channel << ": key " << (int)event.key
-        << " " << (is_on?"ON":"OFF") << " @" << event.value << endl;
-  }
+  Log::Detail log;
+  log << "MIDI IN (" << id << ") channel " << (int)event.channel
+      << ": key " << (int)event.key
+      << " " << (is_on?"ON":"OFF") << " @" << event.value << endl;
 
   // Treat Note On with 0 velocity as off
   if (!event.value) is_on = false;
 
-  // All notes on/off values if not specific
-  if (!note)
-    send(is_on?"on":"off", Dataflow::Value(event.key));
-
-  // Specific triggers
-  else if (event.key == note)
-    send(is_on?"trigger":"clear", Dataflow::Value());
+  // Send note value
+  send("number", Dataflow::Value(event.key));
 
   // Send velocity separately if either is true, only for ON
-  if (is_on && (!note || event.key == note))
+  if (is_on)
     send("velocity", Dataflow::Value(event.value/127.0));
+
+  // Specific triggers
+  send(is_on?"trigger":"clear", Dataflow::Value());
 }
 
 //--------------------------------------------------------------------------
@@ -162,18 +175,24 @@ Dataflow::Module module
   "Generic MIDI Key Input",
   "midi",
   {
-    { "channel", { {"MIDI channel (0=all)", "0"}, Value::Type::number,
-                                                    "@channel" } },
-    { "note", { {"Note number to trigger ON (0=disable)", "0"},
-          Value::Type::number, "@note-on", true } },
-    { "note-off", { {"Note number to trigger OFF (0=disable)", "0"},
-          Value::Type::number, "@note-off", true } }
+    { "channel", { "MIDI channel (0=all)", Value::Type::number,
+      static_cast<int Element::*>(&MIDIKeyInControl::channel) } },
+    { "number", { "Note number (-1=disable)", Value::Type::number,
+      static_cast<int Element::*>(&MIDIKeyInControl::number), true } },
+    { "note", {"Note (C3, A4#)", Value::Type::text,
+    { static_cast<string (Element::*)()>(&MIDIKeyInControl::get_note),
+      static_cast<void (Element::*)(const string&)>(
+          &MIDIKeyInControl::set_note) },
+      true, true } },
+    { "min", { "Minimum note number (-1=disable)", Value::Type::number,
+      static_cast<int Element::*>(&MIDIKeyInControl::min), true } },
+    { "max", { "Maximum note number (-1=disable)", Value::Type::number,
+      static_cast<int Element::*>(&MIDIKeyInControl::max), true } },
   },
   {
     { "trigger", { "Note trigger", "trigger", Value::Type::trigger }},
     { "clear",   { "Note release", "clear", Value::Type::trigger }},
-    { "on", { "Note on", "on", Value::Type::number }},
-    { "off", { "Note off", "off", Value::Type::number }},
+    { "number", { "Note number", "number", Value::Type::number }},
     { "velocity", { "Velocity", "velocity", Value::Type::number }}
   }
 };

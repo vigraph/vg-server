@@ -93,13 +93,18 @@ public:
 };
 
 //==========================================================================
-// MIDI Notes
+// MIDI Number from note
 // Returns midi note number or -1 on error
-int get_midi_note(const string& name);
+int get_midi_number(const string& note);
+
+//==========================================================================
+// MIDI Note from number
+// Returns midi note or empty string on error
+string get_midi_note(int number);
 
 //==========================================================================
 // MIDI Note frequency
-double get_midi_frequency(int note);
+double get_midi_frequency(int number);
 
 //==========================================================================
 }} //namespaces

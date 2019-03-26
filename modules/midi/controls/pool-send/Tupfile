@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph <pool-receive> core control module
+# Tupfile for Vigraph <pool-send> midi control module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-control-pool-receive
+NAME    = vg-module-midi-control-pool-send
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
           vg-module-core-control-set

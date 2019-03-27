@@ -13,17 +13,24 @@ namespace {
 
 using namespace ViGraph::Dataflow;
 const int default_packet_size = 1472;  // Max to avoid fragmentation
-const char *default_config_interval = "0.1";
+const double default_config_interval = 0.1;
+const auto default_source_address = "0.0.0.0";
 
 //==========================================================================
 // IDNTransmit filter
 class IDNTransmitFilter: public FrameFilter
 {
+public:
   // Config
-  unsigned int packet_size;
-  Time::Duration config_interval;
+  string host_address;
+  int host_port = IDN::Hello::default_port;
+  int packet_size = default_packet_size;
+  double config_interval = default_config_interval;
+  bool intensity_enabled = false;
+  string source_address = default_source_address;
+
+private:
   Net::EndPoint source, destination;
-  bool intensity_enabled{false};
 
   // State
   unique_ptr<Net::UDPSocket> socket;
@@ -32,8 +39,7 @@ class IDNTransmitFilter: public FrameFilter
   bool frame_seen{false};
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void accept(FramePtr frame) override;
   void post_tick(const TickData&) override;
   void shutdown() override;
@@ -48,37 +54,22 @@ public:
 
 //--------------------------------------------------------------------------
 // Configure from XML
-void IDNTransmitFilter::configure(const File::Directory&,
-                                  const XML::Element& config)
+void IDNTransmitFilter::setup()
 {
-  XML::ConstXPathProcessor xpath(config);
   Log::Streams log;
 
-  string address = xpath["host/@address"];
-  int port = config.get_attr_int("port", IDN::Hello::default_port);
-  destination = Net::EndPoint(Net::IPAddress(address), port);
+  destination = Net::EndPoint(Net::IPAddress(host_address), host_port);
   log.summary << "Creating IDN transmitter to " << destination << endl;
 
-  // Read configuration
-  packet_size = xpath.get_value_int("packet/@size", default_packet_size);
   log.detail << " - packet size " << packet_size << endl;
+  log.detail << " - configuration interval: " << config_interval << "s\n";
 
-  config_interval = Time::Duration(xpath.get_value("configuration/@interval",
-                                                   default_config_interval));
-  log.detail << " - configuration interval: " << config_interval.seconds()
-             << "s\n";
-
-  // Option to add intensity
-  intensity_enabled = xpath.get_value_bool("intensity/@enabled");
-
-  source = Net::EndPoint(
-        Net::IPAddress(xpath.get_value("source/@address", "0.0.0.0")), 0);
+  source = Net::EndPoint(Net::IPAddress(source_address), 0);
   // Bind to local port
   socket.reset(new Net::UDPSocket(source, true));
 
   source = socket->local();
-  log.detail << "IDN transmitter bound to local address "
-             << source << endl;
+  log.detail << "IDN transmitter bound to local address " << source << endl;
 }
 
 //--------------------------------------------------------------------------
@@ -108,7 +99,7 @@ void IDNTransmitFilter::transmit(FramePtr frame)
 
   // Add configuration periodically
   Time::Stamp now = Time::Stamp::now();
-  if (now-last_config_sent >= config_interval)
+  if ((now-last_config_sent).seconds() >= config_interval)
   {
     message.add_configuration(
                         IDN::Message::Config::ServiceMode::graphic_discrete);
@@ -152,7 +143,7 @@ void IDNTransmitFilter::transmit(FramePtr frame)
     size += hello.length();
 
     // If even this won't fit, nothing we can do
-    if (size > packet_size)
+    if (size > static_cast<unsigned>(packet_size))
       throw runtime_error("Packet size too small for headers");
 
     size_t data_space = packet_size-size;
@@ -246,24 +237,26 @@ Dataflow::Module module
   "ILDA Digital Network (IDN) UDP transmitter",
   "laser",
   {
-    { "packet.size",
-      { { "UDP packet size in bytes", "1472" },
-          Value::Type::number, "packet/@size" } },
-    { "config.interval",
-      { { "Interval between configuration packets in sec", "0.1" },
-          Value::Type::number, "configuration/@interval" } },
-    { "intensity.enabled",
-      { "Whether to send overall intensity values",
-          Value::Type::boolean, "intensity/@enabled" } },
-    { "host.address",
-      { "Destination host (IP or hostname)",
-          Value::Type::text, "host/@address" } },
-    { "host.port",
-      { { "Destination port", "7255" },
-          Value::Type::number, "host/@port" } },
-    { "source.address",
-      { { "Source address to bind to", "0.0.0.0"},
-          Value::Type::text, "source/@address" } }
+    { "packet.size", { "UDP packet size in bytes", Value::Type::number,
+             static_cast<int Element::*>(&IDNTransmitFilter::packet_size),
+             true } },
+    { "config.interval", { "Interval between configuration packets in sec",
+          Value::Type::number,
+          static_cast<double Element::*>(&IDNTransmitFilter::config_interval),
+          true } },
+    { "intensity.enabled", { "Whether to send overall intensity values",
+          Value::Type::boolean,
+          static_cast<bool Element::*>(&IDNTransmitFilter::intensity_enabled),
+          true } },
+    { "host.address", { "Destination host (IP or hostname)", Value::Type::text,
+          static_cast<string Element::*>(&IDNTransmitFilter::host_address),
+          false } },
+    { "host.port", { "Destination port", Value::Type::number,
+          static_cast<int Element::*>(&IDNTransmitFilter::host_port),
+          false } },
+    { "source.address", { "Source address to bind to", Value::Type::text,
+          static_cast<string Element::*>(&IDNTransmitFilter::source_address),
+          false } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

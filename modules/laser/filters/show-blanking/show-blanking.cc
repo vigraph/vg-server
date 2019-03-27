@@ -16,26 +16,18 @@ const auto default_blank_colour = "red";
 // ShowBlanking filter
 class ShowBlankingFilter: public FrameFilter
 {
-  Colour::RGB blank_colour;
+  Colour::RGB blank_colour = Colour::RGB{default_blank_colour};
 
   // Filter/Element virtuals
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  ShowBlankingFilter(const Dataflow::Module *module,
-                     const XML::Element& config);
-};
+  using FrameFilter::FrameFilter;
 
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <show-blanking colour="red"/>
-ShowBlankingFilter::ShowBlankingFilter(const Dataflow::Module *module,
-                                       const XML::Element& config):
-  FrameFilter(module, config)
-{
-  blank_colour = Colour::RGB(config.get_attr("colour", default_blank_colour));
-}
+  // Getters/setters
+  string get_colour() { return blank_colour.str(); }
+  void set_colour(const string& colour) { blank_colour = Colour::RGB(colour); }
+};
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -56,8 +48,10 @@ Dataflow::Module module
   "Show blanked points",
   "laser",
   {
-    { "colour", { {"Colour to set blanked points to", "red"},
-          Value::Type::text } }
+    { "colour", { "Colour to set blanked points to", Value::Type::text,
+      { static_cast<string (Element::*)()>(&ShowBlankingFilter::get_colour),
+        static_cast<void (Element::*)(const string&)>(
+            &ShowBlankingFilter::set_colour) }, true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

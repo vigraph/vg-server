@@ -16,41 +16,19 @@ namespace {
 // InfillLines filter
 class InfillLinesFilter: public FrameFilter
 {
-  double max_distance_lit;
-  double max_distance_blanked;
+public:
+  double max_distance_lit = 0;
+  double max_distance_blanked = 0;
+
+private:
   Laser::Optimiser optimiser;
 
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  InfillLinesFilter(const Dataflow::Module *module,
-                    const XML::Element& config);
+  using FrameFilter::FrameFilter;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <infill-lines max-distance="0.01"/>
-InfillLinesFilter::InfillLinesFilter(const Dataflow::Module *module,
-                                     const XML::Element& config):
-  FrameFilter(module, config)
-{
-  max_distance_lit = config.get_attr_real("lit");
-  max_distance_blanked = config.get_attr_real("blanked");
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void InfillLinesFilter::set_property(const string& property,
-                                            const SetParams& sp)
-{
-  if (property == "lit")
-    update_prop(max_distance_lit, sp);
-  else if (property == "blanked")
-    update_prop(max_distance_blanked, sp);
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -70,10 +48,13 @@ Dataflow::Module module
   "Adds a spread of points to lines to get constant brightness in laser scans",
   "laser",
   {
-    { "lit", { "Maximum distance between lit points",
-          Value::Type::number, true } },
+    { "lit", { "Maximum distance between lit points", Value::Type::number,
+      static_cast<double Element::*>(&InfillLinesFilter::max_distance_lit),
+      true } },
     { "blanked", { "Maximum distance between blanked points",
-          Value::Type::number, true } }
+      Value::Type::number,
+      static_cast<double Element::*>(&InfillLinesFilter::max_distance_blanked),
+      true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

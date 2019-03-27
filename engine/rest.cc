@@ -157,30 +157,32 @@ JSON::Value MetaURLHandler::get_metadata_for_module(
   json.set("description", module.description);
   json.set("section", module.section);
 
-  // !!! Type, determine from presence of controlled_properties, inputs, outputs?
   // Properties
   if (!module.properties.empty())
   {
-    JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::ARRAY));
+    JSON::Value propsj(JSON::Value::ARRAY);
+    JSON::Value ipropsj(JSON::Value::ARRAY);
     for(const auto pit: module.properties)
     {
-      JSON::Value& pj = propsj.add(JSON::Value(JSON::Value::OBJECT));
-      pj.set("id", pit.first);
       const auto& prop = pit.second;
+      JSON::Value& pj =
+        (prop.settable?ipropsj:propsj).add(JSON::Value(JSON::Value::OBJECT));
+      pj.set("id", pit.first);
       pj.set("description", prop.desc.description);
       if (prop.type == Dataflow::Value::Type::other)
         pj.set("type", prop.other_type);
       else
         pj.set("type", Dataflow::Value::type_str(prop.type));
-      if (prop.settable)
-        pj.set("settable", JSON::Value(JSON::Value::TRUE));
     }
+
+    if (!propsj.a.empty()) json.set("props", propsj);
+    if (!ipropsj.a.empty()) json.set("iprops", ipropsj);
   }
 
   // Controlled properties
   if (!module.controlled_properties.empty())
   {
-    JSON::Value& propsj = json.set("control-outputs",
+    JSON::Value& propsj = json.set("oprops",
                                    JSON::Value(JSON::Value::ARRAY));
     for(const auto pit: module.controlled_properties)
     {

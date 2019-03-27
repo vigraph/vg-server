@@ -40,18 +40,20 @@ public:
 // WebSocket control
 class WebSocketControl: public Dataflow::Control
 {
+public:
+  int port = 0;
+
+private:
   unique_ptr<WebSocketControlServer> server;
   unique_ptr<Net::TCPServerThread> server_thread;
   shared_ptr<KeyDistributor> key_distributor;
 
   // Control virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void shutdown() override;
 
 public:
-  // Construct
-  WebSocketControl(const Dataflow::Module *module, const XML::Element& config);
+  using Control::Control;
 
   // Handle a key
   void handle_key(int code);
@@ -149,31 +151,21 @@ void WebSocketControlServer::handle_websocket(
 // WebSocket control implementation
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <websocket-control port="33382"/>
-WebSocketControl::WebSocketControl(const Dataflow::Module *module,
-                                   const XML::Element& config):
-  Control(module, config, true)  // optional target
+// Setup
+void WebSocketControl::setup()
 {
-  int hport = config.get_attr_int("port");
-  if (hport)
+  if (port)
   {
     Log::Summary log;
-    log << "Starting WebSocket control server at port " << hport << endl;
-    server.reset(new WebSocketControlServer(hport,
+    log << "Starting WebSocket control server at port " << port << endl;
+    server.reset(new WebSocketControlServer(port,
                                   "ViGraph laserd WebSocket control server",
                                             this));
 
     // Start threads
     server_thread.reset(new Net::TCPServerThread(*server));
   }
-}
 
-//--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void WebSocketControl::configure(const File::Directory&,
-                                 const XML::Element&)
-{
   auto& engine = graph->get_engine();
   key_distributor = engine.get_service<KeyDistributor>("key-distributor");
   if (!key_distributor)
@@ -213,9 +205,10 @@ Dataflow::Module module
   "WebSocket server for keyboard/control input",
   "ui",
   {
-    { "port", { "Listening port", Value::Type::number } },
+    { "port", { "Listening port", Value::Type::number,
+              static_cast<int Element::*>(&WebSocketControl::port), false} },
   },
-  { { "", { "Control index", "index", Value::Type::number }}}
+  { { "index", { "Control index", "index", Value::Type::number }}}
 };
 
 } // anon

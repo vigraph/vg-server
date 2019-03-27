@@ -65,6 +65,8 @@ struct RGB
   static RGB from_rgb_hex(unsigned char r, unsigned char g, unsigned char b)
   { return RGB(r/255.0, g/255.0, b/255.0); }
 
+  // Get as a string
+  string str() const;
 };
 
 //==========================================================================

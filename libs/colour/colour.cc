@@ -10,6 +10,8 @@
 #include "ot-text.h"
 #include <stdexcept>
 #include <map>
+#include <sstream>
+#include <iomanip>
 
 namespace ViGraph { namespace Colour {
 
@@ -281,11 +283,21 @@ RGB::RGB(const HSL& hsl)
   else
   {
     intens_t v2 = hsl.l<0.5 ? hsl.l*(1+hsl.s) : (hsl.l+hsl.s)-(hsl.l*hsl.s);
-    intens_t v1	= 2*hsl.l - v2;
+    intens_t v1 = 2*hsl.l - v2;
     r = hue_to_rgb(v1, v2, hsl.h + 1.0/3);
     g = hue_to_rgb(v1, v2, hsl.h);
     b = hue_to_rgb(v1, v2, hsl.h - 1.0/3);
   }
+}
+
+//--------------------------------------------------------------------------
+// Get as a string
+string RGB::str() const
+{
+  auto s = stringstream{};
+  s << "#" << uppercase << setfill('0') << setw(2) << hex
+    << static_cast<int>(r) << static_cast<int>(g) << static_cast<int>(b);
+  return s.str();
 }
 
 //-----------------------------------------------------------------------

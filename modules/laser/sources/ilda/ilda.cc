@@ -12,35 +12,31 @@
 
 namespace {
 
+const double default_frame_rate = 25.0;
+
 //==========================================================================
 // Figure source
 class ILDASource: public Dataflow::Source
 {
-  ILDA::Animation animation;
-  double frame_rate;
+public:
+  string filename;
+  double frame_rate = default_frame_rate;
 
-  static constexpr double default_frame_rate = 25.0;
+private:
+  ILDA::Animation animation;
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup(const File::Directory& base_dir) override;
   void tick(const TickData& td) override;
 
 public:
-  ILDASource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <ilda file="..." frame-rate="25"/>
-void ILDASource::configure(const File::Directory& base_dir,
-                           const XML::Element& config)
+// Setup
+void ILDASource::setup(const File::Directory& base_dir)
 {
-  // General config
-  string filename = config["file"];
-  frame_rate = config.get_attr_real("frame-rate", default_frame_rate);
-
   // Read from file
   File::Path fpath(base_dir, filename);
   ifstream in(fpath.c_str());
@@ -80,9 +76,10 @@ Dataflow::Module module
   "ILDA file format animation player",
   "vector",
   {
-    { "file", { "Filename of ILDA file", Value::Type::file } },
-    { "frame-rate", { { "Frame rate (frames per sec)", "25" },
-          Value::Type::number }}
+    { "file", { "Filename of ILDA file", Value::Type::file,
+            static_cast<string Element::*>(&ILDASource::filename), false } },
+    { "frame-rate", { "Frame rate (frames per sec)", Value::Type::number,
+            static_cast<double Element::*>(&ILDASource::frame_rate), true } }
   },
   {}, // no inputs
   { "VectorFrame" }

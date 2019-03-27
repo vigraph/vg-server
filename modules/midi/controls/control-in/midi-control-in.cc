@@ -31,18 +31,14 @@ private:
   bool enabled = false;
 
   // Control virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
 
   // Event observer implementation
-  void set_property(const string& property, const SetParams& sp) override;
   void handle(const ViGraph::MIDI::Event& event) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
-  // Construct
-  MIDIControlInControl(const Dataflow::Module *module,
-                       const XML::Element& config);
+  using Control::Control;
 
   // Event observer implementation
   void enable() override;
@@ -50,23 +46,8 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <midi-control-in channel="1" number="22"
-//                    scale="1.0" offset="0.0" .../>
-MIDIControlInControl::MIDIControlInControl(const Dataflow::Module *module,
-                                           const XML::Element& config):
-  Control(module, config)
-{
-  channel = config.get_attr_int("channel");
-  number = config.get_attr_int("number");
-  scale = config.get_attr_real("scale", 1.0);
-  offset = config.get_attr_real("offset");
-}
-
-//--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void MIDIControlInControl::configure(const File::Directory&,
-                                     const XML::Element&)
+// Setup
+void MIDIControlInControl::setup()
 {
   auto& engine = graph->get_engine();
   distributor = engine.get_service<Distributor>("midi-distributor");
@@ -75,21 +56,6 @@ void MIDIControlInControl::configure(const File::Directory&,
     Log::Error log;
     log << "No <midi-distributor> service loaded\n";
   }
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void MIDIControlInControl::set_property(const string& property,
-                                        const SetParams& sp)
-{
-  if (property == "scale")
-    update_prop(scale, sp);
-  else if (property == "offset")
-    update_prop(offset, sp);
-  else if (property == "enable")
-    enable();
-  else if (property == "disable")
-    disable();
 }
 
 //--------------------------------------------------------------------------
@@ -157,7 +123,7 @@ Dataflow::Module module
   "midi",
   {
     { "channel", { "MIDI channel (0=all)", Value::Type::number,
-      static_cast<int Element::*>(&MIDIControlInControl::channel) } },
+      static_cast<int Element::*>(&MIDIControlInControl::channel), false } },
     { "number", { "Control number", Value::Type::number,
       static_cast<int Element::*>(&MIDIControlInControl::number), true } },
     { "scale",  { "Scale to apply to control value", Value::Type::number,

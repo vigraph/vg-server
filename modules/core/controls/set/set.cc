@@ -84,7 +84,7 @@ Dataflow::Module module
                  static_cast<double Element::*>(&SetControl::value),
                  true } },
     { "wait",  { "Whether to wait for a trigger", Value::Type::boolean,
-                 static_cast<bool Element::*>(&SetControl::wait) } },
+                 static_cast<bool Element::*>(&SetControl::wait), false } },
     { "trigger", { "Trigger to set value", Value::Type::trigger,
                    static_cast<void (Element::*)()>(&SetControl::set_triggered),
                    true } }

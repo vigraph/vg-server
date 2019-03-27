@@ -75,7 +75,7 @@ TEST(BeatTest, TestSetFreq)
 TEST(BeatTest, TestIntervalWithTriggerDoesntAutoRun)
 {
   ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='start' type='trigger' wait='yes'/>",
+  tester.test("<trigger property='start' wait='yes'/>",
               "<beat interval='2' property='go'/>", 10);
   ASSERT_FALSE(tester.target->got("go"));
 }
@@ -83,7 +83,7 @@ TEST(BeatTest, TestIntervalWithTriggerDoesntAutoRun)
 TEST(BeatTest, TestIntervalWithTriggeredStartRuns)
 {
   ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='start' type='trigger'/>",
+  tester.test("<trigger property='start'/>",
               "<beat interval='2' property='go'/>", 10);
   ASSERT_TRUE(tester.target->got("go"));
   const auto& sp = tester.target->get("go");
@@ -99,7 +99,7 @@ TEST(BeatTest, TestIntervalWithTriggeredStartAndStopRunsAndStops)
   // only fires once
   tester.test({
       "<beat target='b' interval='5' property='stop'/>",
-      "<set property='start' type='trigger'/>",
+      "<trigger property='start'/>",
       "<beat id='b' interval='2.0' property='go'/>"
         }, 10);
   ASSERT_TRUE(tester.target->got("go"));
@@ -118,6 +118,7 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../set/vg-module-core-control-set.so");
+  loader.load("../trigger/vg-module-core-control-trigger.so");
   loader.load("./vg-module-core-control-beat.so");
   return RUN_ALL_TESTS();
 }

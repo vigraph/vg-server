@@ -47,7 +47,7 @@ TEST(RandomTest, TestRandomWithWaitNotTriggeredHasNoEffect)
 TEST(RandomTest, TestRandomWithAutoWaitNotTriggeredHasNoEffect)
 {
   ControlTester tester(loader);
-  tester.test("<set property='trigger' type='trigger' wait='yes'/>",
+  tester.test("<trigger wait='yes'/>",
               "<random property='foo'/>", 2);
   ASSERT_FALSE(tester.target->got("foo"));
 }
@@ -55,7 +55,7 @@ TEST(RandomTest, TestRandomWithAutoWaitNotTriggeredHasNoEffect)
 TEST(RandomTest, TestRandomWithWaitTriggeredHasEffect)
 {
   ControlTester tester(loader);
-  tester.test("<set property='trigger' type='trigger'/>",
+  tester.test("<trigger/>",
               "<random property='foo' wait='yes'/>", 2);
   ASSERT_TRUE(tester.target->got("foo"));
 }
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("../set/vg-module-core-control-set.so");
+  loader.load("../trigger/vg-module-core-control-trigger.so");
   loader.load("./vg-module-core-control-random.so");
   return RUN_ALL_TESTS();
 }

@@ -15,33 +15,32 @@ namespace {
 // SVG source
 class SVGSource: public Source
 {
+public:
+  string path_data;
+  string file;
+  double precision = SVG::Path::default_precision;
+  bool normalise = true;
+
+private:
   SVG::Path path;
-  double precision;
-  bool normalise;
   vector<Point> points;
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup(const File::Directory& base_dir) override;
   void tick(const TickData& td) override;
 
 public:
-  SVGSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//    <svg path="M0 0 L 1 2..." auto-scale="true"/>
-// or <svg file="picture.svg"/>
-void SVGSource::configure(const File::Directory& base_dir,
-                          const XML::Element& config)
+// Setup
+void SVGSource::setup(const File::Directory& base_dir)
 {
   Log::Streams log;
 
   try
   {
-    const string& path_data = config["path"];
     if (!path_data.empty())
     {
       path.read(path_data);
@@ -49,7 +48,6 @@ void SVGSource::configure(const File::Directory& base_dir,
     else
     {
       // Look for file
-      const string& file = config["file"];
       if (file.empty())
       {
         log.error << "No path or file in <svg>\n";
@@ -74,9 +72,6 @@ void SVGSource::configure(const File::Directory& base_dir,
     log.error << "Failed to read SVG: " << e.what() << endl;
     return;
   }
-
-  precision = config.get_attr_real("precision", SVG::Path::default_precision);
-  normalise = config.get_attr_bool("normalise", true);
 
   log.summary << "Loaded SVG animation with "
               << path.segments.size() << " segments\n";
@@ -106,8 +101,14 @@ Dataflow::Module module
   "SVG vector graphic image",
   "vector",
   {
-    { "path", { "SVG path data (as if in <path d=...>)", Value::Type::text } },
-    { "file", { "Filename of SVG file", Value::Type::file } }
+    { "path", { "SVG path data (as if in <path d=...>)", Value::Type::text,
+             static_cast<string Element::*>(&SVGSource::path_data), false } },
+    { "file", { "Filename of SVG file", Value::Type::file,
+             static_cast<string Element::*>(&SVGSource::file), false } },
+    { "precision", { "Curve precision", Value::Type::number,
+             static_cast<double Element::*>(&SVGSource::precision), false } },
+    { "normalise", { "Scale to unit square", Value::Type::boolean,
+             static_cast<bool Element::*>(&SVGSource::normalise), false } },
   },
   {}, // no inputs
   { "VectorFrame" }

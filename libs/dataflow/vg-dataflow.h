@@ -409,6 +409,7 @@ public:
                          const XML::Element& config);
 
   // Setup after automatic configuration
+  virtual void setup(const File::Directory& /*base_dir*/) { setup(); }
   virtual void setup() {}
 
   // Connect to other elements in the graph, for cases where the normal

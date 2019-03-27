@@ -30,7 +30,6 @@ private:
   shared_ptr<Distributor> distributor;
 
   // Control virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void enable() override;
@@ -40,35 +39,12 @@ private:
   void handle(const ViGraph::MIDI::Event& event) override;
 
 public:
-  // Construct
-  MIDIKeyInControl(const Dataflow::Module *module, const XML::Element& config);
+  using Control::Control;
 
   // Property getter/setters
   string get_note() { return MIDI::get_midi_note(number); }
   void set_note(const string& note) { number = MIDI::get_midi_number(note); }
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML:
-//   <midi-key-in channel="1" .../> - sends on/off for every key
-//   <midi-key-in channel="1" note="48"/> - sends triggers for ON/OFF 48
-MIDIKeyInControl::MIDIKeyInControl(const Dataflow::Module *module,
-                                   const XML::Element& config):
-  Control(module, config)
-{
-  channel = config.get_attr_int("channel");
-
-  auto note = config["note"];
-  if (!note.empty())
-    number = MIDI::get_midi_number(note);
-
-  auto num = config.get_attr_int("number", number);
-  if (num >= 0)
-    number = num;
-
-  min = config.get_attr_int("min", min);
-  max = config.get_attr_int("max", max);
-}
 
 //--------------------------------------------------------------------------
 // Configure from XML (once we have the engine)
@@ -82,21 +58,6 @@ void MIDIKeyInControl::configure(const File::Directory&,
     Log::Error log;
     log << "No <midi-distributor> service loaded\n";
   }
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void MIDIKeyInControl::set_property(const string& property,
-                                    const SetParams& sp)
-{
-  if (property == "number")
-    update_prop_int(number, sp);
-  else if (property == "note")
-    number = MIDI::get_midi_number(sp.v.s);
-  else if (property == "min")
-    update_prop_int(min, sp);
-  else if (property == "max")
-    update_prop_int(max, sp);
 }
 
 //--------------------------------------------------------------------------

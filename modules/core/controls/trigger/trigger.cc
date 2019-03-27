@@ -3,7 +3,7 @@
 //
 // Control to set / alter properties on other elements
 //
-// Copyright (c) 2018 Paul Clark.  All rights reserved
+// Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../../../module.h"
@@ -13,13 +13,13 @@ namespace {
 
 //==========================================================================
 // Set control
-class SetControl: public Control
+class TriggerControl: public Control
 {
-  // Configured state
 public:
-  double value{0.0};
+  // Configured state
   bool wait{false};
 
+private:
   // Dynamic state
   bool done{false};
   bool triggered{false};
@@ -32,28 +32,28 @@ public:
 public:
   using Control::Control;
 
-  // Trigger to set value
+  // Trigger
   void set_triggered() { triggered = true; }
 };
 
 //--------------------------------------------------------------------------
 // Automatically set wait flag if we are the trigger target of something
-void SetControl::notify_target_of(Element *, const string& property)
+void TriggerControl::notify_target_of(Element *, const string& property)
 {
-  if (property == "value")
+  if (property == "trigger")
     wait = true;
 }
 
 //--------------------------------------------------------------------------
 // Enable (reset)
-void SetControl::enable()
+void TriggerControl::enable()
 {
   triggered = done = false;
 }
 
 //--------------------------------------------------------------------------
 // Tick
-void SetControl::pre_tick(const TickData&)
+void TriggerControl::pre_tick(const TickData&)
 {
   if (wait)
   {
@@ -68,30 +68,27 @@ void SetControl::pre_tick(const TickData&)
   }
 
   // We're good - do it...
-  send(Value{value});
+  trigger();
 }
 
 //--------------------------------------------------------------------------
 // Module definition
 Dataflow::Module module
 {
-  "set",
-  "Set",
-  "Set a value on another Element",
+  "trigger",
+  "Trigger",
+  "Trigger another Element",
   "core",
   {
-    { "value", { "Value to set", Value::Type::number,
-                 static_cast<double Element::*>(&SetControl::value),
-                 true } },
     { "wait",  { "Whether to wait for a trigger", Value::Type::boolean,
-                 static_cast<bool Element::*>(&SetControl::wait), false } },
-    { "trigger", { "Trigger to set value", Value::Type::trigger,
-                   static_cast<void (Element::*)()>(&SetControl::set_triggered),
+                 static_cast<bool Element::*>(&TriggerControl::wait), false } },
+    { "trigger", { "Trigger", Value::Type::trigger,
+             static_cast<void (Element::*)()>(&TriggerControl::set_triggered),
                    true } }
   },
-  { { "value", { "Value", "value", Value::Type::number }}}
+  { { "trigger", { "Trigger", "trigger", Value::Type::trigger }}}
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(SetControl, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(TriggerControl, module)

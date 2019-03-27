@@ -39,7 +39,7 @@ TEST(CountTest, TestCountWithWaitNotTriggeredHasNoEffect)
 TEST(CountTest, TestCountWithAutoWaitNotTriggeredHasNoEffect)
 {
   ControlTester tester(loader);
-  tester.test("<set property='trigger' type='trigger' wait='yes'/>",
+  tester.test("<trigger wait='yes'/>",
               "<count property='foo'/>", 2);
   ASSERT_FALSE(tester.target->got("foo"));
 }
@@ -47,7 +47,7 @@ TEST(CountTest, TestCountWithAutoWaitNotTriggeredHasNoEffect)
 TEST(CountTest, TestCountWithWaitTriggeredHasEffect)
 {
   ControlTester tester(loader);
-  tester.test("<set property='trigger' type='trigger'/>",
+  tester.test("<trigger/>",
               "<count property='foo' wait='yes'/>");
   ASSERT_TRUE(tester.target->got("foo"));
 }
@@ -62,6 +62,6 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("./vg-module-core-control-count.so");
-  loader.load("../set/vg-module-core-control-set.so");
+  loader.load("../trigger/vg-module-core-control-trigger.so");
   return RUN_ALL_TESTS();
 }

@@ -20,42 +20,19 @@ const double default_max_angle = 30;
 // AddVertexRepeats filter
 class AddVertexRepeatsFilter: public FrameFilter
 {
-  double max_angle;  // in degrees
-  int repeats;
+public:
+  double max_angle = default_max_angle;  // in degrees
+  int repeats = default_repeats;
+
+private:
   Laser::Optimiser optimiser;
 
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  AddVertexRepeatsFilter(const Dataflow::Module *module,
-                         const XML::Element& config);
+  using FrameFilter::FrameFilter;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <add-vertex-repeats max-angle="30" repeats="3"/>
-AddVertexRepeatsFilter::AddVertexRepeatsFilter(
-                                         const Dataflow::Module *module,
-                                         const XML::Element& config):
-  FrameFilter(module, config)
-{
-  repeats = config.get_attr_int("repeats", default_repeats);
-  max_angle = config.get_attr_real("max-angle", default_max_angle);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void AddVertexRepeatsFilter::set_property(const string& property,
-                                            const SetParams& sp)
-{
-  if (property == "repeats")
-    update_prop_int(repeats, sp);
-  else if (property == "max-angle")
-    update_prop(max_angle, sp);
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -76,10 +53,13 @@ Dataflow::Module module
   "Add additional points at sharp vertices for laser scanners",
   "laser",
   {
-    { "repeats", { "Number of points to add at a vertex",
-          Value::Type::number, true } },
+    { "repeats", { "Number of points to add at a vertex", Value::Type::number,
+          static_cast<int Element::*>(&AddVertexRepeatsFilter::repeats),
+          true } },
     { "max-angle", { "Maximum turn angle at a vertex before adding points",
-          Value::Type::number, true } }
+          Value::Type::number,
+          static_cast<double Element::*>(&AddVertexRepeatsFilter::max_angle),
+          true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

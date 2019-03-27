@@ -7,6 +7,6 @@
 NAME    = vg-module-core-control-count
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
-          vg-module-core-control-set
+          vg-module-core-control-trigger
 
 include_rules

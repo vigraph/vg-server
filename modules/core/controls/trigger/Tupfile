@@ -1,12 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph <toggle> core control module
+# Tupfile for Vigraph <trigger> core control module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-control-toggle
+NAME    = vg-module-core-control-trigger
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
-          vg-module-core-control-trigger
+DEPENDS = vg-dataflow vg-geometry ot-log ext-dl
 
 include_rules

@@ -19,68 +19,11 @@ TEST(SetTest, TestAbsoluteValueSet)
   EXPECT_EQ(42, sp.v.d);
 }
 
-TEST(SetTest, TestAbsoluteValueSetTrigger)
-{
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='foo' type='trigger'/>");
-  ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  EXPECT_EQ(Value::Type::trigger, sp.v.type);
-}
-
 TEST(SetTest, TestSetWithWaitNotTriggeredHasNoEffect)
 {
   ControlTester tester(loader);
   tester.test("<set property='foo' value='1' wait='yes'/>");
   ASSERT_FALSE(tester.target->got("foo"));
-}
-
-TEST(SetTest, TestSetWithAutoWaitNotTriggeredHasNoEffect)
-{
-  ControlTester tester(loader);
-  tester.test("<set property='trigger' type='trigger' wait='yes'/>",
-              "<set property='foo' value='1'/>", 2);
-  ASSERT_FALSE(tester.target->got("foo"));
-}
-
-TEST(SetTest, TestSetWithWaitTriggeredHasEffect)
-{
-  ControlTester tester(loader);
-  tester.test("<set property='trigger' type='trigger'/>",
-              "<set property='foo' value='1' wait='yes'/>", 2);
-  ASSERT_TRUE(tester.target->got("foo"));
-}
-
-TEST(SetTest, TestTriggerNotDelayedIfDelayNotSet)
-{
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set type='trigger' property='trigger'/>",
-              "<set type='trigger' property='trigger'/>", 1);
-  EXPECT_TRUE(tester.target->got("trigger"));
-}
-
-TEST(SetTest, TestZeroDelayTriggersNextTick)
-{
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set type='trigger' property='trigger'/>",
-              "<set delay='0' type='trigger' property='trigger'/>", 2);
-  EXPECT_TRUE(tester.target->got("trigger"));
-}
-
-TEST(SetTest, TestSetDelayDoesntTriggerEarly)
-{
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set type='trigger' property='trigger'/>",
-              "<set delay='2' type='trigger' property='trigger'/>", 2);
-  EXPECT_FALSE(tester.target->got("trigger"));
-}
-
-TEST(SetTest, TestSetDelayTriggers)
-{
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set type='trigger' property='trigger'/>",
-              "<set delay='2' type='trigger' property='trigger'/>", 3);
-  EXPECT_TRUE(tester.target->got("trigger"));
 }
 
 int main(int argc, char **argv)

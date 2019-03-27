@@ -12,7 +12,7 @@ ModuleLoader loader;
 TEST(ToggleTest, TestOneTrigger)
 {
   ControlTester tester(loader, Value::Type::any);
-  tester.test("<set property='trigger'/>",
+  tester.test("<trigger/>",
               "<toggle />");
   ASSERT_TRUE(tester.target->got("trigger"));
 }
@@ -20,8 +20,8 @@ TEST(ToggleTest, TestOneTrigger)
 TEST(ToggleTest, TestTwoTriggers)
 {
   ControlTester tester(loader, Value::Type::any);
-  tester.test("<set target='tog' property='trigger'/>",
-              "<set property='trigger'/>",
+  tester.test("<trigger target='tog'/>",
+              "<trigger/>",
               "<toggle id='tog' />");
   ASSERT_TRUE(tester.target->got("clear"));
 }
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("../set/vg-module-core-control-set.so");
+  loader.load("../trigger/vg-module-core-control-trigger.so");
   loader.load("./vg-module-core-control-toggle.so");
   return RUN_ALL_TESTS();
 }

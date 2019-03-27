@@ -81,7 +81,7 @@ Dataflow::Module module
   "core",
   {
     { "wait",  { "Whether to wait for a trigger", Value::Type::boolean,
-                 static_cast<bool Element::*>(&TriggerControl::wait) } },
+                 static_cast<bool Element::*>(&TriggerControl::wait), false } },
     { "trigger", { "Trigger", Value::Type::trigger,
              static_cast<void (Element::*)()>(&TriggerControl::set_triggered),
                    true } }

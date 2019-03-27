@@ -34,26 +34,58 @@ namespace
 
 class GraphURLHandler: public Web::URLHandler
 {
-  //  Dataflow::Engine& engine;
-  bool handle_delete(const Web::HTTPMessage& request);
-  bool handle_post(const Web::HTTPMessage& request);
+  Dataflow::Engine& engine;
+  JSON::Value get_json_for_element(const Dataflow::Element& e);
+  bool handle_get(const string& path, Web::HTTPMessage& response);
+  bool handle_delete(const string& path);
+  bool handle_post(const string& path, const Web::HTTPMessage& request);
   bool handle_request(const Web::HTTPMessage& request,
                       Web::HTTPMessage& response,
                       const SSL::ClientDetails& client);
 
 public:
-  GraphURLHandler(Dataflow::Engine& /*_engine*/):
-    URLHandler("/graph*")//, engine(_engine)
+  GraphURLHandler(Dataflow::Engine& _engine):
+    URLHandler("/graph*"), engine(_engine)
   {}
 };
 
 //--------------------------------------------------------------------------
-// Handle a POST request
+// Get JSON for a graph element
+JSON::Value GraphURLHandler::get_json_for_element(const Dataflow::Element& e)
+{
+  JSON::Value json(JSON::Value::OBJECT);
+  json.set("id", e.id);
+  json.set("type", e.module->id);
+  return json;
+}
+
+//--------------------------------------------------------------------------
+// Handle a GET request
 // Returns whether request was valid
-bool GraphURLHandler::handle_post(const Web::HTTPMessage& request)
+bool GraphURLHandler::handle_get(const string& path,
+                                 Web::HTTPMessage& response)
 {
   Log::Streams log;
-  log.detail << "REST Graph: POST request\n";
+  log.detail << "REST Graph: GET " << path << endl;
+
+  if (path.empty())
+  {
+    // Whole graph
+    JSON::Value json = engine.get_graph().get_json();
+    response.body = json.str(true);
+  }
+
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Handle a POST request
+// Returns whether request was valid
+bool GraphURLHandler::handle_post(const string& path,
+                                  const Web::HTTPMessage& request)
+{
+  Log::Streams log;
+  log.detail << "REST Graph: POST " << path << endl;
 
   // Parse JSON
   istringstream iss(request.body);
@@ -77,10 +109,10 @@ bool GraphURLHandler::handle_post(const Web::HTTPMessage& request)
 //--------------------------------------------------------------------------
 // Handle a DELETE request
 // Returns whether request was valid
-bool GraphURLHandler::handle_delete(const Web::HTTPMessage& /* request */)
+bool GraphURLHandler::handle_delete(const string& path)
 {
   Log::Streams log;
-  log.detail << "REST Graph: DELETE request\n";
+  log.detail << "REST Graph: DELETE " << path << endl;
 
   // !!!
 
@@ -97,11 +129,18 @@ bool GraphURLHandler::handle_request(const Web::HTTPMessage& request,
   if (fullpath.size() < 6) return false;  // minimum /graph - shouldn't happen
   auto path = string(fullpath, 6);
   if (!path.empty() && path[0] == '/') path.erase(0);
-  // const auto& bits = Text::split(path, '/');
 
-  if (request.method == "POST")
+  if (request.method == "GET")
   {
-    if (!handle_post(request))
+    if (!handle_get(path, response))
+    {
+      response.code = 400;
+      response.reason = "Bad request";
+    }
+  }
+  else if (request.method == "POST")
+  {
+    if (!handle_post(path, request))
     {
       response.code = 400;
       response.reason = "Bad request";
@@ -109,7 +148,7 @@ bool GraphURLHandler::handle_request(const Web::HTTPMessage& request,
   }
   else if (request.method == "DELETE")
   {
-    if (!handle_delete(request))
+    if (!handle_delete(path))
     {
       response.code = 400;
       response.reason = "Bad request";

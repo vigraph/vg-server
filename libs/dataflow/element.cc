@@ -14,9 +14,30 @@ namespace ViGraph { namespace Dataflow {
 // Get state as JSON
 JSON::Value Element::get_json() const
 {
-  JSON::Value value(JSON::Value::Type::OBJECT);
-  value.set("id", id);
-  return value;
+  JSON::Value json(JSON::Value::Type::OBJECT);
+  json.set("id", id);
+  if (module) json.set("type", module->id);
+
+  JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::OBJECT));
+  for(const auto pit: module->properties)
+  {
+    const auto& prop = pit.second;
+    const auto& member = prop.member;
+
+    // Get value from prop through member points or getter functions
+    JSON::Value value;
+    if (member.d_ptr)
+      value = JSON::Value(JSON::Value::NUMBER, this->*member.d_ptr);
+    else if (member.i_ptr)
+      value = JSON::Value(this->*member.i_ptr);
+    else if (member.b_ptr)
+      value = JSON::Value((this->*member.b_ptr)?JSON::Value::TRUE
+                                               :JSON::Value::FALSE);
+
+    if (!!value) propsj.set(pit.first, value);
+  }
+
+  return json;
 }
 
 //------------------------------------------------------------------------

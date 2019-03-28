@@ -15,39 +15,18 @@ namespace {
 // Rotation filter
 class RotateFilter: public FrameFilter
 {
+public:
   double rx{0.0};  // 0..1 - 1 = 360 deg = 2pi rad
   double ry{0.0};
   double rz{0.0};
 
+private:
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  RotateFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FrameFilter::FrameFilter;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <rotate x="0.25" y="0" z="0"/>
-RotateFilter::RotateFilter(const Dataflow::Module *module,
-                           const XML::Element& config):
-  FrameFilter(module, config)
-{
-  rx = config.get_attr_real("x");
-  ry = config.get_attr_real("y");
-  rz = config.get_attr_real("z");
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void RotateFilter::set_property(const string& property, const SetParams& sp)
-{
-       if (property == "x") update_prop(rx, sp);
-  else if (property == "y") update_prop(ry, sp);
-  else if (property == "z") update_prop(rz, sp);
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -88,9 +67,12 @@ Dataflow::Module module
   "3D rotation",
   "vector",
   {
-    { "x", { "Angle to rotate on X axis", Value::Type::number, "x", true } },
-    { "y", { "Angle to rotate on Y axis", Value::Type::number, "y", true } },
-    { "z", { "Angle to rotate on Z axis", Value::Type::number, "z", true } }
+    { "x", { "Angle to rotate on X axis", Value::Type::number,
+             static_cast<MemberDouble>(&RotateFilter::rx), true } },
+    { "y", { "Angle to rotate on Y axis", Value::Type::number,
+             static_cast<MemberDouble>(&RotateFilter::ry), true } },
+    { "z", { "Angle to rotate on Z axis", Value::Type::number,
+             static_cast<MemberDouble>(&RotateFilter::rz), true } },
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

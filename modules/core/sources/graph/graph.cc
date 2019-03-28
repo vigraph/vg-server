@@ -80,6 +80,7 @@ class GraphSource: public Dataflow::Source
   void enable() override;
   void disable() override;
   void shutdown() override;
+  JSON::Value get_json() const override;
 
 public:
   GraphSource(const Module *module, const XML::Element& config):
@@ -187,6 +188,15 @@ void GraphSource::shutdown()
   if (updated_subgraph)
     updated_subgraph->shutdown();
   subgraph->shutdown();
+}
+
+//--------------------------------------------------------------------------
+// Get JSON
+JSON::Value GraphSource::get_json() const
+{
+  JSON::Value json = Element::get_json();
+  json.set("elements", subgraph->get_json());
+  return json;
 }
 
 //--------------------------------------------------------------------------

@@ -15,62 +15,51 @@ namespace {
 // Velocity control
 class VelocityControl: public Dataflow::Control
 {
+public:
+  bool wait{false};
+
+private:
   Vector v;   // Velocity
   Vector p;   // Position
   Vector start_p;
   double max{0.0};
-  bool wait{false};
 
   // Dynamic state
   Dataflow::timestamp_t last_tick{-1.0};
   bool triggered{false};
 
   // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void pre_tick(const TickData& td) override;
   void enable() override;
 
+  // Apply max
+  void limit();
+
 public:
-  // Construct
-  VelocityControl(const Dataflow::Module *module, const XML::Element& config);
+  using Control::Control;
+
+  // Getters/Setters
+  double get_x() const { return p.x; }
+  void set_x(double x) { p.x = start_p.x = x; limit(); }
+  double get_y() const { return p.y; }
+  void set_y(double y) { p.y = start_p.y = y; limit(); }
+  double get_z() const { return p.z; }
+  void set_z(double z) { p.z = start_p.z = z; limit(); }
+  double get_dx() const { return v.x; }
+  void set_dx(double dx) { v.x = dx; }
+  double get_dy() const { return v.y; }
+  void set_dy(double dy) { v.y = dy; }
+  double get_dz() const { return v.z; }
+  void set_dz(double dz) { v.z = dz; }
+  double get_max() const { return max; }
+  void set_max(double m) { max = m; limit(); }
+  void set_triggered() { triggered = true; }
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML
-// <velocity x="1" y="1" z="1"
-//           dx="0.1" dy="0.1" dz="0.0"
-//           max = "0.5" wait="false"
-//           property-x="x" property-y="y" property-z="z"/>
-VelocityControl::VelocityControl(const Dataflow::Module *module,
-                                 const XML::Element& config):
-  Control(module, config)
+// Limit the velocity
+void VelocityControl::limit()
 {
-  start_p.x = config.get_attr_real("x");
-  start_p.y = config.get_attr_real("y");
-  start_p.z = config.get_attr_real("z");
-  p = start_p;
-  v.x = config.get_attr_real("dx");
-  v.y = config.get_attr_real("dy");
-  v.z = config.get_attr_real("dz");
-  max = config.get_attr_real("max");
-  wait = config.get_attr_bool("wait");
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void VelocityControl::set_property(const string& property,
-                                   const SetParams& sp)
-{
-  if (property == "trigger") triggered = true;
-  // !!! Need setters to replicate this rest of start_p and p
-  else if (property == "x") { update_prop(start_p.x, sp); p.x=start_p.x; }
-  else if (property == "y") { update_prop(start_p.y, sp); p.y=start_p.y; }
-  else if (property == "z") { update_prop(start_p.z, sp); p.z=start_p.z; }
-  else if (property == "dx") update_prop(v.x, sp);
-  else if (property == "dy") update_prop(v.y, sp);
-  else if (property == "dz") update_prop(v.z, sp);
-  else if (property == "max") update_prop(max, sp);
-
   // Check against max magnitude
   if (max != 0)
   {
@@ -120,15 +109,25 @@ Dataflow::Module module
   "Apply Cartesian velocity to a Translate",
   "vector",
   {
-    { "x", { "Current X co-ordinate", Value::Type::number, true } },
-    { "y", { "Current Y co-ordinate", Value::Type::number, true } },
-    { "z", { "Current Z co-ordinate", Value::Type::number, true } },
-    { "x", { "X component of velocity", Value::Type::number, true } },
-    { "y", { "Y component of velocity", Value::Type::number, true } },
-    { "z", { "Z component of velocity", Value::Type::number, true } },
-    { "max", { "Maximum magnitude of velocity", Value::Type::number, true } },
-    { "wait",  { "Whether to wait for a trigger", Value::Type::number } },
-    { "trigger", { "Trigger to set value", Value::Type::trigger, true } }
+    { "x", { "Current X co-ordinate", Value::Type::number,
+             { &VelocityControl::get_x, &VelocityControl::set_x}, true } },
+    { "y", { "Current Y co-ordinate", Value::Type::number,
+             { &VelocityControl::get_y, &VelocityControl::set_y}, true } },
+    { "z", { "Current Z co-ordinate", Value::Type::number,
+             { &VelocityControl::get_z, &VelocityControl::set_z}, true } },
+    { "dx", { "X component of velocity", Value::Type::number,
+              { &VelocityControl::get_dx, &VelocityControl::set_dx}, true } },
+    { "dy", { "Y component of velocity", Value::Type::number,
+              { &VelocityControl::get_dy, &VelocityControl::set_dy}, true } },
+    { "dz", { "Z component of velocity", Value::Type::number,
+              { &VelocityControl::get_dz, &VelocityControl::set_dz}, true } },
+    { "max", { "Maximum magnitude of velocity", Value::Type::number,
+               { &VelocityControl::get_max, &VelocityControl::set_max },
+               true } },
+    { "wait",  { "Whether to wait for a trigger", Value::Type::number,
+                 &VelocityControl::wait, false } },
+    { "trigger", { "Trigger to set value", Value::Type::trigger,
+                   &VelocityControl::set_triggered, true } }
   },
   {
     { "x", { "X co-ordinate", "x", Value::Type::number }},

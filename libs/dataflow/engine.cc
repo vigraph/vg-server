@@ -42,6 +42,16 @@ void Engine::configure(const File::Directory& base_dir,
 }
 
 //------------------------------------------------------------------------
+// Set an element property
+// element_path is a path/to/leaf
+void Engine::set_property(const string& element_path, const string& property,
+                          const Value& value)
+{
+  MT::RWWriteLock lock(graph_mutex);
+  graph->set_property(element_path, property, value);
+}
+
+//------------------------------------------------------------------------
 // Tick the engine
 void Engine::tick(Time::Stamp t)
 {
@@ -59,7 +69,7 @@ void Engine::tick(Time::Stamp t)
         it.second->tick(td);
 
       // Tick the graph
-      MT::Lock lock(graph_mutex);
+      MT::RWReadLock lock(graph_mutex);
       graph->pre_tick(td);
       graph->tick(td);
       graph->post_tick(td);
@@ -80,7 +90,7 @@ void Engine::shutdown()
 {
   // Shut down graph
   {
-    MT::Lock lock(graph_mutex);
+    MT::RWWriteLock lock(graph_mutex);
     graph->shutdown();
   }
 

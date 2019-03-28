@@ -348,6 +348,30 @@ void Graph::generate_topological_order()
 }
 
 //------------------------------------------------------------------------
+// Set an element property
+// element_path is a path/to/leaf
+// Can throw runtime_error if it fails
+void Graph::set_property(const string& element_path, const string& property,
+                         const Value& value)
+{
+  vector<string> bits = Text::split(element_path, '/', false, 2);
+
+  // Find first part or leaf element
+  const auto& it = elements.find(bits[0]);
+  if (it == elements.end())
+    throw runtime_error("No such element "+property+" in graph");
+
+  if (bits.size() == 2)
+  {
+    // !!! Find subgraph / clone / selection
+  }
+  else
+  {
+    it->second->set_property(property, value);
+  }
+}
+
+//------------------------------------------------------------------------
 // Enable all elements
 void Graph::enable()
 {

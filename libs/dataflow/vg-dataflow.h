@@ -696,6 +696,13 @@ class Graph
                  Acceptor *external_acceptor);
 
   //------------------------------------------------------------------------
+  // Set an element property
+  // element_path is a path/to/leaf
+  // Can throw runtime_error if it fails
+  void set_property(const string& element_path, const string& property,
+                    const Value& value);
+
+  //------------------------------------------------------------------------
   // Add an element to the graph
   void add(Element *el);
 
@@ -1036,7 +1043,7 @@ class Engine
   map<string, shared_ptr<Element>> services;
 
   // Graph structure
-  MT::Mutex graph_mutex;
+  MT::RWMutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
   Time::Duration tick_interval{0.04};  // 25Hz default
   Time::Stamp start_time;
@@ -1078,6 +1085,12 @@ class Engine
   void configure(const File::Directory& base_dir,
                  const XML::Element& graph_config,
                  const XML::Element& services_config);
+
+  //------------------------------------------------------------------------
+  // Set an element property
+  // element_path is a path/to/leaf
+  void set_property(const string& element_path, const string& property,
+                    const Value& value);
 
   //------------------------------------------------------------------------
   // Tick the graph

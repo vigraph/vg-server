@@ -14,8 +14,11 @@ namespace {
 // Clone source
 class CloneSource: public Dataflow::Source
 {
-  unique_ptr<Dataflow::MultiGraph> multigraph;
+public:
   int n{1};
+
+private:
+  unique_ptr<Dataflow::MultiGraph> multigraph;
 
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
@@ -29,8 +32,7 @@ class CloneSource: public Dataflow::Source
   JSON::Value get_json() const override;
 
 public:
-  CloneSource(const Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 };
 
 //--------------------------------------------------------------------------
@@ -41,7 +43,7 @@ public:
 void CloneSource::configure(const File::Directory& base_dir,
                             const XML::Element& config)
 {
-  n = config.get_attr_int("n", 1);
+  Source::configure(base_dir, config);
 
   multigraph.reset(new Dataflow::MultiGraph(graph->get_engine()));
   multigraph->configure(base_dir, config);
@@ -102,7 +104,7 @@ void CloneSource::post_tick(const TickData& td)
 // Get JSON
 JSON::Value CloneSource::get_json() const
 {
-  JSON::Value json = Element::get_json();
+  JSON::Value json = Source::get_json();
   // Just use the first (assuming there are any)
   Graph *subgraph = multigraph->get_subgraph(0);
   if (subgraph) json.set("graph", subgraph->get_json());
@@ -118,7 +120,8 @@ Dataflow::Module module
   "Clones multiple copies of a sub-graph",
   "core",
   {
-    { "n", { { "Number of copies to clone", "1" }, Value::Type::number } }
+    { "n", { { "Number of copies to clone", "1" }, Value::Type::number,
+             &CloneSource::n, false } }
   },
   {}, // no inputs
   { "any" },

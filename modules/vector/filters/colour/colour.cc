@@ -10,63 +10,37 @@
 
 namespace {
 
+using Colour::RGB;
+using Colour::HSL;
+
 //==========================================================================
 // Colour filter
 class ColourFilter: public FrameFilter
 {
-  Colour::RGB c;
+  RGB c;
 
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  ColourFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FrameFilter::FrameFilter;
+
+  // Getters/Setters
+  string get() { return c.str(); }
+  void set(const string& colour) { c = RGB{colour}; }
+  double get_r() { return c.r; }
+  void set_r(double r) { c.r = r; }
+  double get_g() { return c.g; }
+  void set_g(double g) { c.g = g; }
+  double get_b() { return c.b; }
+  void set_b(double b) { c.b = b; }
+  double get_h() { return HSL{c}.h; }
+  void set_h(double h) { auto hsl = HSL{c}; hsl.h = h; c = RGB{hsl}; }
+  double get_s() { return HSL{c}.s; }
+  void set_s(double s) { auto hsl = HSL{c}; hsl.s = s; c = RGB{hsl}; }
+  double get_l() { return HSL{c}.l; }
+  void set_l(double l) { auto hsl = HSL{c}; hsl.l = l; c = RGB{hsl}; }
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <colour>#3055c0</colour>
-//  <colour>rgb(100,100,255)</colour>
-//  <colour>hsl(120,100,50)</colour>
-//  <colour r='0.2' g='0.4' b='0.75'/>
-//  <colour h='0.33' s='1' l='0.5'/>
-ColourFilter::ColourFilter(const Dataflow::Module *module,
-                           const XML::Element& config):
-  FrameFilter(module, config)
-{
-  if (!(*config).empty())
-    c = Colour::RGB(*config);
-  else if (config.has_attr("h")) // assume HSL
-    c = Colour::RGB(Colour::HSL(config.get_attr_real("h"),
-                                config.get_attr_real("s", 1.0),
-                                config.get_attr_real("l", 0.5)));
-  else
-    c = Colour::RGB(config.get_attr_real("r"),
-                    config.get_attr_real("g"),
-                    config.get_attr_real("b"));
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void ColourFilter::set_property(const string& property, const SetParams& sp)
-{
-       if (property == "r") update_prop(c.r, sp);
-  else if (property == "g") update_prop(c.g, sp);
-  else if (property == "b") update_prop(c.b, sp);
-  else if (property == "h")
-  {
-    // Convert to HSL, modify and convert back
-    Colour::HSL hsl(c);
-    update_prop(hsl.h, sp);
-    c = Colour::RGB(hsl);
-  }
-  else if (property == "s")
-  { Colour::HSL hsl(c); update_prop(hsl.s, sp); c = Colour::RGB(hsl); }
-  else if (property == "l")
-  { Colour::HSL hsl(c); update_prop(hsl.l, sp); c = Colour::RGB(hsl); }
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -88,14 +62,35 @@ Dataflow::Module module
   "Sets the colour of the frame to RGB or HSL",
   "vector",
   {
-    { "", { "Colour text #rrbbgg or rgb(r,g,b) or hsl(h,s,l)", Value::Type::text,
-          "" } },
-    { "r", { "Red component (0..1)", Value::Type::number, "@r", true } },
-    { "g", { "Green component (0..1)", Value::Type::number, "@g", true } },
-    { "b", { "Blue component (0..1)", Value::Type::number, "@b", true } },
-    { "h", { "Hue for HSL (0..1)", Value::Type::number, "@h", true } },
-    { "s", { {"Saturation for HSL (0..1)","1.0"}, Value::Type::number, "@s", true}},
-    { "l", { {"Lightnesss for HSL (0..1)","0.5"}, Value::Type::number, "@l", true}}
+    { "", { "Colour text #rrbbgg or rgb(r,g,b) or hsl(h,s,l)",
+            Value::Type::text,
+            { static_cast<string (Element::*)()>(&ColourFilter::get),
+            static_cast<void (Element::*)(const string&)>(&ColourFilter::set) },
+            true } },
+    { "r", { "Red component (0..1)", Value::Type::number,
+             { static_cast<double (Element::*)()>(&ColourFilter::get_r),
+               static_cast<void (Element::*)(double)>(&ColourFilter::set_r) },
+             true } },
+    { "g", { "Green component (0..1)", Value::Type::number,
+             { static_cast<double (Element::*)()>(&ColourFilter::get_g),
+               static_cast<void (Element::*)(double)>(&ColourFilter::set_g) },
+             true } },
+    { "b", { "Blue component (0..1)", Value::Type::number,
+             { static_cast<double (Element::*)()>(&ColourFilter::get_b),
+               static_cast<void (Element::*)(double)>(&ColourFilter::set_b) },
+             true } },
+    { "h", { "Hue for HSL (0..1)", Value::Type::number,
+             { static_cast<double (Element::*)()>(&ColourFilter::get_h),
+               static_cast<void (Element::*)(double)>(&ColourFilter::set_h) },
+             true } },
+    { "s", { {"Saturation for HSL (0..1)","1.0"}, Value::Type::number,
+             { static_cast<double (Element::*)()>(&ColourFilter::get_s),
+               static_cast<void (Element::*)(double)>(&ColourFilter::set_s) },
+             true } },
+    { "l", { {"Lightnesss for HSL (0..1)","0.5"}, Value::Type::number,
+             { static_cast<double (Element::*)()>(&ColourFilter::get_l),
+               static_cast<void (Element::*)(double)>(&ColourFilter::set_l) },
+             true } },
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

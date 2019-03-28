@@ -15,33 +15,16 @@ namespace {
 // DepthFade filter
 class DepthFadeFilter: public FrameFilter
 {
-  double distance;  // Black distance
+public:
+  double distance = 0;  // Black distance
 
+private:
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  DepthFadeFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FrameFilter::FrameFilter;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <depth-fade distance="10"/>
-DepthFadeFilter::DepthFadeFilter(const Dataflow::Module *module,
-                                 const XML::Element& config):
-  FrameFilter(module, config)
-{
-  distance = config.get_attr_real("d", 1);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void DepthFadeFilter::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "d") update_prop(distance, sp);
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -73,7 +56,8 @@ Dataflow::Module module
   "Depth-cue from fading over Z distance",
   "vector",
   {
-    { "d", { {"Distance to fade over","1"}, Value::Type::number, "d", true } }
+    { "d", { {"Distance to fade over","1"}, Value::Type::number,
+             &DepthFadeFilter::distance, true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

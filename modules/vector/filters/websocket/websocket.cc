@@ -111,33 +111,33 @@ void WebSocketDisplayServer::handle_websocket(
 // WebSocket filter
 class WebSocketFilter: public FrameFilter
 {
+public:
+  int port = 0;
+
+private:
   unique_ptr<WebSocketDisplayServer> server;
   unique_ptr<Net::TCPServerThread> server_thread;
   bool frame_seen{false};
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void accept(FramePtr frame) override;
   void post_tick(const TickData&) override;
   void shutdown() override;
 
 public:
-  WebSocketFilter(const Dataflow::Module *module, const XML::Element& config):
-    FrameFilter(module, config) {}
+  using FrameFilter::FrameFilter;
 };
 
 //--------------------------------------------------------------------------
-// Configure from XML
-void WebSocketFilter::configure(const File::Directory&,
-                                const XML::Element& config)
+// Setup
+void WebSocketFilter::setup()
 {
-  int hport = config.get_attr_int("port");
-  if (hport)
+  if (port)
   {
     Log::Summary log;
-    log << "Starting WebSocket display server at port " << hport << endl;
-    server.reset(new WebSocketDisplayServer(hport,
+    log << "Starting WebSocket display server at port " << port << endl;
+    server.reset(new WebSocketDisplayServer(port,
                            "ViGraph laserd WebSocket display server"));
     server_thread.reset(new Net::TCPServerThread(*server));
   }
@@ -195,7 +195,8 @@ Dataflow::Module module
   "WebSocket server for vector display clients",
   "vector",
   {
-    { "port", { "Listening port", Value::Type::number } },
+    { "port", { "Listening port", Value::Type::number,
+                &WebSocketFilter::port, false } },
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

@@ -10,62 +10,36 @@
 
 namespace {
 
+using Colour::RGB;
+
 //==========================================================================
 // Clip filter
 class ClipFilter: public FrameFilter
 {
-  Point min, max;         // Bounding cube
+public:
+  // Bounding cube
+  double min_x = -0.5;
+  double min_y = -0.5;
+  double min_z = -0.5;
+  double max_x = 0.5;
+  double max_y = 0.5;
+  double max_z = 0.5;
+
   bool exclude{false};    // Inverse, clip out a rectangle
   Colour::intens_t alpha{0.0}; // Fade
-  Colour::RGB outline_colour;
+  RGB outline_colour;
 
+private:
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  ClipFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FrameFilter::FrameFilter;
+
+  // Getters/Setters
+  string get_outline() { return outline_colour.str(); }
+  void set_outline(const string& colour) { outline_colour = RGB{colour}; }
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <clip exclude="false" alpha="0" outline="black">
-//    <min x="-0.5" y="-0.5" z="-0.5"/>
-//    <max x="0.5"  y="0.5"  z="0.5"/>
-// </clip>
-ClipFilter::ClipFilter(const Dataflow::Module *module,
-                       const XML::Element& config):
-  FrameFilter(module, config)
-{
-  const XML::Element& min_e = config.get_child("min");
-  min.x = min_e.get_attr_real("x", -0.5);
-  min.y = min_e.get_attr_real("y", -0.5);
-  min.z = min_e.get_attr_real("z", -0.5);
-
-  const XML::Element& max_e = config.get_child("max");
-  max.x = max_e.get_attr_real("x", 0.5);
-  max.y = max_e.get_attr_real("y", 0.5);
-  max.z = max_e.get_attr_real("z", 0.5);
-
-  exclude = config.get_attr_bool("exclude");
-  alpha = config.get_attr_real("alpha");
-  if (config.has_attr("outline"))
-    outline_colour = Colour::RGB(config["outline"]);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void ClipFilter::set_property(const string& property, const SetParams& sp)
-{
-       if (property == "min.x") update_prop(min.x, sp);
-  else if (property == "min.y") update_prop(min.y, sp);
-  else if (property == "min.z") update_prop(min.z, sp);
-  else if (property == "max.x") update_prop(max.x, sp);
-  else if (property == "max.y") update_prop(max.y, sp);
-  else if (property == "max.z") update_prop(max.z, sp);
-  else if (property == "alpha") update_prop(alpha, sp);
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -81,8 +55,8 @@ void ClipFilter::accept(FramePtr frame)
     // invalid point
     if (last_was_blanked) p.blank();
 
-    bool outside_bb = p.x < min.x || p.y < min.y || p.z < min.z
-                   || p.x > max.x || p.y > max.y || p.z > max.z;
+    bool outside_bb = p.x < min_x || p.y < min_y || p.z < min_z
+                   || p.x > max_x || p.y > max_y || p.z > max_z;
     // Not wanted?
     if (exclude?!outside_bb:outside_bb)
     {
@@ -110,11 +84,11 @@ void ClipFilter::accept(FramePtr frame)
   // Add outline (2D) for testing if required
   if (!outline_colour.is_black())
   {
-    frame->points.push_back(min);
-    frame->points.push_back(Point(min.x, max.y, outline_colour));
-    frame->points.push_back(Point(max, outline_colour));
-    frame->points.push_back(Point(max.x, min.y, outline_colour));
-    frame->points.push_back(Point(min, outline_colour));
+    frame->points.push_back(Point(min_x, min_y, min_z));
+    frame->points.push_back(Point(min_x, max_y, outline_colour));
+    frame->points.push_back(Point(max_x, max_y, max_z, outline_colour));
+    frame->points.push_back(Point(max_x, min_y, outline_colour));
+    frame->points.push_back(Point(min_x, min_y, min_z, outline_colour));
   }
 
   send(frame);
@@ -129,16 +103,28 @@ Dataflow::Module module
   "Clip to a rectangular region",
   "vector",
   {
-    { "min.x", { "Minimum X value", Value::Type::number, "min/@x", true } },
-    { "min.y", { "Minimum Y value", Value::Type::number, "min/@y", true } },
-    { "min.z", { "Minimum Z value", Value::Type::number, "min/@z", true } },
-    { "max.x", { "Maximum X value", Value::Type::number, "max/@x", true } },
-    { "max.y", { "Maximum Y value", Value::Type::number, "max/@y", true } },
-    { "max.z", { "Maximum Z value", Value::Type::number, "max/@z", true } },
+    { "min.x", { "Minimum X value", Value::Type::number,
+                 static_cast<double Element::*>(&ClipFilter::min_x), true } },
+    { "min.y", { "Minimum Y value", Value::Type::number,
+                 static_cast<double Element::*>(&ClipFilter::min_y), true } },
+    { "min.z", { "Minimum Z value", Value::Type::number,
+                 static_cast<double Element::*>(&ClipFilter::min_z), true } },
+    { "max.x", { "Maximum X value", Value::Type::number,
+                 static_cast<double Element::*>(&ClipFilter::max_x), true } },
+    { "max.y", { "Maximum Y value", Value::Type::number,
+                 static_cast<double Element::*>(&ClipFilter::max_y), true } },
+    { "max.z", { "Maximum Z value", Value::Type::number,
+                 static_cast<double Element::*>(&ClipFilter::max_z), true } },
     { "exclude", { "Whether to remove points inside the box",
-          Value::Type::boolean, "@exclude" } },
-    { "alpha", { "Alpha level to apply to clipped points",
-          Value::Type::number, "@alpha", true } }
+                   Value::Type::boolean,
+                   static_cast<bool Element::*>(&ClipFilter::exclude),
+                   true } },
+    { "alpha", { "Alpha level to apply to clipped points", Value::Type::number,
+                 static_cast<double Element::*>(&ClipFilter::alpha), true } },
+    { "Outline", { "Outline colour", Value::Type::text,
+   { static_cast<string (Element::*)()>(&ClipFilter::get_outline),
+     static_cast<void (Element::*)(const string&)>(&ClipFilter::set_outline) },
+                   true } },
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

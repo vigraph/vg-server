@@ -27,7 +27,7 @@ public:
   using Control::Control;
 
   // Property getter/setter
-  double get_value() { return value; }
+  double get_value() const { return value; }
   void set_value(double v);
 };
 

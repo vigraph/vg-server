@@ -20,39 +20,31 @@ using namespace ViGraph::Module::Audio;
 // Wav source
 class WavSource: public Source
 {
-  File::Path file;
+public:
+  string file;
   bool loop = false;
-  map<Speaker, vector<sample_t>> waveforms;
   double base_frequency = 0.0;
   double frequency = 0.0;
+
+private:
+  map<Speaker, vector<sample_t>> waveforms;
 
   //------------------------------------------------------------------------
   // Load a WAV into waveforms
   bool load_wav(const File::Path& f, map<Speaker, vector<sample_t>>& w);
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
-  void set_property(const string& property, const SetParams& sp) override;
+  void setup(const File::Directory& base_dir) override;
   void tick(const TickData& td) override;
 
 public:
-  WavSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <file> attributes:
-//    path: path to sound file
-void WavSource::configure(const File::Directory&,
-                          const XML::Element& config)
+// Setup
+void WavSource::setup(const File::Directory& base_dir)
 {
-  file = File::Path{config.get_attr("file")};
-  loop = config.get_attr_bool("loop");
-  base_frequency = config.get_attr_real("base-freq");
-  frequency = config.get_attr_real("freq");
-
   if (frequency && !base_frequency)
   {
     Log::Error log;
@@ -61,7 +53,7 @@ void WavSource::configure(const File::Directory&,
     return;
   }
 
-  if (!load_wav(file, waveforms))
+  if (!load_wav(base_dir.resolve(file), waveforms))
     return;
 
   Log::Detail dlog;
@@ -147,16 +139,6 @@ bool WavSource::load_wav(const File::Path& f, map<Speaker, vector<sample_t>>& w)
 }
 
 //--------------------------------------------------------------------------
-// Set a control property
-void WavSource::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "loop")
-    update_prop(loop, sp);
-  else if (property == "freq")
-    update_prop(frequency, sp);
-}
-
-//--------------------------------------------------------------------------
 // Generate a fragment
 void WavSource::tick(const TickData& td)
 {
@@ -207,10 +189,14 @@ Dataflow::Module module
   "Audio Wav Input",
   "audio",
   {
-    { "file",  { "File path", Value::Type::file, "@file" } },
-    { "loop",  { "Loop", Value::Type::boolean, "@loop", true } },
-    { "base-freq",  { "Base frequency", Value::Type::number, "@base-freq" } },
-    { "freq",  { "Frequency to play at", Value::Type::number, "@freq", true } },
+    { "file",  { "File path", Value::Type::file,
+                 &WavSource::file, false } },
+    { "loop",  { "Loop", Value::Type::boolean,
+                 &WavSource::loop, true } },
+    { "base-freq", { "Base frequency", Value::Type::number,
+                     &WavSource::base_frequency, false } },
+    { "freq",  { "Frequency to play at", Value::Type::number,
+                 &WavSource::frequency, true } },
   },
   {},  // no inputs
   { "Audio" }  // outputs

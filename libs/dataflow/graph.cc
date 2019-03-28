@@ -64,7 +64,7 @@ bool Graph::attach(Element *el)
 
     if (found)
     {
-      g->attach(acceptor);
+      g->attach(acceptor, el->id);
       g->downstreams.push_back(el);
       p = unbound_generators.erase(p);
     }

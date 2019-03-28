@@ -486,13 +486,19 @@ class Generator: public Element
   // Get the acceptor ID
   const string& get_acceptor_id() { return acceptor_id; }
 
-  // Set the acceptor
-  virtual void attach(Acceptor *_acceptor) { acceptor = _acceptor; }
+  // Set the acceptor and optionally ID
+  virtual void attach(Acceptor *_acceptor)
+  { acceptor = _acceptor; }
+  virtual void attach(Acceptor *_acceptor, const string& _acceptor_id)
+  { acceptor = _acceptor; acceptor_id = _acceptor_id; }
 
   // Send data down
   void send(DataPtr data) { if (acceptor) acceptor->accept(data); }
   // Sugar to allow direct send of 'new Data' in sources
   void send(Data *data) { send(DataPtr(data)); }
+
+  // Get state as JSON
+  JSON::Value get_json() const override;
 };
 
 //==========================================================================
@@ -567,6 +573,9 @@ class ControlImpl
 
   // Trigger named property
   void trigger(const string& name) { send(name, Dataflow::Value{}); }
+
+  // Get state as JSON, adding to the given value
+  void add_json(JSON::Value& json) const;
 };
 
 //==========================================================================
@@ -585,6 +594,10 @@ class Control: public Element, public ControlImpl
   // pre-tick phase
   void tick(const TickData&) final {}
   void post_tick(const TickData&) final {}
+
+  // Add control JSON
+  JSON::Value get_json() const override
+  { JSON::Value json=Element::get_json(); add_json(json); return json; }
 };
 
 //==========================================================================

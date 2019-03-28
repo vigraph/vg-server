@@ -16,38 +16,28 @@ namespace {
 // Random control
 class RandomControl: public Dataflow::Control
 {
+public:
   // Configured state
   double min{0.0};
-  double max{0.0};
+  double max{1.0};
   bool wait{false};
 
+private:
   // Dynamic state
   bool done{false};
   bool triggered{false};
 
   // Control virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void enable() override;
   void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
-  // Construct
-  RandomControl(const Module *module, const XML::Element& config);
-};
+  using Control::Control;
 
-//--------------------------------------------------------------------------
-// Construct from XML
-// <random min="0" max="1"
-//      type="{real|integer|boolean}"
-//      property="..."/>
-RandomControl::RandomControl(const Module *module, const XML::Element& config):
-  Control(module, config)
-{
-  min = config.get_attr_real("min", 0.0);
-  max = config.get_attr_real("max", 1.0);
-  wait = config.get_attr_bool("wait");
-}
+  // Getters/Setters
+  void set_triggered() { triggered = true; }
+};
 
 //--------------------------------------------------------------------------
 // Automatically set wait flag if we are the trigger target of something
@@ -55,18 +45,6 @@ void RandomControl::notify_target_of(Element *, const string& property)
 {
   if (property == "trigger")
     wait = true;
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void RandomControl::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "trigger")
-    triggered = true;
-  else if (property == "min")
-    update_prop(min, sp);
-  else if (property == "max")
-    update_prop(max, sp);
 }
 
 //--------------------------------------------------------------------------
@@ -107,10 +85,14 @@ Dataflow::Module module
   "Set a random value on another element",
   "core",
   {
-    { "min", { "Minimum value", Value::Type::number, true } },
-    { "max", { { "Maximum value", "1.0" }, Value::Type::number, true } },
-    { "wait",  { "Whether to wait for a trigger", Value::Type::number } },
-    { "trigger", { "Trigger to set value", Value::Type::trigger, true } }
+    { "min", { "Minimum value", Value::Type::number,
+               &RandomControl::min, true } },
+    { "max", { { "Maximum value", "1.0" }, Value::Type::number,
+               &RandomControl::max, true } },
+    { "wait",  { "Whether to wait for a trigger", Value::Type::boolean,
+                 &RandomControl::wait, false } },
+    { "trigger", { "Trigger to set value", Value::Type::trigger,
+                   &RandomControl::set_triggered, true } }
   },
   { { "", { "Random value", "", Value::Type::number }}}
 };

@@ -15,13 +15,20 @@ namespace {
 using namespace ViGraph::Dataflow;
 
 const auto default_device{"default"};
+const auto default_channels = 2;
+const auto default_start_threshold = 1000;
 
 //==========================================================================
 // LinuxAudioOut filter
 class LinuxALSAOutFilter: public FragmentFilter
 {
+public:
+  string device = default_device;
+  int nchannels = default_channels;
+  int start_threshold = default_start_threshold;
+
+private:
   snd_pcm_t *pcm{nullptr};
-  unsigned nchannels{2};
   unsigned long tick_samples_required = 0;
   vector<sample_t> output_buffer;
 
@@ -29,31 +36,24 @@ class LinuxALSAOutFilter: public FragmentFilter
   bool write_samples(const vector<sample_t>& samples);
 
   // Source/Element virtuals
+  void setup() override;
   void pre_tick(const TickData& td) override;
   void accept(FragmentPtr fragment) override;
   void post_tick(const TickData& td) override;
   void shutdown() override;
 
 public:
-  LinuxALSAOutFilter(const Dataflow::Module *module,
-                     const XML::Element& config);
+  using FragmentFilter::FragmentFilter;
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <audio-out/>
-LinuxALSAOutFilter::LinuxALSAOutFilter(const Dataflow::Module *module,
-                                       const XML::Element& config):
-    FragmentFilter(module, config)
+// Setup
+void LinuxALSAOutFilter::setup()
 {
   Log::Streams log;
-  const auto& device = config.get_attr("device", default_device);
   log.summary << "Opening audio output on ALSA device '" << device << "'\n";
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
-
-  nchannels = config.get_attr_int("channels", 2);
   log.detail << "ALSA: " << nchannels << " channels\n";
-  const auto start_threshold = config.get_attr_int("start-threshold", 1000);
 
   try
   {
@@ -170,7 +170,7 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
   output_buffer.resize(num_samples * nchannels);
   fill(output_buffer.begin(), output_buffer.end(), 0.0);
   auto wit = waveforms.begin();
-  for (auto i = 0u; i < nchannels; ++i)
+  for (auto i = 0; i < nchannels; ++i)
   {
     if (wit == waveforms.end())
       break;
@@ -238,13 +238,17 @@ Dataflow::Module module
   "Audio output for Linux/ALSA",
   "audio",
   {
-      { "device",  { {"Device output to", "default"}, Value::Type::text,
-                                                        "@device" } },
-      { "channels",  { {"Number of channels", "1"}, Value::Type::number,
-                                                        "@number" } },
+      { "device", { "Device output to", Value::Type::text,
+                static_cast<string Element::*>(&LinuxALSAOutFilter::device),
+                false } },
+      { "channels", { "Number of channels", Value::Type::number,
+                static_cast<int Element::*>(&LinuxALSAOutFilter::nchannels),
+                false } },
       { "start-threshold",
-        { {"Number of samples to buffer before playback will start", "1000"},
-           Value::Type::number, "@number" } }
+        { "Number of samples to buffer before playback will start",
+          Value::Type::number,
+          static_cast<int Element::*>(&LinuxALSAOutFilter::start_threshold),
+          false } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

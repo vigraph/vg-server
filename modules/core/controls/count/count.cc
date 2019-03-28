@@ -90,13 +90,13 @@ Dataflow::Module module
   "core",
   {
     { "value", { "Current value", Value::Type::number,
-          static_cast<double Element::*>(&CountControl::value), true } },
+                 &CountControl::value, true } },
     { "delta", { "Value to change by", Value::Type::number,
-          static_cast<double Element::*>(&CountControl::delta), true } },
+                 &CountControl::delta, true } },
     { "wait",  { "Whether to wait for a trigger", Value::Type::boolean,
-          static_cast<bool Element::*>(&CountControl::wait), true } },
+                 &CountControl::wait, true } },
     { "trigger", { "Trigger to make modification", Value::Type::trigger,
-          static_cast<void (Element::*)()>(&CountControl::trigger), true } }
+                   &CountControl::trigger, true } }
   },
   { { "", { "Modified value", "", Value::Type::number }}}
 };

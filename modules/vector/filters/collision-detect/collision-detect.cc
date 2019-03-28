@@ -94,8 +94,7 @@ Dataflow::Module module
   "vector",
   {
     { "group", { "Group name", Value::Type::number,
-          static_cast<string Element::*>(&CollisionDetectFilter::group_name),
-          true } }
+                 &CollisionDetectFilter::group_name, true } }
   },
   { { "trigger", { "Trigger output", "trigger", Value::Type::trigger }}},
   { "VectorFrame" }, // inputs

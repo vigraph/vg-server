@@ -30,11 +30,11 @@ public:
   using FragmentFilter::FragmentFilter;
 
   // Getters/Setters
-  double get_x() { return d.x; }
+  double get_x() const { return d.x; }
   void set_x(double x) { d.x = x; }
-  double get_y() { return d.y; }
+  double get_y() const { return d.y; }
   void set_y(double y) { d.y = y; }
-  double get_z() { return d.z; }
+  double get_z() const { return d.z; }
   void set_z(double z) { d.z = z; }
 };
 
@@ -84,16 +84,11 @@ Dataflow::Module module
   "audio",
   {
     { "x", { "Distance to move along X axis", Value::Type::number,
-             { static_cast<double (Element::*)()>(&PositionFilter::get_x),
-               static_cast<void (Element::*)(double)>(&PositionFilter::set_x) },
-             true } },
+             { &PositionFilter::get_x, &PositionFilter::set_x }, true } },
     { "y", { "Distance to move along Y axis", Value::Type::number,
-             { static_cast<double (Element::*)()>(&PositionFilter::get_y),
-               static_cast<void (Element::*)(double)>(&PositionFilter::set_y) },
-             true } },
+             { &PositionFilter::get_y, &PositionFilter::set_y }, true } },
     { "z", { "Distance to move along Z axis", Value::Type::number,
-             { static_cast<double (Element::*)()>(&PositionFilter::get_z),
-               static_cast<void (Element::*)(double)>(&PositionFilter::set_z) },
+             { &PositionFilter::get_z, &PositionFilter::set_z },
              true } },
   },
   { "Audio" }, // inputs

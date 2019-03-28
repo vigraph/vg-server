@@ -40,12 +40,10 @@ Dataflow::Module module
   "Add an offset to a control value",
   "core",
   {
-    { "value",
-      { "Base value", Value::Type::number,
-          static_cast<double Element::*>(&AddControl::value), true } },
-    { "offset",
-      { "Offset amount", Value::Type::number,
-          static_cast<double Element::*>(&AddControl::offset), true } },
+    { "value", { "Base value", Value::Type::number,
+                 &AddControl::value, true } },
+    { "offset", { "Offset amount", Value::Type::number,
+                  &AddControl::offset, true } },
   },
   { { "value", { "Value output", "value", Value::Type::number }}}
 };

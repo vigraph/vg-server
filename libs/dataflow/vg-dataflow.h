@@ -164,24 +164,6 @@ class Engine;
 class Element;
 
 //==========================================================================
-// Typedefs to help with member pointers
-typedef double Element::*MemberDouble;
-typedef double (Element::*MemberGetDouble)();
-typedef void (Element::*MemberSetDouble)(double);
-typedef string Element::*MemberString;
-typedef string (Element::*MemberGetString)();
-typedef void (Element::*MemberSetString)(const string&);
-typedef bool Element::*MemberBool;
-typedef bool (Element::*MemberGetBool)();
-typedef void (Element::*MemberSetBool)(bool);
-typedef int Element::*MemberInt;
-typedef int (Element::*MemberGetInt)();
-typedef void (Element::*MemberSetInt)(int);
-typedef JSON::Value (Element::*MemberGetJSON)();
-typedef void (Element::*MemberSetJSON)(const JSON::Value&);
-typedef void (Element::*MemberTrigger)();
-
-//==========================================================================
 // Module metadata
 struct Module
 {
@@ -210,6 +192,22 @@ struct Module
     // Member accessor data
     struct Member
     {
+      typedef double Element::*MemberDouble;
+      typedef double (Element::*MemberGetDouble)() const ;
+      typedef void (Element::*MemberSetDouble)(double);
+      typedef string Element::*MemberString;
+      typedef string (Element::*MemberGetString)() const ;
+      typedef void (Element::*MemberSetString)(const string&);
+      typedef bool Element::*MemberBool;
+      typedef bool (Element::*MemberGetBool)() const ;
+      typedef void (Element::*MemberSetBool)(bool);
+      typedef int Element::*MemberInt;
+      typedef int (Element::*MemberGetInt)() const ;
+      typedef void (Element::*MemberSetInt)(int);
+      typedef JSON::Value (Element::*MemberGetJSON)() const ;
+      typedef void (Element::*MemberSetJSON)(const JSON::Value&);
+      typedef void (Element::*MemberTrigger)();
+
       // Simple member pointers
       MemberDouble d_ptr{nullptr};
       MemberString s_ptr{nullptr};
@@ -234,23 +232,42 @@ struct Module
 
       // Constructors to set each of the above
       Member() {}
-      Member(MemberDouble _p): d_ptr(_p) {}
-      Member(MemberString _p): s_ptr(_p) {}
-      Member(MemberBool _p): b_ptr(_p) {}
-      Member(MemberInt _p): i_ptr(_p) {}
+      template<typename T>
+      Member(double T::*_p): d_ptr(static_cast<MemberDouble>(_p)) {}
+      template<typename T>
+      Member(string T::*_p): s_ptr(static_cast<MemberString>(_p)) {}
+      template<typename T>
+      Member(bool T::*_p): b_ptr(static_cast<MemberBool>(_p)) {}
+      template<typename T>
+      Member(int T::*_p): i_ptr(static_cast<MemberInt>(_p)) {}
 
-      Member(MemberGetDouble _get, MemberSetDouble _set):
-        get_d(_get), set_d(_set) {}
-      Member(MemberGetString _get, MemberSetString _set):
-        get_s(_get), set_s(_set) {}
-      Member(MemberGetBool _get, MemberSetBool _set):
-        get_b(_get), set_b(_set) {}
-      Member(MemberGetInt _get, MemberSetInt _set):
-        get_i(_get), set_i(_set) {}
-      Member(MemberGetJSON _get, MemberSetJSON _set):
-        get_json(_get), set_json(_set) {}
+      template<typename T>
+      Member(double (T::*_get)() const, void (T::*_set)(double)):
+        get_d(static_cast<MemberGetDouble>(_get)),
+        set_d(static_cast<MemberSetDouble>(_set)) {}
+      template<typename T>
+      Member(void (T::*_set)(double)):
+        set_d(static_cast<MemberSetDouble>(_set)) {}
+      template<typename T>
+      Member(string (T::*_get)() const, void (T::*_set)(const string&)):
+        get_s(static_cast<MemberGetString>(_get)),
+        set_s(static_cast<MemberSetString>(_set)) {}
+      template<typename T>
+      Member(bool (T::*_get)() const, void (T::*_set)(bool)):
+        get_b(static_cast<MemberGetBool>(_get)),
+        set_b(static_cast<MemberSetBool>(_set)) {}
+      template<typename T>
+      Member(int (T::*_get)() const, void (T::*_set)(int)):
+        get_i(static_cast<MemberGetInt>(_get)),
+        set_i(static_cast<MemberSetInt>(_set)) {}
+      template<typename T>
+      Member(JSON::Value (T::*_get)() const,
+             void (T::*_set)(const JSON::Value&)):
+        get_json(static_cast<MemberGetJSON>(_get)),
+        set_json(static_cast<MemberSetJSON>(_set)) {}
 
-      Member(MemberTrigger _f): trigger(_f) {}
+      template<typename T>
+      Member(void (T::*_f)()): trigger(static_cast<MemberTrigger>(_f)) {}
     } member;
 
     set<string> options;       // Options for choice

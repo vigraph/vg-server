@@ -123,17 +123,17 @@ Dataflow::Module module
   "midi",
   {
     { "channel", { "MIDI channel (0=all)", Value::Type::number,
-      static_cast<int Element::*>(&MIDIControlInControl::channel), false } },
+                   &MIDIControlInControl::channel, false } },
     { "number", { "Control number", Value::Type::number,
-      static_cast<int Element::*>(&MIDIControlInControl::number), true } },
+                  &MIDIControlInControl::number, true } },
     { "scale",  { "Scale to apply to control value", Value::Type::number,
-      static_cast<double Element::*>(&MIDIControlInControl::scale), true } },
+                  &MIDIControlInControl::scale, true } },
     { "offset", { "Offset to apply to control value", Value::Type::number,
-      static_cast<double Element::*>(&MIDIControlInControl::offset), true } },
+                  &MIDIControlInControl::offset, true } },
     { "enable", { "Enable the control", Value::Type::trigger,
-    static_cast<void (Element::*)()>(&MIDIControlInControl::enable), true } },
+                  &MIDIControlInControl::enable, true } },
     { "disable", { "Disable the control", Value::Type::trigger,
-    static_cast<void (Element::*)()>(&MIDIControlInControl::disable), true } },
+                   &MIDIControlInControl::disable, true } },
   },
   { { "value", { "Control value", "value", Value::Type::number }}}
 };

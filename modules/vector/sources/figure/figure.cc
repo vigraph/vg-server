@@ -83,7 +83,7 @@ private:
   vector<coord_t> y_wave;
 
   // Internals
-  string get_waveform_name(Waveform waveform);
+  string get_waveform_name(Waveform waveform) const;
   void set_waveform(Waveform& waveform, const string& wave);
   void calculate_waveform(double pos, Waveform waveform, double freq,
                           double phase, double scale,
@@ -99,15 +99,15 @@ public:
     Source(module, config) {}
 
   // Property getter/setters
-  string get_waveform_x() { return get_waveform_name(x_waveform); }
+  string get_waveform_x() const { return get_waveform_name(x_waveform); }
   void set_waveform_x(const string& wave) { set_waveform(x_waveform, wave); }
-  string get_waveform_y() { return get_waveform_name(y_waveform); }
+  string get_waveform_y() const { return get_waveform_name(y_waveform); }
   void set_waveform_y(const string& wave) { set_waveform(y_waveform, wave); }
 };
 
 //--------------------------------------------------------------------------
 // Get waveform name for an axis
-string FigureSource::get_waveform_name(Waveform waveform)
+string FigureSource::get_waveform_name(Waveform waveform) const
 {
   switch (waveform)
   {
@@ -246,57 +246,34 @@ Dataflow::Module module
   "2D Abstract figure made from X,Y waves",
   "vector",
   {
-    { "points", { "Number of points",
-          Value::Type::number,
-          static_cast<int Element::*>(&FigureSource::points),
-          true } },
-    { "closed", { "Whether the path is closed",
-          Value::Type::boolean,
-          static_cast<bool Element::*>(&FigureSource::closed),
-          true } },
-    { "x.wave",  { "Waveform on X axis",
-          Value::Type::choice,
-          { static_cast<string (Element::*)()>(&FigureSource::get_waveform_x),
-            static_cast<void (Element::*)(const string&)>(&FigureSource::set_waveform_x) },
-          { "none", "saw", "sin", "square", "triangle", "random" } } },
-    { "x.pos",   { "Base position on X axis",
-          Value::Type::number,
-          static_cast<double Element::*>(&FigureSource::x_pos),
-          true } },
-    { "x.freq",  { "Frequency for X axis",
-          Value::Type::number,
-          static_cast<double Element::*>(&FigureSource::x_freq),
-          true } },
-    { "x.phase", { "Phase (0..1) on X axis",
-          Value::Type::number,
-          static_cast<double Element::*>(&FigureSource::x_phase),
-          true } },
-    { "x.scale", { { "Scale of X axis", "1.0" },
-          Value::Type::number,
-            static_cast<double Element::*>(&FigureSource::x_scale),
-            true } },
-    { "y.wave",  { "Waveform on Y axis",
-          Value::Type::choice,
-          Dataflow::Module::Property::Member{
-          static_cast<string (Element::*)()>(&FigureSource::get_waveform_y),
-          static_cast<void (Element::*)(const string&)>(&FigureSource::set_waveform_y) },
-          { "none", "saw", "sin", "square", "triangle", "random" } } },
-    { "y.pos",   { "Base position on Y axis",
-          Value::Type::number,
-          static_cast<double Element::*>(&FigureSource::y_pos),
-          true } },
-    { "y.freq",  { "Frequency for Y axis",
-          Value::Type::number,
-          static_cast<double Element::*>(&FigureSource::y_freq),
-          true } },
-    { "y.phase", { "Phase (0..1) on Y axis",
-          Value::Type::number,
-          static_cast<double Element::*>(&FigureSource::y_phase),
-          true } },
-    { "y.scale", { { "Scale of Y axis", "1.0" },
-          Value::Type::number,
-            static_cast<double Element::*>(&FigureSource::y_scale),
-            true } }
+    { "points", { "Number of points", Value::Type::number,
+                  &FigureSource::points, true } },
+    { "closed", { "Whether the path is closed", Value::Type::boolean,
+                  &FigureSource::closed, true } },
+    { "x.wave",  { "Waveform on X axis", Value::Type::choice,
+                   { &FigureSource::get_waveform_x,
+                     &FigureSource::set_waveform_x },
+                   { "none", "saw", "sin", "square", "triangle", "random" } } },
+    { "x.pos",   { "Base position on X axis", Value::Type::number,
+                   &FigureSource::x_pos, true } },
+    { "x.freq",  { "Frequency for X axis", Value::Type::number,
+                   &FigureSource::x_freq, true } },
+    { "x.phase", { "Phase (0..1) on X axis", Value::Type::number,
+                   &FigureSource::x_phase, true } },
+    { "x.scale", { { "Scale of X axis", "1.0" }, Value::Type::number,
+                   &FigureSource::x_scale, true } },
+    { "y.wave",  { "Waveform on Y axis", Value::Type::choice,
+                   { &FigureSource::get_waveform_y,
+                     &FigureSource::set_waveform_y },
+                   { "none", "saw", "sin", "square", "triangle", "random" } } },
+    { "y.pos",   { "Base position on Y axis", Value::Type::number,
+                   &FigureSource::y_pos, true } },
+    { "y.freq",  { "Frequency for Y axis", Value::Type::number,
+                   &FigureSource::y_freq, true } },
+    { "y.phase", { "Phase (0..1) on Y axis", Value::Type::number,
+                   &FigureSource::y_phase, true } },
+    { "y.scale", { { "Scale of Y axis", "1.0" }, Value::Type::number,
+                     &FigureSource::y_scale, true } }
   },
   {},  // no inputs
   { "VectorFrame" }  // outputs

@@ -55,8 +55,7 @@ Dataflow::Module module
   "vector",
   {
     { "d", { "Horizon distance", Value::Type::number,
-             static_cast<double Element::*>(&PerspectiveFilter::distance),
-             true } }
+             &PerspectiveFilter::distance, true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

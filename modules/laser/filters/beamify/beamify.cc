@@ -47,9 +47,9 @@ Dataflow::Module module
   "vector",
   {
     { "span", { "Distance between points", Value::Type::number,
-               static_cast<int Element::*>(&BeamifyFilter::span), true}},
+                &BeamifyFilter::span, true}},
     { "n",    { "Number of points to add", Value::Type::number,
-               static_cast<int Element::*>(&BeamifyFilter::n), true}},
+                &BeamifyFilter::n, true}},
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

@@ -26,19 +26,19 @@ public:
   using FrameFilter::FrameFilter;
 
   // Getters/Setters
-  string get() { return c.str(); }
+  string get() const { return c.str(); }
   void set(const string& colour) { c = RGB{colour}; }
-  double get_r() { return c.r; }
+  double get_r() const { return c.r; }
   void set_r(double r) { c.r = r; }
-  double get_g() { return c.g; }
+  double get_g() const { return c.g; }
   void set_g(double g) { c.g = g; }
-  double get_b() { return c.b; }
+  double get_b() const { return c.b; }
   void set_b(double b) { c.b = b; }
-  double get_h() { return HSL{c}.h; }
+  double get_h() const { return HSL{c}.h; }
   void set_h(double h) { auto hsl = HSL{c}; hsl.h = h; c = RGB{hsl}; }
-  double get_s() { return HSL{c}.s; }
+  double get_s() const { return HSL{c}.s; }
   void set_s(double s) { auto hsl = HSL{c}; hsl.s = s; c = RGB{hsl}; }
-  double get_l() { return HSL{c}.l; }
+  double get_l() const { return HSL{c}.l; }
   void set_l(double l) { auto hsl = HSL{c}; hsl.l = l; c = RGB{hsl}; }
 };
 
@@ -64,32 +64,25 @@ Dataflow::Module module
   {
     { "", { "Colour text #rrbbgg or rgb(r,g,b) or hsl(h,s,l)",
             Value::Type::text,
-            { static_cast<string (Element::*)()>(&ColourFilter::get),
-            static_cast<void (Element::*)(const string&)>(&ColourFilter::set) },
+            { &ColourFilter::get, &ColourFilter::set },
             true } },
     { "r", { "Red component (0..1)", Value::Type::number,
-             { static_cast<double (Element::*)()>(&ColourFilter::get_r),
-               static_cast<void (Element::*)(double)>(&ColourFilter::set_r) },
+             { &ColourFilter::get_r, &ColourFilter::set_r },
              true } },
     { "g", { "Green component (0..1)", Value::Type::number,
-             { static_cast<double (Element::*)()>(&ColourFilter::get_g),
-               static_cast<void (Element::*)(double)>(&ColourFilter::set_g) },
+             { &ColourFilter::get_g, &ColourFilter::set_g },
              true } },
     { "b", { "Blue component (0..1)", Value::Type::number,
-             { static_cast<double (Element::*)()>(&ColourFilter::get_b),
-               static_cast<void (Element::*)(double)>(&ColourFilter::set_b) },
+             { &ColourFilter::get_b, &ColourFilter::set_b },
              true } },
     { "h", { "Hue for HSL (0..1)", Value::Type::number,
-             { static_cast<double (Element::*)()>(&ColourFilter::get_h),
-               static_cast<void (Element::*)(double)>(&ColourFilter::set_h) },
+             { &ColourFilter::get_h, &ColourFilter::set_h },
              true } },
-    { "s", { {"Saturation for HSL (0..1)","1.0"}, Value::Type::number,
-             { static_cast<double (Element::*)()>(&ColourFilter::get_s),
-               static_cast<void (Element::*)(double)>(&ColourFilter::set_s) },
+    { "s", { "Saturation for HSL (0..1)", Value::Type::number,
+             { &ColourFilter::get_s, &ColourFilter::set_s },
              true } },
     { "l", { {"Lightnesss for HSL (0..1)","0.5"}, Value::Type::number,
-             { static_cast<double (Element::*)()>(&ColourFilter::get_l),
-               static_cast<void (Element::*)(double)>(&ColourFilter::set_l) },
+             { &ColourFilter::get_l, &ColourFilter::set_l },
              true } },
   },
   { "VectorFrame" }, // inputs

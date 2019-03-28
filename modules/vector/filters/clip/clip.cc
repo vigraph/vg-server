@@ -37,7 +37,7 @@ public:
   using FrameFilter::FrameFilter;
 
   // Getters/Setters
-  string get_outline() { return outline_colour.str(); }
+  string get_outline() const { return outline_colour.str(); }
   void set_outline(const string& colour) { outline_colour = RGB{colour}; }
 };
 
@@ -104,26 +104,24 @@ Dataflow::Module module
   "vector",
   {
     { "min.x", { "Minimum X value", Value::Type::number,
-                 static_cast<double Element::*>(&ClipFilter::min_x), true } },
+                 &ClipFilter::min_x, true } },
     { "min.y", { "Minimum Y value", Value::Type::number,
-                 static_cast<double Element::*>(&ClipFilter::min_y), true } },
+                 &ClipFilter::min_y, true } },
     { "min.z", { "Minimum Z value", Value::Type::number,
-                 static_cast<double Element::*>(&ClipFilter::min_z), true } },
+                 &ClipFilter::min_z, true } },
     { "max.x", { "Maximum X value", Value::Type::number,
-                 static_cast<double Element::*>(&ClipFilter::max_x), true } },
+                 &ClipFilter::max_x, true } },
     { "max.y", { "Maximum Y value", Value::Type::number,
-                 static_cast<double Element::*>(&ClipFilter::max_y), true } },
+                 &ClipFilter::max_y, true } },
     { "max.z", { "Maximum Z value", Value::Type::number,
-                 static_cast<double Element::*>(&ClipFilter::max_z), true } },
+                 &ClipFilter::max_z, true } },
     { "exclude", { "Whether to remove points inside the box",
                    Value::Type::boolean,
-                   static_cast<bool Element::*>(&ClipFilter::exclude),
-                   true } },
+                   &ClipFilter::exclude, true } },
     { "alpha", { "Alpha level to apply to clipped points", Value::Type::number,
-                 static_cast<double Element::*>(&ClipFilter::alpha), true } },
+                 &ClipFilter::alpha, true } },
     { "Outline", { "Outline colour", Value::Type::text,
-   { static_cast<string (Element::*)()>(&ClipFilter::get_outline),
-     static_cast<void (Element::*)(const string&)>(&ClipFilter::set_outline) },
+                   { &ClipFilter::get_outline, &ClipFilter::set_outline },
                    true } },
   },
   { "VectorFrame" }, // inputs

@@ -37,9 +37,9 @@ public:
   using Control::Control;
 
   // Property getter/setters
-  double get_freq() { return (interval > 0) ? 1.0/interval : 0; }
+  double get_freq() const { return (interval > 0) ? 1.0/interval : 0; }
   void set_freq(double f) { if (f > 0) interval = 1.0 / f; }
-  double get_bpm() { return (interval > 0) ? 60.0/interval : 0; }
+  double get_bpm() const { return (interval > 0) ? 60.0/interval : 0; }
   void set_bpm(double bpm) { if (bpm > 0) interval = 60.0 / bpm; }
 
   // Trigger functions
@@ -106,24 +106,20 @@ Dataflow::Module module
   "core",
   {
     { "interval", { "Interval in seconds", Value::Type::number,
-          static_cast<double Element::*>(&BeatControl::interval), true } },
+                    &BeatControl::interval, true } },
     // The following two are aliases - settable, but not stored
     { "bpm", { "Beats per minute", Value::Type::number,
-          { static_cast<double (Element::*)()>(&BeatControl::get_bpm),
-          static_cast<void (Element::*)(double)>(&BeatControl::set_bpm) },
-          true, true } },
+               { &BeatControl::get_bpm, &BeatControl::set_bpm },
+               true, true } },
     { "freq", { "Frequency in Hz", Value::Type::number,
-          { static_cast<double (Element::*)()>(&BeatControl::get_freq),
-            static_cast<void (Element::*)(double)>(&BeatControl::set_freq) },
-          true, true } },
+                { &BeatControl::get_freq, &BeatControl::set_freq },
+                true, true } },
 
     // Trigger inputs
     { "start", { "Trigger to start", Value::Type::trigger,
-          static_cast<void (Element::*)()>(&BeatControl::trigger_start),
-          true } },
+                 &BeatControl::trigger_start, true } },
     { "stop",  { "Trigger to stop",  Value::Type::trigger,
-          static_cast<void (Element::*)()>(&BeatControl::trigger_stop),
-          true } }
+                 &BeatControl::trigger_stop, true } }
   },
   { { "trigger", { "Trigger output", "trigger", Value::Type::trigger }}}
 };

@@ -64,15 +64,14 @@ Dataflow::Module module
   "vector",
   {
     { "all", { "Factor to fade all channels", Value::Type::number,
-               { nullptr,
-                 static_cast<void (Element::*)(double)>(&FadeFilter::set_all) },
+               { &FadeFilter::set_all },
                true, true } },
     { "r", { "Factor to fade red", Value::Type::number,
-             static_cast<double Element::*>(&FadeFilter::fr), true } },
+             &FadeFilter::fr, true } },
     { "g", { "Factor to fade green", Value::Type::number,
-             static_cast<double Element::*>(&FadeFilter::fg), true } },
+             &FadeFilter::fg, true } },
     { "b", { "Factor to fade blue", Value::Type::number,
-             static_cast<double Element::*>(&FadeFilter::fb), true } },
+             &FadeFilter::fb, true } },
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

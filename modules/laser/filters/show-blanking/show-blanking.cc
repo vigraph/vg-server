@@ -25,7 +25,7 @@ public:
   using FrameFilter::FrameFilter;
 
   // Getters/setters
-  string get_colour() { return blank_colour.str(); }
+  string get_colour() const { return blank_colour.str(); }
   void set_colour(const string& colour) { blank_colour = Colour::RGB(colour); }
 };
 
@@ -49,9 +49,9 @@ Dataflow::Module module
   "laser",
   {
     { "colour", { "Colour to set blanked points to", Value::Type::text,
-      { static_cast<string (Element::*)()>(&ShowBlankingFilter::get_colour),
-        static_cast<void (Element::*)(const string&)>(
-            &ShowBlankingFilter::set_colour) }, true } }
+                  { &ShowBlankingFilter::get_colour,
+                    &ShowBlankingFilter::set_colour },
+                  true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

@@ -48,13 +48,12 @@ Dataflow::Module module
   "Hard limit on a value",
   "core",
   {
-    { "value",
-      { "Base value", Value::Type::number,
-          static_cast<double Element::*>(&LimitControl::value), true } },
+    { "value", { "Base value", Value::Type::number,
+                 &LimitControl::value, true } },
     { "min", { "Minimum value", Value::Type::number,
-          static_cast<double Element::*>(&LimitControl::min), true } },
+               &LimitControl::min, true } },
     { "max", { { "Maximum value", "1.0" }, Value::Type::number,
-          static_cast<double Element::*>(&LimitControl::max), true } }
+               &LimitControl::max, true } }
   },
   { { "value", { "Value output", "value", Value::Type::number }}}
 };

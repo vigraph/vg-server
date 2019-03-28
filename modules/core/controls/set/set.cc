@@ -81,13 +81,11 @@ Dataflow::Module module
   "core",
   {
     { "value", { "Value to set", Value::Type::number,
-                 static_cast<double Element::*>(&SetControl::value),
-                 true } },
+                 &SetControl::value, true } },
     { "wait",  { "Whether to wait for a trigger", Value::Type::boolean,
-                 static_cast<bool Element::*>(&SetControl::wait), false } },
+                 &SetControl::wait, false } },
     { "trigger", { "Trigger to set value", Value::Type::trigger,
-                   static_cast<void (Element::*)()>(&SetControl::set_triggered),
-                   true } }
+                   &SetControl::set_triggered, true } }
   },
   { { "value", { "Value", "value", Value::Type::number }}}
 };

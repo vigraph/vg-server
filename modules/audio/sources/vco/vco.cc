@@ -49,15 +49,15 @@ public:
   using Source::Source;
 
   // Getters/Setters
-  string get_note()
+  string get_note() const
   { return MIDI::get_midi_note(MIDI::get_midi_frequency_number(freq)); }
   void set_note(const string& note)
   { freq = MIDI::get_midi_frequency(MIDI::get_midi_number(note)); }
-  int get_number() { return MIDI::get_midi_frequency_number(freq); }
+  int get_number() const { return MIDI::get_midi_frequency_number(freq); }
   void set_number(int number) { freq = MIDI::get_midi_frequency(number); }
-  string get_waveform();
+  string get_waveform() const;
   void set_waveform(const string& wave);
-  double get_pulse_width() { return pulse_width; }
+  double get_pulse_width() const { return pulse_width; }
   void set_pulse_width(double pw) {pulse_width = max(0.0, min(1.0, pw)); }
   void start() { enabled = true; }
   void stop() { enabled = false; }
@@ -65,7 +65,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Get waveform
-string VCOSource::get_waveform()
+string VCOSource::get_waveform() const
 {
   switch (waveform)
   {
@@ -170,27 +170,24 @@ Dataflow::Module module
   "audio",
   {
     { "freq",  { "Frequency (Hz)", Value::Type::number,
-                static_cast<double Element::*>(&VCOSource::freq), true } },
+                 &VCOSource::freq, true } },
     { "note",  { "Note name (e.g C#4)", Value::Type::text,
-     { static_cast<string (Element::*)()>(&VCOSource::get_note),
-       static_cast<void (Element::*)(const string &)>(&VCOSource::set_note) },
-                   true, true } },
+                 { &VCOSource::get_note, &VCOSource::set_note },
+                 true, true } },
     { "number",  { "MIDI note number (0-127)", Value::Type::number,
-     { static_cast<int (Element::*)()>(&VCOSource::get_number),
-       static_cast<void (Element::*)(int)>(&VCOSource::set_number) },
+                   { &VCOSource::get_number, &VCOSource::set_number },
                    true, true } },
     { "wave",  { "Waveform type (none, saw, sin, square, triangle, random)",
                  Value::Type::text,
-   { static_cast<string (Element::*)()>(&VCOSource::get_waveform),
-     static_cast<void (Element::*)(const string&)>(&VCOSource::set_waveform) },
+                 { &VCOSource::get_waveform, &VCOSource::set_waveform },
                  true } },
     { "pulse-width",  { "Pulse Width", Value::Type::number,
-        static_cast<double Element::*>(&VCOSource::pulse_width), true } },
+                        &VCOSource::pulse_width, true } },
     { "trigger", { "Trigger on", Value::Type::trigger,
-                   static_cast<void (Element::*)()>(&VCOSource::start),
+                   &VCOSource::start,
                    true }},
     { "clear", { "Trigger off", Value::Type::trigger,
-                 static_cast<void (Element::*)()>(&VCOSource::stop),
+                 &VCOSource::stop,
                  true }},
   },
   {},  // no inputs

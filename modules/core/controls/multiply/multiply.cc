@@ -43,12 +43,10 @@ Dataflow::Module module
   "Multiply a control value",
   "core",
   {
-    { "value",
-      { "Base value", Value::Type::number,
-          static_cast<double Element::*>(&MultiplyControl::value), true } },
-    { "factor",
-      { { "Factor to multiply with", "1.0" }, Value::Type::number,
-          static_cast<double Element::*>(&MultiplyControl::factor), true } }
+    { "value", { "Base value", Value::Type::number,
+                  &MultiplyControl::value, true } },
+    { "factor", { { "Factor to multiply with", "1.0" }, Value::Type::number,
+                  &MultiplyControl::factor, true } }
   },
   { { "value", { "Value output", "value", Value::Type::number }}}
 };

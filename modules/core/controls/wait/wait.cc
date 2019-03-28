@@ -73,11 +73,9 @@ Dataflow::Module module
   "core",
   {
     { "for", { "Time to wait for", Value::Type::number,
-               static_cast<double Element::*>(&WaitControl::delay),
-               true } },
+               &WaitControl::delay, true } },
     { "trigger", { "Trigger", Value::Type::trigger,
-             static_cast<void (Element::*)()>(&WaitControl::set_triggered),
-                   true } }
+                   &WaitControl::set_triggered, true } }
   },
   { { "trigger", { "Trigger", "trigger", Value::Type::trigger }}}
 };

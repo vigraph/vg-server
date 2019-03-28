@@ -54,12 +54,10 @@ Dataflow::Module module
   "laser",
   {
     { "repeats", { "Number of points to add at a vertex", Value::Type::number,
-          static_cast<int Element::*>(&AddVertexRepeatsFilter::repeats),
-          true } },
+                   &AddVertexRepeatsFilter::repeats, true } },
     { "max-angle", { "Maximum turn angle at a vertex before adding points",
-          Value::Type::number,
-          static_cast<double Element::*>(&AddVertexRepeatsFilter::max_angle),
-          true } }
+                     Value::Type::number,
+                     &AddVertexRepeatsFilter::max_angle, true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

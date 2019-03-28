@@ -63,16 +63,15 @@ Dataflow::Module module
   "core",
   {
     { "value", { "Value input", Value::Type::number,
-        { static_cast<double (Element::*)()>(&CompareControl::get_value),
-          static_cast<void (Element::*)(double)>(&CompareControl::set_value) },
-          true } },
+                 { &CompareControl::get_value, &CompareControl::set_value },
+                 true } },
     { "min", { "Minimum value", Value::Type::number,
-          static_cast<double Element::*>(&CompareControl::min), true } },
+               &CompareControl::min, true } },
     { "max", { { "Maximum value", "1.0" }, Value::Type::number,
-          static_cast<double Element::*>(&CompareControl::max), true } },
+                 &CompareControl::max, true } },
     { "on-change", { { "Send triggers only on change", "false" },
-          Value::Type::boolean,
-            static_cast<bool Element::*>(&CompareControl::on_change), true } }
+                       Value::Type::boolean,
+                       &CompareControl::on_change, true } }
   },
   {
     { "trigger", { "Match", "trigger", Value::Type::trigger }},

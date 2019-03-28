@@ -102,13 +102,13 @@ Dataflow::Module module
   "vector",
   {
     { "path", { "SVG path data (as if in <path d=...>)", Value::Type::text,
-             static_cast<string Element::*>(&SVGSource::path_data), false } },
+                &SVGSource::path_data, false } },
     { "file", { "Filename of SVG file", Value::Type::file,
-             static_cast<string Element::*>(&SVGSource::file), false } },
+                &SVGSource::file, false } },
     { "precision", { "Curve precision", Value::Type::number,
-             static_cast<double Element::*>(&SVGSource::precision), false } },
+                     &SVGSource::precision, false } },
     { "normalise", { "Scale to unit square", Value::Type::boolean,
-             static_cast<bool Element::*>(&SVGSource::normalise), false } },
+                     &SVGSource::normalise, false } },
   },
   {}, // no inputs
   { "VectorFrame" }

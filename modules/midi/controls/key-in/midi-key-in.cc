@@ -42,7 +42,7 @@ public:
   using Control::Control;
 
   // Property getter/setters
-  string get_note() { return MIDI::get_midi_note(number); }
+  string get_note() const { return MIDI::get_midi_note(number); }
   void set_note(const string& note) { number = MIDI::get_midi_number(note); }
 };
 
@@ -137,18 +137,16 @@ Dataflow::Module module
   "midi",
   {
     { "channel", { "MIDI channel (0=all)", Value::Type::number,
-      static_cast<int Element::*>(&MIDIKeyInControl::channel) } },
+                   &MIDIKeyInControl::channel } },
     { "number", { "Note number (-1=disable)", Value::Type::number,
-      static_cast<int Element::*>(&MIDIKeyInControl::number), true } },
-    { "note", {"Note (C3, A4#)", Value::Type::text,
-    { static_cast<string (Element::*)()>(&MIDIKeyInControl::get_note),
-      static_cast<void (Element::*)(const string&)>(
-          &MIDIKeyInControl::set_note) },
-      true, true } },
+                  &MIDIKeyInControl::number, true } },
+    { "note", { "Note (C3, A4#)", Value::Type::text,
+                { &MIDIKeyInControl::get_note, &MIDIKeyInControl::set_note },
+                true, true } },
     { "min", { "Minimum note number (-1=disable)", Value::Type::number,
-      static_cast<int Element::*>(&MIDIKeyInControl::min), true } },
+               &MIDIKeyInControl::min, true } },
     { "max", { "Maximum note number (-1=disable)", Value::Type::number,
-      static_cast<int Element::*>(&MIDIKeyInControl::max), true } },
+               &MIDIKeyInControl::max, true } },
   },
   {
     { "trigger", { "Note trigger", "trigger", Value::Type::trigger }},

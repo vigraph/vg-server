@@ -239,16 +239,13 @@ Dataflow::Module module
   "audio",
   {
       { "device", { "Device output to", Value::Type::text,
-                static_cast<string Element::*>(&LinuxALSAOutFilter::device),
-                false } },
+                    &LinuxALSAOutFilter::device, false } },
       { "channels", { "Number of channels", Value::Type::number,
-                static_cast<int Element::*>(&LinuxALSAOutFilter::nchannels),
-                false } },
+                      &LinuxALSAOutFilter::nchannels, false } },
       { "start-threshold",
         { "Number of samples to buffer before playback will start",
           Value::Type::number,
-          static_cast<int Element::*>(&LinuxALSAOutFilter::start_threshold),
-          false } },
+          &LinuxALSAOutFilter::start_threshold, false } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

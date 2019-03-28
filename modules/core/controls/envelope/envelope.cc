@@ -171,17 +171,17 @@ Dataflow::Module module
   "core",
   {
     { "attack",  { "Attack time", Value::Type::number,
-          static_cast<double Element::*>(&EnvelopeControl::attack), true } },
+                   &EnvelopeControl::attack, true } },
     { "decay",   { "Decay time", Value::Type::number,
-          static_cast<double Element::*>(&EnvelopeControl::decay), true } },
+                   &EnvelopeControl::decay, true } },
     { "sustain", { "Sustain level", Value::Type::number,
-          static_cast<double Element::*>(&EnvelopeControl::sustain), true } },
+                   &EnvelopeControl::sustain, true } },
     { "release", { "Release time", Value::Type::number,
-          static_cast<double Element::*>(&EnvelopeControl::release), true } },
+                   &EnvelopeControl::release, true } },
     { "trigger", { "Trigger to start attack", Value::Type::trigger,
-          static_cast<void (Element::*)()>(&EnvelopeControl::trigger), true } },
+                   &EnvelopeControl::trigger, true } },
     { "clear",   { "Trigger to start release", Value::Type::trigger,
-          static_cast<void (Element::*)()>(&EnvelopeControl::clear), true } }
+                   &EnvelopeControl::clear, true } }
   },
   {
     { "value", { "Envelope value", "value", Value::Type::number }},

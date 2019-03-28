@@ -31,9 +31,9 @@ public:
   InterpolateControl(const Module *module, const XML::Element& config);
 
   // Getter/setters
-  JSON::Value get_curve();
+  JSON::Value get_curve() const;
   void set_curve(const JSON::Value& json);
-  double get_t() { return 0.0; }
+  double get_t() const { return 0.0; }
   void set_t(double t);
 };
 
@@ -73,7 +73,7 @@ InterpolateControl::InterpolateControl(const Module *module,
 
 //--------------------------------------------------------------------------
 // Get curve as JSON value
-JSON::Value InterpolateControl::get_curve()
+JSON::Value InterpolateControl::get_curve() const
 {
   JSON::Value json(JSON::Value::ARRAY);
   for(const auto& p: points)
@@ -171,15 +171,11 @@ Dataflow::Module module
   "core",
   {
     { "t",  { "Proportion to interpolate (0..1)", Value::Type::number,
-        { static_cast<double (Element::*)()>(&InterpolateControl::get_t),
-          static_cast<void (Element::*)(double)>(&InterpolateControl::set_t) },
-          true }},
-    { "curve",  { "Interpolation curve", "curve",
-        { static_cast<JSON::Value (Element::*)()>
-            (&InterpolateControl::get_curve),
-          static_cast<void (Element::*)(const JSON::Value&)>
-            (&InterpolateControl::set_curve) },
-          } }
+              { &InterpolateControl::get_t, &InterpolateControl::set_t },
+              true }},
+    { "curve", { "Interpolation curve", "curve",
+                 { &InterpolateControl::get_curve,
+                   &InterpolateControl::set_curve }, } }
   },
   { { "", { "Any value", "", Value::Type::any }}} // Flexible controlled property
 };

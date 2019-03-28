@@ -55,7 +55,7 @@ public:
   using Control::Control;
 
   // Property getter/setters
-  string get_waveform();
+  string get_waveform() const;
   void set_waveform(const string& wave);
 
   // Trigger function
@@ -64,7 +64,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Get waveform name
-string LFOControl::get_waveform()
+string LFOControl::get_waveform() const
 {
   switch (waveform)
   {
@@ -158,39 +158,23 @@ Dataflow::Module module
   "Low Frequency Oscillator",
   "core",
   {
-    { "wave",  { { "Waveform", "sin" },
-          Value::Type::choice,
-          { static_cast<string (Element::*)()>(&LFOControl::get_waveform),
-            static_cast<void (Element::*)(const string&)>(&LFOControl::set_waveform) },
-          { "saw", "sin", "square", "triangle", "random" }, true } },
-    { "once", { { "Run only one cycle", "false" },
-          Value::Type::boolean,
-          static_cast<bool Element::*>(&LFOControl::once),
-          true } },
-    { "wait", { { "Wait to be triggered", "false" },
-          Value::Type::boolean,
-          static_cast<bool Element::*>(&LFOControl::wait),
-          true } },
-    { "period", { { "Period in seconds", "1.0" },
-          Value::Type::number,
-          static_cast<double Element::*>(&LFOControl::period),
-          true } },
-    { "scale", { { "Scale (amplitude)", "1.0" },
-          Value::Type::number,
-          static_cast<double Element::*>(&LFOControl::scale),
-          true } },
-    { "offset", { "Baseline offset",
-          Value::Type::number,
-          static_cast<double Element::*>(&LFOControl::offset),
-          true } },
-    { "phase", { "Phase shift (0..1)",
-          Value::Type::number,
-          static_cast<double Element::*>(&LFOControl::phase),
-          true } },
-    { "trigger", { "Trigger to start",
-          Value::Type::trigger,
-          static_cast<void (Element::*)()>(&LFOControl::trigger),
-          true } }
+    { "wave",  { { "Waveform", "sin" }, Value::Type::choice,
+                 { &LFOControl::get_waveform, &LFOControl::set_waveform },
+                 { "saw", "sin", "square", "triangle", "random" }, true } },
+    { "once", { { "Run only one cycle", "false" }, Value::Type::boolean,
+                &LFOControl::once, true } },
+    { "wait", { { "Wait to be triggered", "false" }, Value::Type::boolean,
+                &LFOControl::wait, true } },
+    { "period", { { "Period in seconds", "1.0" }, Value::Type::number,
+                  &LFOControl::period, true } },
+    { "scale", { { "Scale (amplitude)", "1.0" }, Value::Type::number,
+                 &LFOControl::scale, true } },
+    { "offset", { "Baseline offset", Value::Type::number,
+                  &LFOControl::offset, true } },
+    { "phase", { "Phase shift (0..1)", Value::Type::number,
+                 &LFOControl::phase, true } },
+    { "trigger", { "Trigger to start", Value::Type::trigger,
+                   &LFOControl::trigger, true } }
   },
   { { "value", { "Wave output", "value", Value::Type::number }}}
 };

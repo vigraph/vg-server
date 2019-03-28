@@ -238,25 +238,19 @@ Dataflow::Module module
   "laser",
   {
     { "packet.size", { "UDP packet size in bytes", Value::Type::number,
-             static_cast<int Element::*>(&IDNTransmitFilter::packet_size),
-             true } },
+                       &IDNTransmitFilter::packet_size, true } },
     { "config.interval", { "Interval between configuration packets in sec",
-          Value::Type::number,
-          static_cast<double Element::*>(&IDNTransmitFilter::config_interval),
-          true } },
+                           Value::Type::number,
+                           &IDNTransmitFilter::config_interval, true } },
     { "intensity.enabled", { "Whether to send overall intensity values",
-          Value::Type::boolean,
-          static_cast<bool Element::*>(&IDNTransmitFilter::intensity_enabled),
-          true } },
+                             Value::Type::boolean,
+                             &IDNTransmitFilter::intensity_enabled, true } },
     { "host.address", { "Destination host (IP or hostname)", Value::Type::text,
-          static_cast<string Element::*>(&IDNTransmitFilter::host_address),
-          false } },
+                        &IDNTransmitFilter::host_address, false } },
     { "host.port", { "Destination port", Value::Type::number,
-          static_cast<int Element::*>(&IDNTransmitFilter::host_port),
-          false } },
+                     &IDNTransmitFilter::host_port, false } },
     { "source.address", { "Source address to bind to", Value::Type::text,
-          static_cast<string Element::*>(&IDNTransmitFilter::source_address),
-          false } }
+                          &IDNTransmitFilter::source_address, false } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

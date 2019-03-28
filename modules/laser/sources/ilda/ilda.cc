@@ -77,9 +77,9 @@ Dataflow::Module module
   "vector",
   {
     { "file", { "Filename of ILDA file", Value::Type::file,
-            static_cast<string Element::*>(&ILDASource::filename), false } },
+                &ILDASource::filename, false } },
     { "frame-rate", { "Frame rate (frames per sec)", Value::Type::number,
-            static_cast<double Element::*>(&ILDASource::frame_rate), true } }
+                      &ILDASource::frame_rate, true } }
   },
   {}, // no inputs
   { "VectorFrame" }

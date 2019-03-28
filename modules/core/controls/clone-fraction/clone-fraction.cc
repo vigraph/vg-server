@@ -53,14 +53,10 @@ Dataflow::Module module
   "Get the fraction (0..1] of a clone",
   "core",
   {
-    { "scale",  { {"Scale to apply to fraction", "1.0"},
-          Value::Type::number,
-            static_cast<double Element::*>(&CloneFractionControl::scale),
-            true } },
-    { "offset", { {"Offset to apply to fraction", "0"},
-          Value::Type::number,
-            static_cast<double Element::*>(&CloneFractionControl::offset),
-            true } }
+    { "scale",  { {"Scale to apply to fraction", "1.0"}, Value::Type::number,
+                  &CloneFractionControl::scale, true } },
+    { "offset", { {"Offset to apply to fraction", "0"}, Value::Type::number,
+                  &CloneFractionControl::offset, true } }
   },
   { { "", { "Clone fraction", "", Value::Type::number }}}
 };

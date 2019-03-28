@@ -26,11 +26,11 @@ public:
   using FrameFilter::FrameFilter;
 
   // Getters/Setters
-  double get_x() { return d.x; }
+  double get_x() const { return d.x; }
   void set_x(double x) { d.x = x; }
-  double get_y() { return d.y; }
+  double get_y() const { return d.y; }
   void set_y(double y) { d.y = y; }
-  double get_z() { return d.z; }
+  double get_z() const { return d.z; }
   void set_z(double z) { d.z = z; }
 };
 
@@ -60,16 +60,13 @@ Dataflow::Module module
   "vector",
   {
     { "x", { "Distance to move along X axis", Value::Type::number,
-         { static_cast<double (Element::*)()>(&TranslateFilter::get_x),
-           static_cast<void (Element::*)(double)>(&TranslateFilter::set_x) },
+             { &TranslateFilter::get_x, &TranslateFilter::set_x },
              true } },
     { "y", { "Distance to move along Y axis", Value::Type::number,
-         { static_cast<double (Element::*)()>(&TranslateFilter::get_y),
-           static_cast<void (Element::*)(double)>(&TranslateFilter::set_y) },
+             { &TranslateFilter::get_y, &TranslateFilter::set_y },
              true } },
     { "z", { "Distance to move along Z axis", Value::Type::number,
-         { static_cast<double (Element::*)()>(&TranslateFilter::get_z),
-           static_cast<void (Element::*)(double)>(&TranslateFilter::set_z) },
+             { &TranslateFilter::get_z, &TranslateFilter::set_z },
              true } },
   },
   { "VectorFrame" }, // inputs

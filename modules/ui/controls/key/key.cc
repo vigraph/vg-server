@@ -108,9 +108,9 @@ public:
   UIKeyControl(const Dataflow::Module *module, const XML::Element& config);
 
   // Property getter/setters
-  string get_code();
+  string get_code() const;
   void set_code(const string& code);
-  string get_when();
+  string get_when() const;
   void set_when(const string& when);
 };
 
@@ -171,7 +171,7 @@ void UIKeyControl::handle_key(int /*code*/)
 
 //--------------------------------------------------------------------------
 // Get key code
-string UIKeyControl::get_code()
+string UIKeyControl::get_code() const
 {
   for (const auto& p: key_name_to_code)
   {
@@ -196,7 +196,7 @@ void UIKeyControl::set_code(const string& c)
 
 //--------------------------------------------------------------------------
 // Get when
-string UIKeyControl::get_when()
+string UIKeyControl::get_when() const
 {
   switch (when)
   {
@@ -224,12 +224,9 @@ Dataflow::Module module
   "ui",
   {
     { "code", { "Key code", Value::Type::text,
-    { static_cast<string (Element::*)()>(&UIKeyControl::get_code),
-      static_cast<void (Element::*)(const string&)>(&UIKeyControl::set_code) },
-          true } },
+                { &UIKeyControl::get_code, &UIKeyControl::set_code }, true } },
     { "when", { "Event trigger - pressed | released", Value::Type::text,
-    { static_cast<string (Element::*)()>(&UIKeyControl::get_when),
-      static_cast<void (Element::*)(const string&)>(&UIKeyControl::set_when) },
+                { &UIKeyControl::get_when, &UIKeyControl::set_when },
           {"pressed", "released"}, true } }
   },
   { { "trigger", { "Key trigger", "trigger", Value::Type::trigger }}}

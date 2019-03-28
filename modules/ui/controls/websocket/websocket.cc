@@ -206,7 +206,7 @@ Dataflow::Module module
   "ui",
   {
     { "port", { "Listening port", Value::Type::number,
-              static_cast<int Element::*>(&WebSocketControl::port), false} },
+                &WebSocketControl::port, false} },
   },
   { { "index", { "Control index", "index", Value::Type::number }}}
 };

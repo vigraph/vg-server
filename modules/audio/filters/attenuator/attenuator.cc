@@ -63,11 +63,9 @@ Dataflow::Module module
   "audio",
   {
     { "gain", { "Gain level (0-1)", Value::Type::number,
-                static_cast<double Element::*>(&AttenuatorFilter::gain),
-                true } },
+                &AttenuatorFilter::gain, true } },
     { "interpolate", { "Interpolate up from last gain", Value::Type::boolean,
-                static_cast<bool Element::*>(&AttenuatorFilter::interpolate),
-                true } }
+                       &AttenuatorFilter::interpolate, true } }
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

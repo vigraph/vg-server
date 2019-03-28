@@ -49,12 +49,10 @@ Dataflow::Module module
   "laser",
   {
     { "lit", { "Maximum distance between lit points", Value::Type::number,
-      static_cast<double Element::*>(&InfillLinesFilter::max_distance_lit),
-      true } },
+               &InfillLinesFilter::max_distance_lit, true } },
     { "blanked", { "Maximum distance between blanked points",
-      Value::Type::number,
-      static_cast<double Element::*>(&InfillLinesFilter::max_distance_blanked),
-      true } }
+                   Value::Type::number,
+                   &InfillLinesFilter::max_distance_blanked, true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

@@ -68,11 +68,11 @@ Dataflow::Module module
   "vector",
   {
     { "x", { "Angle to rotate on X axis", Value::Type::number,
-             static_cast<MemberDouble>(&RotateFilter::rx), true } },
+             &RotateFilter::rx, true } },
     { "y", { "Angle to rotate on Y axis", Value::Type::number,
-             static_cast<MemberDouble>(&RotateFilter::ry), true } },
+             &RotateFilter::ry, true } },
     { "z", { "Angle to rotate on Z axis", Value::Type::number,
-             static_cast<MemberDouble>(&RotateFilter::rz), true } },
+             &RotateFilter::rz, true } },
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

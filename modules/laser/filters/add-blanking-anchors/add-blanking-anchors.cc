@@ -53,13 +53,11 @@ Dataflow::Module module
   "laser",
   {
     { "leading", { "Number of points to add at start of lit segment",
-          Value::Type::number,
-          static_cast<int Element::*>(&AddBlankingAnchorsFilter::leading),
-          true } },
+                   Value::Type::number,
+                   &AddBlankingAnchorsFilter::leading, true } },
     { "trailing", { "Number of points to add at end of lit segment",
-          Value::Type::number,
-          static_cast<int Element::*>(&AddBlankingAnchorsFilter::trailing),
-          true } }
+                    Value::Type::number,
+                    &AddBlankingAnchorsFilter::trailing, true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

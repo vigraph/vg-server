@@ -164,6 +164,24 @@ class Engine;
 class Element;
 
 //==========================================================================
+// Typedefs to help with member pointers
+typedef double Element::*MemberDouble;
+typedef double (Element::*MemberGetDouble)();
+typedef void (Element::*MemberSetDouble)(double);
+typedef string Element::*MemberString;
+typedef string (Element::*MemberGetString)();
+typedef void (Element::*MemberSetString)(const string&);
+typedef bool Element::*MemberBool;
+typedef bool (Element::*MemberGetBool)();
+typedef void (Element::*MemberSetBool)(bool);
+typedef int Element::*MemberInt;
+typedef int (Element::*MemberGetInt)();
+typedef void (Element::*MemberSetInt)(int);
+typedef JSON::Value (Element::*MemberGetJSON)();
+typedef void (Element::*MemberSetJSON)(const JSON::Value&);
+typedef void (Element::*MemberTrigger)();
+
+//==========================================================================
 // Module metadata
 struct Module
 {
@@ -193,47 +211,46 @@ struct Module
     struct Member
     {
       // Simple member pointers
-      double Element::* d_ptr{nullptr};
-      string Element::* s_ptr{nullptr};
-      bool Element::* b_ptr{nullptr};
-      int Element::* i_ptr{nullptr};
+      MemberDouble d_ptr{nullptr};
+      MemberString s_ptr{nullptr};
+      MemberBool b_ptr{nullptr};
+      MemberInt i_ptr{nullptr};
 
       // Getter/setter functions
-      double (Element::* get_d)(){nullptr};
-      string (Element::* get_s)(){nullptr};
-      bool (Element::* get_b)(){nullptr};
-      int (Element::* get_i)(){nullptr};
-      JSON::Value (Element::* get_json)(){nullptr};
+      MemberGetDouble get_d{nullptr};
+      MemberGetString get_s{nullptr};
+      MemberGetBool get_b{nullptr};
+      MemberGetInt get_i{nullptr};
+      MemberGetJSON get_json{nullptr};
 
-      void (Element::* set_d)(double){nullptr};
-      void (Element::* set_s)(const string& ){nullptr};
-      void (Element::* set_b)(bool){nullptr};
-      void (Element::* set_i)(int){nullptr};
-      void (Element::* set_json)(const JSON::Value& json){nullptr};
+      MemberSetDouble set_d{nullptr};
+      MemberSetString set_s{nullptr};
+      MemberSetBool set_b{nullptr};
+      MemberSetInt set_i{nullptr};
+      MemberSetJSON set_json{nullptr};
 
       // Trigger function
-      void (Element::* trigger)(){nullptr};
+      MemberTrigger trigger{nullptr};
 
       // Constructors to set each of the above
       Member() {}
-      Member(double Element::* _p): d_ptr(_p) {}
-      Member(string Element::* _p): s_ptr(_p) {}
-      Member(bool Element::* _p): b_ptr(_p) {}
-      Member(int Element::* _p): i_ptr(_p) {}
+      Member(MemberDouble _p): d_ptr(_p) {}
+      Member(MemberString _p): s_ptr(_p) {}
+      Member(MemberBool _p): b_ptr(_p) {}
+      Member(MemberInt _p): i_ptr(_p) {}
 
-      Member(double (Element::* _get)(),
-             void (Element::* _set)(double)): get_d(_get), set_d(_set) {}
-      Member(string (Element::* _get)(),
-             void (Element::* _set)(const string&)): get_s(_get), set_s(_set) {}
-      Member(bool (Element::* _get)(),
-             void (Element::* _set)(bool)): get_b(_get), set_b(_set) {}
-      Member(int (Element::* _get)(),
-             void (Element::* _set)(int)): get_i(_get), set_i(_set) {}
-      Member(JSON::Value (Element::* _get)(),
-             void (Element::* _set)(const JSON::Value&)):
+      Member(MemberGetDouble _get, MemberSetDouble _set):
+        get_d(_get), set_d(_set) {}
+      Member(MemberGetString _get, MemberSetString _set):
+        get_s(_get), set_s(_set) {}
+      Member(MemberGetBool _get, MemberSetBool _set):
+        get_b(_get), set_b(_set) {}
+      Member(MemberGetInt _get, MemberSetInt _set):
+        get_i(_get), set_i(_set) {}
+      Member(MemberGetJSON _get, MemberSetJSON _set):
         get_json(_get), set_json(_set) {}
 
-      Member(void (Element::* _f)()): trigger(_f) {}
+      Member(MemberTrigger _f): trigger(_f) {}
     } member;
 
     set<string> options;       // Options for choice

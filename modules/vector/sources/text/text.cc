@@ -15,33 +15,20 @@ namespace {
 // Text source
 class TextSource: public Dataflow::Source
 {
+public:
   string text;
   static constexpr double default_precision = 0.1;
   double precision{default_precision};
+
+private:
   vector<Point> points;
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
   void tick(const TickData& td) override;
 
 public:
-  TextSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML:
-//   <text font="arial.ttf" precision="0.1">Hello, world!</text>
-void TextSource::configure(const File::Directory&,
-                           const XML::Element& config)
-{
-  Log::Streams log;
-  text = *config;
-  precision = config.get_attr_real("precision", default_precision);
-
-  //  const auto& font = config["font"];
-}
 
 //--------------------------------------------------------------------------
 // Generate a frame
@@ -61,8 +48,9 @@ Dataflow::Module module
   "Text display",
   "vector",
   {
+    { "", { "Text to use", Value::Type::text, &TextSource::text, true } },
     { "precision", { {"Precision for character generation","0.1"},
-          Value::Type::number}}
+                     Value::Type::number, &TextSource::precision, true } }
   },
   {}, // no inputs
   { "VectorFrame" }

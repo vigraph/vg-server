@@ -22,35 +22,21 @@ class PositionFilter: public FragmentFilter
   Vector start_d, d;
 
   // Source/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
+  void setup() override { start_d = d; }
   void accept(FragmentPtr fragment) override;
   void enable() override;
 
 public:
-  PositionFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FragmentFilter::FragmentFilter;
+
+  // Getters/Setters
+  double get_x() { return d.x; }
+  void set_x(double x) { d.x = x; }
+  double get_y() { return d.y; }
+  void set_y(double y) { d.y = y; }
+  double get_z() { return d.z; }
+  void set_z(double z) { d.z = z; }
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML:
-//   <position x="0.5" y="1.0" z="0.33"/>
-PositionFilter::PositionFilter(const Dataflow::Module *module,
-                               const XML::Element& config):
-    FragmentFilter(module, config)
-{
-  d.x = config.get_attr_real("x");
-  d.y = config.get_attr_real("y");
-  d.z = config.get_attr_real("z");
-  start_d = d;
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void PositionFilter::set_property(const string& property, const SetParams& sp)
-{
-       if (property == "x") update_prop(d.x, sp);
-  else if (property == "y") update_prop(d.y, sp);
-  else if (property == "z") update_prop(d.z, sp);
-}
 
 //--------------------------------------------------------------------------
 // Enable (reset)
@@ -97,9 +83,18 @@ Dataflow::Module module
   "Audio position",
   "audio",
   {
-    { "x", { "Distance to move along X axis", Value::Type::number, "x", true } },
-    { "y", { "Distance to move along Y axis", Value::Type::number, "y", true } },
-    { "z", { "Distance to move along Z axis", Value::Type::number, "z", true } }
+    { "x", { "Distance to move along X axis", Value::Type::number,
+             { static_cast<double (Element::*)()>(&PositionFilter::get_x),
+               static_cast<void (Element::*)(double)>(&PositionFilter::set_x) },
+             true } },
+    { "y", { "Distance to move along Y axis", Value::Type::number,
+             { static_cast<double (Element::*)()>(&PositionFilter::get_y),
+               static_cast<void (Element::*)(double)>(&PositionFilter::set_y) },
+             true } },
+    { "z", { "Distance to move along Z axis", Value::Type::number,
+             { static_cast<double (Element::*)()>(&PositionFilter::get_z),
+               static_cast<void (Element::*)(double)>(&PositionFilter::set_z) },
+             true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

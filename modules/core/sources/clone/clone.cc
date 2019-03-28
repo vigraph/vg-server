@@ -26,6 +26,7 @@ class CloneSource: public Dataflow::Source
   void post_tick(const TickData& td) override;
   void enable() override;
   void disable() override;
+  JSON::Value get_json() const override;
 
 public:
   CloneSource(const Module *module, const XML::Element& config):
@@ -95,6 +96,17 @@ void CloneSource::tick(const TickData& td)
 void CloneSource::post_tick(const TickData& td)
 {
   multigraph->post_tick_all(td);
+}
+
+//--------------------------------------------------------------------------
+// Get JSON
+JSON::Value CloneSource::get_json() const
+{
+  JSON::Value json = Element::get_json();
+  // Just use the first (assuming there are any)
+  Graph *subgraph = multigraph->get_subgraph(0);
+  if (subgraph) json.set("graph", subgraph->get_json());
+  return json;
 }
 
 //--------------------------------------------------------------------------

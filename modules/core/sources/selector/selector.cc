@@ -44,6 +44,7 @@ class SelectorSource: public Dataflow::Source
   void post_tick(const TickData& td) override;
   void enable() override;
   void disable() override;
+  JSON::Value get_json() const override;
 
 public:
   SelectorSource(const Module *module, const XML::Element& config):
@@ -259,6 +260,21 @@ void SelectorSource::post_tick(const TickData& td)
     if (sub) sub->post_tick({td.t-it.second.t, td.n-it.second.n, td.interval,
                              td.global_t, td.global_n});
   }
+}
+
+//--------------------------------------------------------------------------
+// Get JSON
+JSON::Value SelectorSource::get_json() const
+{
+  JSON::Value json = Element::get_json();
+  JSON::Value& gsj = json.set("graphs", JSON::Value(JSON::Value::ARRAY));
+  for(const auto& sgit: multigraph->get_subgraphs())
+  {
+    JSON::Value& gj = gsj.add(JSON::Value(JSON::Value::OBJECT));
+    gj.set("id", sgit.first);
+    gj.set("elements", sgit.second->get_json());
+  }
+  return json;
 }
 
 //--------------------------------------------------------------------------

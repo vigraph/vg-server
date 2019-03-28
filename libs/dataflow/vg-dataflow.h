@@ -921,6 +921,10 @@ class MultiGraph
   Graph *get_subgraph(size_t index);
 
   //------------------------------------------------------------------------
+  // Get all subgraphs
+  const map<string, Graph *>& get_subgraphs() { return subgraphs_by_id; }
+
+  //------------------------------------------------------------------------
   // Shutdown all subgraphs
   void shutdown();
 };

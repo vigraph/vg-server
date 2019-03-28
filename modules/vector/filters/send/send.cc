@@ -17,37 +17,24 @@ using namespace ViGraph::Module;
 // Send filter
 class SendFilter: public FrameFilter
 {
+public:
   string tag;
-  bool copy;
+  bool copy = false;
+
+private:
   shared_ptr<Router> router;
 
   // Filter/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  SendFilter(const Dataflow::Module *module,
-             const XML::Element& config);
+  using FrameFilter::FrameFilter;
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML
-//  <send to="tag"/>
-SendFilter::SendFilter(const Dataflow::Module *module,
-                       const XML::Element& config):
-  FrameFilter(module, config)
-{
-  tag = config["to"];
-  if (!tag.empty()) tag = "vector:"+tag;
-  copy = config.get_attr_bool("copy");
-}
-
-//--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void SendFilter::configure(const File::Directory&,
-                           const XML::Element&)
+// Setup
+void SendFilter::setup()
 {
   auto& engine = graph->get_engine();
   router = engine.get_service<Router>("router");
@@ -59,7 +46,7 @@ void SendFilter::accept(FramePtr frame)
 {
   // Pass frame to router
   if (router && !tag.empty())
-    router->send(tag, frame);
+    router->send("vector:" + tag, frame);
 
   // Pass it on
   if (copy)
@@ -75,9 +62,10 @@ Dataflow::Module module
   "Send vector data to router",
   "vector",
   {
-    { "to", { "Router tag to send to", Value::Type::text, "@to" } },
-    { "copy", { "Whether to send a copy in normal flow",
-          Value::Type::boolean, "@copy" } }
+    { "to", { "Router tag to send to", Value::Type::text,
+              &SendFilter::tag, false } },
+    { "copy", { "Whether to send a copy in normal flow", Value::Type::boolean,
+                &SendFilter::copy, true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

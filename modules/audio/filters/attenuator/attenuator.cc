@@ -18,38 +18,19 @@ using namespace ViGraph::Dataflow;
 // Attenuator filter
 class AttenuatorFilter: public FragmentFilter
 {
-  double last_gain{0.0};
+public:
   double gain{1.0};
   bool interpolate = true;
 
+private:
+  double last_gain{0.0};
+
   // Source/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FragmentPtr fragment) override;
 
 public:
-  AttenuatorFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FragmentFilter::FragmentFilter;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML:
-//   <attenuator gain="0.5"/>
-AttenuatorFilter::AttenuatorFilter(const Dataflow::Module *module,
-                                   const XML::Element& config):
-    FragmentFilter(module, config)
-{
-  gain = config.get_attr_real("gain", 1.0);
-  interpolate = config.get_attr_bool("interpolate", interpolate);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void AttenuatorFilter::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "gain")
-    update_prop(gain, sp);
-  else if (property == "interpolate")
-    update_prop(interpolate, sp);
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -81,10 +62,12 @@ Dataflow::Module module
   "Audio attenuator / gain control",
   "audio",
   {
-    { "gain", { {"Gain level (0-1)", "1"}, Value::Type::number,
-                                             "@gain", true } },
-    { "interpolate", { {"Interpolate up from last gain", "1"},
-                       Value::Type::boolean, "@interpolate", true } }
+    { "gain", { "Gain level (0-1)", Value::Type::number,
+                static_cast<double Element::*>(&AttenuatorFilter::gain),
+                true } },
+    { "interpolate", { "Interpolate up from last gain", Value::Type::boolean,
+                static_cast<bool Element::*>(&AttenuatorFilter::interpolate),
+                true } }
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

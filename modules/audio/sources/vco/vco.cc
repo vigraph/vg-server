@@ -19,7 +19,9 @@ using namespace ViGraph::Geometry;
 // VCO source
 class VCOSource: public Source
 {
+public:
   // Configuration
+  double freq;  // Hz
   enum class Waveform
   {
     none,
@@ -30,56 +32,55 @@ class VCOSource: public Source
     random
   };
   Waveform waveform;
-  double freq;  // Hz
   double pulse_width = 0.5;
-  bool enabled = true;
+
+private:
   double theta = 0.0;
+  bool enabled = true;
 
   // Parse waveform name
   bool parse_waveform(const string& name, Waveform& waveform);
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
-  void set_property(const string& property, const SetParams& sp) override;
   void tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
-  VCOSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
+
+  // Getters/Setters
+  string get_note()
+  { return MIDI::get_midi_note(MIDI::get_midi_frequency_number(freq)); }
+  void set_note(const string& note)
+  { freq = MIDI::get_midi_frequency(MIDI::get_midi_number(note)); }
+  int get_number() { return MIDI::get_midi_frequency_number(freq); }
+  void set_number(int number) { freq = MIDI::get_midi_frequency(number); }
+  string get_waveform();
+  void set_waveform(const string& wave);
+  double get_pulse_width() { return pulse_width; }
+  void set_pulse_width(double pw) {pulse_width = max(0.0, min(1.0, pw)); }
+  void start() { enabled = true; }
+  void stop() { enabled = false; }
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <vco> attributes:
-//    freq: frequency in Hz
-void VCOSource::configure(const File::Directory&,
-                          const XML::Element& config)
+// Get waveform
+string VCOSource::get_waveform()
 {
-  freq = config.get_attr_real("freq");
-  pulse_width = max(0.0, min(1.0, config.get_attr_real("pulse-width",
-                                                       pulse_width)));
-
-  auto note = config["note"];
-  if (!note.empty())
-    freq = MIDI::get_midi_frequency(MIDI::get_midi_number(note));
-
-  auto number = config.get_attr_int("number", -1);
-  if (number >= 0)
-    freq = MIDI::get_midi_frequency(number);
-
-  const string& wave = config["wave"];
-  if (!parse_waveform(wave, waveform))
+  switch (waveform)
   {
-    Log::Error log;
-    log << "Unknown waveform type " << wave << " in VCO '" << id << "'\n";
+    case Waveform::none: return "none";
+    case Waveform::saw: return "saw";
+    case Waveform::sin: return "sin";
+    case Waveform::square: return "square";
+    case Waveform::triangle: return "triangle";
+    case Waveform::random: return "random";
   }
 }
 
 //--------------------------------------------------------------------------
-// Parse waveform name
-bool VCOSource::parse_waveform(const string& name, Waveform& waveform)
+// Set waveform
+void VCOSource::set_waveform(const string& name)
 {
   if (name.empty() || name == "none")
     waveform = Waveform::none;
@@ -94,31 +95,10 @@ bool VCOSource::parse_waveform(const string& name, Waveform& waveform)
   else if (name == "random")
     waveform = Waveform::random;
   else
-    return false;
-  return true;
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void VCOSource::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "freq")
-    update_prop(freq, sp);
-  else if (property == "note")
-    freq = MIDI::get_midi_frequency(MIDI::get_midi_number(sp.v.s));
-  else if (property == "number")
-    freq = MIDI::get_midi_frequency(sp.v.d);
-  else if (property == "pulse-width")
-    pulse_width = max(0.0, min(1.0, sp.v.d));
-  else if (property == "wave")
-    parse_waveform(sp.v.s, waveform);
-  else if (property == "trigger")
   {
-    enabled = true;
-  }
-  else if (property == "clear")
-  {
-    enabled = false;
+    waveform = Waveform::none;
+    Log::Error log;
+    log << "Unknown waveform type " << name << " in VCO '" << id << "'\n";
   }
 }
 
@@ -189,13 +169,29 @@ Dataflow::Module module
   "Simple Voltage Controlled Oscillator",
   "audio",
   {
-    { "freq",  { "Frequency (Hz)", Value::Type::number, true } },
-    { "note",  { "Note name (e.g C#4)", Value::Type::text, true } },
-    { "number",  { "MIDI note number (0-127)", Value::Type::number, true } },
+    { "freq",  { "Frequency (Hz)", Value::Type::number,
+                static_cast<double Element::*>(&VCOSource::freq), true } },
+    { "note",  { "Note name (e.g C#4)", Value::Type::text,
+     { static_cast<string (Element::*)()>(&VCOSource::get_note),
+       static_cast<void (Element::*)(const string &)>(&VCOSource::set_note) },
+                   true, true } },
+    { "number",  { "MIDI note number (0-127)", Value::Type::number,
+     { static_cast<int (Element::*)()>(&VCOSource::get_number),
+       static_cast<void (Element::*)(int)>(&VCOSource::set_number) },
+                   true, true } },
     { "wave",  { "Waveform type (none, saw, sin, square, triangle, random)",
-                 Value::Type::text, true } },
-    { "trigger", { "Trigger on", Value::Type::trigger, true }},
-    { "clear", { "Trigger off", Value::Type::trigger, true }},
+                 Value::Type::text,
+   { static_cast<string (Element::*)()>(&VCOSource::get_waveform),
+     static_cast<void (Element::*)(const string&)>(&VCOSource::set_waveform) },
+                 true } },
+    { "pulse-width",  { "Pulse Width", Value::Type::number,
+        static_cast<double Element::*>(&VCOSource::pulse_width), true } },
+    { "trigger", { "Trigger on", Value::Type::trigger,
+                   static_cast<void (Element::*)()>(&VCOSource::start),
+                   true }},
+    { "clear", { "Trigger off", Value::Type::trigger,
+                 static_cast<void (Element::*)()>(&VCOSource::stop),
+                 true }},
   },
   {},  // no inputs
   { "Audio" }  // outputs

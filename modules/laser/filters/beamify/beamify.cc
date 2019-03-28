@@ -16,35 +16,16 @@ namespace {
 // Beamify filter
 class BeamifyFilter: public FrameFilter
 {
-  int span;      // Number of points between beams
-  int n;         // Number of points to replicate in the beam
+public:
+  int span = 0;      // Number of points between beams
+  int n = 0;         // Number of points to replicate in the beam
 
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  BeamifyFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FrameFilter::FrameFilter;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-BeamifyFilter::BeamifyFilter(const Dataflow::Module *module,
-                             const XML::Element& config):
-  FrameFilter(module, config)
-{
-  span = config.get_attr_int("span");
-  n = config.get_attr_int("n");
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void BeamifyFilter::set_property(const string& property, const SetParams& sp)
-{
-       if (property == "span") update_prop_int(span, sp);
-  else if (property == "n")    update_prop_int(n, sp);
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -65,8 +46,10 @@ Dataflow::Module module
   "Add bright points to a continuous frame",
   "vector",
   {
-    { "span", { "Distance between points", Value::Type::number, "@span", true}},
-    { "n",    { "Number of points to add", Value::Type::number, "@n", true } }
+    { "span", { "Distance between points", Value::Type::number,
+               static_cast<int Element::*>(&BeamifyFilter::span), true}},
+    { "n",    { "Number of points to add", Value::Type::number,
+               static_cast<int Element::*>(&BeamifyFilter::n), true}},
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

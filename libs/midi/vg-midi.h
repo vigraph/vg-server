@@ -107,5 +107,9 @@ string get_midi_note(int number);
 double get_midi_frequency(int number);
 
 //==========================================================================
+// MIDI Number from frequency
+int get_midi_frequency_number(double frequency);
+
+//==========================================================================
 }} //namespaces
 #endif // !__VG_MIDI_H

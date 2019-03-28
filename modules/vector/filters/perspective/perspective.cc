@@ -15,33 +15,16 @@ namespace {
 // Perspective filter
 class PerspectiveFilter: public FrameFilter
 {
-  double distance;  // Horizon distance
+public:
+  double distance = 1;  // Horizon distance
 
+private:
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  PerspectiveFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FrameFilter::FrameFilter;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <perspective distance="10"/>
-PerspectiveFilter::PerspectiveFilter(const Dataflow::Module *module,
-                                     const XML::Element& config):
-  FrameFilter(module, config)
-{
-  distance = config.get_attr_real("d", 1);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void PerspectiveFilter::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "d") update_prop(distance, sp);
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -71,7 +54,9 @@ Dataflow::Module module
   "Perspective scaling over Z distance",
   "vector",
   {
-    { "d", { {"Horizon distance","1"}, Value::Type::number, "d", true } }
+    { "d", { "Horizon distance", Value::Type::number,
+             static_cast<double Element::*>(&PerspectiveFilter::distance),
+             true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

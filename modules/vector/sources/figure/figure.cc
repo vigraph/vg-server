@@ -92,7 +92,6 @@ private:
   // Source/Element virtuals
   void update() override;
   void setup() override;
-  void set_property(const string& property, const SetParams& sp) override;
   void tick(const TickData& td) override;
 
 public:
@@ -216,24 +215,6 @@ void FigureSource::setup()
 void FigureSource::update()
 {
   setup();
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-// !!! Remove once set_property automated
-void FigureSource::set_property(const string& property, const SetParams& sp)
-{
-  // Assume type is OK from graph construction
-       if (property == "x.pos")   { update_prop(x_pos, sp);   }
-  else if (property == "y.pos")   { update_prop(y_pos, sp);   }
-  else if (property == "x.freq")  { update_prop(x_freq, sp);  }
-  else if (property == "y.freq")  { update_prop(y_freq, sp);  }
-  else if (property == "x.phase") { update_prop(x_phase, sp); }
-  else if (property == "y.phase") { update_prop(y_phase, sp); }
-  else if (property == "x.scale") { update_prop(x_scale, sp); }
-  else if (property == "y.scale") { update_prop(y_scale, sp); }
-  else if (property == "points")  { update_prop_int(points, sp); }
-  update();
 }
 
 //--------------------------------------------------------------------------

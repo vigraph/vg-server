@@ -57,6 +57,13 @@ TEST(MIDINoteTest, TestFrequency)
   EXPECT_NEAR(7040.00, get_midi_frequency(117), 0.01);
 }
 
+TEST(MIDINoteTest, TestFrequencyNumber)
+{
+  EXPECT_EQ(63, get_midi_frequency_number(311.13));
+  EXPECT_EQ(104, get_midi_frequency_number(3322.44));
+  EXPECT_EQ(117, get_midi_frequency_number(7040.00));
+}
+
 TEST(MIDINoteTest, TestNumberToNote)
 {
   EXPECT_EQ("A#2", get_midi_note(46));

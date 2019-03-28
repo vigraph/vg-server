@@ -18,13 +18,15 @@ const string default_group_name = "default";
 class CollisionDetectFilter: public FrameFilter, public Dataflow::ControlImpl,
                              public CollisionDetector::CollisionObserver
 {
-  string group_name;
+public:
+  string group_name = default_group_name;
+
+private:
   shared_ptr<CollisionDetector> detector;
   unsigned long tick_collisions = 0;
 
   // Filter/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void accept(FramePtr frame) override;
   void pre_tick(const TickData& td) override;
 
@@ -38,24 +40,15 @@ class CollisionDetectFilter: public FrameFilter, public Dataflow::ControlImpl,
 public:
   // Construct
   CollisionDetectFilter(const Dataflow::Module *module,
-                        const XML::Element& config);
+                        const XML::Element& config):
+    FrameFilter(module, config),
+    ControlImpl(module, config, true)
+  {}
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML
-//  <collision-detect/>
-CollisionDetectFilter::CollisionDetectFilter(const Dataflow::Module *module,
-                                             const XML::Element& config):
-  FrameFilter(module, config),
-  ControlImpl(module, config, true)  // optional targets
-{
-  group_name = config.get_attr("group", default_group_name);
-}
-
-//--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void CollisionDetectFilter::configure(const File::Directory&,
-                                      const XML::Element&)
+// Setup
+void CollisionDetectFilter::setup()
 {
   auto& engine = graph->get_engine();
   detector = engine.get_service<CollisionDetector>("collision-detector");
@@ -85,7 +78,7 @@ void CollisionDetectFilter::pre_tick(const TickData&)
 {
   while (tick_collisions)
   {
-    ControlImpl::send(SetParams{Dataflow::Value{}});  // trigger
+    trigger();
     --tick_collisions;
   }
 }
@@ -100,9 +93,11 @@ Dataflow::Module module
     "and sends triggers if they happen",
   "vector",
   {
-    { "group", { { "Group name", "default" }, Value::Type::number } }
+    { "group", { "Group name", Value::Type::number,
+          static_cast<string Element::*>(&CollisionDetectFilter::group_name),
+          true } }
   },
-  { { "", { "Trigger output", "trigger", Value::Type::trigger }}},
+  { { "trigger", { "Trigger output", "trigger", Value::Type::trigger }}},
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs
 };

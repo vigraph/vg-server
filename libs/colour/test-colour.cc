@@ -163,6 +163,12 @@ TEST(ColourTest, TestColourRGBIntegerStringConstruction)
   EXPECT_NEAR(0.5,  c.g, 0.01);
   EXPECT_DOUBLE_EQ(1.0, c.b);
 }
+TEST(ColourTest, TestColourRGBToString)
+{
+  Colour::RGB c(0xf0, 0xf8, 0xff);
+  EXPECT_EQ("#F0F8FF", c.str());
+}
+
 
 TEST(ColourTest, TestColourHSLFloatStringConstruction)
 {

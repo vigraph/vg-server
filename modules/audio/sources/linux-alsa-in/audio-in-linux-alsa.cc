@@ -16,11 +16,19 @@ using namespace ViGraph::Dataflow;
 using namespace ViGraph::Module::Audio;
 
 const auto default_device{"default"};
+const auto default_channels = 1;
+const auto default_start_threshold = 1000;
 
 //==========================================================================
 // LinuxAudioIn filter
 class LinuxALSAInSource: public Source
 {
+public:
+  string device = default_device;
+  int nchannels = default_channels;
+  int start_threshold = default_start_threshold;
+
+private:
   snd_pcm_t *pcm = nullptr;
   vector<Speaker> channel_mapping;
 
@@ -28,27 +36,21 @@ class LinuxALSAInSource: public Source
   bool read_samples(vector<sample_t>& samples);
 
   // Source/Element virtuals
+  void setup() override;
   void tick(const TickData& td) override;
   void shutdown() override;
 
 public:
-  LinuxALSAInSource(const Dataflow::Module *module,
-                     const XML::Element& config);
+  using Source::Source;
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <audio-out/>
-LinuxALSAInSource::LinuxALSAInSource(const Dataflow::Module *module,
-                                       const XML::Element& config):
-    Source(module, config)
+// Setup
+void LinuxALSAInSource::setup()
 {
   Log::Streams log;
-  const auto& device = config.get_attr("device", default_device);
   log.summary << "Opening audio input on ALSA device '" << device << "'\n";
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
-
-  auto nchannels = config.get_attr_int("channels", 2);
 
   const auto cmit = channel_mappings.find(nchannels);
   if (cmit == channel_mappings.end())
@@ -57,7 +59,6 @@ LinuxALSAInSource::LinuxALSAInSource(const Dataflow::Module *module,
   channel_mapping = cmit->second;
 
   log.detail << "ALSA: " << nchannels << " channels\n";
-  const auto start_threshold = config.get_attr_int("start-threshold", 1000);
 
   try
   {
@@ -191,13 +192,17 @@ Dataflow::Module module
   "Audio input for Linux/ALSA",
   "audio",
   {
-      { "device",  { {"Device to capture from", "default"}, Value::Type::text,
-                                                        "@device" } },
-      { "channels",  { {"Number of channels", "1"}, Value::Type::number,
-                                                        "@number" } },
+      { "device",  { "Device to capture from", Value::Type::text,
+                static_cast<string Element::*>(&LinuxALSAInSource::device),
+                false } },
+      { "channels", { "Number of channels", Value::Type::number,
+                static_cast<int Element::*>(&LinuxALSAInSource::nchannels),
+                false } },
       { "start-threshold",
-        { {"Number of samples to buffer before playback will start", "1000"},
-           Value::Type::number, "@number" } }
+        { "Number of samples to buffer before playback will start",
+          Value::Type::number,
+          static_cast<int Element::*>(&LinuxALSAInSource::start_threshold),
+          false } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

@@ -20,42 +20,19 @@ const int default_trailing = 5;
 // AddBlankingAnchors filter
 class AddBlankingAnchorsFilter: public FrameFilter
 {
-  int leading;
-  int trailing;
+public:
+  int leading = default_leading;
+  int trailing = default_trailing;
+
+private:
   Laser::Optimiser optimiser;
 
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  AddBlankingAnchorsFilter(const Dataflow::Module *module,
-                           const XML::Element& config);
+  using FrameFilter::FrameFilter;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <AddBlankingAnchors repeats="5"/>
-AddBlankingAnchorsFilter::AddBlankingAnchorsFilter(
-                                         const Dataflow::Module *module,
-                                         const XML::Element& config):
-  FrameFilter(module, config)
-{
-  leading = config.get_attr_int("leading", default_leading);
-  trailing = config.get_attr_int("trailing", default_trailing);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void AddBlankingAnchorsFilter::set_property(const string& property,
-                                            const SetParams& sp)
-{
-  if (property == "leading")
-    update_prop_int(leading, sp);
-  else if (property == "trailing")
-    update_prop_int(trailing, sp);
-}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -76,9 +53,13 @@ Dataflow::Module module
   "laser",
   {
     { "leading", { "Number of points to add at start of lit segment",
-          Value::Type::number, true } },
+          Value::Type::number,
+          static_cast<int Element::*>(&AddBlankingAnchorsFilter::leading),
+          true } },
     { "trailing", { "Number of points to add at end of lit segment",
-          Value::Type::number, true } }
+          Value::Type::number,
+          static_cast<int Element::*>(&AddBlankingAnchorsFilter::trailing),
+          true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

@@ -135,4 +135,24 @@ void ControlImpl::send(const string& name, const Element::SetParams& sp)
   }
 }
 
+//------------------------------------------------------------------------
+// Get state as JSON, adding to the given value
+void ControlImpl::add_json(JSON::Value& json) const
+{
+  if (!targets.empty())
+  {
+    JSON::Value& oj = json.set("outputs", JSON::Value(JSON::Value::OBJECT));
+    for(const auto& tit: targets)
+    {
+      const auto& target = tit.second;
+      for(const auto& pit: target.properties)
+      {
+        JSON::Value& pj = oj.set(pit.first, JSON::Value(JSON::Value::OBJECT));
+        pj.set("element", target.element->id);
+        pj.set("prop", pit.second.name);
+      }
+    }
+  }
+}
+
 }} // namespaces

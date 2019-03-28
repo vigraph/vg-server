@@ -30,6 +30,10 @@ private:
   void accept(FramePtr frame) override;
   void pre_tick(const TickData& td) override;
 
+  // Add control JSON
+  JSON::Value get_json() const override
+  { JSON::Value json=Element::get_json(); add_json(json); return json; }
+
   // CollisionObserver virtual
   void collided() override;
 

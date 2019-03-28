@@ -27,6 +27,10 @@ class AmplitudeFilter: public FragmentFilter, public Dataflow::ControlImpl
   void pre_tick(const TickData& td) override;
   void accept(FragmentPtr fragment) override;
 
+  // Add control JSON
+  JSON::Value get_json() const override
+  { JSON::Value json=Element::get_json(); add_json(json); return json; }
+
 public:
   AmplitudeFilter(const Dataflow::Module *module, const XML::Element& config);
 };

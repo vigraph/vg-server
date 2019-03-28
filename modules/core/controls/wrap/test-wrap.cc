@@ -12,10 +12,10 @@ ModuleLoader loader;
 TEST(WrapTest, TestWrapDoesNothingInRange)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='0.2'/>",
-              "<wrap property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
+  tester.test("<set value='0.2'/>",
+              "<wrap/>");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& sp = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, sp.v.type);
   EXPECT_NEAR(0.2, sp.v.d, 1e-5);
 }
@@ -23,10 +23,10 @@ TEST(WrapTest, TestWrapDoesNothingInRange)
 TEST(WrapTest, TestDefaultWrapAbsoluteValueUpper)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='1.3'/>",
-              "<wrap property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
+  tester.test("<set value='1.3'/>",
+              "<wrap/>");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& sp = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, sp.v.type);
   EXPECT_NEAR(0.3, sp.v.d, 1e-5);
 }
@@ -34,10 +34,10 @@ TEST(WrapTest, TestDefaultWrapAbsoluteValueUpper)
 TEST(WrapTest, TestDefaultWrapAbsoluteValueLower)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='-0.3'/>",
-              "<wrap property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
+  tester.test("<set value='-0.3'/>",
+              "<wrap/>");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& sp = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, sp.v.type);
   EXPECT_NEAR(0.7, sp.v.d, 1e-5);
 }
@@ -45,10 +45,10 @@ TEST(WrapTest, TestDefaultWrapAbsoluteValueLower)
 TEST(WrapTest, TestSpecifiedWrapAbsoluteValueUpper)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='4.3'/>",
-              "<wrap property='x' min='3' max='4'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
+  tester.test("<set value='4.3'/>",
+              "<wrap min='3' max='4'/>");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& sp = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, sp.v.type);
   EXPECT_NEAR(3.3, sp.v.d, 1e-5);
 }
@@ -56,10 +56,10 @@ TEST(WrapTest, TestSpecifiedWrapAbsoluteValueUpper)
 TEST(WrapTest, TestSpecifiedWrapAbsoluteValueLower)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='2.7'/>",
-              "<wrap property='x' min='3' max='4'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
+  tester.test("<set value='2.7'/>",
+              "<wrap min='3' max='4'/>");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& sp = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, sp.v.type);
   EXPECT_NEAR(3.7, sp.v.d, 1e-5);
 }

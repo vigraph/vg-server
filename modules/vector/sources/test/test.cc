@@ -14,30 +14,20 @@ namespace {
 // Figure source
 class TestSource: public Dataflow::Source
 {
+public:
   static constexpr double default_precision = 0.1;
   double precision{default_precision};
 
+private:
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
   void tick(const TickData& td) override;
 
   // Internals
   void interpolate(const Line& l, vector<Point>& points);
 
 public:
-  TestSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML:
-//    <test/>
-void TestSource::configure(const File::Directory&,
-                           const XML::Element& config)
-{
-  precision = config.get_attr_real("precision", default_precision);
-}
 
 //--------------------------------------------------------------------------
 // Generate a frame
@@ -90,7 +80,8 @@ Dataflow::Module module
   "Test pattern generator",
   "vector",
   {
-    { "precision", { {"Precision for line generation","0.1"}, Value::Type::number}}
+    { "precision", { {"Precision for line generation","0.1"},
+                     Value::Type::number, &TestSource::precision, true}}
   },
   {}, // no inputs
   { "VectorFrame" }

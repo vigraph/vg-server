@@ -59,31 +59,40 @@ void Element::configure(const File::Directory& base_dir,
   // Check all properties to see if attribute exists
   for(const auto pit: module->properties)
   {
-    // Can be either direct name ('points') or sub-element ('x.freq')
     const auto& name = pit.first;
-    vector<string> bits = Text::split(name, '.');
-    string value;
-
-    switch (bits.size())
+    if (name.empty())
     {
-      case 1:
-        if (!config.has_attr(bits[0])) continue;
-        value = config[bits[0]];
-        break;
+      // Value is the element content
+      if (!config.content.empty())
+        configure_property(name, pit.second, config.content);
+    }
+    else
+    {
+      // Can be either direct attribute ('points') or sub-element ('x.freq')
+      vector<string> bits = Text::split(name, '.');
+      string value;
 
-      case 2:
+      switch (bits.size())
       {
-        // Look down a level
-        const auto& sub = config.get_child(bits[0]);
-        if (!sub.has_attr(bits[1])) continue;
-        value = sub[bits[1]];
-        break;
+        case 1:
+          if (!config.has_attr(bits[0])) continue;
+          value = config[bits[0]];
+          break;
+
+        case 2:
+        {
+          // Look down a level
+          const auto& sub = config.get_child(bits[0]);
+          if (!sub.has_attr(bits[1])) continue;
+          value = sub[bits[1]];
+          break;
+        }
+
+        default: throw runtime_error("Weird property name "+name);
       }
 
-      default: throw runtime_error("Weird property name "+name);
+      configure_property(name, pit.second, value);
     }
-
-    configure_property(name, pit.second, value);
   }
 
   setup(base_dir);

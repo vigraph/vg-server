@@ -31,18 +31,29 @@ class CombineFilter: public FragmentFilter
   void post_tick(const TickData& td) override;
 
 public:
-  CombineFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FragmentFilter::FragmentFilter;
+
+  // Getters/Setters
+  string get_mode() const;
+  void set_mode(const string& mode);
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <combine/>
-CombineFilter::CombineFilter(const Dataflow::Module *module,
-                             const XML::Element& config):
-    FragmentFilter(module, config)
+// Get mode
+string CombineFilter::get_mode() const
 {
-  const string& m = config["mode"];
-  if (m.empty() || m == "add")
+  switch (mode)
+  {
+    case Mode::add: return "add";
+    case Mode::multiply: return "multiply";
+  }
+}
+
+//--------------------------------------------------------------------------
+// Set mode
+void CombineFilter::set_mode(const string& m)
+{
+  if (m == "add")
     mode = Mode::add;
   else if (m == "multiply")
     mode = Mode::multiply;
@@ -123,7 +134,11 @@ Dataflow::Module module
   "Audio combine",
   "Audio combine (additive or multiplicative)",
   "audio",
-  { },  // no properties
+  {
+    { "mode", { "How the inputs are combined", Value::Type::choice,
+                { &CombineFilter::get_mode, &CombineFilter::set_mode },
+                { "add", "multiply" }, true } }
+  },  // no properties
   { "Audio" }, // inputs
   { "Audio" }  // outputs
 };

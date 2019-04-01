@@ -15,56 +15,26 @@ namespace {
 // Window control
 class WindowControl: public Dataflow::Control
 {
-  string property;
+public:
   double min = 0.0;
   double max = 1.0;
 
-  // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
-  Dataflow::Value::Type get_property_type(const string& property) override;
-
-public:
   // Construct
-  WindowControl(const Module *module, const XML::Element& config);
+  using Control::Control;
+
+  void set_value(double value);
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML
-//   <window min="-0.5" max="0.5" property="x"/>
-WindowControl::WindowControl(const Module *module, const XML::Element& config):
-  Control(module, config)
+// Set value
+void WindowControl::set_value(double value)
 {
-  property = config["property"];
-  min = config.get_attr_real("min", min);
-  max = config.get_attr_real("max", max);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void WindowControl::set_property(const string& prop,
-                               const SetParams& sp)
-{
-  if (prop != property) return;
-
   // Window the value
-  if (sp.v.d > max)
-    return;
-  else if (sp.v.d < min)
+  if (value > max || value < min)
     return;
 
-  SetParams nsp(Dataflow::Value{sp.v.d});
+  SetParams nsp(Dataflow::Value{value});
   send(nsp);
-}
-
-//--------------------------------------------------------------------------
-// Get control property types
-Dataflow::Value::Type
-  WindowControl::get_property_type(const string& prop)
-{
-  if (prop == property)
-    return Dataflow::Value::Type::number;
-
-  return Dataflow::Value::Type::invalid;
 }
 
 //--------------------------------------------------------------------------
@@ -76,11 +46,14 @@ Dataflow::Module module
   "Window a value",
   "core",
   {
-    { "property", { "Property to set", Value::Type::text } },
-    { "min", { "Minimum value", Value::Type::number } },
-    { "max", { { "Maximum value", "1.0" }, Value::Type::number } }
+    { "value", { "Value to check", Value::Type::number,
+                 { &WindowControl::set_value }, true } },
+    { "min", { "Minimum value", Value::Type::number,
+               &WindowControl::min, true } },
+    { "max", { "Maximum value", Value::Type::number,
+               &WindowControl::max, true } }
   },
-  { { "", { "Value output", "", Value::Type::number }}}
+  { { "value", { "Value output", "value", Value::Type::number }}}
 };
 
 } // anon

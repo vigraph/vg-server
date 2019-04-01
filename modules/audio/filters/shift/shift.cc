@@ -24,41 +24,26 @@ class ShiftFilter: public FragmentFilter
   bool enabled = true;
 
   // Source/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FragmentPtr fragment) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
-  ShiftFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FragmentFilter::FragmentFilter;
+
+  // Getters/Setters
+  double get_pitch() const { return pitch; }
+  void set_pitch(double pitch);
+  void on() { enabled = true; }
+  void off() { enabled = false; sound_touch.clear(); }
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <shift pitch="0.125" />
-ShiftFilter::ShiftFilter(const Dataflow::Module *module,
-                         const XML::Element& config):
-    FragmentFilter(module, config)
+// Set pitch
+void ShiftFilter::set_pitch(double p)
 {
-  pitch = config.get_attr_real("pitch", pitch);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void ShiftFilter::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "pitch")
-  {
-    pitch = sp.v.d;
-    for (auto &st: sound_touch)
-      st.second.setPitchSemiTones(pitch);
-  }
-  else if (property == "enable")
-    enabled = true;
-  else if (property == "disable")
-  {
-    enabled = false;
-    sound_touch.clear();
-  }
+  pitch = p;
+  for (auto &st: sound_touch)
+    st.second.setPitchSemiTones(pitch);
 }
 
 //--------------------------------------------------------------------------
@@ -129,10 +114,12 @@ Dataflow::Module module
   "Audio shift (pitch)",
   "audio",
   {
-    { "pitch", { {"Pitch semi tones (-60 to +60", "0"}, Value::Type::number,
-                                                        "@pitch", true } },
-    { "enable", { "Enable the filter", Value::Type::trigger, true } },
-    { "disable", { "Disable the filter", Value::Type::trigger, true } },
+    { "pitch", { "Pitch semi tones (-60 to +60", Value::Type::number,
+                 { &ShiftFilter::get_pitch, &ShiftFilter::set_pitch}, true } },
+    { "enable", { "Enable the filter", Value::Type::trigger,
+                  &ShiftFilter::on, true } },
+    { "disable", { "Disable the filter", Value::Type::trigger,
+                   &ShiftFilter::off, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

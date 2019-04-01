@@ -180,14 +180,22 @@ void Element::set_property(const string& /*prop_name*/,
 void Element::set_property(const string& prop_name,
                            const Value& v)
 {
-  const auto pit = module->properties.find(prop_name);
-  if (pit == module->properties.end())
-    throw runtime_error("No such property "+prop_name+" on element "+id);
-  set_property(prop_name, pit->second, v);
+  try
+  {
+    const auto pit = module->properties.find(prop_name);
+    if (pit == module->properties.end())
+      throw runtime_error("No such property "+prop_name+" on element "+id);
+    set_property(prop_name, pit->second, v);
 
-  // Action changes
-  // !!! Later optimise to only call once for sets of updates?
-  update();
+    // Action changes
+    // !!! Later optimise to only call once for sets of updates?
+    update();
+  }
+  catch (const runtime_error& e)
+  {
+    Log::Error log;
+    log << "Set property failed for " << id << ": " << e.what() << endl;
+  }
 }
 
 }} // namespaces

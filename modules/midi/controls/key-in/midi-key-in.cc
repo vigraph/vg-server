@@ -30,8 +30,7 @@ private:
   shared_ptr<Distributor> distributor;
 
   // Control virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void enable() override;
   void disable() override;
 
@@ -47,9 +46,8 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void MIDIKeyInControl::configure(const File::Directory&,
-                                 const XML::Element&)
+// Setup
+void MIDIKeyInControl::setup()
 {
   auto& engine = graph->get_engine();
   distributor = engine.get_service<Distributor>("midi-distributor");

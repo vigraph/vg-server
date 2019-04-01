@@ -397,7 +397,17 @@ void Graph::pre_tick(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
   for(const auto e: topological_order)
-    e->pre_tick(td);
+  {
+    try
+    {
+      e->pre_tick(td);
+    }
+    catch (const runtime_error& re)
+    {
+      Log::Error log;
+      log << "Pre-tick failed for " << e->id << ": " << re.what() << endl;
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -406,7 +416,17 @@ void Graph::tick(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
   for(const auto e: topological_order)
-    e->tick(td);
+  {
+    try
+    {
+      e->tick(td);
+    }
+    catch (const runtime_error& re)
+    {
+      Log::Error log;
+      log << "Tick failed for " << e->id << ": " << re.what() << endl;
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -415,7 +435,17 @@ void Graph::post_tick(const TickData& td)
 {
   MT::RWReadLock lock(mutex);
   for(const auto e: topological_order)
-    e->post_tick(td);
+  {
+    try
+    {
+      e->post_tick(td);
+    }
+    catch (const runtime_error& re)
+    {
+      Log::Error log;
+      log << "Post-tick failed for " << e->id << ": " << re.what() << endl;
+    }
+  }
 }
 
 //------------------------------------------------------------------------

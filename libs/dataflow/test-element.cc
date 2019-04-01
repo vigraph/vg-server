@@ -24,13 +24,6 @@ class TestElement: public Element
  public:
   TestElement(const XML::Element& cfg): Element(&test_module, cfg) {}
   double x{0.0};
-
-  // !!! Remove once set_property replaced
-  virtual void set_property(const string& property, const SetParams& sp)
-  {
-    if (property == "x")
-      update_prop(x, sp);
-  }
 };
 
 Module test_module

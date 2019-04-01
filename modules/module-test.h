@@ -63,13 +63,13 @@ class TestTarget: public Element
   };
 
 public:
-  map<string, SetParams> properties;
+  map<string, Value> properties;
   Value::Type prop_type{Value::Type::number};
   int sets_called{0};
 
   // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override
-  { properties[property] = sp; sets_called++; }
+  void set_property(const string& property, const Value& v) override
+  { properties[property] = v; sets_called++; }
   Value::Type get_property_type(const string&) override
   { return prop_type; }
 
@@ -80,7 +80,7 @@ public:
 
   // Test helpers
   bool got(const string& prop) { return properties.find(prop)!=properties.end(); }
-  const SetParams& get(const string& prop) { return properties[prop]; }
+  const Value& get(const string& prop) { return properties[prop]; }
 };
 
 // Control tester - creates a control graph from XML, attaches the test

@@ -14,8 +14,7 @@ namespace {
 // Pattern filter
 class PatternFilter: public FrameFilter
 {
-  double phase{0};
-  int repeats{1};
+private:
   vector<Colour::RGB> colours;
   enum class BlendType
   {
@@ -25,12 +24,20 @@ class PatternFilter: public FrameFilter
   BlendType blend_type{BlendType::none};
 
   // Filter/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FramePtr frame) override;
 
 public:
+  double phase{0};
+  int repeats{1};
+
   // Construct
   PatternFilter(const Dataflow::Module *module, const XML::Element& config);
+
+  // Getters/Setters
+  string get_blend() const
+  { return (blend_type == BlendType::linear ? "linear" : "none"); }
+  void set_blend(const string& b)
+  { blend_type = (b == "linear") ? BlendType::linear : BlendType::none; }
 };
 
 //--------------------------------------------------------------------------
@@ -43,8 +50,6 @@ PatternFilter::PatternFilter(const Dataflow::Module *module,
                              const XML::Element& config):
   FrameFilter(module, config)
 {
-  phase = config.get_attr_real("phase");
-  repeats = config.get_attr_int("repeats", 1);
   for(const auto& it: config.get_children("colour"))
   {
     const XML::Element& ce = *it;
@@ -61,19 +66,6 @@ PatternFilter::PatternFilter(const Dataflow::Module *module,
                       ce.get_attr_real("b"));
     colours.push_back(c);
   }
-
-  const auto& blend = config["blend"];
-  if (blend == "linear") blend_type = BlendType::linear;
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void PatternFilter::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "phase")
-    update_prop(phase, sp);
-  else if (property == "repeats")
-    update_prop_int(repeats, sp);
 }
 
 //--------------------------------------------------------------------------
@@ -142,9 +134,12 @@ Dataflow::Module module
   "vector",
   {
     { "phase", { "Phase of pattern (0..1)", Value::Type::number,
-          "@phase", true } },
+                 &PatternFilter::phase, true } },
     { "repeats", { { "Number of repeats of pattern", "1" },
-          Value::Type::number, "@repeats", true } }
+                   Value::Type::number, &PatternFilter::repeats, true } },
+    { "blend", { "Type of blending to use", Value::Type::choice,
+                 { &PatternFilter::get_blend, &PatternFilter::set_blend },
+                 { "none", "linear" }, true } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

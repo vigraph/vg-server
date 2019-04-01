@@ -15,9 +15,9 @@ TEST(WrapTest, TestWrapDoesNothingInRange)
   tester.test("<set value='0.2'/>",
               "<wrap/>");
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.2, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.2, v.d, 1e-5);
 }
 
 TEST(WrapTest, TestDefaultWrapAbsoluteValueUpper)
@@ -26,9 +26,9 @@ TEST(WrapTest, TestDefaultWrapAbsoluteValueUpper)
   tester.test("<set value='1.3'/>",
               "<wrap/>");
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.3, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.3, v.d, 1e-5);
 }
 
 TEST(WrapTest, TestDefaultWrapAbsoluteValueLower)
@@ -37,9 +37,9 @@ TEST(WrapTest, TestDefaultWrapAbsoluteValueLower)
   tester.test("<set value='-0.3'/>",
               "<wrap/>");
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.7, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.7, v.d, 1e-5);
 }
 
 TEST(WrapTest, TestSpecifiedWrapAbsoluteValueUpper)
@@ -48,9 +48,9 @@ TEST(WrapTest, TestSpecifiedWrapAbsoluteValueUpper)
   tester.test("<set value='4.3'/>",
               "<wrap min='3' max='4'/>");
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(3.3, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(3.3, v.d, 1e-5);
 }
 
 TEST(WrapTest, TestSpecifiedWrapAbsoluteValueLower)
@@ -59,9 +59,9 @@ TEST(WrapTest, TestSpecifiedWrapAbsoluteValueLower)
   tester.test("<set value='2.7'/>",
               "<wrap min='3' max='4'/>");
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(3.7, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(3.7, v.d, 1e-5);
 }
 
 int main(int argc, char **argv)

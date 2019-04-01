@@ -24,8 +24,8 @@ class MIDIInThread;  // forward
 class MIDIInterface: public Dataflow::Control,
                      public Distributor::EventObserver
 {
+private:
   shared_ptr<Distributor> distributor;
-  int channel_offset{0};
 
   snd_rawmidi_t *midi_in{nullptr};
   snd_rawmidi_t *midi_out{nullptr};
@@ -37,7 +37,7 @@ class MIDIInterface: public Dataflow::Control,
   void run();
 
   // Control virtuals
-  void configure(const File::Directory&, const XML::Element& config) override;
+  void setup() override;
   void pre_tick(const TickData& td) override;
   void shutdown() override;
 
@@ -45,9 +45,11 @@ class MIDIInterface: public Dataflow::Control,
   void handle(const ViGraph::MIDI::Event& event) override;
 
 public:
+  string device = default_device;
+  int channel_offset = 0;
+
   // Construct
-  MIDIInterface(const Dataflow::Module *module,
-                    const XML::Element& config);
+  using Control::Control;
 };
 
 //==========================================================================
@@ -69,19 +71,8 @@ public:
 // MIDIInterface implementation
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <midi device='default' channel-offset="16"/>
-MIDIInterface::MIDIInterface(const Dataflow::Module *module,
-                             const XML::Element& config):
-  Control(module, config, true)  // no props
-{
-  channel_offset = config.get_attr_int("channel-offset");
-}
-
-//--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void MIDIInterface::configure(const File::Directory&,
-                              const XML::Element& config)
+// Setup
+void MIDIInterface::setup()
 {
   Log::Streams log;
   auto& engine = graph->get_engine();
@@ -93,7 +84,6 @@ void MIDIInterface::configure(const File::Directory&,
   }
 
   // Input
-  const auto& device = config.get_attr("device", default_device);
   log.summary << "Opening MIDI input on ALSA device '" << device << "'\n";
 
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
@@ -207,10 +197,11 @@ Dataflow::Module module
   "MIDI Interface for Linux/ALSA",
   "midi",
   {
-    { "device",  { {"Device to listen to", "default"},
-          Value::Type::text, "@device" } },
-    { "channel-offset",  { "Offset to apply to channel number",
-          Value::Type::number, "@channel-offset" } }
+    { "device",  { {"Device to listen to", "default"}, Value::Type::text,
+                    &MIDIInterface::device, false} },
+    { "channel-offset", { "Offset to apply to channel number",
+                          Value::Type::number, &MIDIInterface::channel_offset,
+                          false } }
   },
   {}  // No controlled properties
 };

@@ -21,7 +21,7 @@ class PoolReceiveControl: public Dataflow::Control
   string pool;
 
   // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
+  void set_property(const string& property, const Value& v) override;
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void enable() override;
@@ -76,9 +76,9 @@ void PoolReceiveControl::disable()
 //--------------------------------------------------------------------------
 // Set a control property
 void PoolReceiveControl::set_property(const string& prop,
-                                      const SetParams& sp)
+                                      const Value& v)
 {
-  send(prop, sp);
+  send(prop, v);
 }
 
 //--------------------------------------------------------------------------

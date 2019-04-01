@@ -16,10 +16,10 @@ TEST(RandomTest, TestDefaultMinMax)
     ControlTester tester(loader);
     tester.test("<random property='foo'/>");
     ASSERT_TRUE(tester.target->got("foo"));
-    const auto& sp = tester.target->get("foo");
-    ASSERT_EQ(Value::Type::number, sp.v.type);
-    EXPECT_LE(0.0, sp.v.d);
-    EXPECT_GE(1.0, sp.v.d);
+    const auto& v = tester.target->get("foo");
+    ASSERT_EQ(Value::Type::number, v.type);
+    EXPECT_LE(0.0, v.d);
+    EXPECT_GE(1.0, v.d);
   }
 }
 
@@ -30,10 +30,10 @@ TEST(RandomTest, TestSpecifiedMinMax)
     ControlTester tester(loader);
     tester.test("<random property='foo' min='0.4' max='0.6'/>");
     ASSERT_TRUE(tester.target->got("foo"));
-    const auto& sp = tester.target->get("foo");
-    ASSERT_EQ(Value::Type::number, sp.v.type);
-    EXPECT_LE(0.4, sp.v.d);
-    EXPECT_GE(0.6, sp.v.d);
+    const auto& v = tester.target->get("foo");
+    ASSERT_EQ(Value::Type::number, v.type);
+    EXPECT_LE(0.4, v.d);
+    EXPECT_GE(0.6, v.d);
   }
 }
 

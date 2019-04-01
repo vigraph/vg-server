@@ -273,21 +273,7 @@ struct Module
     set<string> options;       // Options for choice
     bool settable{false};      // Can be connected to and changed dynamically
     bool alias{false};         // Another way of representing an earlier value
-    // !!! Constructors without member data - remove once all converted
-    Property(const PropertyDescription& _desc, Value::Type _type,
-             bool _set=false):
-      desc(_desc), type(_type), settable(_set) {}
-
-    Property(const PropertyDescription& _desc, Value::Type _type,
-             const string& /*_xpath*/, bool _set=false):
-      desc(_desc), type(_type), settable(_set) {}
-
-    Property(const PropertyDescription& _desc, Value::Type _type,
-             const string& /*_xpath*/,
-             const set<string>& _options, bool _set=false):
-      desc(_desc), type(_type), options(_options), settable(_set) {}
-
-    // New versions: Constructors with member data, no xpath
+    // Constructors
     Property(const PropertyDescription& _desc, Value::Type _type,
              const Member& _member, bool _set=false, bool _alias=false):
       desc(_desc), type(_type), member(_member), settable(_set),
@@ -392,35 +378,13 @@ struct Module
 // Graph element - just has an ID and a parent graph
 class Element
 {
-public:
-  // Control value setting parameters
-  // !!! Remove once old set_property is gone
-  struct SetParams
-  {
-    Value v;                // Value to set
-
-    // Default for maps
-    SetParams() {}
-
-    // Simple set
-    SetParams(const Value& _v): v(_v) {}
-  };
-
+private:
   void configure_from_element(const XML::Element& config,
                               const string& prefix);
   void configure_property(const string& name, const Module::Property& prop,
                           const string& value);
   void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
-
-protected:
-  // Param setting helpers
-  static void update_prop(double &prop, const SetParams& sp)
-  { prop = sp.v.d; }
-  static void update_prop_int(int &prop, const SetParams& sp)
-  { prop=static_cast<int>(sp.v.d);}
-  static void update_prop(bool &prop, const SetParams& sp)
-  { prop = !!sp.v.d; }
 
 public:
   const Module *module{nullptr};
@@ -459,8 +423,7 @@ public:
   virtual JSON::Value get_json() const;
 
   // Set a control value
-  // !!! Convert to Value& once all module set_properties are gone
-  virtual void set_property(const string& property, const SetParams&);
+  virtual void set_property(const string& property, const Value&);
 
   // Update after setting a property
   virtual void update() {}
@@ -596,17 +559,17 @@ class ControlImpl
   void attach_target(const string& id, Element *element);
 
   // Send a value to the target using only (first) property
-  void send(const Element::SetParams& sp);
+  void send(const Value& v);
 
   // Send a named value to the target
   // name is our name for it
-  void send(const string& name, const Element::SetParams& sp);
+  void send(const string& name, const Value& v);
 
   // Trigger first target property
-  void trigger() { send(Dataflow::Value{}); }
+  void trigger() { send({}); }
 
   // Trigger named property
-  void trigger(const string& name) { send(name, Dataflow::Value{}); }
+  void trigger(const string& name) { send(name, {}); }
 
   // Get state as JSON, adding to the given value
   void add_json(JSON::Value& json) const;

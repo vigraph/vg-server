@@ -21,7 +21,6 @@ using namespace ViGraph::Module;
 class AudioToVectorFilter: public FragmentFilter
 {
 private:
-  string tag;
   FramePtr frame{new Frame{0}};
   shared_ptr<Router> router;
   enum class Mode
@@ -32,27 +31,36 @@ private:
   } mode = Mode::multi;
 
   // Filter/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void accept(FragmentPtr fragment) override;
 
 public:
-  AudioToVectorFilter(const Dataflow::Module *module,
-                      const XML::Element& config);
+  string tag;
+
+  using FragmentFilter::FragmentFilter;
+
+  // Getters/Setters
+  string get_mode() const;
+  void set_mode(const string& mode);
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <audio-to-vector/>
-AudioToVectorFilter::AudioToVectorFilter(const Dataflow::Module *module,
-                                         const XML::Element& config):
-  FragmentFilter(module, config)
+// Get mode
+string AudioToVectorFilter::get_mode() const
 {
-  tag = config["to"];
-  if (!tag.empty())
-    tag = "vector:" + tag;
-  auto m = config["mode"];
-  if (m.empty() || m == "multi")
+  switch (mode)
+  {
+    case Mode::multi: return "multi";
+    case Mode::combined: return "combined";
+    case Mode::first: return "first";
+  }
+}
+
+//--------------------------------------------------------------------------
+// Set mode
+void AudioToVectorFilter::set_mode(const string& m)
+{
+  if (m == "multi")
     mode = Mode::multi;
   else if (m == "combined")
     mode = Mode::combined;
@@ -66,9 +74,8 @@ AudioToVectorFilter::AudioToVectorFilter(const Dataflow::Module *module,
 }
 
 //--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void AudioToVectorFilter::configure(const File::Directory&,
-                                    const XML::Element&)
+// Setup
+void AudioToVectorFilter::setup()
 {
   auto& engine = graph->get_engine();
   router = engine.get_service<Router>("router");
@@ -122,7 +129,7 @@ void AudioToVectorFilter::accept(FragmentPtr fragment)
   if (!frame->points.empty())
   {
     if (router && !tag.empty())
-      router->send(tag, frame);
+      router->send("vector:" + tag, frame);
     frame->points.clear();
   }
   send(fragment);
@@ -137,7 +144,12 @@ Dataflow::Module module
   "Send copy of audio data to vector data via router",
   "audio",
   {
-    { "to", { "Router tag to send to", Value::Type::text, "@to" } },
+    { "to", { "Router tag to send to", Value::Type::text,
+              &AudioToVectorFilter::tag, false } },
+    { "mode", { "Mode to run in", Value::Type::choice,
+                { &AudioToVectorFilter::get_mode,
+                  &AudioToVectorFilter::set_mode },
+                { "multi", "combined", "first" }, false } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

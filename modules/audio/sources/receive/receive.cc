@@ -17,12 +17,10 @@ using namespace ViGraph::Module;
 // Figure source
 class ReceiveSource: public Dataflow::Source, public Router::Receiver
 {
-  string tag;
   shared_ptr<Router> router;
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void enable() override;
   void disable() override;
 
@@ -30,18 +28,16 @@ class ReceiveSource: public Dataflow::Source, public Router::Receiver
   void receive(DataPtr data) override;
 
 public:
+  string tag;
+
   ReceiveSource(const Dataflow::Module *module, const XML::Element& config):
     Source(module, config) {}
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//    <receive from="tag"/>
-void ReceiveSource::configure(const File::Directory&,
-                              const XML::Element& config)
+// Setup
+void ReceiveSource::setup()
 {
-  tag = config["from"];
-  if (!tag.empty()) tag = "audio:"+tag;
   auto& engine = graph->get_engine();
   router = engine.get_service<Router>("router");
 }
@@ -51,7 +47,7 @@ void ReceiveSource::configure(const File::Directory&,
 void ReceiveSource::enable()
 {
   if (router && !tag.empty())
-    router->register_receiver(tag, this);
+    router->register_receiver("audio:" + tag, this);
 }
 
 //--------------------------------------------------------------------------
@@ -80,7 +76,8 @@ Dataflow::Module module
   "Receive audio from router",
   "audio",
   {
-    { "from", { "Router tag to receive from", Value::Type::text, "@from" } }
+    { "from", { "Router tag to receive from", Value::Type::text,
+                &ReceiveSource::tag, false } }
   },
   {}, // no inputs
   { "Audio" }

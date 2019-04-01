@@ -18,32 +18,27 @@ namespace {
 class PoolSendControl: public Dataflow::Control
 {
   shared_ptr<PoolDistributor> distributor;
-  string pool;
   unsigned index = 0;
 
   // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
 
 public:
+  string pool;
+
   // Construct
-  PoolSendControl(const Dataflow::Module *module, const XML::Element& config);
+  using Control::Control;
+
+  // Getters/Setters
+  void set_number(double number);
+  void set_velocity(double velocity);
+  void on();
+  void off();
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML
-//   <pool-send pool="x"/>
-PoolSendControl::PoolSendControl(const Dataflow::Module *module,
-                                 const XML::Element& config):
-  Control(module, config, true)
-{
-  pool = config["pool"];
-}
-
-//--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void PoolSendControl::configure(const File::Directory&, const XML::Element&)
+// Setup
+void PoolSendControl::setup()
 {
   auto& engine = graph->get_engine();
   distributor = engine.get_service<PoolDistributor>("pool-distributor");
@@ -55,16 +50,36 @@ void PoolSendControl::configure(const File::Directory&, const XML::Element&)
 }
 
 //--------------------------------------------------------------------------
-// Set a control property
-void PoolSendControl::set_property(const string& prop,
-                                   const SetParams& sp)
+// Set number
+void PoolSendControl::set_number(double number)
+{
+  index = number;
+  if (distributor)
+    distributor->send(pool, index, "number", {number});
+}
+
+//--------------------------------------------------------------------------
+// Set velocity
+void PoolSendControl::set_velocity(double velocity)
 {
   if (distributor)
-  {
-    if (prop == "number")
-      index = sp.v.d;
-    distributor->send(pool, index, prop, sp);
-  }
+    distributor->send(pool, index, "velocity", {velocity});
+}
+
+//--------------------------------------------------------------------------
+// Key on
+void PoolSendControl::on()
+{
+  if (distributor)
+    distributor->send(pool, index, "trigger", {});
+}
+
+//--------------------------------------------------------------------------
+// Key on
+void PoolSendControl::off()
+{
+  if (distributor)
+    distributor->send(pool, index, "clear", {});
 }
 
 //--------------------------------------------------------------------------
@@ -76,10 +91,16 @@ Dataflow::Module module
   "Send MIDI controls to a pool",
   "core",
   {
-    { "number", { "Note number", Value::Type::number, true }},
-    { "velocity", { "Velocity", Value::Type::number, true }},
-    { "trigger", { "Trigger note on", Value::Type::trigger, true }},
-    { "clear", { "Trigger note off", Value::Type::trigger, true }},
+    { "pool", { "Pool name", Value::Type::text,
+                &PoolSendControl::pool, false }},
+    { "number", { "Note number", Value::Type::number,
+                  { &PoolSendControl::set_number }, true }},
+    { "velocity", { "Velocity", Value::Type::number,
+                    { &PoolSendControl::set_velocity }, true }},
+    { "trigger", { "Trigger note on", Value::Type::trigger,
+                   &PoolSendControl::on, true }},
+    { "clear", { "Trigger note off", Value::Type::trigger,
+                 &PoolSendControl::off, true }},
   },
   { }
 };

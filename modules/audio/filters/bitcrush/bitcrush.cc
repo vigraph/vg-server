@@ -17,9 +17,6 @@ using namespace ViGraph::Dataflow;
 // BitCrush filter
 class BitCrushFilter: public FragmentFilter
 {
-  unsigned rate = 1;
-  unsigned bits = 32;
-
   struct State
   {
     unsigned samples_seen = 0;
@@ -29,37 +26,26 @@ class BitCrushFilter: public FragmentFilter
   bool enabled = true;
 
   // Source/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
+  void update() override;
   void accept(FragmentPtr fragment) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
-  BitCrushFilter(const Dataflow::Module *module, const XML::Element& config);
+  int rate = 1;
+  int bits = 32;
+
+  using FragmentFilter::FragmentFilter;
+
+  void on() { enabled = true; }
+  void off() { enabled = false; }
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <bitcrush time="0.125" />
-BitCrushFilter::BitCrushFilter(const Dataflow::Module *module,
-                         const XML::Element& config):
-    FragmentFilter(module, config)
+// Update
+void BitCrushFilter::update()
 {
-  rate = max(config.get_attr_int("rate", 1), 1);
-  bits = min(max(config.get_attr_int("bits", 32), 1), 32);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void BitCrushFilter::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "rate")
-    rate = max(static_cast<int>(sp.v.d), 1);
-  else if (property == "bits")
-    bits = min(max(static_cast<int>(sp.v.d), 1), 32);
-  else if (property == "enable")
-    enabled = true;
-  else if (property == "disable")
-    enabled = false;
+  rate = max(rate, 1);
+  bits = min(max(bits, 1), 32);
 }
 
 //--------------------------------------------------------------------------
@@ -110,12 +96,14 @@ Dataflow::Module module
   "Audio bitcrush",
   "audio",
   {
-    { "rate", { {"Rate reduction", "1-?"}, Value::Type::number,
-                                           "@rate", true } },
-    { "bits", { {"Bit depth", "1-32"}, Value::Type::number,
-                                       "@bits", true } },
-    { "enable", { "Enable the filter", Value::Type::trigger, true } },
-    { "disable", { "Disable the filter", Value::Type::trigger, true } },
+    { "rate", { "Rate reduction", Value::Type::number,
+                &BitCrushFilter::rate, true } },
+    { "bits", { "Bit depth", Value::Type::number,
+                &BitCrushFilter::bits, true } },
+    { "enable", { "Enable the filter", Value::Type::trigger,
+                  &BitCrushFilter::on, true } },
+    { "disable", { "Disable the filter", Value::Type::trigger,
+                    &BitCrushFilter::off, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

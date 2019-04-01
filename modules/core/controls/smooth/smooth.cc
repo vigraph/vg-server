@@ -14,81 +14,44 @@ namespace {
 // Smooth control
 class SmoothControl: public Dataflow::Control
 {
-  string property;
-  double rc = 0.3; // RC time constant
-
-  // Time for this tick interval
-  Time::Duration tick_interval;
-
+private:
   // Previous smoothed value
-  double value = 0.0;
+  double last_value = 0.0;
+  bool updated = false;
 
   // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
-  Dataflow::Value::Type get_property_type(const string& property) override;
+  void update() override { updated = true; }
   void pre_tick(const TickData& td) override;
 
 public:
-  // Construct
-  SmoothControl(const Module *module, const XML::Element& config);
-};
+  double rc = 0.3; // RC time constant
+  double value = 0.0;
 
-//--------------------------------------------------------------------------
-// Construct from XML
-//   <smooth property="x"/>
-SmoothControl::SmoothControl(const Module *module, const XML::Element& config):
-  Control(module, config)
-{
-  property = config["property"];
-  rc = fabs(config.get_attr_real("time", rc));
-}
+  // Construct
+  using Control::Control;
+};
 
 //--------------------------------------------------------------------------
 // Record tick interval
 void SmoothControl::pre_tick(const TickData& td)
 {
-  tick_interval = td.interval;
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void SmoothControl::set_property(const string& prop, const SetParams& sp)
-{
-  if (prop == property)
+  if (updated)
   {
-    if (rc)
+    // Smooth the value and pass on
+    const auto dt = td.interval.seconds();
+    const auto div = rc + dt;
+    if (div)
     {
-      // Smooth the value and pass on
-      const auto dt = tick_interval.seconds();
-      const auto div = rc + dt;
       const auto a =  dt / div;
-      value = a * sp.v.d + (1 - a) * value;
-      SetParams nsp(Dataflow::Value{value});
-      send(nsp);
+      last_value = a * value + (1 - a) * last_value;
     }
     else
     {
-      value = sp.v.d;
-      send(sp);
+      last_value = value;
     }
+    send(Dataflow::Value{last_value});
+    updated = false;
   }
-  else if (prop == "time")
-  {
-    rc = fabs(sp.v.d);
-  }
-}
-
-//--------------------------------------------------------------------------
-// Get control property types
-Dataflow::Value::Type
-  SmoothControl::get_property_type(const string& prop)
-{
-  if (prop == property)
-    return Dataflow::Value::Type::number;
-  else if (prop == "time")
-    return Dataflow::Value::Type::number;
-  else
-    return Dataflow::Value::Type::invalid;
 }
 
 //--------------------------------------------------------------------------
@@ -100,11 +63,12 @@ Dataflow::Module module
   "Smooth a control value",
   "core",
   {
-    { "property", { "Property to set", Value::Type::text } },
+    { "value", { "Value to smooth", Value::Type::number,
+                 &SmoothControl::value, true } },
     { "time", { {"RC time constant (seconds)", "0.3"}, Value::Type::number,
-                "@time", true } },
+                &SmoothControl::rc, true } },
   },
-  { { "", { "Value output", "", Value::Type::number }}}
+  { { "value", { "Value output", "value", Value::Type::number }}}
 };
 
 } // anon

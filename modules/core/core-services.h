@@ -27,7 +27,7 @@ public:
   // Send frame data on the given tag
   virtual void send(const string& pool,
                     unsigned index, const string& property,
-                    const Dataflow::Control::SetParams& sp) = 0;
+                    const Dataflow::Value& v) = 0;
 
   // Virtual destructor
   virtual ~PoolDistributor() {}

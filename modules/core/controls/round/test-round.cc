@@ -12,50 +12,50 @@ ModuleLoader loader;
 TEST(RoundTest, TestZeroNDoesNothing)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='1'/>",
-              "<round n='0' property='x'/>", 1);
-  ASSERT_FALSE(tester.target->got("x"));
+  tester.test("<set value='1'/>",
+              "<round n='0'/>", 1);
+  ASSERT_FALSE(tester.target->got("value"));
 }
 
 TEST(RoundTest, TestZeroDDoesNothing)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='1'/>",
-              "<round d='0' property='x'/>", 1);
-  ASSERT_FALSE(tester.target->got("x"));
+  tester.test("<set value='1'/>",
+              "<round d='0'/>", 1);
+  ASSERT_FALSE(tester.target->got("value"));
 }
 
 TEST(RoundTest, TestNearestThree)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='1.5'/>",
-              "<round n='3' property='x'/>", 1);
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(3.0, sp.v.d);
+  tester.test("<set value='1.5'/>",
+              "<round n='3'/>", 1);
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(3.0, v.d);
 }
 
 TEST(RoundTest, TestNearestThird)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='0.4'/>",
-              "<round d='3' property='x'/>", 1);
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(1.0/3.0, sp.v.d, 0.0001);
+  tester.test("<set value='0.4'/>",
+              "<round d='3'/>", 1);
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(1.0/3.0, v.d, 0.0001);
 }
 
 TEST(RoundTest, TestNearestTwoThird)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='0.8'/>",
-              "<round n='2' d='3' property='x'/>", 1);
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(2.0/3.0, sp.v.d, 0.0001);
+  tester.test("<set value='0.8'/>",
+              "<round n='2' d='3'/>", 1);
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(2.0/3.0, v.d, 0.0001);
 }
 
 int main(int argc, char **argv)

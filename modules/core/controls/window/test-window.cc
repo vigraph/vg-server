@@ -12,44 +12,44 @@ ModuleLoader loader;
 TEST(WindowTest, TestWindowDoesNothingInRange)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='0.2'/>",
-              "<window property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.2, sp.v.d, 1e-5);
+  tester.test("<set value='0.2'/>",
+              "<window/>");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.2, v.d, 1e-5);
 }
 
 TEST(WindowTest, TestDefaultWindowAbsoluteValueUpper)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='1.5'/>",
-              "<window property='x'/>");
-  EXPECT_FALSE(tester.target->got("x"));
+  tester.test("<set value='1.5'/>",
+              "<window/>");
+  EXPECT_FALSE(tester.target->got("value"));
 }
 
 TEST(WindowTest, TestDefaultWindowAbsoluteValueLower)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='-0.5'/>",
-              "<window property='x'/>");
-  EXPECT_FALSE(tester.target->got("x"));
+  tester.test("<set value='-0.5'/>",
+              "<window/>");
+  EXPECT_FALSE(tester.target->got("value"));
 }
 
 TEST(WindowTest, TestSpecifiedWindowAbsoluteValueUpper)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='5.5'/>",
-              "<window property='x' min='3' max='4'/>");
-  EXPECT_FALSE(tester.target->got("x"));
+  tester.test("<set value='5.5'/>",
+              "<window min='3' max='4'/>");
+  EXPECT_FALSE(tester.target->got("value"));
 }
 
 TEST(WindowTest, TestSpecifiedWindowAbsoluteValueLower)
 {
   ControlTester tester(loader);
-  tester.test("<set property='x' value='-0.5'/>",
-              "<window property='x' min='3' max='4'/>");
-  EXPECT_FALSE(tester.target->got("x"));
+  tester.test("<set value='-0.5'/>",
+              "<window min='3' max='4'/>");
+  EXPECT_FALSE(tester.target->got("value"));
 }
 
 int main(int argc, char **argv)

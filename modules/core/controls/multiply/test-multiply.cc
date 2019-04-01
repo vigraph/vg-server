@@ -15,9 +15,9 @@ TEST(MultiplyTest, TestMultiplyDefaultDoesNothing)
   tester.test("<set property='value' value='0.2'/>",
               "<multiply property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.2, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.2, v.d, 1e-5);
 }
 
 TEST(MultiplyTest, TestMultiplyBy2)
@@ -26,9 +26,9 @@ TEST(MultiplyTest, TestMultiplyBy2)
   tester.test("<set property='value' value='1.5'/>",
               "<multiply factor='2' property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(3.0, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(3.0, v.d, 1e-5);
 }
 
 TEST(MultiplyTest, TestMultiplyBySetFactor)
@@ -38,9 +38,9 @@ TEST(MultiplyTest, TestMultiplyBySetFactor)
               "<set property='value' value='1.5'/>",
               "<multiply id='m' property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(3.0, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(3.0, v.d, 1e-5);
 }
 
 int main(int argc, char **argv)

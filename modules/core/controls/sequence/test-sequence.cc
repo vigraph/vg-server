@@ -13,58 +13,56 @@ TEST(SequenceTest, TestSequenceAttrValues)
 {
   ControlTester tester(loader, Value::Type::text);
   tester.test("<set property='index' value='2'/>",
-              "<sequence property='x' values='zero one two three four' />");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::text, sp.v.type);
-  EXPECT_EQ("two", sp.v.s);
+              "<sequence values='zero one two three four' />");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::text, v.type);
+  EXPECT_EQ("two", v.s);
 }
 
 TEST(SequenceTest, TestSequenceElementValues)
 {
   ControlTester tester(loader, Value::Type::text);
   tester.test("<set property='index' value='3'/>",
-              "<sequence property='x'>"
+              "<sequence>"
               "  <value>zero</value>"
               "  <value>one</value>"
               "  <value>two</value>"
               "  <value>three</value>"
               "  <value>four</value>"
               "</sequence>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::text, sp.v.type);
-  EXPECT_EQ("three", sp.v.s);
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::text, v.type);
+  EXPECT_EQ("three", v.s);
 }
 
 TEST(SequenceTest, TestSequenceTriggerNext)
 {
   ControlTester tester(loader, Value::Type::text);
-  tester.test("<set target='seq' property='trigger'/>",
-              "<set property='trigger'/>",
-              "<sequence id='seq' property='x' "
-                        "values='zero one two three four' />");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::text, sp.v.type);
-  EXPECT_EQ("two", sp.v.s);
+  tester.test("<trigger target='seq' property='next'/>",
+              "<trigger property='next'/>",
+              "<sequence id='seq' values='zero one two three four' />");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::text, v.type);
+  EXPECT_EQ("two", v.s);
 }
 
 TEST(SequenceTest, TestSequenceTriggerNextLoop)
 {
   ControlTester tester(loader, Value::Type::text);
-  tester.test({"<set target='seq' property='trigger'/>",
-               "<set target='seq' property='trigger'/>",
-               "<set target='seq' property='trigger'/>",
-               "<set target='seq' property='trigger'/>",
-               "<set target='seq' property='trigger'/>",
-               "<set property='trigger'/>",
-               "<sequence id='seq' property='x' "
-                         "values='zero one two three four' />"});
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::text, sp.v.type);
-  EXPECT_EQ("one", sp.v.s);
+  tester.test({"<trigger target='seq' property='next'/>",
+               "<trigger target='seq' property='next'/>",
+               "<trigger target='seq' property='next'/>",
+               "<trigger target='seq' property='next'/>",
+               "<trigger target='seq' property='next'/>",
+               "<trigger property='next'/>",
+               "<sequence id='seq' values='zero one two three four' />"});
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::text, v.type);
+  EXPECT_EQ("one", v.s);
 }
 
 int main(int argc, char **argv)
@@ -77,6 +75,7 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../set/vg-module-core-control-set.so");
+  loader.load("../trigger/vg-module-core-control-trigger.so");
   loader.load("./vg-module-core-control-sequence.so");
   return RUN_ALL_TESTS();
 }

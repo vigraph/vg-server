@@ -18,70 +18,64 @@ using namespace ViGraph::Dataflow;
 class LoopFilter: public FragmentFilter
 {
   // 3 sets of per channel buffers
-  vector<map<Speaker, vector<sample_t>>> buffers;
+  vector<map<Speaker, vector<sample_t>>>
+    buffers = vector<map<Speaker, vector<sample_t>>>(3);
   unsigned long playback_pos = 0;
 
-  unsigned playback_buffer = 0;
-  unsigned recording_buffer = 1;
-  unsigned recorded_buffer = 2;
+  const unsigned playback_buffer = 0;
+  const unsigned recording_buffer = 1;
+  const unsigned recorded_buffer = 2;
 
   bool recording = false;
   bool playing = false;
   bool new_recording_ready = false;
 
   // Source/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FragmentPtr fragment) override;
   void tick(const TickData& td) override;
 
 public:
-  LoopFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FragmentFilter::FragmentFilter;
+
+  void start_playback();
+  void stop_playback() { playing = false; }
+  void start_recording();
+  void stop_recording();
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <loop />
-LoopFilter::LoopFilter(const Dataflow::Module *module,
-                         const XML::Element& config):
-    FragmentFilter(module, config)
+// Start playback
+void LoopFilter::start_playback()
 {
-  buffers.resize(3);
+  if (!playing)
+  {
+    buffers[playback_buffer] = buffers[recorded_buffer];
+    playing = true;
+    playback_pos = 0;
+    new_recording_ready = false;
+  }
 }
 
 //--------------------------------------------------------------------------
-// Set a control property
-void LoopFilter::set_property(const string& property, const SetParams&)
+// Start recording
+void LoopFilter::start_recording()
 {
-  if (property == "start")
+  if (!recording)
   {
-    if (!playing)
-    {
-      buffers[playback_buffer] = buffers[recorded_buffer];
-      playing = true;
-      playback_pos = 0;
-      new_recording_ready = false;
-    }
+    buffers[recording_buffer].clear();
+    recording = true;
   }
-  else if (property == "stop")
+}
+
+//--------------------------------------------------------------------------
+// Stop recording
+void LoopFilter::stop_recording()
+{
+  if (recording)
   {
-    playing = false;
-  }
-  else if (property == "trigger")
-  {
-    if (!recording)
-    {
-      buffers[recording_buffer].clear();
-      recording = true;
-    }
-  }
-  else if (property == "clear")
-  {
-    if (recording)
-    {
-      buffers[recorded_buffer] = buffers[recording_buffer];
-      recording = false;
-      new_recording_ready = true;
-    }
+    buffers[recorded_buffer] = buffers[recording_buffer];
+    recording = false;
+    new_recording_ready = true;
   }
 }
 
@@ -174,10 +168,14 @@ Dataflow::Module module
   "Audio loop",
   "audio",
   {
-    { "start", { "Start playback", Value::Type::trigger, "", true } },
-    { "stop", { "Stop playback", Value::Type::trigger, "", true } },
-    { "trigger", { "Start recording", Value::Type::trigger, "", true } },
-    { "clear", { "Stop recording", Value::Type::trigger, "", true } },
+    { "start-playback", { "Start playback", Value::Type::trigger,
+                          &LoopFilter::start_playback, true } },
+    { "stop-playback", { "Stop playback", Value::Type::trigger,
+                         &LoopFilter::stop_playback, true } },
+    { "start-recording", { "Start recording", Value::Type::trigger,
+                           &LoopFilter::start_recording, true } },
+    { "stop-recording", { "Stop recording", Value::Type::trigger,
+                          &LoopFilter::stop_recording, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

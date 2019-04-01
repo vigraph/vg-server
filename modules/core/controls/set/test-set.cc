@@ -14,9 +14,9 @@ TEST(SetTest, TestAbsoluteValueSet)
   ControlTester tester(loader);
   tester.test("<set property='foo' value='42'/>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(42, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(42, v.d);
 }
 
 TEST(SetTest, TestSetWithWaitNotTriggeredHasNoEffect)

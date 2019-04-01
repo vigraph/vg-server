@@ -15,9 +15,9 @@ TEST(AddTest, TestAddZeroDoesNothing)
   tester.test("<set property='value' value='0.2'/>",
               "<add property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.2, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.2, v.d, 1e-5);
 }
 
 TEST(AddTest, TestAddValue)
@@ -26,9 +26,9 @@ TEST(AddTest, TestAddValue)
   tester.test("<set property='value' value='0.2'/>",
               "<add property='x' offset='0.13'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.33, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.33, v.d, 1e-5);
 }
 
 TEST(AddTest, TestModifyAddOffset)
@@ -38,9 +38,9 @@ TEST(AddTest, TestModifyAddOffset)
               "<set target='add' property='offset' value='0.3'/>",
               "<add id='add' property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.5, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.5, v.d, 1e-5);
 }
 
 int main(int argc, char **argv)

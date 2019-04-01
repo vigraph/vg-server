@@ -14,8 +14,8 @@ TEST(TriggerTest, TestTriggerTriggers)
   ControlTester tester(loader, Value::Type::trigger);
   tester.test("<trigger/>");
   ASSERT_TRUE(tester.target->got("trigger"));
-  const auto& sp = tester.target->get("trigger");
-  EXPECT_EQ(Value::Type::trigger, sp.v.type);
+  const auto& v = tester.target->get("trigger");
+  EXPECT_EQ(Value::Type::trigger, v.type);
 }
 
 TEST(TriggerTest, TestTriggerWithWaitNotTriggeredHasNoEffect)

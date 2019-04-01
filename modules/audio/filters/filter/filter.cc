@@ -17,6 +17,7 @@ using namespace ViGraph::Dataflow;
 // Filter filter
 class FilterFilter: public FragmentFilter
 {
+private:
   enum class Mode
   {
     low_pass,
@@ -25,37 +26,58 @@ class FilterFilter: public FragmentFilter
   };
   Mode mode = Mode::low_pass;
 
-  double cutoff = 1.0;
-  double resonance = 1.0;
   double feedback = 0.0;
   unsigned steepness = 1;
   bool enabled = true;
 
   map<Speaker, vector<sample_t>> buffers; // Vector of buffers per speaker
 
-  void update_feedback()
-  {
-    feedback = resonance + resonance / (1.0 - min(max(cutoff, 0.0), 0.9999));
-  }
-
   // Source/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
+  void update() override;
   void accept(FragmentPtr fragment) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
-  FilterFilter(const Dataflow::Module *module, const XML::Element& config);
+  double cutoff = 1.0;
+  double resonance = 1.0;
+
+  using FragmentFilter::FragmentFilter;
+
+  // Getters/Setters
+  string get_mode() const;
+  void set_mode(const string& mode);
+  int get_steepness() const { return steepness; }
+  void set_steepness(int steepness);
+  void on() { enabled = true; }
+  void off() { enabled = false; buffers.clear(); }
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <filter mode="low-pass"/>
-FilterFilter::FilterFilter(const Dataflow::Module *module,
-                             const XML::Element& config):
-    FragmentFilter(module, config)
+// Update
+void FilterFilter::update()
 {
-  const string& m = config["mode"];
-  if (m.empty() || m == "low-pass")
+  cutoff = min(max(cutoff, 0.0), 1.0);
+  resonance = min(max(cutoff, 0.0), 1.0);
+  feedback = resonance + resonance / (1.0 - min(max(cutoff, 0.0), 0.9999));
+}
+
+//--------------------------------------------------------------------------
+// Get mode
+string FilterFilter::get_mode() const
+{
+  switch (mode)
+  {
+    case Mode::low_pass: return "low-pass";
+    case Mode::high_pass: return "high-pass";
+    case Mode::band_pass: return "band-pass";
+  }
+}
+
+//--------------------------------------------------------------------------
+// Set mode
+void FilterFilter::set_mode(const string& m)
+{
+  if (m == "low-pass")
     mode = Mode::low_pass;
   else if (m == "high-pass")
     mode = Mode::high_pass;
@@ -66,36 +88,15 @@ FilterFilter::FilterFilter(const Dataflow::Module *module,
     Log::Error log;
     log << "Unknown mode '" << m << "' in Filter '" << id << "'\n";
   }
-
-  cutoff = min(max(config.get_attr_real("cutoff", 1.0), 0.0), 1.0);
-  resonance = min(max(config.get_attr_real("cutoff", 1.0), 0.0), 1.0);
-  steepness = max(config.get_attr_int("steepness", steepness), 1);
 }
 
 //--------------------------------------------------------------------------
-// Set a control property
-void FilterFilter::set_property(const string& property, const SetParams& sp)
+// Get steepness
+void FilterFilter::set_steepness(int s)
 {
-  if (property == "cutoff")
-    update_prop(cutoff, sp);
-  else if (property == "steepness")
-  {
-    steepness = max(sp.v.d, 1.0);
-    for (auto& bit: buffers)
-    {
-      bit.second.resize(steepness + 1);
-    }
-  }
-  else if (property == "resonance")
-    update_prop(resonance, sp);
-  else if (property == "enable")
-    enabled = true;
-  else if (property == "disable")
-  {
-    enabled = false;
-    buffers.clear();
-  }
-  update_feedback();
+  steepness = max(s, 1);
+  for (auto& bit: buffers)
+    bit.second.resize(steepness + 1);
 }
 
 //--------------------------------------------------------------------------
@@ -161,14 +162,20 @@ Dataflow::Module module
   "Audio filter (low-, high- or band-pass)",
   "audio",
   {
-    { "cutoff", { {"Cutoff level (0-1)", "1"}, Value::Type::number,
-                                               "@cutoff", true } },
-    { "resonance", { {"Resonance level (0-1)", "1"}, Value::Type::number,
-                                                     "@resonance", true } },
-    { "steepness", { {"Steepness level (1-?)", "1"}, Value::Type::number,
-                                                     "@steepness", true } },
-    { "enable", { "Enable the filter", Value::Type::trigger, true } },
-    { "disable", { "Disable the filter", Value::Type::trigger, true } },
+    { "mode", { "Filter mode", Value::Type::choice,
+                { &FilterFilter::get_mode, &FilterFilter::set_mode },
+                { "low-pass", "high-pass", "band-pass" }, true } },
+    { "cutoff", { "Cutoff level (0-1)", Value::Type::number,
+                  &FilterFilter::cutoff, true } },
+    { "resonance", { "Resonance level (0-1)", Value::Type::number,
+                     &FilterFilter::resonance, true } },
+    { "steepness", { "Steepness level (1-?)", Value::Type::number,
+                     { &FilterFilter::get_steepness,
+                       &FilterFilter::set_steepness }, true } },
+    { "enable", { "Enable the filter", Value::Type::trigger,
+                  &FilterFilter::on, true } },
+    { "disable", { "Disable the filter", Value::Type::trigger,
+                   &FilterFilter::off, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

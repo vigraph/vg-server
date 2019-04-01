@@ -17,16 +17,18 @@ class SequenceControl: public Dataflow::Control
 {
   string property;
   vector<string> values;
-  bool loop = true;
-  unsigned pos = 0;
-
-  // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
-  Dataflow::Value::Type get_property_type(const string& property) override;
+  unsigned index = 0;
 
 public:
+  bool loop = true;
+
   // Construct
   SequenceControl(const Module *module, const XML::Element& config);
+
+  // Getters/Setters
+  int get_index() const { return index; }
+  void set_index(int index);
+  void next();
 };
 
 //--------------------------------------------------------------------------
@@ -38,9 +40,6 @@ public:
 SequenceControl::SequenceControl(const Module *module, const XML::Element& config):
   Control(module, config)
 {
-  property = config["property"];
-  loop = config.get_attr_bool("loop", loop);
-
   values = Text::split_words(config["values"]);
   if (values.empty())
   {
@@ -51,46 +50,30 @@ SequenceControl::SequenceControl(const Module *module, const XML::Element& confi
 }
 
 //--------------------------------------------------------------------------
-// Set a control property
-void SequenceControl::set_property(const string& prop,
-                                   const SetParams& sp)
+// Set index
+void SequenceControl::set_index(int i)
 {
-  if (prop == "index")
-  {
-    pos = sp.v.d;
-    if (pos >= values.size())
-      pos = values.size() - 1;
-  }
-  else if (prop == "trigger")
-  {
-    if (++pos >= values.size())
-    {
-      if (loop)
-        pos = 0;
-      else
-        pos = values.size() - 1;
-    }
-  }
-  else if (prop == "loop")
-  {
-    update_prop(loop, sp);
-    return;
-  }
-  else return;
-
-  SetParams nsp(values[pos]);
-  send(property, nsp);
+  index = i;
+  if (index >= values.size())
+    index = values.size() - 1;
+  SetParams nsp(values[index]);
+  send(nsp);
 }
 
 //--------------------------------------------------------------------------
-// Get control property types
-Dataflow::Value::Type
-  SequenceControl::get_property_type(const string& prop)
+// Move to next entry
+void SequenceControl::next()
 {
-  if (prop == property)
-    return Dataflow::Value::Type::text;
+  if (++index >= values.size())
+  {
+    if (loop)
+      index = 0;
+    else
+      index = values.size() - 1;
+  }
 
-  return Dataflow::Value::Type::invalid;
+  SetParams nsp(values[index]);
+  send(nsp);
 }
 
 //--------------------------------------------------------------------------
@@ -102,11 +85,15 @@ Dataflow::Module module
   "Sequence a set of control values",
   "core",
   {
-    { "property", { "Property to set", Value::Type::text } },
-    { "index", { "Index number", Value::Type::number } },
-    { "loop", { "Loop at end of sequence", Value::Type::boolean } },
+    { "index", { "Index number", Value::Type::number,
+                 { &SequenceControl::get_index, &SequenceControl::set_index },
+                 true } },
+    { "loop", { "Loop at end of sequence", Value::Type::boolean,
+                &SequenceControl::loop, true } },
+    { "next", { "Trigger move to next entry", Value::Type::trigger,
+                &SequenceControl::next, true } },
   },
-  { { "", { "Value output", "", Value::Type::text }}}
+  { { "value", { "Value output", "value", Value::Type::text }}}
 };
 
 } // anon

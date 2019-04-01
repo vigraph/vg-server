@@ -20,53 +20,36 @@ namespace {
 class MIDIKeyOutControl: public Dataflow::Control
 {
   shared_ptr<Distributor> distributor;
-  uint8_t channel{0};
-  uint8_t number{0};
-  uint8_t velocity{0};
-  bool wait{false};
 
   // Dynamic state
   bool done{false};
   bool triggered{false};
 
   // Control virtuals
-  void set_property(const string& property, const SetParams& sp) override;
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void pre_tick(const TickData& td) override;
   void notify_target_of(Element *, const string& property) override;
   void enable() override;
 
 public:
+  int channel{0};
+  int number{0};
+  int velocity{0};
+  bool wait{false};
+
   // Construct
-  MIDIKeyOutControl(const Dataflow::Module *module,
-                    const XML::Element& config);
+  using Control::Control;
+
+  // Getters/Setters
+  string get_note() const { return MIDI::get_midi_note(number); }
+  void set_note(const string& note) { number = MIDI::get_midi_number(note); }
+  void on();
+  void off();
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <midi-key-out channel="1" note="48"/> - sends triggers for ON/OFF 48
-MIDIKeyOutControl::MIDIKeyOutControl(const Dataflow::Module *module,
-                                     const XML::Element& config):
-  Control(module, config, true)
-{
-  channel = config.get_attr_int("channel");
-  number = config.get_attr_int("number");
-  auto note = config["note"];
-  if (!note.empty())
-  {
-    const auto n = MIDI::get_midi_number(note);
-    if (n > 0)
-      number = n;
-  }
-  velocity = config.get_attr_int("velocity");
-  wait = config.get_attr_bool("wait");
-}
-
-//--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void MIDIKeyOutControl::configure(const File::Directory&,
-                                 const XML::Element&)
+// Setup
+void MIDIKeyOutControl::setup()
 {
   auto& engine = graph->get_engine();
   distributor = engine.get_service<Distributor>("midi-distributor");
@@ -86,49 +69,34 @@ void MIDIKeyOutControl::notify_target_of(Element *, const string& property)
 }
 
 //--------------------------------------------------------------------------
-// Set a control property
-void MIDIKeyOutControl::set_property(const string& property,
-                                    const SetParams& sp)
+// Send a key on
+void MIDIKeyOutControl::on()
 {
-  if (property == "number")
+  if (distributor)
   {
-    number = sp.v.d;
+    Log::Detail log;
+    log << "MIDI OUT (" << id << ") channel " << (int)channel << ": key "
+        << (int)number << " ON @" << (int)velocity << endl;
+    auto event = MIDI::Event(MIDI::Event::Direction::out,
+                             MIDI::Event::Type::note_on,
+                             channel, number, velocity);
+    distributor->handle_event(event);
   }
-  else if (property == "note")
+}
+
+//--------------------------------------------------------------------------
+// Send a key off
+void MIDIKeyOutControl::off()
+{
+  if (distributor)
   {
-    const auto n = MIDI::get_midi_number(sp.v.s);
-    if (n > 0)
-      number = n;
-  }
-  else if (property == "velocity")
-  {
-    velocity = sp.v.d;
-  }
-  else if (property == "trigger")
-  {
-    if (distributor)
-    {
-      Log::Detail log;
-      log << "MIDI OUT (" << id << ") channel " << (int)channel << ": key "
-          << (int)number << " ON @" << (int)velocity << endl;
-      auto event = MIDI::Event{MIDI::Event::Direction::out,
-                               MIDI::Event::Type::note_on,
-                               channel, number, velocity};
-      distributor->handle_event(event);
-    }
-  }
-  else if (property == "clear")
-  {
-    if (distributor)
-    {
-      Log::Detail log;
-      log << "MIDI OUT (" << id << ") channel " << (int)channel << ": key "
-          << (int)number << " OFF @" << (int)velocity << endl;
-      auto event = MIDI::Event{MIDI::Event::Direction::out,
-                               MIDI::Event::Type::note_off,
-                               channel, number, velocity};
-      distributor->handle_event(event);
-    }
+    Log::Detail log;
+    log << "MIDI OUT (" << id << ") channel " << (int)channel << ": key "
+        << (int)number << " OFF @" << (int)velocity << endl;
+    auto event = MIDI::Event(MIDI::Event::Direction::out,
+                             MIDI::Event::Type::note_off,
+                             channel, number, velocity);
+    distributor->handle_event(event);
   }
 }
 
@@ -167,13 +135,21 @@ Dataflow::Module module
   "Generic MIDI Key Output",
   "midi",
   {
-    { "channel", { {"MIDI channel (0=all)", "0"}, Value::Type::number } },
-    { "number", { {"Note number", "0"}, Value::Type::number, true } },
-    { "note", { {"Note name", ""}, Value::Type::text, true } },
-    { "trigger", { "Note trigger", Value::Type::trigger, true }},
-    { "clear",   { "Note release", Value::Type::trigger, true }},
-    { "velocity", { "Velocity", Value::Type::number, true }},
-    { "wait",  { "Whether to wait for a trigger", Value::Type::number } }
+    { "channel", { "MIDI channel (0=all)", Value::Type::number,
+                   &MIDIKeyOutControl::channel, false } },
+    { "number", { "Note number", Value::Type::number,
+                  &MIDIKeyOutControl::number, true } },
+    { "note", { "Note name", Value::Type::text,
+                { &MIDIKeyOutControl::get_note, &MIDIKeyOutControl::set_note },
+                true, true } },
+    { "trigger", { "Note trigger", Value::Type::trigger,
+                   &MIDIKeyOutControl::on, true } },
+    { "clear",   { "Note release", Value::Type::trigger,
+                   &MIDIKeyOutControl::off, true } },
+    { "velocity", { "Velocity", Value::Type::number,
+                    &MIDIKeyOutControl::velocity, true }},
+    { "wait",  { "Whether to wait for a trigger", Value::Type::boolean,
+                 &MIDIKeyOutControl::wait, false } }
   },
   {}
 };

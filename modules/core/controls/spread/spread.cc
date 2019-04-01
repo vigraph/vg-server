@@ -15,33 +15,26 @@ namespace {
 // Spread control
 class SpreadControl: public Dataflow::Control
 {
-  Value value;
-  vector<Value> values;
-  set<Value> capturing;
-  unsigned pos = 0;
+  vector<double> values;
+  set<double> capturing;
+  unsigned index = 0;
   unique_ptr<Value> last_sent;
-  bool latch = false;
 
   // Reset state
   void reset();
 
   // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void enable() override { reset(); }
 
 public:
-  // Construct
-  SpreadControl(const Module *module, const XML::Element& config);
-};
+  bool latch = false;
+  double value = 0.0;
+  using Control::Control;
 
-//--------------------------------------------------------------------------
-// Construct from XML
-//   <spread offset="0.1" property="x"/>
-SpreadControl::SpreadControl(const Module *module, const XML::Element& config):
-  Control(module, config)
-{
-  latch = config.get_attr_bool("latch");
-}
+  void start_capture();
+  void stop_capture();
+  void next();
+};
 
 //--------------------------------------------------------------------------
 // Reset state of the control
@@ -49,63 +42,61 @@ void SpreadControl::reset()
 {
   values.clear();
   capturing.clear();
-  pos = 0;
+  index = 0;
   last_sent.reset();
 }
 
 //--------------------------------------------------------------------------
-// Set a control property
-void SpreadControl::set_property(const string& prop,
-                                 const SetParams& sp)
+// Capture current value
+void SpreadControl::start_capture()
 {
-  if (prop == "value")
+  if (capturing.empty())
   {
-    value = sp.v;
+    values.clear();
+    index = 0;
   }
-  else if (prop == "next")
+  capturing.insert(value);
+  values.push_back(value);
+}
+
+//--------------------------------------------------------------------------
+// Stop capturing current value
+void SpreadControl::stop_capture()
+{
+  capturing.erase(value);
+  if (!latch)
   {
-    if (last_sent)
+    for (auto i = 0u; i < values.size(); ++i)
     {
-      send("value", *last_sent);
-      send("clear", {});
-    }
-    if (latch || !capturing.empty())
-    {
-      last_sent.reset(new Value{values[pos]});
-      send("value", *last_sent);
-      send("trigger", {});
-      if (++pos >= values.size())
-        pos = 0;
-    }
-  }
-  else if (prop == "trigger")
-  {
-    if (capturing.empty())
-    {
-      values.clear();
-      pos = 0;
-    }
-    capturing.insert(value);
-    values.push_back(value);
-  }
-  else if (prop == "clear")
-  {
-    capturing.erase(value);
-    if (!latch)
-    {
-      for (auto i = 0u; i < values.size(); ++i)
+      if (values[i] == value)
       {
-        if (values[i] == value)
-        {
-          values.erase(values.begin() + i);
-          if (pos > i)
-            --pos;
-          if (pos > values.size())
-            pos = 0;
-          break;
-        }
+        values.erase(values.begin() + i);
+        if (index > i)
+          --index;
+        if (index > values.size())
+          index = 0;
+        break;
       }
     }
+  }
+}
+
+//--------------------------------------------------------------------------
+// Trigger next value
+void SpreadControl::next()
+{
+  if (last_sent)
+  {
+    send("value", *last_sent);
+    send("clear", {});
+  }
+  if (latch || !capturing.empty())
+  {
+    last_sent.reset(new Value{values[index]});
+    send("value", *last_sent);
+    send("trigger", {});
+    if (++index >= values.size())
+      index = 0;
   }
 }
 
@@ -118,16 +109,20 @@ Dataflow::Module module
   "Spread a collection of values over time",
   "core",
   {
-    { "value", { "A value", Value::Type::number, true }},
-    { "trigger", { "Trigger value", Value::Type::trigger, true }},
-    { "clear", { "Clear value", Value::Type::trigger, true }},
-    { "next", { "Send next value", Value::Type::trigger, true }},
-    { "latch", { "Latch", Value::Type::boolean, "@latch", true }},
+    { "value", { "A value", Value::Type::number,
+                 &SpreadControl::value, true } },
+    { "trigger", { "Trigger value", Value::Type::trigger,
+                   &SpreadControl::start_capture, true } },
+    { "clear", { "Clear value", Value::Type::trigger,
+                 &SpreadControl::stop_capture, true } },
+    { "next", { "Send next value", Value::Type::trigger,
+                &SpreadControl::next, true } },
+    { "latch", { "Latch", Value::Type::boolean, &SpreadControl::latch, true } },
   },
   {
-    { "value", { "Value", "value", Value::Type::number }},
-    { "trigger", { "Trigger value", "trigger", Value::Type::trigger }},
-    { "clear", { "Clear value", "clear", Value::Type::trigger }},
+    { "value", { "Value", "value", Value::Type::number } },
+    { "trigger", { "Trigger value", "trigger", Value::Type::trigger } },
+    { "clear", { "Clear value", "clear", Value::Type::trigger } },
   }
 
 };

@@ -35,7 +35,7 @@ private:
   // Source/Element virtuals
   void update() override;
   void accept(FragmentPtr fragment) override;
-  void notify_target_of(Element *, const string& property) override;
+  void notify_target_of(const string& property) override;
 
 public:
   double cutoff = 1.0;
@@ -147,7 +147,7 @@ void FilterFilter::accept(FragmentPtr fragment)
 
 //--------------------------------------------------------------------------
 // If recipient of triggers default to disabled
-void FilterFilter::notify_target_of(Element *, const string& property)
+void FilterFilter::notify_target_of(const string& property)
 {
   if (property == "enable")
     enabled = false;

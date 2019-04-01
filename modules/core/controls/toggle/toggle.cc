@@ -21,7 +21,7 @@ private:
   map<double, bool> multistate;
 
   // Control/Element virtuals
-  void notify_target_of(Element *, const string& property) override;
+  void notify_target_of(const string& property) override;
 
 public:
   double value = 0.0;
@@ -51,7 +51,7 @@ void ToggleControl::toggle()
 
 //--------------------------------------------------------------------------
 // Set to multi-value toggle if target of value
-void ToggleControl::notify_target_of(Element *, const string& property)
+void ToggleControl::notify_target_of(const string& property)
 {
   if (property == "value")
     multi = true;

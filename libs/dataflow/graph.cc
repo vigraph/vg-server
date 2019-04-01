@@ -159,43 +159,8 @@ void Graph::connect(Element *el)
         target_element = eit->second.get();
       }
 
-      // Check name and type of properties
-      for(const auto& p: target.properties)
-      {
-        Value::Type target_type =
-          target_element->get_property_type(p.second.name);
-        if (target_type == Value::Type::invalid)
-          continue;  // Ignore for now - later make explicit if it's optional?
-
-        if (p.second.type != target_type && p.second.type != Value::Type::any
-            && target_type != Value::Type::any)
-          throw runtime_error("Control type mismatch connecting "+el->id+" to "
-                              +target_element->id+"("+p.second.name
-                              +"): expecting "+Value::type_str(target_type)
-                              +" but got "+Value::type_str(p.second.type));
-
-        // Check it's settable (they don't get to override this)
-        if (target_element->module)
-        {
-          const auto pit =
-            target_element->module->properties.find(p.second.name);
-
-          // If this property doesn't exist in the module definition but
-          // the target element didn't return Type::invalid above, then
-          // it must be dynamically created, so we'll assume it's settable
-          // (e.g. <wrap>, <limit>)
-          if (pit != target_element->module->properties.end()
-              && !pit->second.settable)
-            throw runtime_error("Can't connect "+el->id+" to "
-                                +target_element->id+"("+p.second.name
-                                +"): property not settable");
-
-          target_element->notify_target_of(el, p.second.name);
-        }
-      }
-
       // Attach it
-      c->attach_target(it.first, target_element);
+      c->attach_target(it.first, target_element, el);
       el->downstreams.push_back(target_element);
     }
   }

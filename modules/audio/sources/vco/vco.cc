@@ -43,7 +43,7 @@ private:
 
   // Source/Element virtuals
   void tick(const TickData& td) override;
-  void notify_target_of(Element *, const string& property) override;
+  void notify_target_of(const string& property) override;
 
 public:
   using Source::Source;
@@ -104,7 +104,7 @@ void VCOSource::set_waveform(const string& name)
 
 //--------------------------------------------------------------------------
 // If recipient of on/offs default to disabled
-void VCOSource::notify_target_of(Element *, const string& property)
+void VCOSource::notify_target_of(const string& property)
 {
   if (property == "trigger")
     enabled = false;

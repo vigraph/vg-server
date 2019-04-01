@@ -417,7 +417,7 @@ public:
 
   // Notify that this element is the control target of another element,
   // with the given property name
-  virtual void notify_target_of(Element */*e*/, const string& /*prop*/) {}
+  virtual void notify_target_of(const string& /*prop*/) {}
 
   // Get state as JSON
   virtual JSON::Value get_json() const;
@@ -534,8 +534,11 @@ class ControlImpl
   {
     string name;  // Target property name
     Value::Type type{Value::Type::invalid};
+    bool is_explicit;
+
     Property() {}
-    Property(const string& _name, Value::Type _type): name(_name), type(_type) {}
+    Property(const string& _name, Value::Type _type, bool _is_explicit=false):
+      name(_name), type(_type), is_explicit(_is_explicit) {}
   };
 
   struct Target
@@ -557,7 +560,9 @@ class ControlImpl
   const map<string, Target>& get_targets() { return targets; }
 
   // Attach to a target element
-  void attach_target(const string& id, Element *element);
+  void attach_target(const string& prop_id,
+                     Element *target_element,
+                     Element *source_element);
 
   // Send a value to the target using only (first) property
   void send(const Value& v);

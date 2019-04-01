@@ -35,7 +35,7 @@ private:
 
   // Event observer implementation
   void handle(const ViGraph::MIDI::Event& event) override;
-  void notify_target_of(Element *, const string& property) override;
+  void notify_target_of(const string& property) override;
 
 public:
   using Control::Control;
@@ -107,7 +107,7 @@ void MIDIControlInControl::handle(const ViGraph::MIDI::Event& event)
 
 //--------------------------------------------------------------------------
 // If recipient of triggers default to disabled
-void MIDIControlInControl::notify_target_of(Element *, const string& property)
+void MIDIControlInControl::notify_target_of(const string& property)
 {
   if (property == "enable")
     disable();

@@ -30,7 +30,7 @@ class BeatControl: public Dataflow::Control
 
   // Control virtuals
   void pre_tick(const TickData& td) override;
-  void notify_target_of(Element *, const string& property) override;
+  void notify_target_of(const string& property) override;
   void enable() override { reset(); }
 
 public:
@@ -56,7 +56,7 @@ void BeatControl::reset()
 
 //--------------------------------------------------------------------------
 // Automatically clear active flag if we are the start target of something
-void BeatControl::notify_target_of(Element *, const string& property)
+void BeatControl::notify_target_of(const string& property)
 {
   if (property == "start")
     active = false;

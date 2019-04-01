@@ -10,6 +10,7 @@
 
 namespace ViGraph { namespace Dataflow {
 
+//------------------------------------------------------------------------
 // Construct with XML
 ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
                          bool targets_are_optional):
@@ -36,7 +37,10 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
   // Check for simple single property value and fix up from default
   const auto& prop = config["property"];
   if (!prop.empty() && !properties.empty())
+  {
     properties.begin()->second.name = prop;
+    properties.begin()->second.is_explicit = true;
+  }
 
   // Check prefixed attributes
   const auto& props = config.get_attrs_with_prefix("property-");
@@ -46,6 +50,7 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
     if (it == properties.end())
       throw runtime_error("Element "+control_id+" has no property "+p.first);
     it->second.name = p.second;
+    it->second.is_explicit = true;
   }
 
   // If no targets and not optional, and we have outputs, create a default one
@@ -75,7 +80,7 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
       // Reset the first (default) one using the existing type
       if (!properties.empty())
         target.properties[properties.begin()->first] =
-          Property(prop, properties.begin()->second.type);
+          Property(prop, properties.begin()->second.type, true);
     }
 
     // Check prefixed attributes
@@ -85,20 +90,71 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
       const auto& it = properties.find(p.first);
       if (it == properties.end())
         throw runtime_error("Element "+control_id+" has no property "+p.first);
-      target.properties[p.first] = Property(p.second, it->second.type);
+      target.properties[p.first] = Property(p.second, it->second.type, true);
     }
   }
 }
 
+//------------------------------------------------------------------------
 // Attach to a target element
-void ControlImpl::attach_target(const string& id, Element *element)
+void ControlImpl::attach_target(const string& prop_id,
+                                Element *target_element,
+                                Element *source_element)
 {
-  // If we just have the one default one, use this
-  auto it = targets.find(id);
-  if (it != targets.end())
-    it->second.element = element;
+  auto it = targets.find(prop_id);
+  if (it == targets.end())
+    throw runtime_error("No such target "+prop_id+" on control");
+
+  auto& target = it->second;
+
+  // Check name and type of properties
+  for(auto it=target.properties.begin(); it!=target.properties.end(); ++it)
+  {
+    const auto& p = it->second;
+    Value::Type target_type =
+      target_element->get_property_type(p.name);
+    if (target_type == Value::Type::invalid)
+    {
+      // If explicit, this is an error
+      if (p.is_explicit)
+        throw runtime_error("Can't connect from "+source_element->id+" to "
+                            +target_element->id+"("+p.name
+                            +"): no such property");
+      else
+      {
+        // Remove it from target properties
+        it = target.properties.erase(it);
+        continue;
+      }
+    }
+
+    // Check type
+    if (p.type != target_type && p.type != Value::Type::any
+        && target_type != Value::Type::any)
+      throw runtime_error("Control type mismatch connecting "+
+                          source_element->id+" to "
+                          +target_element->id+"("+p.name
+                          +"): expecting "+Value::type_str(target_type)
+                          +" but got "+Value::type_str(p.type));
+
+    // Check it's settable (they don't get to override this)
+    if (target_element->module)
+    {
+      const auto pit = target_element->module->properties.find(p.name);
+      if (pit != target_element->module->properties.end()
+          && !pit->second.settable)
+        throw runtime_error("Can't connect from "+source_element->id+" to "
+                            +target_element->id+"("+p.name
+                            +"): property not settable");
+
+      target_element->notify_target_of(p.name);
+    }
+  }
+
+  target.element = target_element;
 }
 
+//------------------------------------------------------------------------
 // Send a value to the target using only (first) property
 void ControlImpl::send(const Value& v)
 {
@@ -113,6 +169,7 @@ void ControlImpl::send(const Value& v)
   }
 }
 
+//------------------------------------------------------------------------
 // Send a named value to the target
 // name is our name for it
 void ControlImpl::send(const string& name, const Value& v)

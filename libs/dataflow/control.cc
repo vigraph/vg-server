@@ -48,8 +48,9 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
     it->second.name = p.second;
   }
 
-  // If no targets and not optional, create a default one
-  if (targets.empty() && !targets_are_optional)
+  // If no targets and not optional, and we have outputs, create a default one
+  if (targets.empty() && !targets_are_optional
+      && !_module->controlled_properties.empty())
     targets[""] = Target();
 
   // Set on all targets initially

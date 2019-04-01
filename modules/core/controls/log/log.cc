@@ -30,7 +30,7 @@ public:
 // <log>A message</log>
 // !!! Needs replacing!
 LogControl::LogControl(const Module *module, const XML::Element& config):
-  Control(module, config, true)  // no targets
+  Control(module, config)
 {
   message = *config;
 }

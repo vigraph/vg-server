@@ -15,50 +15,37 @@ namespace {
 // Toggle control
 class ToggleControl: public Dataflow::Control
 {
+private:
   bool multi = false;
   bool state = false;
-  Value v;
-  map<Value, bool> multistate;
+  map<double, bool> multistate;
 
   // Control/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void notify_target_of(Element *, const string& property) override;
 
 public:
+  double value = 0.0;
+
   // Construct
-  ToggleControl(const Module *module, const XML::Element& config);
+  using Control::Control;
+
+  void toggle();
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML
-//   <toggle property="x"/>
-ToggleControl::ToggleControl(const Module *module, const XML::Element& config):
-  Control(module, config)
+// Trigger toggle
+void ToggleControl::toggle()
 {
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void ToggleControl::set_property(const string& prop,
-                                 const SetParams& sp)
-{
-  if (prop == "value")
+  if (multi)
   {
-    v = sp.v;
+    auto& s = multistate[value];
+    s = !s;
+    send(s ? "trigger" : "clear", {});
   }
-  else if (prop == "trigger")
+  else
   {
-    if (multi)
-    {
-      auto& s = multistate[v];
-      s = !s;
-      send(s ? "trigger" : "clear", {});
-    }
-    else
-    {
-      state = !state;
-      send(state ? "trigger" : "clear", {});
-    }
+    state = !state;
+    send(state ? "trigger" : "clear", {});
   }
 }
 
@@ -79,8 +66,10 @@ Dataflow::Module module
   "Toggle a control on/off",
   "core",
   {
-    { "value", { "Set value to toggle on", Value::Type::number, true }},
-    { "trigger", { "Trigger toggle", Value::Type::trigger, true }},
+    { "value", { "Set value to toggle on", Value::Type::number,
+                 &ToggleControl::value, true }},
+    { "trigger", { "Trigger toggle", Value::Type::trigger,
+                   &ToggleControl::toggle, true }},
   },
   {
     { "trigger", { "Trigger on", "trigger", Value::Type::trigger }},

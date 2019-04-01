@@ -483,11 +483,12 @@ class Generator: public Element
   // Get the acceptor ID
   const string& get_acceptor_id() { return acceptor_id; }
 
-  // Set the acceptor and optionally ID
+  // Set the acceptor and optionally ID - note either are overridable,
+  // second downcalls to first
   virtual void attach(Acceptor *_acceptor)
   { acceptor = _acceptor; }
   virtual void attach(Acceptor *_acceptor, const string& _acceptor_id)
-  { acceptor = _acceptor; acceptor_id = _acceptor_id; }
+  { attach(_acceptor); acceptor_id = _acceptor_id; }
 
   // Send data down
   void send(DataPtr data) { if (acceptor) acceptor->accept(data); }

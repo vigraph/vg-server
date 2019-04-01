@@ -17,9 +17,8 @@ using namespace ViGraph::Dataflow;
 // Delay filter
 class DelayFilter: public FragmentFilter
 {
+private:
   Time::Duration delay;
-  double feedback = 0.5;
-
   struct Buffer
   {
     unsigned pos = 0;
@@ -28,59 +27,48 @@ class DelayFilter: public FragmentFilter
   map<Speaker, Buffer> buffer; // Buffer per speaker
 
   // Source/Element virtuals
-  void set_property(const string& property, const SetParams& sp) override;
   void accept(FragmentPtr fragment) override;
 
 public:
-  DelayFilter(const Dataflow::Module *module, const XML::Element& config);
+  double feedback = 0.5;
+
+  using FragmentFilter::FragmentFilter;
+
+  // Getters/Setters
+  double get_time() const { return delay.seconds(); }
+  void set_time(double time);
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <delay time="0.125" />
-DelayFilter::DelayFilter(const Dataflow::Module *module,
-                         const XML::Element& config):
-    FragmentFilter(module, config)
+// Set delay time
+void DelayFilter::set_time(double t)
 {
-  delay = Time::Duration{config.get_attr_real("time", 0)};
-  feedback = config.get_attr_real("feedback", 0.5);
-}
-
-//--------------------------------------------------------------------------
-// Set a control property
-void DelayFilter::set_property(const string& property, const SetParams& sp)
-{
-  if (property == "time")
+  delay = Time::Duration{max(t, 0.0)};
+  if (!buffer.empty())
   {
-    delay = Time::Duration{max(sp.v.d, 0.0)};
-    if (!buffer.empty())
+    const auto new_size = static_cast<unsigned long>(delay.seconds()
+                                                     * sample_rate);
+    for (auto& bit: buffer)
     {
-      const auto new_size = static_cast<unsigned long>(delay.seconds()
-                                                       * sample_rate);
-      for (auto& bit: buffer)
+      auto& b = bit.second;
+      auto tmp = vector<sample_t>(max(new_size, b.samples.size()));
+      auto it = tmp.begin();
+      if (new_size > b.samples.size())
+        it += (new_size - b.samples.size());
+      else
       {
-        auto& b = bit.second;
-        auto tmp = vector<sample_t>(max(new_size, b.samples.size()));
-        auto it = tmp.begin();
-        if (new_size > b.samples.size())
-          it += (new_size - b.samples.size());
-        else
-        {
-          b.pos += (b.samples.size() - new_size);
-          while (b.pos >= b.samples.size())
-            b.pos -= b.samples.size();
-        }
-        auto bpos = b.samples.begin() + b.pos;
-        it = copy(bpos, b.samples.end(), it);
-        copy(b.samples.begin(), bpos, it);
-        tmp.resize(new_size);
-        b.samples = tmp;
-        b.pos = 0;
+        b.pos += (b.samples.size() - new_size);
+        while (b.pos >= b.samples.size())
+          b.pos -= b.samples.size();
       }
+      auto bpos = b.samples.begin() + b.pos;
+      it = copy(bpos, b.samples.end(), it);
+      copy(b.samples.begin(), bpos, it);
+      tmp.resize(new_size);
+      b.samples = tmp;
+      b.pos = 0;
     }
   }
-  else if (property == "feedback")
-    feedback = sp.v.d;
 }
 
 //--------------------------------------------------------------------------
@@ -124,10 +112,10 @@ Dataflow::Module module
   "Audio delay",
   "audio",
   {
-    { "time", { {"Time to delay for", "0"}, Value::Type::number,
-                                            "@time", true } },
-    { "feedback", { {"Amount of feedback (0-?)", "0.5"}, Value::Type::number,
-                                                         "@feedback", true } },
+    { "time", { "Time to delay for", Value::Type::number,
+                { &DelayFilter::get_time, &DelayFilter::set_time }, true } },
+    { "feedback", { "Amount of feedback (0-?)", Value::Type::number,
+                    &DelayFilter::feedback, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

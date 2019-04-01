@@ -72,8 +72,7 @@ void RandomControl::pre_tick(const TickData& /*td*/)
 
   // We're good - do it...
   double val = min + (double)rand()/RAND_MAX*(max-min);
-  SetParams sp(Dataflow::Value{val});
-  send(sp);
+  send(val);
 }
 
 //--------------------------------------------------------------------------

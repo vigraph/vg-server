@@ -34,9 +34,9 @@ class PoolDistributorImpl: public Dataflow::Service, public PoolDistributor
       }
 
       void send(unsigned index, const string& property,
-                const Dataflow::Control::SetParams& sp)
+                const Dataflow::Value& v)
       {
-        worker->set_property(property, sp);
+        worker->set_property(property, v);
         last_index = index;
         cleared = (property == "clear");
         last_used = Time::Stamp::now();
@@ -51,7 +51,7 @@ class PoolDistributorImpl: public Dataflow::Service, public PoolDistributor
   void deregister_worker(Control *worker) override;
   void send(const string& pool, unsigned index,
             const string& property,
-            const Dataflow::Control::SetParams& sp) override;
+            const Dataflow::Value& v) override;
 
  public:
   // Construct
@@ -95,7 +95,7 @@ void PoolDistributorImpl::deregister_worker(Control *worker)
 void PoolDistributorImpl::send(const string& pool,
                                unsigned index,
                                const string& property,
-                               const SetParams& sp)
+                               const Value& v)
 {
   const auto pit = pools.find(pool);
   if (pit != pools.end() && !pit->second.workers.empty())
@@ -105,7 +105,7 @@ void PoolDistributorImpl::send(const string& pool,
     {
       if (w.last_index == index)
       {
-        w.send(index, property, sp);
+        w.send(index, property, v);
         return;
       }
     }
@@ -116,7 +116,7 @@ void PoolDistributorImpl::send(const string& pool,
     {
       if (w.cleared)
       {
-        w.send(index, property, sp);
+        w.send(index, property, v);
         return;
       }
     }
@@ -126,7 +126,7 @@ void PoolDistributorImpl::send(const string& pool,
     auto& w = pit->second.workers.front();
     // Clear previous recipient
     w.worker->set_property("clear", {});
-    w.send(index, property, sp);
+    w.send(index, property, v);
   }
 }
 

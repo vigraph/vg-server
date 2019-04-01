@@ -15,9 +15,9 @@ TEST(LimitTest, TestLimitDoesNothingInRange)
   tester.test("<set property='value' value='0.2'/>",
               "<limit property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.2, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.2, v.d, 1e-5);
 }
 
 TEST(LimitTest, TestDefaultLimitAbsoluteValueUpper)
@@ -26,9 +26,9 @@ TEST(LimitTest, TestDefaultLimitAbsoluteValueUpper)
   tester.test("<set property='value' value='1.5'/>",
               "<limit property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(1.0, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(1.0, v.d, 1e-5);
 }
 
 TEST(LimitTest, TestDefaultLimitAbsoluteValueLower)
@@ -37,9 +37,9 @@ TEST(LimitTest, TestDefaultLimitAbsoluteValueLower)
   tester.test("<set property='value' value='-0.5'/>",
               "<limit property='x'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.0, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.0, v.d, 1e-5);
 }
 
 TEST(LimitTest, TestSpecifiedLimitAbsoluteValueUpper)
@@ -48,9 +48,9 @@ TEST(LimitTest, TestSpecifiedLimitAbsoluteValueUpper)
   tester.test("<set property='value' value='5.5'/>",
               "<limit property='x' min='3' max='4'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(4.0, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(4.0, v.d, 1e-5);
 }
 
 TEST(LimitTest, TestSpecifiedLimitAbsoluteValueLower)
@@ -59,9 +59,9 @@ TEST(LimitTest, TestSpecifiedLimitAbsoluteValueLower)
   tester.test("<set property='value' value='-0.5'/>",
               "<limit property='x' min='3' max='4'/>");
   ASSERT_TRUE(tester.target->got("x"));
-  const auto& sp = tester.target->get("x");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(3.0, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("x");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(3.0, v.d, 1e-5);
 }
 
 int main(int argc, char **argv)

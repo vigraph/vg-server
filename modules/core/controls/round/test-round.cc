@@ -31,9 +31,9 @@ TEST(RoundTest, TestNearestThree)
   tester.test("<set value='1.5'/>",
               "<round n='3'/>", 1);
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(3.0, sp.v.d);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(3.0, v.d);
 }
 
 TEST(RoundTest, TestNearestThird)
@@ -42,9 +42,9 @@ TEST(RoundTest, TestNearestThird)
   tester.test("<set value='0.4'/>",
               "<round d='3'/>", 1);
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(1.0/3.0, sp.v.d, 0.0001);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(1.0/3.0, v.d, 0.0001);
 }
 
 TEST(RoundTest, TestNearestTwoThird)
@@ -53,9 +53,9 @@ TEST(RoundTest, TestNearestTwoThird)
   tester.test("<set value='0.8'/>",
               "<round n='2' d='3'/>", 1);
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(2.0/3.0, sp.v.d, 0.0001);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(2.0/3.0, v.d, 0.0001);
 }
 
 int main(int argc, char **argv)

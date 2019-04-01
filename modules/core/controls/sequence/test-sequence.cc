@@ -15,9 +15,9 @@ TEST(SequenceTest, TestSequenceAttrValues)
   tester.test("<set property='index' value='2'/>",
               "<sequence values='zero one two three four' />");
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::text, sp.v.type);
-  EXPECT_EQ("two", sp.v.s);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::text, v.type);
+  EXPECT_EQ("two", v.s);
 }
 
 TEST(SequenceTest, TestSequenceElementValues)
@@ -32,9 +32,9 @@ TEST(SequenceTest, TestSequenceElementValues)
               "  <value>four</value>"
               "</sequence>");
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::text, sp.v.type);
-  EXPECT_EQ("three", sp.v.s);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::text, v.type);
+  EXPECT_EQ("three", v.s);
 }
 
 TEST(SequenceTest, TestSequenceTriggerNext)
@@ -44,9 +44,9 @@ TEST(SequenceTest, TestSequenceTriggerNext)
               "<trigger property='next'/>",
               "<sequence id='seq' values='zero one two three four' />");
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::text, sp.v.type);
-  EXPECT_EQ("two", sp.v.s);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::text, v.type);
+  EXPECT_EQ("two", v.s);
 }
 
 TEST(SequenceTest, TestSequenceTriggerNextLoop)
@@ -60,9 +60,9 @@ TEST(SequenceTest, TestSequenceTriggerNextLoop)
                "<trigger property='next'/>",
                "<sequence id='seq' values='zero one two three four' />"});
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::text, sp.v.type);
-  EXPECT_EQ("one", sp.v.s);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::text, v.type);
+  EXPECT_EQ("one", v.s);
 }
 
 int main(int argc, char **argv)

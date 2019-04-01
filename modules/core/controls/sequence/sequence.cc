@@ -56,8 +56,7 @@ void SequenceControl::set_index(int i)
   index = i;
   if (index >= values.size())
     index = values.size() - 1;
-  SetParams nsp(values[index]);
-  send(nsp);
+  send({values[index]});
 }
 
 //--------------------------------------------------------------------------
@@ -72,8 +71,7 @@ void SequenceControl::next()
       index = values.size() - 1;
   }
 
-  SetParams nsp(values[index]);
-  send(nsp);
+  send({values[index]});
 }
 
 //--------------------------------------------------------------------------

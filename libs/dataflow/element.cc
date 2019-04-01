@@ -178,12 +178,12 @@ void Element::set_property(const string& /*prop_name*/,
 //------------------------------------------------------------------------
 // Set a property (external)
 void Element::set_property(const string& prop_name,
-                           const SetParams& sp)
+                           const Value& v)
 {
   const auto pit = module->properties.find(prop_name);
   if (pit == module->properties.end())
     throw runtime_error("No such property "+prop_name+" on element "+id);
-  set_property(prop_name, pit->second, sp.v);
+  set_property(prop_name, pit->second, v);
 
   // Action changes
   // !!! Later optimise to only call once for sets of updates?

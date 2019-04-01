@@ -15,9 +15,9 @@ TEST(WindowTest, TestWindowDoesNothingInRange)
   tester.test("<set value='0.2'/>",
               "<window/>");
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.2, sp.v.d, 1e-5);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.2, v.d, 1e-5);
 }
 
 TEST(WindowTest, TestDefaultWindowAbsoluteValueUpper)

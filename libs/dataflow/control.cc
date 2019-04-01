@@ -99,7 +99,7 @@ void ControlImpl::attach_target(const string& id, Element *element)
 }
 
 // Send a value to the target using only (first) property
-void ControlImpl::send(const Element::SetParams& sp)
+void ControlImpl::send(const Value& v)
 {
   for(const auto& it: targets)
   {
@@ -107,14 +107,14 @@ void ControlImpl::send(const Element::SetParams& sp)
     if (target.element && target.properties.size())
     {
       const auto& p = target.properties.begin();
-      target.element->set_property(p->second.name, sp);
+      target.element->set_property(p->second.name, v);
     }
   }
 }
 
 // Send a named value to the target
 // name is our name for it
-void ControlImpl::send(const string& name, const Element::SetParams& sp)
+void ControlImpl::send(const string& name, const Value& v)
 {
   for(const auto& it: targets)
   {
@@ -123,13 +123,13 @@ void ControlImpl::send(const string& name, const Element::SetParams& sp)
     {
       const auto& p = target.properties.find(name);
       if (p != target.properties.end())
-        target.element->set_property(p->second.name, sp);  // Use their name
+        target.element->set_property(p->second.name, v);  // Use their name
       else
       {
         // Look for wildcard, we can send using our name
         const auto& q = target.properties.find("");
         if (q != target.properties.end())
-          target.element->set_property(name, sp);  // Use our name
+          target.element->set_property(name, v);  // Use our name
       }
     }
   }

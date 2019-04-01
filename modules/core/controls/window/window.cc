@@ -33,8 +33,7 @@ void WindowControl::set_value(double value)
   if (value > max || value < min)
     return;
 
-  SetParams nsp(Dataflow::Value{value});
-  send(nsp);
+  send({value});
 }
 
 //--------------------------------------------------------------------------

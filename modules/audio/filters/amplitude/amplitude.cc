@@ -57,7 +57,7 @@ void AmplitudeFilter::accept(FragmentPtr fragment)
 // Send latest reading
 void AmplitudeFilter::pre_tick(const TickData&)
 {
-  ControlImpl::send(SetParams{Dataflow::Value{amplitude * scale + offset}});
+  ControlImpl::send({amplitude * scale + offset});
 }
 
 //--------------------------------------------------------------------------

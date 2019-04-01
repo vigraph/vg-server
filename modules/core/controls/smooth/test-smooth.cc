@@ -15,9 +15,9 @@ TEST(SmoothTest, TestZeroRCDoesNothing)
   tester.test("<lfo wave='square' phase='0.5' period='100'/>",
               "<smooth time='0' />", 1);
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(1.0, sp.v.d);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(1.0, v.d);
 }
 
 TEST(SmoothTest, TestSingleRCPeriodIs63Percent)
@@ -26,9 +26,9 @@ TEST(SmoothTest, TestSingleRCPeriodIs63Percent)
   tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
               "<smooth time='10000'/>", 10000);
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.632, sp.v.d, 0.001);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.632, v.d, 0.001);
 }
 
 TEST(SmoothTest, TestTwoRCPeriodsIs86Percent)
@@ -37,9 +37,9 @@ TEST(SmoothTest, TestTwoRCPeriodsIs86Percent)
   tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
               "<smooth time='10000'/>", 20000);
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.865, sp.v.d, 0.001);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.865, v.d, 0.001);
 }
 
 TEST(SmoothTest, TestThreeRCPeriodsIs95Percent)
@@ -48,9 +48,9 @@ TEST(SmoothTest, TestThreeRCPeriodsIs95Percent)
   tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
               "<smooth time='10000'/>", 30000);
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.95, sp.v.d, 0.001);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.95, v.d, 0.001);
 }
 
 TEST(SmoothTest, TestFourRCPeriodsIs98Percent)
@@ -59,9 +59,9 @@ TEST(SmoothTest, TestFourRCPeriodsIs98Percent)
   tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
               "<smooth time='10000'/>", 40000);
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.982, sp.v.d, 0.001);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.982, v.d, 0.001);
 }
 
 TEST(SmoothTest, TestFiveRCPeriodsIs99Percent)
@@ -70,9 +70,9 @@ TEST(SmoothTest, TestFiveRCPeriodsIs99Percent)
   tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
               "<smooth time='10000'/>", 50000);
   ASSERT_TRUE(tester.target->got("value"));
-  const auto& sp = tester.target->get("value");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_NEAR(0.993, sp.v.d, 0.001);
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_NEAR(0.993, v.d, 0.001);
 }
 
 int main(int argc, char **argv)

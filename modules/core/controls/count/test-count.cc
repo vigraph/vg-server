@@ -14,9 +14,9 @@ TEST(CountTest, TestCountDefault)
   ControlTester tester(loader);
   tester.test("<count property='foo'/>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(1, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(1, v.d);
 }
 
 TEST(CountTest, TestCountSpecified)
@@ -24,9 +24,9 @@ TEST(CountTest, TestCountSpecified)
   ControlTester tester(loader);
   tester.test("<count property='foo' delta='42'/>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(42, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(42, v.d);
 }
 
 TEST(CountTest, TestCountWithWaitNotTriggeredHasNoEffect)

@@ -25,9 +25,9 @@ TEST(InterpolateTest, TestInterpolateWithOnePointHasEffect)
                 "<point foo='1'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(1, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(1, v.d);
 }
 
 TEST(InterpolateTest, TestInterpolateWithTwoPoints)
@@ -39,9 +39,9 @@ TEST(InterpolateTest, TestInterpolateWithTwoPoints)
                 "<point foo='2'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(1.5, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(1.5, v.d);
 }
 
 TEST(InterpolateTest, TestInterpolateWithThreePointsOnBoundary)
@@ -54,9 +54,9 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsOnBoundary)
                 "<point foo='3'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(2, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(2, v.d);
 }
 
 TEST(InterpolateTest, TestInterpolateWithThreePoints)
@@ -69,9 +69,9 @@ TEST(InterpolateTest, TestInterpolateWithThreePoints)
                 "<point foo='3'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_DOUBLE_EQ(2.5, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_DOUBLE_EQ(2.5, v.d);
 }
 
 TEST(InterpolateTest, TestInterpolateWithThreePointsAtEnd)
@@ -84,9 +84,9 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsAtEnd)
                 "<point foo='3'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(3, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(3, v.d);
 }
 
 TEST(InterpolateTest, TestInterpolateWithMissingValueUsesLast)
@@ -99,9 +99,9 @@ TEST(InterpolateTest, TestInterpolateWithMissingValueUsesLast)
                 "<point/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(2, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(2, v.d);
 }
 
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPoints)
@@ -113,9 +113,9 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPoints)
                 "<point at='0.4' foo='2'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(1.5, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(1.5, v.d);
 }
 
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsAfterLast)
@@ -127,9 +127,9 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsAfterLast)
                 "<point at='0.4' foo='2'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(2, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(2, v.d);
 }
 
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsLargeAtValues)
@@ -141,9 +141,9 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsLargeAtValues)
                 "<point at='1000' foo='2'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(1.5, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(1.5, v.d);
 }
 
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtThreePoints)
@@ -156,9 +156,9 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtThreePoints)
                 "<point at='3.0' foo='3'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
-  const auto& sp = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, sp.v.type);
-  EXPECT_EQ(2.25, sp.v.d);
+  const auto& v = tester.target->get("foo");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(2.25, v.d);
 }
 
 int main(int argc, char **argv)

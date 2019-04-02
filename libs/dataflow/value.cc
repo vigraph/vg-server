@@ -29,6 +29,41 @@ string Value::type_str(Value::Type t)
   }
 }
 
+//------------------------------------------------------------------------
+// Construct from a JSON value
+Value::Value(const JSON::Value& json)
+{
+  switch (json.type)
+  {
+    case JSON::Value::NUMBER:
+      type = Type::number;
+      d = json.f;
+      break;
+
+    case JSON::Value::INTEGER:
+      type = Type::number;
+      d = json.n;
+      break;
+
+    case JSON::Value::STRING:
+      type = Type::text;
+      s = json.s;
+
+    case JSON::Value::TRUE:
+      type = Type::number;
+      d = 1.0;
+      break;
+
+    case JSON::Value::FALSE:
+      type = Type::number;
+      d = 0.0;
+      break;
+
+    default:
+      type = Type::invalid;
+  }
+}
+
 
 
 }} // namespaces

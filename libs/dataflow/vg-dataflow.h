@@ -148,6 +148,9 @@ struct Value
   Value(double _d): type(Type::number), d(_d) {}
   Value(const string& _s): type(Type::text), s(_s) {}
 
+  // Construct from a JSON value
+  Value(const JSON::Value& json);
+
   // Comparison operators
   bool operator<(const Value& b) const
   {
@@ -386,6 +389,7 @@ private:
   void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
   JSON::Value get_property_json(const Module::Property& prop) const;
+  static Value get_value(const JSON::Value& value);
 
 public:
   const Module *module{nullptr};
@@ -423,6 +427,10 @@ public:
   // Get state as JSON - path is XPath-like path to subelements - ignore
   // in leaf elements (when it should be empty anyway)
   virtual JSON::Value get_json(const string& path="") const;
+
+  // Set state from JSON
+  // path is a path/to/leaf/prop - can set any intermediate level too
+  virtual void set_json(const string& path, const JSON::Value& value);
 
   // Set a control value
   virtual void set_property(const string& property, const Value&);
@@ -746,6 +754,11 @@ class Graph
   JSON::Value get_json(const string& path="") const;
 
   //------------------------------------------------------------------------
+  // Set state from JSON
+  // path is a path/to/leaf/prop - can set any intermediate level too
+  void set_json(const string& path, const JSON::Value& value);
+
+  //------------------------------------------------------------------------
   // Does this require an update? (i.e. there is a new config)
   bool requires_update(File::Path &file, Time::Duration& check_interval,
                        Acceptor *& external_acceptor);
@@ -1061,14 +1074,13 @@ class Engine
                  const XML::Element& services_config);
 
   //------------------------------------------------------------------------
-  // Set an element property
-  // element_path is a path/to/leaf
-  void set_property(const string& element_path, const string& property,
-                    const Value& value);
-
-  //------------------------------------------------------------------------
   // Get state as a JSON value (see Graph::get_json())
   JSON::Value get_json(const string& path) const;
+
+  //------------------------------------------------------------------------
+  // Set state from JSON
+  // path is a path/to/leaf/prop - can set any intermediate level too
+  void set_json(const string& path, const JSON::Value& value);
 
   //------------------------------------------------------------------------
   // Tick the graph

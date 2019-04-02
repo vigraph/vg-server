@@ -68,14 +68,23 @@ bool GraphURLHandler::handle_get(const string& path,
   Log::Streams log;
   log.detail << "REST Graph: GET " << path << endl;
 
-  JSON::Value json = engine.get_json(path);
-  if (!json)
+  try
   {
+    JSON::Value json = engine.get_json(path);
+    if (!json)
+    {
+      response.code = 404;
+      response.reason = "Not found";
+    }
+    else response.body = json.str(true);
+  }
+  catch (runtime_error& e)
+  {
+    Log::Error log;
+    log << "REST Graph GET failed: " << e.what() << endl;
     response.code = 404;
     response.reason = "Not found";
   }
-  else response.body = json.str(true);
-
   return true;
 }
 

@@ -297,11 +297,7 @@ JSON::Value SelectorSource::get_json(const string& path) const
     vector<string> bits = Text::split(path, '/', false, 2);
     const auto it = subgraphs.find(bits[0]);
     if (it == subgraphs.end())
-    {
-      Log::Error log;
-      log << "No such sub-graph " << bits[0] << " in selector\n";
-      return JSON::Value{};
-    }
+      throw runtime_error("No such sub-graph "+bits[0]+" in selector");
 
     // Return bare value (or INVALID) up, undecorated
     return it->second->get_json(bits.size()>1 ? bits[1] : "");

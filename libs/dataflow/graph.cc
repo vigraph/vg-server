@@ -313,30 +313,6 @@ void Graph::generate_topological_order()
 }
 
 //------------------------------------------------------------------------
-// Set an element property
-// element_path is a path/to/leaf
-// Can throw runtime_error if it fails
-void Graph::set_property(const string& element_path, const string& property,
-                         const Value& value)
-{
-  vector<string> bits = Text::split(element_path, '/', false, 2);
-
-  // Find first part or leaf element
-  const auto& it = elements.find(bits[0]);
-  if (it == elements.end())
-    throw runtime_error("No such element "+property+" in graph");
-
-  if (bits.size() == 2)
-  {
-    // !!! Find subgraph / clone / selection
-  }
-  else
-  {
-    it->second->set_property(property, value);
-  }
-}
-
-//------------------------------------------------------------------------
 // Enable all elements
 void Graph::enable()
 {
@@ -444,14 +420,33 @@ JSON::Value Graph::get_json(const string& path) const
     vector<string> bits = Text::split(path, '/', false, 2);
     const auto it = elements.find(bits[0]);
     if (it == elements.end())
-    {
-      Log::Error log;
-      log << "No such sub-element " << bits[0] << " in graph\n";
-      return JSON::Value{};
-    }
+      throw runtime_error("No such sub-element "+bits[0]+" in graph");
 
     // Return bare value (or INVALID) up, undecorated
     return it->second->get_json(bits.size()>1 ? bits[1] : "");
+  }
+}
+
+//------------------------------------------------------------------------
+// Set state from JSON
+// path is a path/to/leaf/prop - can set any intermediate level too
+void Graph::set_json(const string& path, const JSON::Value& value)
+{
+  if (path.empty())
+  {
+    // !!! Reset entire graph!
+  }
+  else
+  {
+    // Pass down to individual element
+    vector<string> bits = Text::split(path, '/', false, 2);
+
+    // Find first part or leaf element
+    const auto& it = elements.find(bits[0]);
+    if (it == elements.end())
+      throw runtime_error("No such element "+bits[0]+" in graph");
+
+    it->second->set_json(bits.size()>1 ? bits[1] : "", value);
   }
 }
 

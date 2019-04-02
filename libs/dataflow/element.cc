@@ -16,17 +16,49 @@ JSON::Value Element::get_property_json(const Module::Property& prop) const
 {
   const auto& member = prop.member;
 
-  // Get value from prop through member points or getter functions
-  JSON::Value value;
+  // Get value from prop through member pointers or getter functions
   if (member.d_ptr)
     return JSON::Value(JSON::Value::NUMBER, this->*member.d_ptr);
-  else if (member.i_ptr)
-    return JSON::Value(this->*member.i_ptr);
+  else if (member.s_ptr)
+    return JSON::Value(this->*member.s_ptr);
   else if (member.b_ptr)
     return JSON::Value((this->*member.b_ptr)?JSON::Value::TRUE
                        :JSON::Value::FALSE);
+  else if (member.i_ptr)
+    return JSON::Value(this->*member.i_ptr);
+  else if (member.get_d)
+    return JSON::Value(JSON::Value::NUMBER, (this->*member.get_d)());
+  else if (member.get_s)
+    return JSON::Value((this->*member.get_s)());
+  else if (member.get_b)
+    return JSON::Value((this->*member.get_b)()?JSON::Value::TRUE
+                       :JSON::Value::FALSE);
+  else if (member.get_i)
+    return JSON::Value((this->*member.get_i)());
+  else if (member.get_json)
+    return (this->*member.get_json)();
   else
     return {};
+}
+
+//------------------------------------------------------------------------
+// Set state from JSON
+void Element::set_json(const string& path, const JSON::Value& value)
+{
+  if (path.empty())
+  {
+    // Whole element
+    throw runtime_error("Setting entire element not yet implemented!");
+    // !!!
+  }
+  else
+  {
+    // Individual property - note must be leaf path now
+    const auto pit = module->properties.find(path);
+    if (pit == module->properties.end())
+      throw runtime_error("No such property "+path+" in element "+id);
+    set_property(path, pit->second, Value(value));
+  }
 }
 
 //------------------------------------------------------------------------
@@ -44,6 +76,7 @@ JSON::Value Element::get_json(const string& path) const
     for(const auto pit: module->properties)
     {
       JSON::Value value = get_property_json(pit.second);
+      // Invalid ones can just be ignored
       if (!!value) propsj.set(pit.first, value);
     }
     return json;
@@ -53,12 +86,12 @@ JSON::Value Element::get_json(const string& path) const
     // Individual property - note must be leaf path now
     const auto pit = module->properties.find(path);
     if (pit == module->properties.end())
-    {
-      Log::Error log;
-      log << "No such property " << path << " in element " << id << endl;
-      return {};
-    }
-    return get_property_json(pit->second);
+      throw runtime_error("No such property "+path+" in element "+id);
+    JSON::Value value = get_property_json(pit->second);
+    if (!value)
+      throw runtime_error("No method to get property "+path
+                          +" from element "+id);
+    return value;
   }
 }
 

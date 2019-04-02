@@ -80,7 +80,7 @@ class GraphSource: public Dataflow::Source
   void enable() override;
   void disable() override;
   void shutdown() override;
-  JSON::Value get_json() const override;
+  JSON::Value get_json(const string& path) const override;
 
 public:
   GraphSource(const Module *module, const XML::Element& config):
@@ -192,11 +192,20 @@ void GraphSource::shutdown()
 
 //--------------------------------------------------------------------------
 // Get JSON
-JSON::Value GraphSource::get_json() const
+JSON::Value GraphSource::get_json(const string& path) const
 {
-  JSON::Value json = Element::get_json();
-  json.set("elements", subgraph->get_json());
-  return json;
+  if (path.empty())
+  {
+    // Whole graph structure at this level
+    JSON::Value json = Element::get_json();
+    json.set("elements", subgraph->get_json());
+    return json;
+  }
+  else
+  {
+    // Just the undecorated object the graph returns
+    return subgraph->get_json(path);
+  }
 }
 
 //--------------------------------------------------------------------------

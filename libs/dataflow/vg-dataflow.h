@@ -385,6 +385,7 @@ private:
                           const string& value);
   void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
+  JSON::Value get_property_json(const Module::Property& prop) const;
 
 public:
   const Module *module{nullptr};
@@ -419,8 +420,9 @@ public:
   // with the given property name
   virtual void notify_target_of(const string& /*prop*/) {}
 
-  // Get state as JSON
-  virtual JSON::Value get_json() const;
+  // Get state as JSON - path is XPath-like path to subelements - ignore
+  // in leaf elements (when it should be empty anyway)
+  virtual JSON::Value get_json(const string& path="") const;
 
   // Set a control value
   virtual void set_property(const string& property, const Value&);
@@ -496,7 +498,7 @@ class Generator: public Element
   void send(Data *data) { send(DataPtr(data)); }
 
   // Get state as JSON
-  JSON::Value get_json() const override;
+  JSON::Value get_json(const string& path="") const override;
 };
 
 //==========================================================================
@@ -599,8 +601,8 @@ class Control: public Element, public ControlImpl
   void post_tick(const TickData&) final {}
 
   // Add control JSON
-  JSON::Value get_json() const override
-  { JSON::Value json=Element::get_json(); add_json(json); return json; }
+  JSON::Value get_json(const string &path="") const override
+  { JSON::Value json=Element::get_json(path); add_json(json); return json; }
 };
 
 //==========================================================================
@@ -737,8 +739,11 @@ class Graph
   Element *get_element(const string& id);
 
   //------------------------------------------------------------------------
-  // Get state as a JSON array of elements
-  JSON::Value get_json() const;
+  // Get state as a JSON value - array for top-level graph, single
+  // value for sub-element property
+  // Path is an XPath-like list of subgraph IDs and leaf element, or empty
+  // for entire graph
+  JSON::Value get_json(const string& path="") const;
 
   //------------------------------------------------------------------------
   // Does this require an update? (i.e. there is a new config)
@@ -1012,7 +1017,7 @@ class Engine
   map<string, shared_ptr<Element>> services;
 
   // Graph structure
-  MT::RWMutex graph_mutex;
+  mutable MT::RWMutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
   Time::Duration tick_interval{0.04};  // 25Hz default
   Time::Stamp start_time;
@@ -1060,6 +1065,10 @@ class Engine
   // element_path is a path/to/leaf
   void set_property(const string& element_path, const string& property,
                     const Value& value);
+
+  //------------------------------------------------------------------------
+  // Get state as a JSON value (see Graph::get_json())
+  JSON::Value get_json(const string& path) const;
 
   //------------------------------------------------------------------------
   // Tick the graph

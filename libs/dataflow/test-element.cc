@@ -63,7 +63,7 @@ TEST(ElementTest, TestElementGetJSON)
 {
   XML::Element xml("element", "id", "foo");
   TestElement e(xml);
-  JSON::Value value = e.get_json();
+  JSON::Value value = e.get_json("");
   ASSERT_EQ(JSON::Value::Type::OBJECT, value.type);
   ASSERT_EQ("foo", value["id"].as_str());
 }

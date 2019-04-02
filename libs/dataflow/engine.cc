@@ -52,6 +52,14 @@ void Engine::set_property(const string& element_path, const string& property,
 }
 
 //------------------------------------------------------------------------
+// Get state as a JSON value (see Graph::get_json())
+JSON::Value Engine::get_json(const string& path) const
+{
+  MT::RWWriteLock lock(graph_mutex);
+  return graph->get_json(path);
+}
+
+//------------------------------------------------------------------------
 // Tick the engine
 void Engine::tick(Time::Stamp t)
 {

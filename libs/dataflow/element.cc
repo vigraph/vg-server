@@ -11,33 +11,55 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Get state as JSON
-JSON::Value Element::get_json() const
+// Get a property value as JSON
+JSON::Value Element::get_property_json(const Module::Property& prop) const
 {
-  JSON::Value json(JSON::Value::Type::OBJECT);
-  json.set("id", id);
-  if (module) json.set("type", module->id);
+  const auto& member = prop.member;
 
-  JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::OBJECT));
-  for(const auto pit: module->properties)
+  // Get value from prop through member points or getter functions
+  JSON::Value value;
+  if (member.d_ptr)
+    return JSON::Value(JSON::Value::NUMBER, this->*member.d_ptr);
+  else if (member.i_ptr)
+    return JSON::Value(this->*member.i_ptr);
+  else if (member.b_ptr)
+    return JSON::Value((this->*member.b_ptr)?JSON::Value::TRUE
+                       :JSON::Value::FALSE);
+  else
+    return {};
+}
+
+//------------------------------------------------------------------------
+// Get state as JSON
+JSON::Value Element::get_json(const string& path) const
+{
+  if (path.empty())
   {
-    const auto& prop = pit.second;
-    const auto& member = prop.member;
+    // Whole element
+    JSON::Value json(JSON::Value::Type::OBJECT);
+    json.set("id", id);
+    if (module) json.set("type", module->id);
 
-    // Get value from prop through member points or getter functions
-    JSON::Value value;
-    if (member.d_ptr)
-      value = JSON::Value(JSON::Value::NUMBER, this->*member.d_ptr);
-    else if (member.i_ptr)
-      value = JSON::Value(this->*member.i_ptr);
-    else if (member.b_ptr)
-      value = JSON::Value((this->*member.b_ptr)?JSON::Value::TRUE
-                                               :JSON::Value::FALSE);
-
-    if (!!value) propsj.set(pit.first, value);
+    JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::OBJECT));
+    for(const auto pit: module->properties)
+    {
+      JSON::Value value = get_property_json(pit.second);
+      if (!!value) propsj.set(pit.first, value);
+    }
+    return json;
   }
-
-  return json;
+  else
+  {
+    // Individual property - note must be leaf path now
+    const auto pit = module->properties.find(path);
+    if (pit == module->properties.end())
+    {
+      Log::Error log;
+      log << "No such property " << path << " in element " << id << endl;
+      return {};
+    }
+    return get_property_json(pit->second);
+  }
 }
 
 //------------------------------------------------------------------------

@@ -426,13 +426,33 @@ Element *Graph::get_element(const string& id)
 
 //------------------------------------------------------------------------
 // Get state as JSON array of elements
-JSON::Value Graph::get_json() const
+// Path is an XPath-like list of subgraph IDs and leaf element, or empty
+// for entire graph
+JSON::Value Graph::get_json(const string& path) const
 {
-  JSON::Value value(JSON::Value::Type::ARRAY);
   MT::RWReadLock lock(mutex);
-  for(const auto e: topological_order)
-    value.add(e->get_json());
-  return value;
+  if (path.empty())
+  {
+    JSON::Value value(JSON::Value::Type::ARRAY);
+    for(const auto e: topological_order)
+      value.add(e->get_json(path));
+    return value;
+  }
+  else
+  {
+    // Split path and use first (or only) as ID, pass rest (or empty) down
+    vector<string> bits = Text::split(path, '/', false, 2);
+    const auto it = elements.find(bits[0]);
+    if (it == elements.end())
+    {
+      Log::Error log;
+      log << "No such sub-element " << bits[0] << " in graph\n";
+      return JSON::Value{};
+    }
+
+    // Return bare value (or INVALID) up, undecorated
+    return it->second->get_json(bits.size()>1 ? bits[1] : "");
+  }
 }
 
 //--------------------------------------------------------------------------

@@ -12,9 +12,9 @@ namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
 // Get state as JSON
-JSON::Value Generator::get_json() const
+JSON::Value Generator::get_json(const string& path) const
 {
-  JSON::Value json = Element::get_json();
+  JSON::Value json = Element::get_json(path);
   if (!acceptor_id.empty())
   {
     JSON::Value& outsj = json.set("outputs", JSON::Value(JSON::Value::OBJECT));

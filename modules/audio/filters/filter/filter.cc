@@ -57,7 +57,7 @@ public:
 void FilterFilter::update()
 {
   cutoff = min(max(cutoff, 0.0), 1.0);
-  resonance = min(max(cutoff, 0.0), 1.0);
+  resonance = min(max(resonance, 0.0), 1.0);
   feedback = resonance + resonance / (1.0 - min(max(cutoff, 0.0), 0.9999));
 }
 

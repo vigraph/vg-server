@@ -29,7 +29,7 @@ private:
   void post_tick(const TickData& td) override;
   void enable() override;
   void disable() override;
-  JSON::Value get_json() const override;
+  JSON::Value get_json(const string& path) const override;
 
 public:
   using Source::Source;
@@ -102,13 +102,23 @@ void CloneSource::post_tick(const TickData& td)
 
 //--------------------------------------------------------------------------
 // Get JSON
-JSON::Value CloneSource::get_json() const
+JSON::Value CloneSource::get_json(const string& path) const
 {
-  JSON::Value json = Source::get_json();
   // Just use the first (assuming there are any)
   Graph *subgraph = multigraph->get_subgraph(0);
-  if (subgraph) json.set("graph", subgraph->get_json());
-  return json;
+
+  if (path.empty())
+  {
+    // Whole structure
+    JSON::Value json = Source::get_json();
+    if (subgraph) json.set("graph", subgraph->get_json(path));
+    return json;
+  }
+  else
+  {
+    // Just the undecorated object the graph returns
+    return subgraph->get_json(path);
+  }
 }
 
 //--------------------------------------------------------------------------

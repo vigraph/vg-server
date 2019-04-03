@@ -26,8 +26,8 @@ private:
   void accept(FragmentPtr fragment) override;
 
   // Add control JSON
-  JSON::Value get_json() const override
-  { JSON::Value json=Element::get_json(); add_json(json); return json; }
+  JSON::Value get_json(const string& path) const override
+  { JSON::Value json=Element::get_json(path); add_json(json); return json; }
 
 public:
   double scale{1.0};

@@ -159,43 +159,8 @@ void Graph::connect(Element *el)
         target_element = eit->second.get();
       }
 
-      // Check name and type of properties
-      for(const auto& p: target.properties)
-      {
-        Value::Type target_type =
-          target_element->get_property_type(p.second.name);
-        if (target_type == Value::Type::invalid)
-          continue;  // Ignore for now - later make explicit if it's optional?
-
-        if (p.second.type != target_type && p.second.type != Value::Type::any
-            && target_type != Value::Type::any)
-          throw runtime_error("Control type mismatch connecting "+el->id+" to "
-                              +target_element->id+"("+p.second.name
-                              +"): expecting "+Value::type_str(target_type)
-                              +" but got "+Value::type_str(p.second.type));
-
-        // Check it's settable (they don't get to override this)
-        if (target_element->module)
-        {
-          const auto pit =
-            target_element->module->properties.find(p.second.name);
-
-          // If this property doesn't exist in the module definition but
-          // the target element didn't return Type::invalid above, then
-          // it must be dynamically created, so we'll assume it's settable
-          // (e.g. <wrap>, <limit>)
-          if (pit != target_element->module->properties.end()
-              && !pit->second.settable)
-            throw runtime_error("Can't connect "+el->id+" to "
-                                +target_element->id+"("+p.second.name
-                                +"): property not settable");
-
-          target_element->notify_target_of(el, p.second.name);
-        }
-      }
-
       // Attach it
-      c->attach_target(it.first, target_element);
+      c->attach_target(it.first, target_element, el);
       el->downstreams.push_back(target_element);
     }
   }
@@ -348,30 +313,6 @@ void Graph::generate_topological_order()
 }
 
 //------------------------------------------------------------------------
-// Set an element property
-// element_path is a path/to/leaf
-// Can throw runtime_error if it fails
-void Graph::set_property(const string& element_path, const string& property,
-                         const Value& value)
-{
-  vector<string> bits = Text::split(element_path, '/', false, 2);
-
-  // Find first part or leaf element
-  const auto& it = elements.find(bits[0]);
-  if (it == elements.end())
-    throw runtime_error("No such element "+property+" in graph");
-
-  if (bits.size() == 2)
-  {
-    // !!! Find subgraph / clone / selection
-  }
-  else
-  {
-    it->second->set_property(property, value);
-  }
-}
-
-//------------------------------------------------------------------------
 // Enable all elements
 void Graph::enable()
 {
@@ -461,13 +402,52 @@ Element *Graph::get_element(const string& id)
 
 //------------------------------------------------------------------------
 // Get state as JSON array of elements
-JSON::Value Graph::get_json() const
+// Path is an XPath-like list of subgraph IDs and leaf element, or empty
+// for entire graph
+JSON::Value Graph::get_json(const string& path) const
 {
-  JSON::Value value(JSON::Value::Type::ARRAY);
   MT::RWReadLock lock(mutex);
-  for(const auto e: topological_order)
-    value.add(e->get_json());
-  return value;
+  if (path.empty())
+  {
+    JSON::Value value(JSON::Value::Type::ARRAY);
+    for(const auto e: topological_order)
+      value.add(e->get_json(path));
+    return value;
+  }
+  else
+  {
+    // Split path and use first (or only) as ID, pass rest (or empty) down
+    vector<string> bits = Text::split(path, '/', false, 2);
+    const auto it = elements.find(bits[0]);
+    if (it == elements.end())
+      throw runtime_error("No such sub-element "+bits[0]+" in graph");
+
+    // Return bare value (or INVALID) up, undecorated
+    return it->second->get_json(bits.size()>1 ? bits[1] : "");
+  }
+}
+
+//------------------------------------------------------------------------
+// Set state from JSON
+// path is a path/to/leaf/prop - can set any intermediate level too
+void Graph::set_json(const string& path, const JSON::Value& value)
+{
+  if (path.empty())
+  {
+    // !!! Reset entire graph!
+  }
+  else
+  {
+    // Pass down to individual element
+    vector<string> bits = Text::split(path, '/', false, 2);
+
+    // Find first part or leaf element
+    const auto& it = elements.find(bits[0]);
+    if (it == elements.end())
+      throw runtime_error("No such element "+bits[0]+" in graph");
+
+    it->second->set_json(bits.size()>1 ? bits[1] : "", value);
+  }
 }
 
 //--------------------------------------------------------------------------

@@ -46,7 +46,7 @@ private:
   void post_tick(const TickData& td) override;
   void enable() override;
   void disable() override;
-  JSON::Value get_json() const override;
+  JSON::Value get_json(const string& path) const override;
 
 public:
   using Source::Source;
@@ -274,17 +274,34 @@ void SelectorSource::post_tick(const TickData& td)
 
 //--------------------------------------------------------------------------
 // Get JSON
-JSON::Value SelectorSource::get_json() const
+JSON::Value SelectorSource::get_json(const string& path) const
 {
-  JSON::Value json = Element::get_json();
-  JSON::Value& gsj = json.set("graphs", JSON::Value(JSON::Value::ARRAY));
-  for(const auto& sgit: multigraph->get_subgraphs())
+  const auto& subgraphs = multigraph->get_subgraphs();
+
+  // Whole selector?
+  if (path.empty())
   {
-    JSON::Value& gj = gsj.add(JSON::Value(JSON::Value::OBJECT));
-    gj.set("id", sgit.first);
-    gj.set("elements", sgit.second->get_json());
+    JSON::Value json = Element::get_json();
+    JSON::Value& gsj = json.set("graphs", JSON::Value(JSON::Value::ARRAY));
+    for(const auto& sgit: subgraphs)
+    {
+      JSON::Value& gj = gsj.add(JSON::Value(JSON::Value::OBJECT));
+      gj.set("id", sgit.first);
+      gj.set("elements", sgit.second->get_json(path));
+    }
+    return json;
   }
-  return json;
+  else
+  {
+    // Select specific subgraph and pass it the rest of the path
+    vector<string> bits = Text::split(path, '/', false, 2);
+    const auto it = subgraphs.find(bits[0]);
+    if (it == subgraphs.end())
+      throw runtime_error("No such sub-graph "+bits[0]+" in selector");
+
+    // Return bare value (or INVALID) up, undecorated
+    return it->second->get_json(bits.size()>1 ? bits[1] : "");
+  }
 }
 
 //--------------------------------------------------------------------------

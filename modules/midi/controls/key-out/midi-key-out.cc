@@ -28,7 +28,7 @@ class MIDIKeyOutControl: public Dataflow::Control
   // Control virtuals
   void setup() override;
   void pre_tick(const TickData& td) override;
-  void notify_target_of(Element *, const string& property) override;
+  void notify_target_of(const string& property) override;
   void enable() override;
 
 public:
@@ -62,7 +62,7 @@ void MIDIKeyOutControl::setup()
 
 //--------------------------------------------------------------------------
 // Automatically set wait flag if we are the trigger target of something
-void MIDIKeyOutControl::notify_target_of(Element *, const string& property)
+void MIDIKeyOutControl::notify_target_of(const string& property)
 {
   if (property == "trigger")
     wait = true;

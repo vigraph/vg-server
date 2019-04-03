@@ -25,7 +25,7 @@ class ShiftFilter: public FragmentFilter
 
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
-  void notify_target_of(Element *, const string& property) override;
+  void notify_target_of(const string& property) override;
 
 public:
   using FragmentFilter::FragmentFilter;
@@ -99,7 +99,7 @@ void ShiftFilter::accept(FragmentPtr fragment)
 
 //--------------------------------------------------------------------------
 // If recipient of triggers default to disabled
-void ShiftFilter::notify_target_of(Element *, const string& property)
+void ShiftFilter::notify_target_of(const string& property)
 {
   if (property == "enable")
     enabled = false;

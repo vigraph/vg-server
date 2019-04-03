@@ -148,6 +148,9 @@ struct Value
   Value(double _d): type(Type::number), d(_d) {}
   Value(const string& _s): type(Type::text), s(_s) {}
 
+  // Construct from a JSON value
+  Value(const JSON::Value& json);
+
   // Comparison operators
   bool operator<(const Value& b) const
   {
@@ -385,6 +388,8 @@ private:
                           const string& value);
   void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
+  JSON::Value get_property_json(const Module::Property& prop) const;
+  static Value get_value(const JSON::Value& value);
 
 public:
   const Module *module{nullptr};
@@ -417,10 +422,15 @@ public:
 
   // Notify that this element is the control target of another element,
   // with the given property name
-  virtual void notify_target_of(Element */*e*/, const string& /*prop*/) {}
+  virtual void notify_target_of(const string& /*prop*/) {}
 
-  // Get state as JSON
-  virtual JSON::Value get_json() const;
+  // Get state as JSON - path is XPath-like path to subelements - ignore
+  // in leaf elements (when it should be empty anyway)
+  virtual JSON::Value get_json(const string& path="") const;
+
+  // Set state from JSON
+  // path is a path/to/leaf/prop - can set any intermediate level too
+  virtual void set_json(const string& path, const JSON::Value& value);
 
   // Set a control value
   virtual void set_property(const string& property, const Value&);
@@ -496,7 +506,7 @@ class Generator: public Element
   void send(Data *data) { send(DataPtr(data)); }
 
   // Get state as JSON
-  JSON::Value get_json() const override;
+  JSON::Value get_json(const string& path="") const override;
 };
 
 //==========================================================================
@@ -534,8 +544,11 @@ class ControlImpl
   {
     string name;  // Target property name
     Value::Type type{Value::Type::invalid};
+    bool is_explicit;
+
     Property() {}
-    Property(const string& _name, Value::Type _type): name(_name), type(_type) {}
+    Property(const string& _name, Value::Type _type, bool _is_explicit=false):
+      name(_name), type(_type), is_explicit(_is_explicit) {}
   };
 
   struct Target
@@ -557,7 +570,9 @@ class ControlImpl
   const map<string, Target>& get_targets() { return targets; }
 
   // Attach to a target element
-  void attach_target(const string& id, Element *element);
+  void attach_target(const string& prop_id,
+                     Element *target_element,
+                     Element *source_element);
 
   // Send a value to the target using only (first) property
   void send(const Value& v);
@@ -594,8 +609,8 @@ class Control: public Element, public ControlImpl
   void post_tick(const TickData&) final {}
 
   // Add control JSON
-  JSON::Value get_json() const override
-  { JSON::Value json=Element::get_json(); add_json(json); return json; }
+  JSON::Value get_json(const string &path="") const override
+  { JSON::Value json=Element::get_json(path); add_json(json); return json; }
 };
 
 //==========================================================================
@@ -732,8 +747,16 @@ class Graph
   Element *get_element(const string& id);
 
   //------------------------------------------------------------------------
-  // Get state as a JSON array of elements
-  JSON::Value get_json() const;
+  // Get state as a JSON value - array for top-level graph, single
+  // value for sub-element property
+  // Path is an XPath-like list of subgraph IDs and leaf element, or empty
+  // for entire graph
+  JSON::Value get_json(const string& path="") const;
+
+  //------------------------------------------------------------------------
+  // Set state from JSON
+  // path is a path/to/leaf/prop - can set any intermediate level too
+  void set_json(const string& path, const JSON::Value& value);
 
   //------------------------------------------------------------------------
   // Does this require an update? (i.e. there is a new config)
@@ -1007,7 +1030,7 @@ class Engine
   map<string, shared_ptr<Element>> services;
 
   // Graph structure
-  MT::RWMutex graph_mutex;
+  mutable MT::RWMutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
   Time::Duration tick_interval{0.04};  // 25Hz default
   Time::Stamp start_time;
@@ -1051,10 +1074,13 @@ class Engine
                  const XML::Element& services_config);
 
   //------------------------------------------------------------------------
-  // Set an element property
-  // element_path is a path/to/leaf
-  void set_property(const string& element_path, const string& property,
-                    const Value& value);
+  // Get state as a JSON value (see Graph::get_json())
+  JSON::Value get_json(const string& path) const;
+
+  //------------------------------------------------------------------------
+  // Set state from JSON
+  // path is a path/to/leaf/prop - can set any intermediate level too
+  void set_json(const string& path, const JSON::Value& value);
 
   //------------------------------------------------------------------------
   // Tick the graph

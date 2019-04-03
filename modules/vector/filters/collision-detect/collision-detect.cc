@@ -31,8 +31,8 @@ private:
   void pre_tick(const TickData& td) override;
 
   // Add control JSON
-  JSON::Value get_json() const override
-  { JSON::Value json=Element::get_json(); add_json(json); return json; }
+  JSON::Value get_json(const string& path) const override
+  { JSON::Value json=Element::get_json(path); add_json(json); return json; }
 
   // CollisionObserver virtual
   void collided() override;

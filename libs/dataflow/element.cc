@@ -11,33 +11,88 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Get state as JSON
-JSON::Value Element::get_json() const
+// Get a property value as JSON
+JSON::Value Element::get_property_json(const Module::Property& prop) const
 {
-  JSON::Value json(JSON::Value::Type::OBJECT);
-  json.set("id", id);
-  if (module) json.set("type", module->id);
+  const auto& member = prop.member;
 
-  JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::OBJECT));
-  for(const auto pit: module->properties)
+  // Get value from prop through member pointers or getter functions
+  if (member.d_ptr)
+    return JSON::Value(JSON::Value::NUMBER, this->*member.d_ptr);
+  else if (member.s_ptr)
+    return JSON::Value(this->*member.s_ptr);
+  else if (member.b_ptr)
+    return JSON::Value((this->*member.b_ptr)?JSON::Value::TRUE
+                       :JSON::Value::FALSE);
+  else if (member.i_ptr)
+    return JSON::Value(this->*member.i_ptr);
+  else if (member.get_d)
+    return JSON::Value(JSON::Value::NUMBER, (this->*member.get_d)());
+  else if (member.get_s)
+    return JSON::Value((this->*member.get_s)());
+  else if (member.get_b)
+    return JSON::Value((this->*member.get_b)()?JSON::Value::TRUE
+                       :JSON::Value::FALSE);
+  else if (member.get_i)
+    return JSON::Value((this->*member.get_i)());
+  else if (member.get_json)
+    return (this->*member.get_json)();
+  else
+    return {};
+}
+
+//------------------------------------------------------------------------
+// Set state from JSON
+void Element::set_json(const string& path, const JSON::Value& value)
+{
+  if (path.empty())
   {
-    const auto& prop = pit.second;
-    const auto& member = prop.member;
-
-    // Get value from prop through member points or getter functions
-    JSON::Value value;
-    if (member.d_ptr)
-      value = JSON::Value(JSON::Value::NUMBER, this->*member.d_ptr);
-    else if (member.i_ptr)
-      value = JSON::Value(this->*member.i_ptr);
-    else if (member.b_ptr)
-      value = JSON::Value((this->*member.b_ptr)?JSON::Value::TRUE
-                                               :JSON::Value::FALSE);
-
-    if (!!value) propsj.set(pit.first, value);
+    // Whole element
+    throw runtime_error("Setting entire element not yet implemented!");
+    // !!!
   }
+  else
+  {
+    // Individual property - note must be leaf path now
+    const auto pit = module->properties.find(path);
+    if (pit == module->properties.end())
+      throw runtime_error("No such property "+path+" in element "+id);
+    set_property(path, pit->second, Value(value));
+  }
+}
 
-  return json;
+//------------------------------------------------------------------------
+// Get state as JSON
+JSON::Value Element::get_json(const string& path) const
+{
+  if (path.empty())
+  {
+    // Whole element
+    JSON::Value json(JSON::Value::Type::OBJECT);
+    json.set("id", id);
+    if (module) json.set("type", module->id);
+
+    JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::OBJECT));
+    for(const auto pit: module->properties)
+    {
+      JSON::Value value = get_property_json(pit.second);
+      // Invalid ones can just be ignored
+      if (!!value) propsj.set(pit.first, value);
+    }
+    return json;
+  }
+  else
+  {
+    // Individual property - note must be leaf path now
+    const auto pit = module->properties.find(path);
+    if (pit == module->properties.end())
+      throw runtime_error("No such property "+path+" in element "+id);
+    JSON::Value value = get_property_json(pit->second);
+    if (!value)
+      throw runtime_error("No method to get property "+path
+                          +" from element "+id);
+    return value;
+  }
 }
 
 //------------------------------------------------------------------------

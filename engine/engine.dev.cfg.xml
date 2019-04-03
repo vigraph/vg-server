@@ -38,7 +38,7 @@
     <wrap max="12" target="selector"/>
     <add id="rebase-off" offset="-24"/>
     <wrap max="12" target="selector"/>
-    <websocket-control port="33382" target="selector" property="selected"/>
+    <websocket-control port="33382" target="selector" property="value"/>
     <selector>
       <graph id="beam">
         <figure points="1">
@@ -90,7 +90,7 @@
       </graph>
 
       <graph id="circle">
-        <midi-control-in channel="1" number="1" property="x.freq"/>
+        <midi-control-in channel="1" number="1" property="value"/>
         <multiply factor="0.1" target="f1" property="x.freq"/>
         <lfo property="y.phase" period="3"/>
         <figure id="f1" points="100" closed="yes">

@@ -30,7 +30,7 @@ private:
   // Control virtuals
   void enable() override;
   void pre_tick(const TickData& td) override;
-  void notify_target_of(Element *, const string& property) override;
+  void notify_target_of(const string& property) override;
 
 public:
   using Control::Control;
@@ -41,7 +41,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Automatically set wait flag if we are the trigger target of something
-void RandomControl::notify_target_of(Element *, const string& property)
+void RandomControl::notify_target_of(const string& property)
 {
   if (property == "trigger")
     wait = true;

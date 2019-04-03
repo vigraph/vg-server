@@ -42,13 +42,20 @@ void Engine::configure(const File::Directory& base_dir,
 }
 
 //------------------------------------------------------------------------
-// Set an element property
-// element_path is a path/to/leaf
-void Engine::set_property(const string& element_path, const string& property,
-                          const Value& value)
+// Get state as a JSON value (see Graph::get_json())
+JSON::Value Engine::get_json(const string& path) const
+{
+  MT::RWReadLock lock(graph_mutex);
+  return graph->get_json(path);
+}
+
+//------------------------------------------------------------------------
+// Set state from JSON
+// path is a path/to/leaf/prop - can set any intermediate level too
+void Engine::set_json(const string& path, const JSON::Value& value)
 {
   MT::RWWriteLock lock(graph_mutex);
-  graph->set_property(element_path, property, value);
+  graph->set_json(path, value);
 }
 
 //------------------------------------------------------------------------

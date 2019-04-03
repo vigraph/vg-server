@@ -94,10 +94,10 @@ class TestSubgraph: public Source
     subgraph->tick(td);
   }
 
-  JSON::Value get_json() const override
+  JSON::Value get_json(const string& path) const override
   {
-    JSON::Value value = Element::get_json();
-    value.set("elements", subgraph->get_json());
+    JSON::Value value = Element::get_json(path);
+    value.set("elements", subgraph->get_json(path));
     return value;
   }
 

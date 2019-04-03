@@ -28,7 +28,7 @@ class BitCrushFilter: public FragmentFilter
   // Source/Element virtuals
   void update() override;
   void accept(FragmentPtr fragment) override;
-  void notify_target_of(Element *, const string& property) override;
+  void notify_target_of(const string& property) override;
 
 public:
   int rate = 1;
@@ -81,7 +81,7 @@ void BitCrushFilter::accept(FragmentPtr fragment)
 
 //--------------------------------------------------------------------------
 // If recipient of triggers default to disabled
-void BitCrushFilter::notify_target_of(Element *, const string& property)
+void BitCrushFilter::notify_target_of(const string& property)
 {
   if (property == "enable")
     enabled = false;

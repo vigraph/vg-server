@@ -68,13 +68,23 @@ bool GraphURLHandler::handle_get(const string& path,
   Log::Streams log;
   log.detail << "REST Graph: GET " << path << endl;
 
-  if (path.empty())
+  try
   {
-    // Whole graph
-    JSON::Value json = engine.get_graph().get_json();
-    response.body = json.str(true);
+    JSON::Value json = engine.get_json(path);
+    if (!json)
+    {
+      response.code = 404;
+      response.reason = "Not found";
+    }
+    else response.body = json.str(true);
   }
-
+  catch (runtime_error& e)
+  {
+    Log::Error log;
+    log << "REST Graph GET failed: " << e.what() << endl;
+    response.code = 404;
+    response.reason = "Not found";
+  }
   return true;
 }
 
@@ -128,7 +138,7 @@ bool GraphURLHandler::handle_request(const Web::HTTPMessage& request,
   const auto& fullpath = request.url.get_path();
   if (fullpath.size() < 6) return false;  // minimum /graph - shouldn't happen
   auto path = string(fullpath, 6);
-  if (!path.empty() && path[0] == '/') path.erase(0);
+  if (!path.empty() && path[0] == '/') path.erase(path.begin());
 
   if (request.method == "GET")
   {

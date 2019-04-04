@@ -68,6 +68,9 @@ void Element::set_json(const string& path, const JSON::Value& value)
       throw runtime_error("No such property "+path+" in element "+id);
     set_property(path, pit->second, Value(value));
   }
+
+  // Action changes
+  update();
 }
 
 //------------------------------------------------------------------------

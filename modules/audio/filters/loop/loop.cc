@@ -146,12 +146,15 @@ void LoopFilter::tick(const TickData& td)
              back_inserter(fragment->waveforms[c]));
       }
       nsamples -= chunk_size;
+      playback_pos += chunk_size;
 
-
-      if (looped && new_recording_ready)
+      if (looped)
       {
-        buffer = buffers[recorded_buffer];
-        new_recording_ready = false;
+        if (new_recording_ready)
+        {
+          buffer = buffers[recorded_buffer];
+          new_recording_ready = false;
+        }
         playback_pos = 0;
       }
     }

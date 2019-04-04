@@ -108,7 +108,7 @@ void ControlImpl::attach_target(const string& prop_id,
   auto& target = it->second;
 
   // Check name and type of properties
-  for(auto it=target.properties.begin(); it!=target.properties.end(); ++it)
+  for(auto it=target.properties.begin(); it!=target.properties.end();)
   {
     const auto& p = it->second;
     Value::Type target_type =
@@ -149,6 +149,8 @@ void ControlImpl::attach_target(const string& prop_id,
 
       target_element->notify_target_of(p.name);
     }
+
+    ++it;
   }
 
   target.element = target_element;

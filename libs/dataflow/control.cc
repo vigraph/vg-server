@@ -214,7 +214,7 @@ void ControlImpl::send(const string& name, const Value& v)
 
 //------------------------------------------------------------------------
 // Get state as JSON, adding to the given value
-void ControlImpl::add_json(JSON::Value& json) const
+void ControlImpl::add_to_json(JSON::Value& json) const
 {
   if (!targets.empty())
   {

@@ -81,6 +81,7 @@ class GraphSource: public Dataflow::Source
   void disable() override;
   void shutdown() override;
   JSON::Value get_json(const string& path) const override;
+  void set_json(const string& path, const JSON::Value& value) override;
 
 public:
   GraphSource(const Module *module, const XML::Element& config):
@@ -205,6 +206,22 @@ JSON::Value GraphSource::get_json(const string& path) const
   {
     // Just the undecorated object the graph returns
     return subgraph->get_json(path);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Set from JSON
+void GraphSource::set_json(const string& path, const JSON::Value& value)
+{
+  // Whole selector?
+  if (path.empty())
+  {
+    // !!!
+    throw runtime_error("Setting entire graph contents not implemented!");
+  }
+  else
+  {
+    subgraph->set_json(path, value);
   }
 }
 

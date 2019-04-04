@@ -57,7 +57,7 @@ void Element::set_json(const string& path, const JSON::Value& value)
       const auto pit = module->properties.find(it.first);
       if (pit == module->properties.end())
         throw runtime_error("No such property "+it.first+" in element "+id);
-      set_property(it.first, pit->second, it.second);
+      set_property(it.first, pit->second, Value(it.second));
     }
   }
   else
@@ -196,7 +196,7 @@ void Element::configure_property(const string& name,
 
 //------------------------------------------------------------------------
 // Set a property (internal, with property already looked up)
-void Element::set_property(const string& /*prop_name*/,
+void Element::set_property(const string& prop_name,
                            const Module::Property& prop,
                            const Value& v)
 {
@@ -216,26 +216,34 @@ void Element::set_property(const string& /*prop_name*/,
         (this->*member.set_i)(static_cast<int>(round(v.d)));
       else if (member.set_b)
         (this->*member.set_b)(v.d?1.0:0.0);
-      // Fail once all modules have these!!!
-      // else
-        //        throw runtime_error("No member pointers for property "+prop_name
-        //                    +" in element "+id);
+      else
+        throw runtime_error("No member pointers for numeric property "+prop_name
+                            +" in element "+id);
       break;
 
     case Value::Type::text:
+    case Value::Type::file:
+    case Value::Type::choice:
       if (member.s_ptr)
         this->*member.s_ptr = v.s;
-      if (member.set_s)
+      else if (member.set_s)
         (this->*member.set_s)(v.s);
-      // !!! error handle as above
+      else
+        throw runtime_error("No member pointers for string property "+prop_name
+                            +" in element "+id);
       break;
 
     case Value::Type::trigger:
       if (member.trigger)
         (this->*member.trigger)();
+      else
+        throw runtime_error("No function for trigger property "+prop_name
+                            +" in element "+id);
       break;
 
-    default:;
+    default:
+      throw runtime_error("Unsettable type in property "+prop_name
+                          +" in element "+id);
   }
 }
 

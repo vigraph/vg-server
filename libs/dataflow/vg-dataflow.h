@@ -432,6 +432,12 @@ public:
   // path is a path/to/leaf/prop - can set any intermediate level too
   virtual void set_json(const string& path, const JSON::Value& value);
 
+  // Add element from JSON
+  // path is a path/to/leaf
+  // Fails here, override in container elements
+  virtual void add_json(const string& path, const JSON::Value& /*value*/)
+  { throw runtime_error("Can't add subelement "+path+" to leaf element "+id); }
+
   // Set a control value
   virtual void set_property(const string& property, const Value&);
 
@@ -588,7 +594,7 @@ class ControlImpl
   void trigger(const string& name) { send(name, {}); }
 
   // Get state as JSON, adding to the given value
-  void add_json(JSON::Value& json) const;
+  void add_to_json(JSON::Value& json) const;
 };
 
 //==========================================================================
@@ -610,7 +616,7 @@ class Control: public Element, public ControlImpl
 
   // Add control JSON
   JSON::Value get_json(const string &path="") const override
-  { JSON::Value json=Element::get_json(path); add_json(json); return json; }
+  { JSON::Value json=Element::get_json(path); add_to_json(json); return json; }
 };
 
 //==========================================================================
@@ -757,6 +763,11 @@ class Graph
   // Set state from JSON
   // path is a path/to/leaf/prop - can set any intermediate level too
   void set_json(const string& path, const JSON::Value& value);
+
+  //------------------------------------------------------------------------
+  // Add a new element from JSON
+  // path is a path/to/leaf
+  void add_json(const string& path, const JSON::Value& value);
 
   //------------------------------------------------------------------------
   // Does this require an update? (i.e. there is a new config)
@@ -1081,6 +1092,11 @@ class Engine
   // Set state from JSON
   // path is a path/to/leaf/prop - can set any intermediate level too
   void set_json(const string& path, const JSON::Value& value);
+
+  //------------------------------------------------------------------------
+  // Add a new element from JSON
+  // path is a path/to/leaf
+  void add_json(const string& path, const JSON::Value& value);
 
   //------------------------------------------------------------------------
   // Tick the graph

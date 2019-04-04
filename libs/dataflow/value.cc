@@ -48,6 +48,7 @@ Value::Value(const JSON::Value& json)
     case JSON::Value::STRING:
       type = Type::text;
       s = json.s;
+      break;
 
     case JSON::Value::TRUE:
       type = Type::number;

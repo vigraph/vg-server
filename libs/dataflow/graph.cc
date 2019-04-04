@@ -435,6 +435,7 @@ void Graph::set_json(const string& path, const JSON::Value& value)
   if (path.empty())
   {
     // !!! Reset entire graph!
+    throw runtime_error("Wholesale graph setting not yet implemented");
   }
   else
   {
@@ -447,6 +448,34 @@ void Graph::set_json(const string& path, const JSON::Value& value)
       throw runtime_error("No such element "+bits[0]+" in graph");
 
     it->second->set_json(bits.size()>1 ? bits[1] : "", value);
+  }
+}
+
+//------------------------------------------------------------------------
+// Add a new element from JSON
+// path is a path/to/leaf
+void Graph::add_json(const string& path, const JSON::Value& value)
+{
+  if (path.empty())
+  {
+    throw runtime_error("Graph already exists");
+  }
+  else
+  {
+    vector<string> bits = Text::split(path, '/', false, 2);
+    if (bits.size() > 1)
+    {
+      // Pass down to subgraph/element
+      const auto& it = elements.find(bits[0]);
+      if (it == elements.end())
+        throw runtime_error("No such element "+bits[0]+" in graph");
+      it->second->add_json(bits[1], value);
+    }
+    else
+    {
+      // !!! Create an element here
+      throw runtime_error("Element creation not yet implemented!");
+    }
   }
 }
 

@@ -48,8 +48,17 @@ void Element::set_json(const string& path, const JSON::Value& value)
   if (path.empty())
   {
     // Whole element
-    throw runtime_error("Setting entire element not yet implemented!");
-    // !!!
+    if (value.type != JSON::Value::OBJECT)
+      throw runtime_error("Setting a whole element must use a JSON object");
+
+    // Do each property individually
+    for(const auto& it: value.o)
+    {
+      const auto pit = module->properties.find(it.first);
+      if (pit == module->properties.end())
+        throw runtime_error("No such property "+it.first+" in element "+id);
+      set_property(it.first, pit->second, it.second);
+    }
   }
   else
   {

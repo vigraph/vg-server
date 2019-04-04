@@ -36,10 +36,12 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
 
   // Check for simple single property value and fix up from default
   const auto& prop = config["property"];
+  bool has_explicit = false;
   if (!prop.empty() && !properties.empty())
   {
     properties.begin()->second.name = prop;
     properties.begin()->second.is_explicit = true;
+    has_explicit = true;
   }
 
   // Check prefixed attributes
@@ -51,6 +53,21 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
       throw runtime_error("Element "+control_id+" has no property "+p.first);
     it->second.name = p.second;
     it->second.is_explicit = true;
+    has_explicit = true;
+  }
+
+  // If any explicitly set, remove all the implicit ones
+  // (if you set any property names, you only get connections to the ones
+  // you set, none by default)
+  if (has_explicit)
+  {
+    for(auto it=properties.begin(); it!=properties.end();)
+    {
+      if (!it->second.is_explicit)
+        it = properties.erase(it);
+      else
+        ++it;
+    }
   }
 
   // If no targets and not optional, and we have outputs, create a default one

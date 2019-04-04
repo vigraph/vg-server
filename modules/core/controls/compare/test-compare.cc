@@ -12,40 +12,40 @@ ModuleLoader loader;
 TEST(CompareTest, TestCompareDoesNothingInRange)
 {
   ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='value' value='0.2'/>",
-              "<compare property='x'/>");
+  tester.test("<set value='0.2'/>",
+              "<compare/>");
   EXPECT_TRUE(tester.target->got("trigger"));
 }
 
 TEST(CompareTest, TestDefaultCompareAbsoluteValueUpper)
 {
   ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='value' value='1.5'/>",
-              "<compare property='x' property-clear='clear'/>");
+  tester.test("<set value='1.5'/>",
+              "<compare property-clear='clear'/>");
   EXPECT_TRUE(tester.target->got("clear"));
 }
 
 TEST(CompareTest, TestDefaultCompareAbsoluteValueLower)
 {
   ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='value' value='-0.5'/>",
-              "<compare property='x' property-clear='clear'/>");
+  tester.test("<set value='-0.5'/>",
+              "<compare property-clear='clear'/>");
   EXPECT_TRUE(tester.target->got("clear"));
 }
 
 TEST(CompareTest, TestSpecifiedCompareAbsoluteValueUpper)
 {
   ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='value' value='5.5'/>",
-              "<compare property='x' min='3' max='4' property-clear='clear'/>");
+  tester.test("<set value='5.5'/>",
+              "<compare min='3' max='4' property-clear='clear'/>");
   EXPECT_TRUE(tester.target->got("clear"));
 }
 
 TEST(CompareTest, TestSpecifiedCompareAbsoluteValueLower)
 {
   ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='value' value='-0.5'/>",
-              "<compare property='x' min='3' max='4' property-clear='clear'/>");
+  tester.test("<set value='-0.5'/>",
+              "<compare min='3' max='4' property-clear='clear'/>");
   EXPECT_TRUE(tester.target->got("clear"));
 }
 

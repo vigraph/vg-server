@@ -424,6 +424,20 @@ public:
   // with the given property name
   virtual void notify_target_of(const string& /*prop*/) {}
 
+  // Multi-phase topology calculation
+  struct Topology
+  {
+    enum class Phase
+    {
+      collect,  // Discover topology, including router wormholes
+      notify,   // Notify elements of wormhole topology
+      calculate // Transfer to graph topological_order
+    } phase;
+
+    map<string, list<Element *> > router_senders;  // Wormhole senders
+  };
+  virtual void calculate_topology(Topology&) {}
+
   // Get state as JSON - path is XPath-like path to subelements - ignore
   // in leaf elements (when it should be empty anyway)
   virtual JSON::Value get_json(const string& path="") const;
@@ -711,10 +725,18 @@ class Graph
   bool attach(Element *el);
 
   //------------------------------------------------------------------------
+  // Calculate topology at top level
+  void calculate_topology();
+
+  //------------------------------------------------------------------------
+  // Calculate topology in hierarchy (see Element::calculate_topology)
+  void calculate_topology(Element::Topology& topo);
+
+  //------------------------------------------------------------------------
   // Generate topological order - ordered list of elements which ensures
   // a precursor (upstream) element is ticked before its dependents
   // (downstreams)
-  // (called automatically by configure() - use only for direct testing)
+  // (called automatically by calculate_topology() - use only for testing)
   void generate_topological_order();
 
   //------------------------------------------------------------------------
@@ -915,6 +937,10 @@ class MultiGraph
   // Throws a runtime_error if configuration fails
   void configure(const File::Directory& base_dir,
                  const XML::Element& config);
+
+  //------------------------------------------------------------------------
+  // Calculate topology in hierarchy (see Element::calculate_topology)
+  void calculate_topology(Element::Topology& topo);
 
   //------------------------------------------------------------------------
   // Add a graph from the given XML

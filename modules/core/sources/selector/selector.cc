@@ -40,6 +40,7 @@ private:
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
+  void calculate_topology(Element::Topology& topo) override;
   void attach(Dataflow::Acceptor *_target) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
@@ -76,6 +77,15 @@ void SelectorSource::configure(const File::Directory& base_dir,
   retrigger = config.get_attr_bool("retrigger");
   multigraph.reset(new Dataflow::MultiGraph(graph->get_engine()));
   multigraph->configure(base_dir, config);
+}
+
+//--------------------------------------------------------------------------
+// Topology calculation
+void SelectorSource::calculate_topology(Element::Topology& topo)
+{
+  // Note we include all subs in the topology, whether or not activated,
+  // to avoid having to recalculate the topology dynamically
+  multigraph->calculate_topology(topo);
 }
 
 //--------------------------------------------------------------------------

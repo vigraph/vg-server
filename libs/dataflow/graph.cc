@@ -276,9 +276,33 @@ void Graph::configure_internal(const File::Directory& base_dir,
 
   // Add back any external acceptor that was given in a previous incarnation
   if (external_acceptor) attach(external_acceptor);
+}
 
-  // Generate the topological order from the graph
-  generate_topological_order();
+//------------------------------------------------------------------------
+// Calculate topology at top level
+void Graph::calculate_topology()
+{
+  // Generate topology in multiple phases
+  Element::Topology topo;
+  topo.phase = Element::Topology::Phase::collect;
+  calculate_topology(topo);
+  topo.phase = Element::Topology::Phase::notify;
+  calculate_topology(topo);
+  topo.phase = Element::Topology::Phase::calculate;
+  calculate_topology(topo);
+}
+
+//------------------------------------------------------------------------
+// Calculate topology (see Element::calculate_topology)
+void Graph::calculate_topology(Element::Topology& topo)
+{
+  // Pass down to elements
+  for(const auto& it: elements)
+    it.second->calculate_topology(topo);
+
+  // Finally calculate our own topology based on element downstreams
+  if (topo.phase == Element::Topology::Phase::calculate)
+    generate_topological_order();
 }
 
 //------------------------------------------------------------------------

@@ -43,6 +43,7 @@ class FrameGenerator
     try
     {
       graph.configure(File::Directory("."), config.get_root());
+      graph.calculate_topology();
     }
     catch (runtime_error e)
     {

@@ -73,6 +73,7 @@ class GraphSource: public Dataflow::Source
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
+  void calculate_topology(Element::Topology& topo) override;
   void attach(Dataflow::Acceptor *_target) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
@@ -98,6 +99,26 @@ void GraphSource::configure(const File::Directory& base_dir,
 {
   subgraph.reset(new Dataflow::Graph(graph->get_engine()));
   subgraph->configure(base_dir, config);
+}
+
+//--------------------------------------------------------------------------
+// Topology calculation
+void GraphSource::calculate_topology(Element::Topology& topo)
+{
+  // When collecting, we wrap our child elements in ourselves
+  if (topo.phase == Element::Topology::Phase::collect)
+  {
+    Element::Topology subtopo;
+    subtopo.phase = Element::Topology::Phase::collect;
+    subgraph->calculate_topology(subtopo);
+
+    // Claim to be the sender of everything our subelements send
+    for(const auto& it: subtopo.router_senders)
+      topo.router_senders[it.first].push_back(this);
+
+    // !!! But what about our own topological check within our graph?
+  }
+  else subgraph->calculate_topology(topo);  // Pass down
 }
 
 //--------------------------------------------------------------------------

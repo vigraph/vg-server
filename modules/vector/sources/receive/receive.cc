@@ -20,8 +20,8 @@ public:
   string tag;
 
 private:
-
   // Source/Element virtuals
+  void calculate_topology(Element::Topology& topo) override;
   void enable() override;
   void disable() override;
 
@@ -29,9 +29,22 @@ private:
   void receive(DataPtr data) override;
 
 public:
-  ReceiveSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 };
+
+//--------------------------------------------------------------------------
+// Topology calculation - add any senders sending on our tag to our
+// downstreams
+void ReceiveSource::calculate_topology(Element::Topology& topo)
+{
+  if (topo.phase == Element::Topology::Phase::notify)
+  {
+    const auto& it = topo.router_senders.find(tag);
+    if (it != topo.router_senders.end())
+      for(const auto el: it->second)
+        downstreams.push_back(el);
+  }
+}
 
 //--------------------------------------------------------------------------
 // Enable - register on router

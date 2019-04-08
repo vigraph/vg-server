@@ -84,6 +84,11 @@ class TestSubgraph: public Source
     subgraph->configure(base_dir, config);
   }
 
+  void calculate_topology(Element::Topology& topo) override
+  {
+    subgraph->calculate_topology(topo);
+  }
+
   void attach(Dataflow::Acceptor *acceptor) override
   {
     subgraph->attach(acceptor);
@@ -226,6 +231,7 @@ inline void construct_graph(const string& xml, Dataflow::Graph& graph)
   {
     register_elements();
     graph.configure(File::Directory("."), config.get_root());
+    graph.calculate_topology();
   }
   catch (runtime_error e)
   {
@@ -264,6 +270,11 @@ inline void construct_multigraph(const string& xml, Dataflow::MultiGraph& graph)
   {
     register_elements();
     graph.configure(File::Directory("."), config.get_root());
+
+    // Do enough to get toposorts sorted
+    Element::Topology topo;
+    topo.phase = Element::Topology::Phase::calculate;
+    graph.calculate_topology(topo);
   }
   catch (runtime_error e)
   {

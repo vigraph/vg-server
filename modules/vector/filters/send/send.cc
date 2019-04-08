@@ -22,11 +22,20 @@ public:
 
 private:
   // Filter/Element virtuals
+  void calculate_topology(Element::Topology& topo) override;
   void accept(FramePtr frame) override;
 
 public:
   using FrameFilter::FrameFilter;
 };
+
+//--------------------------------------------------------------------------
+// Topology calculation - notify we send on our tag
+void SendFilter::calculate_topology(Element::Topology& topo)
+{
+  if (topo.phase == Element::Topology::Phase::collect)
+    topo.router_senders[tag].push_back(this);
+}
 
 //--------------------------------------------------------------------------
 // Process some data

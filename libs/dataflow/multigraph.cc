@@ -52,6 +52,15 @@ Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
 }
 
 //------------------------------------------------------------------------
+// Calculate topology (see Element::calculate_topology)
+void MultiGraph::calculate_topology(Element::Topology& topo)
+{
+  MT::RWReadLock lock(mutex);
+  for(const auto it: subgraphs)
+    it->calculate_topology(topo);
+}
+
+//------------------------------------------------------------------------
 // Attach an Acceptor to the end of all subgraphs (testing only)
 void MultiGraph::attach_to_all(Acceptor *a)
 {

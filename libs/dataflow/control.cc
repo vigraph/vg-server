@@ -85,6 +85,7 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
     XML::Element& te = *it;
     const string& target_id = te["id"];
     Target& target = targets[target_id];
+    bool has_explicit = false;
 
     // Check for single property attribute
     const auto& prop = te["property"];
@@ -92,8 +93,11 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
     {
       // Reset the first (default) one using the existing type
       if (!properties.empty())
+      {
         target.properties[properties.begin()->first] =
           Property(prop, properties.begin()->second.type, true);
+        has_explicit = true;
+      }
     }
 
     // Check prefixed attributes
@@ -104,6 +108,19 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
       if (it == properties.end())
         throw runtime_error("Element "+control_id+" has no property "+p.first);
       target.properties[p.first] = Property(p.second, it->second.type, true);
+      has_explicit = true;
+    }
+
+    // If any explicitly set, remove all the implicit ones
+    if (has_explicit)
+    {
+      for(auto it=target.properties.begin(); it!=target.properties.end();)
+      {
+        if (!it->second.is_explicit)
+          it = target.properties.erase(it);
+        else
+          ++it;
+      }
     }
   }
 }

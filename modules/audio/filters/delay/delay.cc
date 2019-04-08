@@ -25,9 +25,15 @@ private:
     vector<sample_t> samples;
   };
   map<Speaker, Buffer> buffer; // Buffer per speaker
+  bool enabled = true;
+
+  bool tick_sent = false;
 
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
+  void pre_tick(const TickData&) override { tick_sent = false; }
+  void post_tick(const TickData& td) override;
+  void notify_target_of(const string& property) override;
 
 public:
   double feedback = 0.5;
@@ -37,6 +43,8 @@ public:
   // Getters/Setters
   double get_time() const { return delay.seconds(); }
   void set_time(double time);
+  void on() { enabled = true; }
+  void off() { enabled = false; }
 };
 
 //--------------------------------------------------------------------------
@@ -75,7 +83,7 @@ void DelayFilter::set_time(double t)
 // Process some data
 void DelayFilter::accept(FragmentPtr fragment)
 {
-  if (delay)
+  if (enabled && delay)
   {
     for (auto& wit: fragment->waveforms)
     {
@@ -98,9 +106,36 @@ void DelayFilter::accept(FragmentPtr fragment)
           buf.pos = 0;
       }
     }
+    tick_sent = true;
   }
 
   send(fragment);
+}
+
+//--------------------------------------------------------------------------
+// If nothing received but have buffered stuff, send it
+void DelayFilter::post_tick(const TickData& td)
+{
+  if (enabled && delay && !tick_sent)
+  {
+    const auto nsamples = td.samples(sample_rate);
+
+    // Make an empty fragment of the correct channels and size
+    auto fragment = FragmentPtr(new Fragment(td.t));
+    for (const auto& b: buffer)
+      fragment->waveforms[b.first].resize(nsamples);
+
+    // Run the empty fragment through the standard process
+    accept(fragment);
+  }
+}
+
+//--------------------------------------------------------------------------
+// If recipient of triggers default to disabled
+void DelayFilter::notify_target_of(const string& property)
+{
+  if (property == "enable")
+    enabled = false;
 }
 
 //--------------------------------------------------------------------------
@@ -116,6 +151,10 @@ Dataflow::Module module
                 { &DelayFilter::get_time, &DelayFilter::set_time }, true } },
     { "feedback", { "Amount of feedback (0-?)", Value::Type::number,
                     &DelayFilter::feedback, true } },
+    { "enable", { "Enable the filter", Value::Type::trigger,
+                  &DelayFilter::on, true } },
+    { "disable", { "Disable the filter", Value::Type::trigger,
+                   &DelayFilter::off, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

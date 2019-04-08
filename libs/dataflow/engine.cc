@@ -59,6 +59,15 @@ void Engine::set_json(const string& path, const JSON::Value& value)
 }
 
 //------------------------------------------------------------------------
+// Set a new element from JSON
+// path is a path/to/leaf
+void Engine::add_json(const string& path, const JSON::Value& value)
+{
+  MT::RWWriteLock lock(graph_mutex);
+  graph->add_json(path, value);
+}
+
+//------------------------------------------------------------------------
 // Tick the engine
 void Engine::tick(Time::Stamp t)
 {

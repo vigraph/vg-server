@@ -30,6 +30,7 @@ private:
   void enable() override;
   void disable() override;
   JSON::Value get_json(const string& path) const override;
+  void set_json(const string& path, const JSON::Value& value) override;
 
 public:
   using Source::Source;
@@ -118,6 +119,34 @@ JSON::Value CloneSource::get_json(const string& path) const
   {
     // Just the undecorated object the graph returns
     return subgraph->get_json(path);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Set from JSON
+void CloneSource::set_json(const string& path, const JSON::Value& value)
+{
+  // Whole thing?
+  if (path.empty())
+  {
+    // !!!
+    throw runtime_error("Setting entire clone contents not implemented!");
+  }
+  else
+  {
+    // If 'graph/xxx', pass down to cloned subgraphs
+    vector<string> bits = Text::split(path, '/', false, 2);
+    if (bits[0] == "graph")
+    {
+      const auto& subgraphs = multigraph->get_subgraphs();
+      for(const auto& sub: subgraphs)
+        sub.second->set_json(bits.size()>1 ? bits[1] : "", value);
+    }
+    else
+    {
+      // Set our own property ('n' only)
+      Element::set_json(path, value);
+    }
   }
 }
 

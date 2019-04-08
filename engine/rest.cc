@@ -37,10 +37,12 @@ class GraphURLHandler: public Web::URLHandler
   Dataflow::Engine& engine;
   JSON::Value get_json_for_element(const Dataflow::Element& e);
   bool handle_get(const string& path, Web::HTTPMessage& response);
-  bool handle_delete(const string& path, const Web::HTTPMessage& request,
-                     Web::HTTPMessage& response);
+  bool handle_put(const string& path, const Web::HTTPMessage& request,
+                   Web::HTTPMessage& response);
   bool handle_post(const string& path, const Web::HTTPMessage& request,
                    Web::HTTPMessage& response);
+  bool handle_delete(const string& path, const Web::HTTPMessage& request,
+                     Web::HTTPMessage& response);
   bool handle_request(const Web::HTTPMessage& request,
                       Web::HTTPMessage& response,
                       const SSL::ClientDetails& client);
@@ -87,6 +89,45 @@ bool GraphURLHandler::handle_get(const string& path,
     response.code = 404;
     response.reason = "Not found";
   }
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Handle a PUT request
+// Returns whether request was valid
+bool GraphURLHandler::handle_put(const string& path,
+                                 const Web::HTTPMessage& request,
+                                 Web::HTTPMessage& response)
+{
+  Log::Streams log;
+  log.detail << "REST Graph: PUT " << path << endl;
+
+  // Parse JSON
+  istringstream iss(request.body);
+  JSON::Parser parser(iss);
+  JSON::Value value;
+  try
+  {
+    value = parser.read_value();
+  }
+  catch (JSON::Exception& e)
+  {
+    log.error << "REST: JSON parsing failed: " << e.error << endl;
+    return false;
+  }
+
+  try
+  {
+    engine.add_json(path, value);
+  }
+  catch (runtime_error& e)
+  {
+    Log::Error log;
+    log << "REST Graph POST failed: " << e.what() << endl;
+    response.code = 404;
+    response.reason = "Not found";
+  }
+
   return true;
 }
 
@@ -158,6 +199,14 @@ bool GraphURLHandler::handle_request(const Web::HTTPMessage& request,
   if (request.method == "GET")
   {
     if (!handle_get(path, response))
+    {
+      response.code = 400;
+      response.reason = "Bad request";
+    }
+  }
+  else if (request.method == "PUT")
+  {
+    if (!handle_put(path, request, response))
     {
       response.code = 400;
       response.reason = "Bad request";

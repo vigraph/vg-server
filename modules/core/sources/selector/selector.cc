@@ -47,6 +47,7 @@ private:
   void enable() override;
   void disable() override;
   JSON::Value get_json(const string& path) const override;
+  void set_json(const string& path, const JSON::Value& value) override;
 
 public:
   using Source::Source;
@@ -301,6 +302,29 @@ JSON::Value SelectorSource::get_json(const string& path) const
 
     // Return bare value (or INVALID) up, undecorated
     return it->second->get_json(bits.size()>1 ? bits[1] : "");
+  }
+}
+
+//--------------------------------------------------------------------------
+// Set from JSON
+void SelectorSource::set_json(const string& path, const JSON::Value& value)
+{
+  // Whole selector?
+  if (path.empty())
+  {
+    // !!!
+    throw runtime_error("Setting entire selector contents not implemented!");
+  }
+  else
+  {
+    // Select specific subgraph and pass it the rest of the path
+    vector<string> bits = Text::split(path, '/', false, 2);
+    const auto& subgraphs = multigraph->get_subgraphs();
+    const auto it = subgraphs.find(bits[0]);
+    if (it == subgraphs.end())
+      throw runtime_error("No such sub-graph "+bits[0]+" in selector");
+
+    it->second->set_json(bits.size()>1 ? bits[1] : "", value);
   }
 }
 

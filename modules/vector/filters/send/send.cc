@@ -7,7 +7,6 @@
 //==========================================================================
 
 #include "../../vector-module.h"
-#include "../../../module-services.h"
 
 namespace {
 
@@ -22,10 +21,7 @@ public:
   bool copy = false;
 
 private:
-  shared_ptr<Router> router;
-
   // Filter/Element virtuals
-  void setup() override;
   void accept(FramePtr frame) override;
 
 public:
@@ -33,20 +29,14 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Setup
-void SendFilter::setup()
-{
-  auto& engine = graph->get_engine();
-  router = engine.get_service<Router>("router");
-}
-
-//--------------------------------------------------------------------------
 // Process some data
 void SendFilter::accept(FramePtr frame)
 {
+  auto& router = graph->get_engine().router;
+
   // Pass frame to router
-  if (router && !tag.empty())
-    router->send("vector:" + tag, frame);
+  if (!tag.empty())
+    router.send("vector:" + tag, frame);
 
   // Pass it on
   if (copy)

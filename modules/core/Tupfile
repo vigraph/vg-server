@@ -31,7 +31,6 @@ DEPENDS  = vg-module-core-source-selector \
            vg-module-core-control-toggle \
            vg-module-core-control-log \
            vg-module-core-control-window \
-           vg-module-core-service-router \
            vg-module-core-service-pool \
            vg-module-core-service-thread-pool
 

@@ -30,9 +30,13 @@ class LoopFilter: public FragmentFilter
   bool playing = false;
   bool new_recording_ready = false;
 
+  bool tick_captured = false;
+
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
+  void pre_tick(const TickData&) override { tick_captured = false; }
   void tick(const TickData& td) override;
+  void post_tick(const TickData& td) override;
 
 public:
   using FragmentFilter::FragmentFilter;
@@ -101,6 +105,7 @@ void LoopFilter::accept(FragmentPtr fragment)
       for (auto i = 0u; i < w.size(); ++i)
         b.emplace_back(w[i]);
     }
+    tick_captured = true;
   }
 }
 
@@ -159,6 +164,23 @@ void LoopFilter::tick(const TickData& td)
       }
     }
     send(fragment);
+  }
+}
+
+//--------------------------------------------------------------------------
+// If recording and nothing captured, insert emptiness
+void LoopFilter::post_tick(const TickData& td)
+{
+  if (recording && !tick_captured)
+  {
+    const auto nsamples = td.samples(sample_rate);
+    auto& buffer = buffers[recording_buffer];
+
+    for (auto& wit: buffer)
+    {
+      auto& w = wit.second;
+      w.insert(w.end(), nsamples, 0.0);
+    }
   }
 }
 

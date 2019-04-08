@@ -220,9 +220,17 @@ void ControlImpl::add_to_json(JSON::Value& json) const
       const auto& target = tit.second;
       for(const auto& pit: target.properties)
       {
-        JSON::Value& pj = oj.set(pit.first, JSON::Value(JSON::Value::OBJECT));
+        JSON::Value pj(JSON::Value::OBJECT);
         pj.set("element", target.element->id);
         pj.set("prop", pit.second.name);
+
+        // Add to new array for this property name or existing if already
+        // there
+        JSON::Value& psj = oj[pit.first];
+        if (!psj)
+          oj.set(pit.first, JSON::Value(JSON::Value::ARRAY)).add(pj);
+        else
+          psj.add(pj);
       }
     }
   }

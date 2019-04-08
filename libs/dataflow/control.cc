@@ -86,10 +86,6 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
     const string& target_id = te["id"];
     Target& target = targets[target_id];
 
-    // Clear the default properties, to allow for cases where multiple targets
-    // each receive different properties
-    target.properties.clear();
-
     // Check for single property attribute
     const auto& prop = te["property"];
     if (!prop.empty())

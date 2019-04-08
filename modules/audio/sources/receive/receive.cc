@@ -7,7 +7,6 @@
 //==========================================================================
 
 #include "../../audio-module.h"
-#include "../../../module-services.h"
 
 namespace {
 
@@ -17,10 +16,7 @@ using namespace ViGraph::Module;
 // Figure source
 class ReceiveSource: public Dataflow::Source, public Router::Receiver
 {
-  shared_ptr<Router> router;
-
   // Source/Element virtuals
-  void setup() override;
   void enable() override;
   void disable() override;
 
@@ -35,27 +31,20 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Setup
-void ReceiveSource::setup()
-{
-  auto& engine = graph->get_engine();
-  router = engine.get_service<Router>("router");
-}
-
-//--------------------------------------------------------------------------
 // Enable - register on router
 void ReceiveSource::enable()
 {
-  if (router && !tag.empty())
-    router->register_receiver("audio:" + tag, this);
+  auto& router = graph->get_engine().router;
+  if (!tag.empty())
+    router.register_receiver("audio:" + tag, this);
 }
 
 //--------------------------------------------------------------------------
 // Disable - deregister from router
 void ReceiveSource::disable()
 {
-  if (router)
-    router->deregister_receiver(this);
+  auto& router = graph->get_engine().router;
+  router.deregister_receiver(this);
 }
 
 //--------------------------------------------------------------------------

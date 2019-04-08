@@ -1034,6 +1034,41 @@ public:
 };
 
 //==========================================================================
+// Router - provides 'wormhole' routing
+class Router
+{
+ public:
+  struct Receiver
+  {
+    virtual void receive(DataPtr data) = 0;
+  };
+
+ private:
+  map<string, list<Receiver *>> receivers;
+
+ public:
+  //------------------------------------------------------------------------
+  // Construct
+  Router() {}
+
+  //------------------------------------------------------------------------
+  // Register for frame data on the given tag
+  void register_receiver(const string& tag, Receiver *receiver);
+
+  //------------------------------------------------------------------------
+  // Deregister a receiver for all tags
+  void deregister_receiver(Receiver *receiver);
+
+  //------------------------------------------------------------------------
+  // Get a list of elements subscribed to the given tag
+  list<Element *> get_receivers(const string& tag);
+
+  //------------------------------------------------------------------------
+  // Send frame data on the given tag
+  void send(const string& tag, DataPtr data);
+};
+
+//==========================================================================
 // Engine class - wrapper containing Graph tree and Element/Service registries
 class Engine
 {
@@ -1050,6 +1085,7 @@ class Engine
  public:
   Registry element_registry;
   Registry service_registry;
+  Router router;
 
   //------------------------------------------------------------------------
   // Constructor

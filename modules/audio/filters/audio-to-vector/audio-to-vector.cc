@@ -9,7 +9,6 @@
 
 #include "../../audio-module.h"
 #include "../../../vector/vector-module.h"
-#include "../../../module-services.h"
 
 namespace {
 
@@ -31,7 +30,6 @@ private:
   } mode = Mode::multi;
 
   // Filter/Element virtuals
-  void setup() override;
   void accept(FragmentPtr fragment) override;
 
 public:
@@ -71,14 +69,6 @@ void AudioToVectorFilter::set_mode(const string& m)
     Log::Error log;
     log << "Unknown mode '" << m << "' in " << id << endl;
   }
-}
-
-//--------------------------------------------------------------------------
-// Setup
-void AudioToVectorFilter::setup()
-{
-  auto& engine = graph->get_engine();
-  router = engine.get_service<Router>("router");
 }
 
 //--------------------------------------------------------------------------
@@ -128,8 +118,9 @@ void AudioToVectorFilter::accept(FragmentPtr fragment)
   }
   if (!frame->points.empty())
   {
-    if (router && !tag.empty())
-      router->send("vector:" + tag, frame);
+    auto& router = graph->get_engine().router;
+    if (!tag.empty())
+      router.send("vector:" + tag, frame);
     frame->points.clear();
   }
   send(fragment);

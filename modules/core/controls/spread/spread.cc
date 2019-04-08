@@ -88,13 +88,14 @@ void SpreadControl::next()
   if (last_sent)
   {
     send("value", *last_sent);
-    send("clear", {});
+    trigger("clear");
+    last_sent.reset();
   }
   if (latch || !capturing.empty())
   {
     last_sent.reset(new Value{values[index]});
     send("value", *last_sent);
-    send("trigger", {});
+    trigger("trigger");
     if (++index >= values.size())
       index = 0;
   }

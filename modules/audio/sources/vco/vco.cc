@@ -36,7 +36,12 @@ public:
 
 private:
   double theta = 0.0;
-  bool enabled = true;
+  enum State
+  {
+    disabled,
+    enabled,
+    completing
+  } state = State::enabled;
 
   // Parse waveform name
   bool parse_waveform(const string& name, Waveform& waveform);
@@ -59,8 +64,16 @@ public:
   void set_waveform(const string& wave);
   double get_pulse_width() const { return pulse_width; }
   void set_pulse_width(double pw) {pulse_width = max(0.0, min(1.0, pw)); }
-  void start() { enabled = true; }
-  void stop() { enabled = false; }
+  void start()
+  {
+    if (state != State::enabled)
+    {
+      if (state != State::completing)
+        theta = 0.0;
+      state = State::enabled;
+    }
+  }
+  void stop() { if (state == State::enabled) state = State::completing; }
 };
 
 //--------------------------------------------------------------------------
@@ -107,14 +120,14 @@ void VCOSource::set_waveform(const string& name)
 void VCOSource::notify_target_of(const string& property)
 {
   if (property == "trigger")
-    enabled = false;
+    state = State::disabled;
 }
 
 //--------------------------------------------------------------------------
 // Generate a fragment
 void VCOSource::tick(const TickData& td)
 {
-  if (enabled)
+  if (state == State::enabled || state == State::completing)
   {
     const auto nsamples = td.samples(sample_rate);
     auto fragment = new Fragment(td.t);  // mono
@@ -128,33 +141,49 @@ void VCOSource::tick(const TickData& td)
       {
         case Waveform::none:
           v = 0.0;
-        break;
+          break;
 
         case Waveform::saw:
-          v = theta*2 - 1;
-        break;
+          if (theta < 0.5)
+            v = theta * 2;
+          else
+            v = theta * 2 - 2;
+          break;
 
         case Waveform::sin:
           v = theta < pulse_width ? sin(theta*pi/pulse_width)
                                   : sin((theta-1.0)*pi/(1.0-pulse_width));
-        break;
+          break;
 
         case Waveform::square:
-          v = theta >= (1.0 - pulse_width) ? 1.0 : -1.0;
-        break;
+          v = (theta < pulse_width) ? 1.0 : -1.0;
+          break;
 
         case Waveform::triangle:
-          v = (theta < 0.5 ? theta : 1-theta)*4-1;
-        break;
+          if (theta < pulse_width / 2)
+            v = theta / (pulse_width / 2);
+          else if (theta >= (1 - (pulse_width / 2)))
+            v = -1 + (theta - (1 - (pulse_width / 2))) / (pulse_width / 2);
+          else
+            v = 1 - (theta - (pulse_width / 2)) / ((1 - pulse_width) / 2);
+          break;
 
         case Waveform::random:
           v = 2.0 * rand() / RAND_MAX - 1;
-        break;
+          break;
       }
 
       samples[i] = v;
       theta += freq/sample_rate;
-      theta -= floor(theta); // Wrap to 0..1
+      if (theta > 1)
+      {
+        theta -= floor(theta); // Wrap to 0..1
+        if (state == State::completing)
+        {
+          state = State::disabled;
+          break;
+        }
+      }
     }
 
     // Send to output

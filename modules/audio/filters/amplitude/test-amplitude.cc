@@ -54,7 +54,7 @@ TEST(AmplitudeTest, TestSquareWave)
   // Should be 44100 samples at -1 or 1
   EXPECT_EQ(44100, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ((i < 22050)?-1:1, waveform[i]) << i;
+    EXPECT_EQ((i < 22050)?1:-1, waveform[i]) << i;
 }
 
 int main(int argc, char **argv)

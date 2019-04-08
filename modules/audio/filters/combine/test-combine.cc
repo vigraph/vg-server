@@ -52,7 +52,7 @@ TEST(CombineTest, TestSquareWave)
 
   EXPECT_EQ(44100, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ((i < 22050)?-1:1, waveform[i]) << i;
+    EXPECT_EQ((i < 22050)?1:-1, waveform[i]) << i;
 }
 
 TEST(CombineTest, TestTwoSquareWaves)
@@ -74,7 +74,7 @@ TEST(CombineTest, TestTwoSquareWaves)
   // Should be 44100 samples at alternating -2, 2
   EXPECT_EQ(44100, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ(((i < 22050)?-2:2), waveform[i]) << i;
+    EXPECT_EQ(((i < 22050)?2:-2), waveform[i]) << i;
 }
 
 TEST(CombineTest, TestMultiplyTwoSineWaves)

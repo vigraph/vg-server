@@ -13,6 +13,11 @@
 ModuleLoader loader;
 using namespace ViGraph::Geometry;
 
+const auto waveform_size = 44100;
+const auto half_waveform_size = waveform_size / 2;
+const auto quarter_waveform_size = waveform_size / 4;
+const auto three_quarter_waveform_size = 3 * waveform_size / 4;
+
 TEST(VCOTest, TestNoWaveform)
 {
   const string& xml = R"(
@@ -29,7 +34,7 @@ TEST(VCOTest, TestNoWaveform)
   const auto& waveform = fragment->waveforms[Speaker::front_center];
 
   // Should be 44100 samples at 0
-  EXPECT_EQ(44100, waveform.size());
+  EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
     EXPECT_EQ(0.0, waveform[i]);
 }
@@ -50,9 +55,14 @@ TEST(VCOTest, TestSquareWaveSingleCycle)
   const auto& waveform = fragment->waveforms[Speaker::front_center];
 
   // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(44100, waveform.size());
+  EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ((i < 22050)?-1:1, waveform[i]) << i;
+  {
+    if (i < half_waveform_size)
+      EXPECT_EQ(1, waveform[i]) << i;
+    else
+      EXPECT_EQ(-1, waveform[i]) << i;
+  }
 }
 
 TEST(VCOTest, TestSquareWaveMultiCycle)
@@ -70,10 +80,15 @@ TEST(VCOTest, TestSquareWaveMultiCycle)
   ASSERT_EQ(1, fragment->waveforms.size());
   const auto& waveform = fragment->waveforms[Speaker::front_center];
 
-  // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(44100, waveform.size());
+  // Should be 44100 samples at alternating 1, -1
+  EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ((i%4410 < 2205)?-1:1, waveform[i]) << i;
+  {
+    if (i % (waveform_size / 10) < (half_waveform_size / 10))
+      EXPECT_EQ(1, waveform[i]) << i;
+    else
+      EXPECT_EQ(-1, waveform[i]) << i;
+  }
 }
 
 TEST(VCOTest, TestSawWaveSingleCycle)
@@ -92,9 +107,15 @@ TEST(VCOTest, TestSawWaveSingleCycle)
   const auto& waveform = fragment->waveforms[Speaker::front_center];
 
   // Should be 44100 samples linearly increasing
-  EXPECT_EQ(44100, waveform.size());
+  EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_NEAR((double)i/waveform.size()*2-1, waveform[i], 0.0001) << i;
+  {
+    if (i < half_waveform_size)
+      EXPECT_NEAR((double)i / half_waveform_size, waveform[i], 0.0001) << i;
+    else
+      EXPECT_NEAR((double)(i - half_waveform_size) / half_waveform_size - 1,
+                  waveform[i], 0.0001) << i;
+  }
 }
 
 TEST(VCOTest, TestTriangleWaveSingleCycle)
@@ -113,11 +134,23 @@ TEST(VCOTest, TestTriangleWaveSingleCycle)
   const auto& waveform = fragment->waveforms[Speaker::front_center];
 
   // Should be 44100 samples linearly increasing up and down
-  EXPECT_EQ(44100, waveform.size());
+  EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_NEAR(i<22050?(double)i/waveform.size()*4-1
-                       :(1-(double)i/waveform.size())*4-1,
-                waveform[i], 0.0001) << i;
+  {
+    if (i < quarter_waveform_size)
+      EXPECT_NEAR((double)i / quarter_waveform_size, waveform[i], 0.0001) << i;
+    else if (i < half_waveform_size)
+      EXPECT_NEAR(1.0 - ((double)i - quarter_waveform_size)
+                        / quarter_waveform_size,
+                  waveform[i], 0.0001) << i;
+    else if (i < three_quarter_waveform_size)
+      EXPECT_NEAR(-((double)i - half_waveform_size) / quarter_waveform_size,
+                  waveform[i], 0.0001) << i;
+    else
+      EXPECT_NEAR(-1.0 + ((double)i - three_quarter_waveform_size)
+                         / quarter_waveform_size,
+                  waveform[i], 0.0001) << i;
+  }
 }
 
 TEST(VCOTest, TestSinWaveSingleCycle)
@@ -136,7 +169,7 @@ TEST(VCOTest, TestSinWaveSingleCycle)
   const auto& waveform = fragment->waveforms[Speaker::front_center];
 
   // Should be 44100 samples in sin -1..1
-  EXPECT_EQ(44100, waveform.size());
+  EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
     EXPECT_NEAR(sin(2*pi*(double)i/waveform.size()), waveform[i], 0.0001) << i;
 }
@@ -157,7 +190,7 @@ TEST(VCOTest, TestRandomSingleCycle)
   const auto& waveform = fragment->waveforms[Speaker::front_center];
 
   // Should be 44100 samples random between -1 and 1
-  EXPECT_EQ(44100, waveform.size());
+  EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
   {
     EXPECT_GE(1.0, waveform[i]) << i;

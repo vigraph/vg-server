@@ -52,7 +52,7 @@ TEST(AttenuatorTest, TestSquareWaveReduced)
   // Should be 44100 samples at alternating -1, 1
   EXPECT_EQ(44100, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_NEAR((i < 22050)?-0.2:0.2, waveform[i], 0.001)
+    EXPECT_NEAR((i < 22050)?0.2:-0.2, waveform[i], 0.001)
       << i;
 }
 

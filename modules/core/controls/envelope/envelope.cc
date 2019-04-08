@@ -158,7 +158,7 @@ void EnvelopeControl::pre_tick(const TickData& td)
       return;
   }
 
-  send("", Dataflow::Value{value});
+  send("value", Dataflow::Value{value});
 }
 
 //--------------------------------------------------------------------------

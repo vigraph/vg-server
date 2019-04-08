@@ -163,24 +163,36 @@ TEST(ControlTest, TestConstructionWithPropertiesSplitOverMultipleTargets)
   const auto& it1 = targets.find("bar1");
   ASSERT_NE(targets.end(), it1);
   const Control::Target& t1 = it1->second;
-  ASSERT_EQ(1, t1.properties.size());
+  ASSERT_EQ(2, t1.properties.size());
 
   const auto& it11 = t1.properties.find("x");
   ASSERT_NE(t1.properties.end(), it11);
   const Control::Property& p11 = it11->second;
   EXPECT_EQ("wibble", p11.name);
   EXPECT_EQ(Value::Type::number, p11.type);
+  EXPECT_TRUE(p11.is_explicit);
+
+  const auto& it12 = t1.properties.find("y");
+  ASSERT_NE(t1.properties.end(), it12);
+  const Control::Property& p12 = it12->second;
+  EXPECT_FALSE(p12.is_explicit);
 
   const auto& it2 = targets.find("bar2");
   ASSERT_NE(targets.end(), it2);
   const Control::Target& t2 = it2->second;
-  ASSERT_EQ(1, t2.properties.size());
+  ASSERT_EQ(2, t2.properties.size());
+
+  const auto& it21 = t2.properties.find("x");
+  ASSERT_NE(t2.properties.end(), it21);
+  const Control::Property& p21 = it21->second;
+  EXPECT_FALSE(p21.is_explicit);
 
   const auto& it22 = t2.properties.find("y");
   ASSERT_NE(t2.properties.end(), it22);
   const Control::Property& p22 = it22->second;
   EXPECT_EQ("wobble", p22.name);
   EXPECT_EQ(Value::Type::number, p22.type);
+
 }
 
 } // anonymous namespace

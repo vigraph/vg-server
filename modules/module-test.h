@@ -26,15 +26,6 @@ public:
 
   ModuleLoader() {}
 
-  void configure_with_service(const string& service_id)
-  {
-    // Configure the engine with services
-    XML::Element graph_e;
-    XML::Element services_e;
-    services_e.add(service_id);
-    engine.configure(File::Directory("."), graph_e, services_e);
-  };
-
   void load(const string& path)
   {
     void *dl_handle = dlopen(path.c_str(), RTLD_NOW);

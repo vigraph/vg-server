@@ -12,28 +12,11 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Configure with <graph> and <services> XML
+// Configure with <graph> XML
 // Throws a runtime_error if configuration fails
 void Engine::configure(const File::Directory& base_dir,
-                       const XML::Element& graph_config,
-                       const XML::Element& services_config)
+                       const XML::Element& graph_config)
 {
-  // Create services from services config
-  for (const auto& p: services_config.children)
-  {
-    const auto& e = *p;
-    if (e.name.empty()) continue;
-
-    const auto srv = service_registry.create(e.name, e);
-    if (!srv) throw(runtime_error("No such dataflow service " + e.name));
-    services[e.name].reset(srv);
-
-    // Configure it with graph in place so it can reach back to us for
-    // other services
-    srv->graph = graph.get();
-    srv->configure(base_dir, e);
-  }
-
   // Configure graph from graph config
   graph->configure(base_dir, graph_config);
 
@@ -83,9 +66,6 @@ void Engine::tick(Time::Stamp t)
     try
     {
       const auto td = TickData{timestamp, tick_number, tick_interval};
-      // Tick all services
-      for(const auto& it: services)
-        it.second->tick(td);
 
       // Tick the graph
       MT::RWReadLock lock(graph_mutex);
@@ -108,15 +88,8 @@ void Engine::tick(Time::Stamp t)
 void Engine::shutdown()
 {
   // Shut down graph
-  {
-    MT::RWWriteLock lock(graph_mutex);
-    graph->shutdown();
-  }
-
-  // Shut down services
-  for(const auto& it: services)
-    it.second->shutdown();
-  services.clear();
+  MT::RWWriteLock lock(graph_mutex);
+  graph->shutdown();
 }
 
 }} // namespaces

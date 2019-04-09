@@ -40,13 +40,7 @@ public:
 // Setup
 void PoolSendControl::setup()
 {
-  auto& engine = graph->get_engine();
-  distributor = engine.get_service<PoolDistributor>("pool-distributor");
-  if (!distributor)
-  {
-    Log::Error log;
-    log << "No <pool-distributor> service loaded\n";
-  }
+  distributor = graph->find_service<PoolDistributor>("pool-distributor");
 }
 
 //--------------------------------------------------------------------------

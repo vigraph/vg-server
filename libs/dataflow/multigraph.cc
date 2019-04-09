@@ -38,7 +38,7 @@ Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
   string id = graph_config["id"];
   if (id.empty()) id = "graph-"+Text::itos(++id_serial);
 
-  Graph *sub = new Graph(engine);
+  Graph *sub = new Graph(engine, parent);
   sub->configure(base_dir, graph_config);
 
   // Lock for write

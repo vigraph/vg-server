@@ -44,17 +44,11 @@ PoolReceiveControl::PoolReceiveControl(const Dataflow::Module *module,
 }
 
 //--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
+// Configure from XML
 void PoolReceiveControl::configure(const File::Directory&,
                                    const XML::Element&)
 {
-  auto& engine = graph->get_engine();
-  distributor = engine.get_service<PoolDistributor>("pool-distributor");
-  if (!distributor)
-  {
-    Log::Error log;
-    log << "No <pool-distributor> service loaded\n";
-  }
+  distributor = graph->find_service<PoolDistributor>("pool-distributor");
 }
 
 //--------------------------------------------------------------------------

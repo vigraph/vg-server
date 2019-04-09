@@ -634,6 +634,7 @@ class Graph
   Engine& engine;
   mutable MT::RWMutex mutex;
   map<string, shared_ptr<Element> > elements;   // By ID
+  Graph *parent{nullptr};
 
   // Source
   File::Path source_file;  // empty if inline
@@ -665,7 +666,8 @@ class Graph
  public:
   //------------------------------------------------------------------------
   // Constructor
-  Graph(Engine& _engine): engine(_engine) {}
+  Graph(Engine& _engine, Graph *_parent=nullptr):
+    engine(_engine), parent(_parent) {}
 
   //------------------------------------------------------------------------
   // Get engine
@@ -769,6 +771,21 @@ class Graph
   Element *get_element(const string& id);
 
   //------------------------------------------------------------------------
+  // Get the nearest particular element by ID, looking upwards in ancestors
+  shared_ptr<Element> get_nearest_element(const string& id);
+
+  //------------------------------------------------------------------------
+  // Get type-checked nearest service element
+  template <class T> shared_ptr<T> find_service(const string& id)
+  {
+    auto el = get_nearest_element(id);
+    if (!el) throw runtime_error("No such element "+id);
+    auto t = dynamic_pointer_cast<T>(el);
+    if (!t) throw runtime_error("Element "+id+" is the wrong type");
+    return t;
+  }
+
+  //------------------------------------------------------------------------
   // Get state as a JSON value - array for top-level graph, single
   // value for sub-element property
   // Path is an XPath-like list of subgraph IDs and leaf element, or empty
@@ -820,6 +837,7 @@ class MultiGraph
   vector<shared_ptr<Graph> > subgraphs;          // Owning
   map<string, Graph *> subgraphs_by_id;          // Not owning
   int id_serial{0};
+  Graph *parent{nullptr};
 
   // Thread
   class Thread
@@ -923,7 +941,8 @@ class MultiGraph
  public:
   //------------------------------------------------------------------------
   // Constructor
-  MultiGraph(Engine& _engine): engine(_engine) {}
+  MultiGraph(Engine& _engine, Graph *_parent=nullptr):
+    engine(_engine), parent(_parent) {}
 
   //------------------------------------------------------------------------
   // Configure with XML
@@ -989,8 +1008,7 @@ class MultiGraph
 };
 
 //==========================================================================
-// Generic singleton service - used to provide global services, looked up
-// from an Engine by ID and then dynamic_cast to whatever is required
+// Generic singleton service - no inputs or outputs
 class Service: public Element
 {
  public:
@@ -1089,12 +1107,9 @@ class Router
 };
 
 //==========================================================================
-// Engine class - wrapper containing Graph tree and Element/Service registries
+// Engine class - wrapper containing Graph tree and Element registry
 class Engine
 {
-  // Services
-  map<string, shared_ptr<Element>> services;
-
   // Graph structure
   mutable MT::RWMutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
@@ -1104,7 +1119,6 @@ class Engine
 
  public:
   Registry element_registry;
-  Registry service_registry;
   Router router;
 
   //------------------------------------------------------------------------
@@ -1121,24 +1135,10 @@ class Engine
   Dataflow::Graph& get_graph() { return *graph; }
 
   //------------------------------------------------------------------------
-  // Get a type-checked service
-  template <class T> shared_ptr<T> get_service(const string& id)
-  {
-    const auto it = services.find(id);
-    if (it == services.end())
-      throw runtime_error("No such service "+id);
-
-    auto t = dynamic_pointer_cast<T>(it->second);
-    if (!t) throw runtime_error("Service "+id+" is the wrong type");
-    return t;
-  }
-
-  //------------------------------------------------------------------------
-  // Configure with <graph> and <services> XML
+  // Configure with <graph> XML
   // Throws a runtime_error if configuration fails
   void configure(const File::Directory& base_dir,
-                 const XML::Element& graph_config,
-                 const XML::Element& services_config);
+                 const XML::Element& graph_config);
 
   //------------------------------------------------------------------------
   // Get state as a JSON value (see Graph::get_json())

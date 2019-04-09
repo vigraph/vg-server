@@ -164,14 +164,11 @@ void Server::reconfigure()
     return;
   }
 
-  // And services - but this is optional
-  const XML::Element& services_e = config_xml.get_child("services");
-
   // Configure the graph engine using XML
   try
   {
     // Based relative to our config filename
-    engine.configure(config_file.dirname(), graph_e, services_e);
+    engine.configure(config_file.dirname(), graph_e);
     log.summary << "Dataflow engine loaded OK\n";
   }
   catch (runtime_error& e)

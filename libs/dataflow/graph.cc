@@ -458,6 +458,20 @@ Element *Graph::get_element(const string& id)
 }
 
 //------------------------------------------------------------------------
+// Get the nearest particular element by ID, looking upwards in ancestors
+shared_ptr<Element> Graph::get_nearest_element(const string& id)
+{
+  MT::RWReadLock lock(mutex);
+  if (elements.find(id) != elements.end())
+    return elements[id];
+
+  if (parent)
+    return parent->get_nearest_element(id);
+  else
+    return nullptr;
+}
+
+//------------------------------------------------------------------------
 // Get state as JSON array of elements
 // Path is an XPath-like list of subgraph IDs and leaf element, or empty
 // for entire graph

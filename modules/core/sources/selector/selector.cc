@@ -75,7 +75,7 @@ void SelectorSource::configure(const File::Directory& base_dir,
   Source::configure(base_dir, config);
 
   retrigger = config.get_attr_bool("retrigger");
-  multigraph.reset(new Dataflow::MultiGraph(graph->get_engine()));
+  multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
   multigraph->configure(base_dir, config);
 }
 

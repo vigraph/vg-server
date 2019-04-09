@@ -17,7 +17,7 @@ TEST(ReorderSegmentsTest, TestSegmentsReordered)
   const string& xml = R"(
     <graph>
       <svg path="M0,0 L1,0 M3,3 L4,4 M1,1 L2,2"/>
-      <reorder-segments/>
+      <laser:reorder-segments/>
     </graph>
   )";
 

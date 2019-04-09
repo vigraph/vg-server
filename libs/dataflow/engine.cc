@@ -28,6 +28,30 @@ void Engine::configure(const File::Directory& base_dir,
 }
 
 //------------------------------------------------------------------------
+// Create an element with the given name - may be section:id or just id,
+// which is looked up in default namespaces
+Element *Engine::create(const string& name, const XML::Element& config)
+{
+  vector<string> bits = Text::split(name, ':');
+  if (bits.size() > 1)
+  {
+    // Qualified - use the section given
+    return element_registry.create(bits[0], bits[1], config);
+  }
+  else
+  {
+    // Try default sections
+    for(const auto& section: default_sections)
+    {
+      Element *e = element_registry.create(section, name, config);
+      if (e) return e;
+    }
+
+    return nullptr;
+  }
+}
+
+//------------------------------------------------------------------------
 // Get state as a JSON value (see Graph::get_json())
 JSON::Value Engine::get_json(const string& path) const
 {

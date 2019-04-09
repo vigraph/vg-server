@@ -74,7 +74,7 @@ Dataflow::Module module
   "ilda",
   "ILDA animation",
   "ILDA file format animation player",
-  "vector",
+  "laser",
   {
     { "file", { "Filename of ILDA file", Value::Type::file,
                 &ILDASource::filename, false } },

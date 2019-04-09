@@ -67,7 +67,7 @@ void ReceiveSource::receive(DataPtr data)
 // Module definition
 Dataflow::Module module
 {
-  "audio:receive", // ! until we have namespacing !
+  "receive",
   "Audio Receive",
   "Receive audio from router",
   "audio",

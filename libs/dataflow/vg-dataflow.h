@@ -1044,7 +1044,13 @@ public:
     ModuleInfo(const Module *_module, const Factory *_factory):
       module(_module), factory(_factory) {}
   };
-  map<string, ModuleInfo> modules;
+
+  struct Section
+  {
+    map<string, ModuleInfo> modules;
+  };
+
+  map<string, Section> sections;
 
   //------------------------------------------------------------------------
   // Constructor
@@ -1053,21 +1059,22 @@ public:
   //------------------------------------------------------------------------
   // Register a module with its factory
   void add(const Module& m, const Factory& f)
-  { modules[m.id] = ModuleInfo(&m, &f); }
+  { sections[m.section].modules[m.id] = ModuleInfo(&m, &f); }
 
   //------------------------------------------------------------------------
   // Create an object by module and config
   // Returns the object, or 0 if no factories available or create fails
-  Element *create(const string& name, const XML::Element& config)
+  Element *create(const string& section, const string& id,
+                  const XML::Element& config)
   {
-    const auto p = modules.find(name);
-    if (p!=modules.end())
-    {
-      const auto& mi = p->second;
-      return mi.factory->create(mi.module, config);
-    }
-    else
-      return 0;
+    const auto sp = sections.find(section);
+    if (sp == sections.end()) return 0;
+
+    const auto mp = sp->second.modules.find(id);
+    if (mp == sp->second.modules.end()) return 0;
+
+    const auto& mi = mp->second;
+    return mi.factory->create(mi.module, config);
   }
 };
 
@@ -1116,6 +1123,7 @@ class Engine
   Time::Duration tick_interval{0.04};  // 25Hz default
   Time::Stamp start_time;
   uint64_t tick_number{0};
+  list<string> default_sections;  // Note: ordered
 
  public:
   Registry element_registry;
@@ -1124,6 +1132,11 @@ class Engine
   //------------------------------------------------------------------------
   // Constructor
   Engine(): graph(new Graph(*this)) {}
+
+  //------------------------------------------------------------------------
+  // Add a default section - use to auto-prefix unqualified element names
+  void add_default_section(const string& s)
+  { default_sections.push_back(s); }
 
   //------------------------------------------------------------------------
   // Set/get the tick interval
@@ -1139,6 +1152,11 @@ class Engine
   // Throws a runtime_error if configuration fails
   void configure(const File::Directory& base_dir,
                  const XML::Element& graph_config);
+
+  //------------------------------------------------------------------------
+  // Create an element with the given name - may be section:id or just id,
+  // which is looked up in default namespaces
+  Element *create(const string& name, const XML::Element& config);
 
   //------------------------------------------------------------------------
   // Get state as a JSON value (see Graph::get_json())

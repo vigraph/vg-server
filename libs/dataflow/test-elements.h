@@ -250,6 +250,7 @@ Engine engine;
 
 void register_elements()
 {
+  engine.add_default_section("test");
   engine.element_registry.add(TestSourceModule, TestSourceFactory);
   engine.element_registry.add(TestSubgraphModule, TestSubgraphFactory);
   engine.element_registry.add(TestFilterModule, TestFilterFactory);

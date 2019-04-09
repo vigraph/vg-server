@@ -39,6 +39,7 @@ class FragmentGenerator
     XML::Configuration config;
     ASSERT_TRUE(config.read_text(xml));
 
+    loader.engine.add_default_section("audio");
     Graph graph(loader.engine);
     try
     {
@@ -81,6 +82,7 @@ class BadFragmentGenerator
     XML::Configuration config;
     ASSERT_TRUE(config.read_text(xml));
 
+    loader.engine.add_default_section("audio");
     Graph graph(loader.engine);
     try
     {

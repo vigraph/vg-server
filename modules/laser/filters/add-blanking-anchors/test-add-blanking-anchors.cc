@@ -15,7 +15,7 @@ TEST(AddBlankingAnchorsTest, TestBlankingPointInsertion)
   const string& xml = R"(
     <graph>
       <svg path="M0,0 L1,0 M2,0 L3,0" normalise="false"/>
-      <add-blanking-anchors leading="1" trailing="2"/>
+      <laser:add-blanking-anchors leading="1" trailing="2"/>
     </graph>
   )";
 

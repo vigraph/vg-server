@@ -245,7 +245,7 @@ void Graph::configure_internal(const File::Directory& base_dir,
     const auto& e = *p;
     if (e.name.empty()) continue;
 
-    const auto el = engine.element_registry.create(e.name, e);
+    const auto el = engine.create(e.name, e);
     if (!el) throw(runtime_error("No such dataflow element " + e.name));
 
     // Point back to us (so we're available for configure())

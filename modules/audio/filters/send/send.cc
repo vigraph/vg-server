@@ -53,7 +53,7 @@ void SendFilter::accept(FragmentPtr fragment)
 // Module definition
 Dataflow::Module module
 {
-  "audio:send",  // ! until we have namespacing !
+  "send",
   "Audio Send",
   "Send audio to router",
   "audio",

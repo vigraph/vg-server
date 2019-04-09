@@ -38,6 +38,7 @@ class FrameGenerator
   {
     XML::Configuration config;
     ASSERT_TRUE(config.read_text(xml));
+    loader.engine.add_default_section("vector");
 
     Graph graph(loader.engine);
     try
@@ -80,6 +81,7 @@ class BadFrameGenerator
     XML::Configuration config;
     ASSERT_TRUE(config.read_text(xml));
 
+    loader.engine.add_default_section("vector");
     Graph graph(loader.engine);
     try
     {

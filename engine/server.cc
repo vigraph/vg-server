@@ -156,6 +156,15 @@ void Server::reconfigure()
     }
   }
 
+  // Set default sections
+  const XML::Element& naming_e = config_xml.get_child("naming");
+  for(const auto def_e: naming_e.get_children("default"))
+  {
+    const auto& section = (*def_e)["section"];
+    log.summary << "Using default section name '" << section << "'\n";
+    engine.add_default_section(section);
+  }
+
   // Load graph from config <graph>
   const XML::Element& graph_e = config_xml.get_child("graph");
   if (!graph_e)

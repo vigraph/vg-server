@@ -16,7 +16,7 @@ TEST(AddVertexRepeatsTest, TestMaximumAngleVertexPointInsertion)
   const string& xml = R"(
     <graph>
       <svg path="M0,0 L1,0 1,1"/>
-      <add-vertex-repeats max-angle="30" repeats="5"/>
+      <laser:add-vertex-repeats max-angle="30" repeats="5"/>
     </graph>
   )";
 
@@ -40,7 +40,7 @@ TEST(AddVertexRepeatsTest, TestMaximumAngleIgnoresSmallAngles)
   const string& xml = R"(
     <graph>
       <svg path="M0,0 L1,0 2,0.5"/>
-      <add-vertex-repeats max-angle="30" repeats="5"/>
+      <laser:add-vertex-repeats max-angle="30" repeats="5"/>
     </graph>
   )";
 

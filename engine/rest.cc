@@ -351,25 +351,46 @@ bool MetaURLHandler::handle_get(const string& path,
     {
       log.detail << "REST Meta: GET request\n";
       JSON::Value json(JSON::Value::ARRAY);
-      for(const auto mit: registry.modules)
-        json.add(get_metadata_for_module(*mit.second.module));
+      for(const auto& sit: registry.sections)
+        for(const auto& mit: sit.second.modules)
+          json.add(get_metadata_for_module(*mit.second.module));
       response.body = json.str(true);
     }
     else
     {
       log.detail << "REST Meta: GET request for " << path << endl;
-      const auto mit = registry.modules.find(path);
-      if (mit == registry.modules.end())
+      vector<string> bits = Text::split(path, '/');
+      if (bits.size() < 2)
       {
-        log.error << "No such module '" << path
+        log.error << "Specific /meta requests require <section>/<id>\n";
+        response.code = 404;
+        response.reason = "Not found";
+      }
+
+      const auto sit = registry.sections.find(bits[0]);
+      if (sit == registry.sections.end())
+      {
+        log.error << "No such section '" << bits[0]
                   << "' requested in REST /meta\n";
         response.code = 404;
         response.reason = "Not found";
       }
       else
       {
-        JSON::Value json = get_metadata_for_module(*mit->second.module);
-        response.body = json.str(true);
+        const auto mit = sit->second.modules.find(bits[1]);
+        if (mit == sit->second.modules.end())
+        {
+          log.error << "No such module '" << bits[1]
+                    << "' in section '" << bits[0]
+                    << "' requested in REST /meta\n";
+          response.code = 404;
+          response.reason = "Not found";
+        }
+        else
+        {
+          JSON::Value json = get_metadata_for_module(*mit->second.module);
+          response.body = json.str(true);
+        }
       }
     }
   }

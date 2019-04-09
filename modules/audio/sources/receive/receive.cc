@@ -31,8 +31,7 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Topology calculation - add any senders sending on our tag to our
-// downstreams
+// Topology calculation - register as receiver
 void ReceiveSource::calculate_topology(Element::Topology& topo)
 {
   topo.router_receivers[tag].push_back(this);

@@ -427,14 +427,8 @@ public:
   // Multi-phase topology calculation
   struct Topology
   {
-    enum class Phase
-    {
-      collect,  // Discover topology, including router wormholes
-      notify,   // Notify elements of wormhole topology
-      calculate // Transfer to graph topological_order
-    } phase;
-
-    map<string, list<Element *> > router_senders;  // Wormhole senders
+    map<string, list<Element *> > router_senders;    // Wormhole senders
+    map<string, list<Element *> > router_receivers;  // Wormhole receivers
   };
   virtual void calculate_topology(Topology&) {}
 
@@ -730,7 +724,7 @@ class Graph
 
   //------------------------------------------------------------------------
   // Calculate topology in hierarchy (see Element::calculate_topology)
-  void calculate_topology(Element::Topology& topo);
+  void calculate_topology(Element::Topology& topo, Element *owner = nullptr);
 
   //------------------------------------------------------------------------
   // Generate topological order - ordered list of elements which ensures
@@ -940,7 +934,7 @@ class MultiGraph
 
   //------------------------------------------------------------------------
   // Calculate topology in hierarchy (see Element::calculate_topology)
-  void calculate_topology(Element::Topology& topo);
+  void calculate_topology(Element::Topology& topo, Element *owner = nullptr);
 
   //------------------------------------------------------------------------
   // Add a graph from the given XML

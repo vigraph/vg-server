@@ -183,6 +183,201 @@ TEST(GraphTest, TestGraphTickAndMultipleSources)
   EXPECT_EQ(12, sink->received_data);
 }
 
+TEST(GraphTest, TestGraphSimpleTickOrdering)
+{
+  const string& xml = R"(
+    <graph>
+      <test-filter id='f' acceptor='s'/>
+      <test-source id='S' acceptor='f'/>
+      <test-sink id='s'/>
+    </graph>
+  )";
+
+  Graph graph(engine);
+  construct_graph(xml, graph);
+
+  string tick_order;
+
+  Element *el = graph.get_element("S");
+  ASSERT_FALSE(!el);
+  TestSource *source = dynamic_cast<TestSource *>(el);
+  ASSERT_FALSE(!source);
+  source->tick_order = &tick_order;
+
+  el = graph.get_element("f");
+  ASSERT_FALSE(!el);
+  TestFilter *filter = dynamic_cast<TestFilter *>(el);
+  ASSERT_FALSE(!filter);
+  filter->tick_order = &tick_order;
+
+  el = graph.get_element("s");
+  ASSERT_FALSE(!el);
+  TestSink *sink = dynamic_cast<TestSink *>(el);
+  ASSERT_FALSE(!sink);
+  sink->tick_order = &tick_order;
+
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  EXPECT_EQ("Sfs", tick_order);
+}
+
+TEST(GraphTest, TestGraphTickOrderingWithoutRouting)
+{
+  const string& xml = R"(
+    <graph>
+      <test-source id='S1'/>
+      <test-source id='S2'/>
+    </graph>
+  )";
+
+  Graph graph(engine);
+  construct_graph(xml, graph);
+
+  string tick_order;
+
+  Element *el = graph.get_element("S1");
+  ASSERT_FALSE(!el);
+  TestSource *s1 = dynamic_cast<TestSource *>(el);
+  ASSERT_FALSE(!s1);
+  s1->tick_order = &tick_order;
+
+  el = graph.get_element("S2");
+  ASSERT_FALSE(!el);
+  TestSource *s2 = dynamic_cast<TestSource *>(el);
+  ASSERT_FALSE(!s2);
+  s2->tick_order = &tick_order;
+
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  EXPECT_EQ("S1S2", tick_order);
+}
+
+TEST(GraphTest, TestGraphTickOrderingWithRouting)
+{
+  const string& xml = R"(
+    <graph>
+      <test-source id='S1' receive='foo'/>
+      <test-source id='S2' send='foo'/>
+    </graph>
+  )";
+
+  Graph graph(engine);
+  construct_graph(xml, graph);
+
+  string tick_order;
+
+  Element *el = graph.get_element("S1");
+  ASSERT_FALSE(!el);
+  TestSource *s1 = dynamic_cast<TestSource *>(el);
+  ASSERT_FALSE(!s1);
+  s1->tick_order = &tick_order;
+
+  el = graph.get_element("S2");
+  ASSERT_FALSE(!el);
+  TestSource *s2 = dynamic_cast<TestSource *>(el);
+  ASSERT_FALSE(!s2);
+  s2->tick_order = &tick_order;
+
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  EXPECT_EQ("S2S1", tick_order);
+}
+
+TEST(GraphTest, TestGraphTickOrderingWithSubgraphSender)
+{
+  const string& xml = R"(
+    <graph>
+      <test-source id='S1' receive='foo'/>
+      <test-subgraph id='G'>
+        <test-source id='S2' send='foo'/>
+      </test-subgraph>
+    </graph>
+  )";
+
+  Graph graph(engine);
+  construct_graph(xml, graph);
+
+  string tick_order;
+
+  Element *el = graph.get_element("G");
+  ASSERT_FALSE(!el);
+  TestSubgraph *g = dynamic_cast<TestSubgraph *>(el);
+  ASSERT_FALSE(!g);
+  g->tick_order = &tick_order;
+
+  el = graph.get_element("S1");
+  ASSERT_FALSE(!el);
+  TestSource *s1 = dynamic_cast<TestSource *>(el);
+  ASSERT_FALSE(!s1);
+  s1->tick_order = &tick_order;
+
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  EXPECT_EQ("GS1", tick_order);
+}
+
+TEST(GraphTest, TestGraphTickOrderingWithSubgraphReceiver)
+{
+  const string& xml = R"(
+    <graph>
+      <test-subgraph id='G'>
+        <test-source id='S2' receive='foo'/>
+      </test-subgraph>
+      <test-source id='S1' send='foo'/>
+    </graph>
+  )";
+
+  Graph graph(engine);
+  construct_graph(xml, graph);
+
+  string tick_order;
+
+  Element *el = graph.get_element("G");
+  ASSERT_FALSE(!el);
+  TestSubgraph *g = dynamic_cast<TestSubgraph *>(el);
+  ASSERT_FALSE(!g);
+  g->tick_order = &tick_order;
+
+  el = graph.get_element("S1");
+  ASSERT_FALSE(!el);
+  TestSource *s1 = dynamic_cast<TestSource *>(el);
+  ASSERT_FALSE(!s1);
+  s1->tick_order = &tick_order;
+
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  EXPECT_EQ("S1G", tick_order);
+}
+
+TEST(GraphTest, TestGraphTickOrderingWithPeerSubgraphSenderAndReceiver)
+{
+  const string& xml = R"(
+    <graph>
+      <test-subgraph id='G1'>
+        <test-source receive='foo'/>
+      </test-subgraph>
+      <test-subgraph id='G2'>
+        <test-source send='foo'/>
+      </test-subgraph>
+    </graph>
+  )";
+
+  Graph graph(engine);
+  construct_graph(xml, graph);
+
+  string tick_order;
+
+  Element *el = graph.get_element("G1");
+  ASSERT_FALSE(!el);
+  TestSubgraph *g1 = dynamic_cast<TestSubgraph *>(el);
+  ASSERT_FALSE(!g1);
+  g1->tick_order = &tick_order;
+
+  el = graph.get_element("G2");
+  ASSERT_FALSE(!el);
+  TestSubgraph *g2 = dynamic_cast<TestSubgraph *>(el);
+  ASSERT_FALSE(!g2);
+  g2->tick_order = &tick_order;
+
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  EXPECT_EQ("G2G1", tick_order);
+}
+
 TEST(GraphTest, TestGraphGetJSON)
 {
   const string& xml = R"(

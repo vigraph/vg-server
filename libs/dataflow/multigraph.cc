@@ -53,11 +53,11 @@ Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
 
 //------------------------------------------------------------------------
 // Calculate topology (see Element::calculate_topology)
-void MultiGraph::calculate_topology(Element::Topology& topo)
+void MultiGraph::calculate_topology(Element::Topology& topo, Element *owner)
 {
   MT::RWReadLock lock(mutex);
   for(const auto it: subgraphs)
-    it->calculate_topology(topo);
+    it->calculate_topology(topo, owner);
 }
 
 //------------------------------------------------------------------------

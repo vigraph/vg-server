@@ -105,20 +105,7 @@ void GraphSource::configure(const File::Directory& base_dir,
 // Topology calculation
 void GraphSource::calculate_topology(Element::Topology& topo)
 {
-  // When collecting, we wrap our child elements in ourselves
-  if (topo.phase == Element::Topology::Phase::collect)
-  {
-    Element::Topology subtopo;
-    subtopo.phase = Element::Topology::Phase::collect;
-    subgraph->calculate_topology(subtopo);
-
-    // Claim to be the sender of everything our subelements send
-    for(const auto& it: subtopo.router_senders)
-      topo.router_senders[it.first].push_back(this);
-
-    // !!! But what about our own topological check within our graph?
-  }
-  else subgraph->calculate_topology(topo);  // Pass down
+  subgraph->calculate_topology(topo, this);  // Use us as proxy
 }
 
 //--------------------------------------------------------------------------

@@ -282,27 +282,60 @@ void Graph::configure_internal(const File::Directory& base_dir,
 // Calculate topology at top level
 void Graph::calculate_topology()
 {
-  // Generate topology in multiple phases
   Element::Topology topo;
-  topo.phase = Element::Topology::Phase::collect;
-  calculate_topology(topo);
-  topo.phase = Element::Topology::Phase::notify;
-  calculate_topology(topo);
-  topo.phase = Element::Topology::Phase::calculate;
   calculate_topology(topo);
 }
 
 //------------------------------------------------------------------------
 // Calculate topology (see Element::calculate_topology)
-void Graph::calculate_topology(Element::Topology& topo)
+void Graph::calculate_topology(Element::Topology& topo,
+                               Element *owner)
 {
+  // Algorithm:  Each graph level asks its children (which may be
+  // subgraphs) for a list of router senders and receivers, which it
+  // then combines to add to the senders' downstreams ('before' dependencies)
+
+  // The sub-graph holding elements <graph>, <clone>, <selector> will pass
+  // themselves as 'owner', and we proxy our children's send/receive tags as
+  // the owner, to create the dependencies in the level above.
+
+  // Our internal topology
+  Element::Topology our_topo;
+
   // Pass down to elements
   for(const auto& it: elements)
-    it.second->calculate_topology(topo);
+    it.second->calculate_topology(our_topo);
 
-  // Finally calculate our own topology based on element downstreams
-  if (topo.phase == Element::Topology::Phase::calculate)
-    generate_topological_order();
+  // For each sender, find all receivers for its tag, and add as downstreams
+  for(const auto& sit: our_topo.router_senders)
+  {
+    const auto& sender_tag = sit.first;
+    const auto& senders = sit.second;
+
+    const auto rit = our_topo.router_receivers.find(sender_tag);
+    if (rit != our_topo.router_receivers.end())
+    {
+      const auto& receivers = rit->second;
+
+      // Attach all receivers as downstreams of senders
+      for(auto sender: senders)
+        sender->downstreams.insert(sender->downstreams.end(),
+                                   receivers.begin(), receivers.end());
+    }
+  }
+
+  // Calculate our own topological order based on existing and newly-added
+  // element downstreams
+  generate_topological_order();
+
+  if (owner) // not at top level
+  {
+    // Add all senders as receivers to parent's topology, proxying as our owner
+    for(const auto& sit: our_topo.router_senders)
+      topo.router_senders[sit.first].push_back(owner);
+    for(const auto& sit: our_topo.router_receivers)
+      topo.router_receivers[sit.first].push_back(owner);
+  }
 }
 
 //------------------------------------------------------------------------

@@ -33,17 +33,10 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Topology calculation - add any senders sending on our tag to our
-// downstreams
+// Topology calculation - register as receiver
 void ReceiveSource::calculate_topology(Element::Topology& topo)
 {
-  if (topo.phase == Element::Topology::Phase::notify)
-  {
-    const auto& it = topo.router_senders.find(tag);
-    if (it != topo.router_senders.end())
-      for(const auto el: it->second)
-        downstreams.push_back(el);
-  }
+  topo.router_receivers[tag].push_back(this);
 }
 
 //--------------------------------------------------------------------------

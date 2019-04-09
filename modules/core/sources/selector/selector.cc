@@ -85,7 +85,7 @@ void SelectorSource::calculate_topology(Element::Topology& topo)
 {
   // Note we include all subs in the topology, whether or not activated,
   // to avoid having to recalculate the topology dynamically
-  multigraph->calculate_topology(topo);
+  multigraph->calculate_topology(topo, this);
 }
 
 //--------------------------------------------------------------------------

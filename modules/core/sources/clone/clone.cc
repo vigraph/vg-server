@@ -63,7 +63,7 @@ void CloneSource::configure(const File::Directory& base_dir,
 // Topology calculation
 void CloneSource::calculate_topology(Element::Topology& topo)
 {
-  multigraph->calculate_topology(topo);
+  multigraph->calculate_topology(topo, this);  // Use us as proxy
 }
 
 //--------------------------------------------------------------------------

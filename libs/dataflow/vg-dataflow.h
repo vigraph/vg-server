@@ -1029,8 +1029,8 @@ public:
 
   struct ModuleInfo
   {
-    const Module *module;
-    const Factory *factory;
+    const Module *module = nullptr;
+    const Factory *factory = nullptr;
     ModuleInfo() {}
     ModuleInfo(const Module *_module, const Factory *_factory):
       module(_module), factory(_factory) {}

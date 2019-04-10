@@ -93,6 +93,7 @@ void SelectorSource::calculate_topology(Element::Topology& topo)
 // Overrides Generator::attach, attaches to all sub-graphs
 void SelectorSource::attach(const string& id, Dataflow::Acceptor *acceptor)
 {
+  Source::attach(id, acceptor);
   multigraph->attach_to_all(id, acceptor);
 }
 

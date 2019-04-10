@@ -15,7 +15,6 @@
 namespace {
 
 using namespace ViGraph::Geometry;
-using namespace ViGraph::Waveform;
 
 //==========================================================================
 // VCO source
@@ -24,7 +23,7 @@ class VCOSource: public Source
 public:
   // Configuration
   double freq;  // Hz
-  Type waveform = Type::none;
+  Waveform::Type waveform = Waveform::Type::none;
   double pulse_width = 0.5;
 
 private:
@@ -99,7 +98,7 @@ void VCOSource::tick(const TickData& td)
     {
       samples[i] = Waveform::get_value(waveform, pulse_width, theta);
       theta += freq/sample_rate;
-      if (theta > 1)
+      if (theta >= 1)
       {
         theta -= floor(theta); // Wrap to 0..1
         if (state == State::completing)
@@ -130,11 +129,9 @@ Dataflow::Module module
     { "number",  { "MIDI note number (0-127)", Value::Type::number,
                    { &VCOSource::get_number, &VCOSource::set_number },
                    true, true } },
-    { "wave",  { "Waveform type (none, saw, sin, square, triangle, random)",
-                 Value::Type::text,
+    { "wave",  { "Waveform type", Value::Type::text,
                  { &VCOSource::get_waveform, &VCOSource::set_waveform },
-                 { "none", "saw", "sin", "square", "triangle", "random" },
-                 true } },
+                 Waveform::get_names(), true } },
     { "pulse-width",  { "Pulse Width", Value::Type::number,
                         &VCOSource::pulse_width, true } },
     { "trigger", { "Trigger on", Value::Type::trigger,

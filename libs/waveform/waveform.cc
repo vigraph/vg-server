@@ -35,6 +35,13 @@ string get_name(Type wf)
 }
 
 //==========================================================================
+// List of type names
+set<string> get_names()
+{
+  return {"none", "saw", "sin", "square", "triangle", "random"};
+}
+
+//==========================================================================
 // Get waveform type
 bool get_type(const string& str, Type& wf)
 {

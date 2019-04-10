@@ -17,6 +17,7 @@
 #include <cmath>
 #include <stdlib.h>
 #include "vg-geometry.h"
+#include "vg-waveform.h"
 
 namespace {
 
@@ -27,25 +28,18 @@ using namespace ViGraph::Geometry;
 class LFOControl: public Dataflow::Control
 {
   // Dynamic state
+  double theta = 0.0;
+  double last_t = 0.0;
   bool running{false};
   bool triggered{false};
-  timestamp_t trigger_time{0};
 
   // Control virtuals
   void pre_tick(const TickData& td) override;
   void enable() override;
 
 public:
-  enum class Waveform
-  {
-    saw,
-    sin,
-    square,
-    triangle,
-    random
-  };
-
-  Waveform waveform{Waveform::saw};
+  Waveform::Type waveform{Waveform::Type::saw};
+  double pulse_width = 0.5;
   bool once{false};
   bool wait{false};
   double period{0.0};
@@ -55,42 +49,20 @@ public:
   using Control::Control;
 
   // Property getter/setters
-  string get_waveform() const;
+  string get_waveform() const { return Waveform::get_name(waveform); }
   void set_waveform(const string& wave);
+  double get_pulse_width() const { return pulse_width; }
+  void set_pulse_width(double pw) { pulse_width = max(0.0, min(1.0, pw)); }
 
   // Trigger function
   void trigger() { triggered = true; }
 };
 
 //--------------------------------------------------------------------------
-// Get waveform name
-string LFOControl::get_waveform() const
-{
-  switch (waveform)
-  {
-    case Waveform::saw:      return "saw";
-    case Waveform::sin:      return "sin";
-    case Waveform::square:   return "square";
-    case Waveform::triangle: return "triangle";
-    case Waveform::random:   return "random";
-  }
-}
-
-//--------------------------------------------------------------------------
 // Set the wave from string
 void LFOControl::set_waveform(const string& wave)
 {
-  if (wave=="saw")
-    waveform = Waveform::saw;
-  else if (wave=="sin")
-    waveform = Waveform::sin;
-  else if (wave=="square")
-    waveform = Waveform::square;
-  else if (wave=="triangle")
-    waveform = Waveform::triangle;
-  else if (wave=="random")
-    waveform = Waveform::random;
-  else
+  if (!Waveform::get_type(wave, waveform))
     throw runtime_error("Unknown waveform type "+wave+" in "+id);
 }
 
@@ -106,46 +78,41 @@ void LFOControl::enable()
 // Tick
 void LFOControl::pre_tick(const TickData& td)
 {
-  auto t = td.t;
+  const auto t = td.t;
 
   if (wait)
   {
     if (triggered)
     {
-      trigger_time = t;
+      last_t = t;
       running = true;
       triggered = false;
     }
 
     if (!running) return;
-
-    t -= trigger_time;
   }
 
-  // Divide by period to get slower timebase
-  if (period > 0) t /= period;
+  // Sanity check
+  if (!period) return;
 
-  // If once, stop after first whole period
-  if (once && t >= 1.0) return;
+  theta += (t - last_t) / period;
+  last_t = t;
+  if (theta >= 1)
+  {
+    if (once)
+      return;
+    theta -= floor(theta);
+  }
 
-  // Add phase
-  t += phase;
-
-  // Get 0..1 repeating fraction
-  t -= floor(t);
+  // Get waveform value (-1..1)
+  auto v = Waveform::get_value(waveform, pulse_width, theta);
 
   // Get raw (0..1) value
-  double v{0.0};
-  switch (waveform)
-  {
-    case Waveform::saw:      v = t;                       break;
-    case Waveform::sin:      v = 0.5+sin(t*2*pi)/2;       break;
-    case Waveform::square:   v = t >= 0.5 ? 1.0 : 0.0;    break;
-    case Waveform::triangle: v = (t < 0.5 ? t*2 : 2-t*2); break;
-    case Waveform::random:   v = (double)rand()/RAND_MAX; break;
-  }
+  v = (v + 1) / 2;
 
+  // Adjust to configured output
   v = v*scale + offset;
+
   send(Dataflow::Value{v});
 }
 
@@ -158,9 +125,11 @@ Dataflow::Module module
   "Low Frequency Oscillator",
   "core",
   {
-    { "wave",  { { "Waveform", "sin" }, Value::Type::choice,
+    { "wave",  { { "Waveform", "sin" }, Value::Type::text,
                  { &LFOControl::get_waveform, &LFOControl::set_waveform },
-                 { "saw", "sin", "square", "triangle", "random" }, true } },
+                 Waveform::get_names(), true } },
+    { "pulse-width",  { "Pulse Width", Value::Type::number,
+                        &LFOControl::pulse_width, true } },
     { "once", { { "Run only one cycle", "false" }, Value::Type::boolean,
                 &LFOControl::once, true } },
     { "wait", { { "Wait to be triggered", "false" }, Value::Type::boolean,

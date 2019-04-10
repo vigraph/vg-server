@@ -10,6 +10,7 @@
 #define __VG_WAVEFORM_H
 
 #include <string>
+#include <set>
 
 namespace ViGraph { namespace Waveform {
 
@@ -27,6 +28,10 @@ enum class Type
   triangle,
   random
 };
+
+//==========================================================================
+// List of type names
+set<string> get_names();
 
 //==========================================================================
 // Get waveform name

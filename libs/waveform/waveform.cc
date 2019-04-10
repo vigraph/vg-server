@@ -36,7 +36,7 @@ string get_name(Type wf)
 
 //==========================================================================
 // Get waveform type
-bool get_waveform(const string& str, Type wf)
+bool get_type(const string& str, Type& wf)
 {
   if (str.empty() || str == "none")
     wf = Type::none;

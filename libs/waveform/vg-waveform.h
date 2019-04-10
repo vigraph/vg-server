@@ -34,7 +34,7 @@ string get_name(Type wf);
 
 //==========================================================================
 // Get waveform type
-bool get_type(const string& str, Type wf);
+bool get_type(const string& str, Type& wf);
 
 //==========================================================================
 // Get waveform value (-1..1) for a given type, pulse width and theta

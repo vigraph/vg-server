@@ -18,7 +18,7 @@ const auto default_source_address = "0.0.0.0";
 
 //==========================================================================
 // IDNTransmit filter
-class IDNTransmitFilter: public FrameFilter
+class IDNTransmitFilter: public FrameSink
 {
 public:
   // Config
@@ -48,8 +48,7 @@ private:
   void transmit(FramePtr frame);
 
 public:
-  IDNTransmitFilter(const Dataflow::Module *module, const XML::Element& config):
-    FrameFilter(module, config) {}
+  using FrameSink::FrameSink;
 };
 
 //--------------------------------------------------------------------------
@@ -77,9 +76,6 @@ void IDNTransmitFilter::setup()
 void IDNTransmitFilter::accept(FramePtr frame)
 {
   transmit(frame);
-
-  // Send it down as well, so these can be chained
-  send(frame);
   frame_seen = true;
 }
 
@@ -253,7 +249,7 @@ Dataflow::Module module
                           &IDNTransmitFilter::source_address, false } }
   },
   { "VectorFrame" }, // inputs
-  { "VectorFrame" }  // outputs
+  { }  // outputs
 };
 
 } // anon

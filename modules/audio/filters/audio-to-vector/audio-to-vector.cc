@@ -20,8 +20,6 @@ using namespace ViGraph::Module;
 class AudioToVectorFilter: public FragmentFilter
 {
 private:
-  FramePtr frame{new Frame{0}};
-  shared_ptr<Router> router;
   enum class Mode
   {
     multi,
@@ -33,8 +31,6 @@ private:
   void accept(FragmentPtr fragment) override;
 
 public:
-  string tag;
-
   using FragmentFilter::FragmentFilter;
 
   // Getters/Setters
@@ -75,7 +71,7 @@ void AudioToVectorFilter::set_mode(const string& m)
 // Process some data
 void AudioToVectorFilter::accept(FragmentPtr fragment)
 {
-  frame->points.resize(0);
+  FramePtr frame{new Frame{0}};
   auto c = 0u;
   auto s = 0u;
   const auto channels = fragment->waveforms.size();
@@ -117,13 +113,7 @@ void AudioToVectorFilter::accept(FragmentPtr fragment)
     ++c;
   }
   if (!frame->points.empty())
-  {
-    auto& router = graph->get_engine().router;
-    if (!tag.empty())
-      router.send("vector:" + tag, frame);
-    frame->points.clear();
-  }
-  send(fragment);
+    send(frame);
 }
 
 //--------------------------------------------------------------------------
@@ -135,15 +125,13 @@ Dataflow::Module module
   "Send copy of audio data to vector data via router",
   "audio",
   {
-    { "to", { "Router tag to send to", Value::Type::text,
-              &AudioToVectorFilter::tag, false } },
     { "mode", { "Mode to run in", Value::Type::choice,
                 { &AudioToVectorFilter::get_mode,
                   &AudioToVectorFilter::set_mode },
                 { "multi", "combined", "first" }, false } },
   },
   { "Audio" }, // inputs
-  { "Audio" }  // outputs
+  { "VectorFrame" }  // outputs
 };
 
 } // anon

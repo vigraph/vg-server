@@ -109,7 +109,7 @@ void WebSocketDisplayServer::handle_websocket(
 
 //==========================================================================
 // WebSocket filter
-class WebSocketFilter: public FrameFilter
+class WebSocketFilter: public FrameSink
 {
 public:
   int port = 0;
@@ -126,7 +126,7 @@ private:
   void shutdown() override;
 
 public:
-  using FrameFilter::FrameFilter;
+  using FrameSink::FrameSink;
 };
 
 //--------------------------------------------------------------------------
@@ -148,10 +148,6 @@ void WebSocketFilter::setup()
 void WebSocketFilter::accept(FramePtr frame)
 {
   if (!!server) server->queue(frame);
-
-  // Send it down as well, so these can be chained
-  send(frame);
-
   frame_seen = true;
 }
 
@@ -199,7 +195,7 @@ Dataflow::Module module
                 &WebSocketFilter::port, false } },
   },
   { "VectorFrame" }, // inputs
-  { "VectorFrame" }  // outputs
+  { }  // no outputs
 };
 
 } // anon

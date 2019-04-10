@@ -206,7 +206,7 @@ JSON::Value GraphSource::get_json(const string& path) const
   if (path.empty())
   {
     // Whole graph structure at this level
-    JSON::Value json = Element::get_json();
+    JSON::Value json = Source::get_json();
     json.set("elements", subgraph->get_json());
     return json;
   }

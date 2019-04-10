@@ -292,7 +292,7 @@ JSON::Value SelectorSource::get_json(const string& path) const
   // Whole selector?
   if (path.empty())
   {
-    JSON::Value json = Element::get_json();
+    JSON::Value json = Source::get_json();
     JSON::Value& gsj = json.set("graphs", JSON::Value(JSON::Value::ARRAY));
     for(const auto& sgit: subgraphs)
     {

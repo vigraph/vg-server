@@ -32,12 +32,12 @@ void Graph::add(Element *el)
 // Attach a pure Acceptor to all unbound generators remaining in the graph
 // Returns whether any were attached
 // Note, doesn't add to graph ordering and remembers this for reload
-bool Graph::attach(Acceptor *a)
+bool Graph::attach(const string& id, Acceptor *a)
 {
   if (unbound_generators.empty()) return false;
 
   for(auto g: unbound_generators)
-    g->attach(a);
+    g->attach(id, a);
   unbound_generators.clear();
   external_acceptor = a;
   return true;
@@ -64,7 +64,7 @@ bool Graph::attach(Element *el)
 
     if (found)
     {
-      g->attach(acceptor, el->id);
+      g->attach(el->id, acceptor);
       g->downstreams.push_back(el);
       p = unbound_generators.erase(p);
     }
@@ -90,43 +90,45 @@ void Graph::connect(Element *el)
   Generator *g = dynamic_cast<Generator *>(el);
   if (g)
   {
-    const auto& acceptor_id = g->get_acceptor_id();
-    if (acceptor_id.empty())
+    if (g->acceptors.empty())
     {
       // Add to unbound generators to connect to next acceptor
       unbound_generators.push_back(g);
     }
     else
     {
-      Element *ae = get_element(acceptor_id);
-      if (ae)
+      for(auto& it: g->acceptors)
       {
-        Acceptor *acceptor = dynamic_cast<Acceptor *>(ae);
-        if (acceptor)
+        Element *ae = get_element(it.first);
+        if (ae)
         {
-          // Check type
-          bool found = false;
-          for(const auto& i: ae->module->inputs)
-            for(const auto& o: g->module->outputs)
-              if (i.type == o.type || i.type == "any" || o.type == "any")
-                found = true;
+          Acceptor *acceptor = dynamic_cast<Acceptor *>(ae);
+          if (acceptor)
+          {
+            // Check type
+            bool found = false;
+            for(const auto& i: ae->module->inputs)
+              for(const auto& o: g->module->outputs)
+                if (i.type == o.type || i.type == "any" || o.type == "any")
+                  found = true;
 
-          if (!found)
-            throw runtime_error("Graph element " + acceptor_id
+            if (!found)
+              throw runtime_error("Graph element " + it.first
+                                  + " pointed to by " + el->id
+                                  + " has the wrong input type");
+
+            it.second = acceptor;
+            disconnected_acceptors.remove(ae);
+            el->downstreams.push_back(ae);
+          }
+          else
+            throw runtime_error("Graph element " + it.first
                                 + " pointed to by " + el->id
-                                + " has the wrong input type");
-
-          g->attach(acceptor);
-          disconnected_acceptors.remove(ae);
-          el->downstreams.push_back(ae);
+                                + " is not an acceptor");
         }
-        else
-          throw runtime_error("Graph element " + acceptor_id
-                              + " pointed to by " + el->id
-                              + " is not an acceptor");
+        else throw runtime_error("No such element " + it.first
+                                 + " pointed to by " + el->id);
       }
-      else throw runtime_error("No such element " + acceptor_id
-                               + " pointed to by " + el->id);
     }
   }
 
@@ -275,7 +277,7 @@ void Graph::configure_internal(const File::Directory& base_dir,
     throw runtime_error("Element "+el->id+" has no inputs");
 
   // Add back any external acceptor that was given in a previous incarnation
-  if (external_acceptor) attach(external_acceptor);
+  if (external_acceptor) attach("external", external_acceptor);
 }
 
 //------------------------------------------------------------------------

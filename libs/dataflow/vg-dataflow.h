@@ -512,6 +512,10 @@ class Generator: public Element
 
   // Get state as JSON
   JSON::Value get_json(const string& path="") const override;
+
+  // Clone a data pointer - called by send() if it needs to send different
+  // copies to multiple outputs
+  virtual DataPtr clone(DataPtr p) { return p; }
 };
 
 //==========================================================================

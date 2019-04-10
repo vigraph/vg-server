@@ -30,12 +30,22 @@ using FramePtr = shared_ptr<Frame>;
 
 //==========================================================================
 // Specialisations of Dataflow classes for Frame data
+class FrameSource: public Source
+{
+ public:
+  using Source::Source;
+
+  // Clone frame data
+  DataPtr clone(DataPtr data) override
+  {
+    return DataPtr(new Frame(*data.check<Frame>()));
+  }
+};
+
 class FrameFilter: public Filter
 {
  public:
-  // Construct with XML
-  FrameFilter(const Dataflow::Module *module, const XML::Element& config):
-    Filter(module, config) {}
+  using Filter::Filter;
 
   // Accept a frame
   virtual void accept(FramePtr frame) = 0;
@@ -46,14 +56,18 @@ class FrameFilter: public Filter
     // Call down with type-checked data
     accept(data.check<Frame>());
   }
+
+  // Clone frame data
+  DataPtr clone(DataPtr data) override
+  {
+    return DataPtr(new Frame(*data.check<Frame>()));
+  }
 };
 
 class FrameSink: public Sink
 {
  public:
-  // Construct with XML
-  FrameSink(const Dataflow::Module *module, const XML::Element& config):
-    Sink(module, config) {}
+  using Sink::Sink;
 
   // Accept a frame
   virtual void accept(FramePtr frame) = 0;

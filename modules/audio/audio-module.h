@@ -95,12 +95,22 @@ using FragmentPtr = shared_ptr<Fragment>;
 
 //==========================================================================
 // Specialisations of Dataflow classes for Fragment data
+class FragmentSource: public Source
+{
+ public:
+  using Source::Source;
+
+  // Clone fragment data
+  DataPtr clone(DataPtr data) override
+  {
+    return DataPtr(new Fragment(*data.check<Fragment>()));
+  }
+};
+
 class FragmentFilter: public Filter
 {
  public:
-  // Construct with XML
-  FragmentFilter(const Dataflow::Module *module, const XML::Element& config):
-    Filter(module, config) {}
+  using Filter::Filter;
 
   // Accept a frame
   virtual void accept(FragmentPtr frame) = 0;
@@ -111,14 +121,19 @@ class FragmentFilter: public Filter
     // Call down with type-checked data
     accept(data.check<Fragment>());
   }
+
+  // Clone fragment data
+  DataPtr clone(DataPtr data) override
+  {
+    return DataPtr(new Fragment(*data.check<Fragment>()));
+  }
+
 };
 
 class FragmentSink: public Sink
 {
  public:
-  // Construct with XML
-  FragmentSink(const Dataflow::Module *module, const XML::Element& config):
-    Sink(module, config) {}
+  using Sink::Sink;
 
   // Accept a frame
   virtual void accept(FragmentPtr frame) = 0;

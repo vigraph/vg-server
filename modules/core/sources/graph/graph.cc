@@ -113,6 +113,7 @@ void GraphSource::calculate_topology(Element::Topology& topo)
 // Overrides Generator::attach, attaches to sub-graph
 void GraphSource::attach(const string& id, Dataflow::Acceptor *acceptor)
 {
+  Source::attach(id, acceptor);
   subgraph->attach(id, acceptor);
 }
 

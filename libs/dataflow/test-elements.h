@@ -26,11 +26,16 @@ class TestSource: public Source
 public:
   int value = 0;
   bool shutdown_called = false;
+  string *tick_order{nullptr};
+  string send_tag;
+  string receive_tag;
 
   // Construct
   TestSource(const Module *module, const XML::Element& config):
     Source(module, config)
   {
+    send_tag = config["send"];
+    receive_tag = config["receive"];
   }
 
   // Configure
@@ -38,6 +43,20 @@ public:
                  const XML::Element& config) override
   {
     value = config.get_attr_int("value");
+  }
+
+  // Topo calc - pretend to be a sender or receiver
+  void calculate_topology(Element::Topology& topo) override
+  {
+    if (!send_tag.empty())
+      topo.router_senders[send_tag].push_back(this);
+    if (!receive_tag.empty())
+      topo.router_receivers[receive_tag].push_back(this);
+  }
+
+  void pre_tick(const TickData&) override
+  {
+    if (tick_order) *tick_order += id;
   }
 
   // Generate some data
@@ -70,6 +89,8 @@ class TestSubgraph: public Source
   unique_ptr<Graph> subgraph;
 
  public:
+  string *tick_order{nullptr};
+
   // Construct
   TestSubgraph(const Module *module, const XML::Element& config):
     Source(module, config)
@@ -84,9 +105,19 @@ class TestSubgraph: public Source
     subgraph->configure(base_dir, config);
   }
 
+  void calculate_topology(Element::Topology& topo) override
+  {
+    subgraph->calculate_topology(topo, this);
+  }
+
   void attach(Dataflow::Acceptor *acceptor) override
   {
     subgraph->attach(acceptor);
+  }
+
+  void pre_tick(const TickData&) override
+  {
+    if (tick_order) *tick_order += id;
   }
 
   void tick(const TickData& td) override
@@ -124,6 +155,7 @@ class TestFilter: public Filter
 {
 public:
   int value;
+  string *tick_order{nullptr};
 
   // Construct
   TestFilter(const Module *module, const XML::Element& config):
@@ -145,6 +177,12 @@ public:
     TestData *tdout = new TestData(td->n * value);
     send(tdout);
   }
+
+  void pre_tick(const TickData&) override
+  {
+    if (tick_order) *tick_order += id;
+  }
+
 };
 
 Module TestFilterModule
@@ -166,6 +204,7 @@ public:
   int received_data = 0;  // Accumulates
   bool pre_tick_called{false};
   bool post_tick_called{false};
+  string *tick_order{nullptr};
 
   // Construct
   TestSink(const Module *module, const XML::Element& config):
@@ -186,6 +225,7 @@ public:
   {
     MT::Lock lock{mutex};
     pre_tick_called = true;
+    if (tick_order) *tick_order += id;
   }
   void post_tick(const TickData&) override
   {
@@ -210,6 +250,7 @@ Engine engine;
 
 void register_elements()
 {
+  engine.add_default_section("test");
   engine.element_registry.add(TestSourceModule, TestSourceFactory);
   engine.element_registry.add(TestSubgraphModule, TestSubgraphFactory);
   engine.element_registry.add(TestFilterModule, TestFilterFactory);
@@ -226,6 +267,7 @@ inline void construct_graph(const string& xml, Dataflow::Graph& graph)
   {
     register_elements();
     graph.configure(File::Directory("."), config.get_root());
+    graph.calculate_topology();
   }
   catch (runtime_error e)
   {
@@ -264,6 +306,9 @@ inline void construct_multigraph(const string& xml, Dataflow::MultiGraph& graph)
   {
     register_elements();
     graph.configure(File::Directory("."), config.get_root());
+
+    Element::Topology topo;
+    graph.calculate_topology(topo);
   }
   catch (runtime_error e)
   {

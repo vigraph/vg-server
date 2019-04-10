@@ -14,7 +14,7 @@ TEST(ShowBlankingTest, TestBlankingIsRedAndLitPointsLeftAlone)
   const string& xml = R"(
     <graph>
       <svg path="M0,0 L1,0"/>
-      <show-blanking colour="red"/>
+      <laser:show-blanking colour="red"/>
     </graph>
   )";
 

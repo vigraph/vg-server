@@ -29,16 +29,4 @@ extern "C" bool vg_init(Log::Channel& logger, Dataflow::Engine& engine)       \
   return true;                                                                \
 }
 
-// Macro to define init function with logger and registration for services
-#define VIGRAPH_ENGINE_SERVICE_MODULE_INIT(_class, _module)                   \
-Registry::NewFactory<_class> _new_factory;                                    \
-extern "C" bool vg_init(Log::Channel& logger, Dataflow::Engine& engine)       \
-{                                                                             \
-  Log::logger.connect(new Log::ReferencedChannel{logger});                    \
-  Log::Streams log;                                                           \
-  log.summary << "  Module: " << _module.id << endl;                          \
-  engine.service_registry.add(_module, _new_factory);                         \
-  return true;                                                                \
-}
-
 #endif // !__VIGRAPH_MODULE_H

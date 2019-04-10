@@ -117,4 +117,4 @@ Dataflow::Module module
 
 } // anon
 
-VIGRAPH_ENGINE_SERVICE_MODULE_INIT(MIDIDistributor, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(MIDIDistributor, module)

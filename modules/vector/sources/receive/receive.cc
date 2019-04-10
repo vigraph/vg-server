@@ -20,8 +20,8 @@ public:
   string tag;
 
 private:
-
   // Source/Element virtuals
+  void calculate_topology(Element::Topology& topo) override;
   void enable() override;
   void disable() override;
 
@@ -29,9 +29,15 @@ private:
   void receive(DataPtr data) override;
 
 public:
-  ReceiveSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 };
+
+//--------------------------------------------------------------------------
+// Topology calculation - register as receiver
+void ReceiveSource::calculate_topology(Element::Topology& topo)
+{
+  topo.router_receivers[tag].push_back(this);
+}
 
 //--------------------------------------------------------------------------
 // Enable - register on router

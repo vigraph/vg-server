@@ -16,18 +16,23 @@
     <directory path="../build-debug/modules/"/>
   </modules>
 
-  <!-- Global services -->
-  <services>
-    <collision-detector/>
-    <midi-distributor/>
-    <key-distributor/>
-  </services>
-
   <!-- Tick frequency (Hz, 25) -->
   <tick frequency="25"/>
 
+  <!-- Default sections for element naming -->
+  <naming>
+    <default section="core"/>
+    <default section="vector"/>
+    <default section="midi"/>
+    <default section="ui"/>
+  </naming>
+
   <!-- The dataflow graph -->
   <graph>
+    <collision-detector/>
+    <midi-distributor/>
+    <key-distributor/>
+
     <midi device="virtual"/>
     <midi-key-in channel="1">
       <target id="rebase-on" property-number="value"/>
@@ -68,7 +73,7 @@
       </graph>
 -->
       <graph id="earth">
-        <ilda file="../libs/ilda/samples/earth.ild" frame-rate="50"/>
+        <laser:ilda file="../libs/ilda/samples/earth.ild" frame-rate="50"/>
         <scale all="0.5"/>
         <translate z="0.3"/>
         <lfo property="y" wave="saw" period="10"/>
@@ -78,7 +83,7 @@
       </graph>
 
       <graph id="ilda">
-        <ilda file="../libs/ilda/samples/ildatest.ild"/>
+        <laser:ilda file="../libs/ilda/samples/ildatest.ild"/>
       </graph>
 
       <graph id="svg">
@@ -146,13 +151,13 @@
     <beamify span="5" multiple="5"/>
 -->
 
-    <idn-transmit>
+    <laser:idn-transmit>
       <packet size="1472"/>
       <configuration interval="0.1"/>
       <intensity enabled="true"/>
       <source address="0.0.0.0"/>
       <host address="10.0.0.100" port="7255"/>
-    </idn-transmit>
+    </laser:idn-transmit>
 
   </graph>
 

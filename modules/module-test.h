@@ -24,16 +24,10 @@ class ModuleLoader
 public:
   Dataflow::Engine engine;
 
-  ModuleLoader() {}
-
-  void configure_with_service(const string& service_id)
+  ModuleLoader()
   {
-    // Configure the engine with services
-    XML::Element graph_e;
-    XML::Element services_e;
-    services_e.add(service_id);
-    engine.configure(File::Directory("."), graph_e, services_e);
-  };
+    engine.add_default_section("core");
+  }
 
   void load(const string& path)
   {
@@ -124,7 +118,7 @@ class ControlTester
         XML::Configuration config;
         ASSERT_TRUE(config.read_text(xml));
         const auto& xe = config.get_root();
-        Element *e = loader.engine.element_registry.create(xe.name, xe);
+        Element *e = loader.engine.create(xe.name, xe);
         if (!e) throw runtime_error("Can't create element "+xe.name);
         if (e->id.empty()) e->id = xe.name + Text::itos(++id_serial);
         e->graph = &graph;

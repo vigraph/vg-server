@@ -12,33 +12,43 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Configure with <graph> and <services> XML
+// Configure with <graph> XML
 // Throws a runtime_error if configuration fails
 void Engine::configure(const File::Directory& base_dir,
-                       const XML::Element& graph_config,
-                       const XML::Element& services_config)
+                       const XML::Element& graph_config)
 {
-  // Create services from services config
-  for (const auto& p: services_config.children)
-  {
-    const auto& e = *p;
-    if (e.name.empty()) continue;
-
-    const auto srv = service_registry.create(e.name, e);
-    if (!srv) throw(runtime_error("No such dataflow service " + e.name));
-    services[e.name].reset(srv);
-
-    // Configure it with graph in place so it can reach back to us for
-    // other services
-    srv->graph = graph.get();
-    srv->configure(base_dir, e);
-  }
-
   // Configure graph from graph config
   graph->configure(base_dir, graph_config);
 
+  // Calculate topology
+  graph->calculate_topology();
+
   // Enable it
   graph->enable();
+}
+
+//------------------------------------------------------------------------
+// Create an element with the given name - may be section:id or just id,
+// which is looked up in default namespaces
+Element *Engine::create(const string& name, const XML::Element& config)
+{
+  vector<string> bits = Text::split(name, ':');
+  if (bits.size() > 1)
+  {
+    // Qualified - use the section given
+    return element_registry.create(bits[0], bits[1], config);
+  }
+  else
+  {
+    // Try default sections
+    for(const auto& section: default_sections)
+    {
+      Element *e = element_registry.create(section, name, config);
+      if (e) return e;
+    }
+
+    return nullptr;
+  }
 }
 
 //------------------------------------------------------------------------
@@ -80,9 +90,6 @@ void Engine::tick(Time::Stamp t)
     try
     {
       const auto td = TickData{timestamp, tick_number, tick_interval};
-      // Tick all services
-      for(const auto& it: services)
-        it.second->tick(td);
 
       // Tick the graph
       MT::RWReadLock lock(graph_mutex);
@@ -105,15 +112,8 @@ void Engine::tick(Time::Stamp t)
 void Engine::shutdown()
 {
   // Shut down graph
-  {
-    MT::RWWriteLock lock(graph_mutex);
-    graph->shutdown();
-  }
-
-  // Shut down services
-  for(const auto& it: services)
-    it.second->shutdown();
-  services.clear();
+  MT::RWWriteLock lock(graph_mutex);
+  graph->shutdown();
 }
 
 }} // namespaces

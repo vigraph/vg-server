@@ -50,8 +50,7 @@ public:
 // Setup
 void CollisionDetectFilter::setup()
 {
-  auto& engine = graph->get_engine();
-  detector = engine.get_service<CollisionDetector>("collision-detector");
+  detector = graph->find_service<CollisionDetector>("collision-detector");
 }
 
 //--------------------------------------------------------------------------

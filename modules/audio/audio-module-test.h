@@ -39,10 +39,12 @@ class FragmentGenerator
     XML::Configuration config;
     ASSERT_TRUE(config.read_text(xml));
 
+    loader.engine.add_default_section("audio");
     Graph graph(loader.engine);
     try
     {
       graph.configure(File::Directory("."), config.get_root());
+      graph.calculate_topology();
     }
     catch (runtime_error e)
     {
@@ -80,6 +82,7 @@ class BadFragmentGenerator
     XML::Configuration config;
     ASSERT_TRUE(config.read_text(xml));
 
+    loader.engine.add_default_section("audio");
     Graph graph(loader.engine);
     try
     {

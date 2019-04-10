@@ -23,6 +23,7 @@ private:
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
+  void calculate_topology(Element::Topology& topo) override;
   void attach(Dataflow::Acceptor *_target) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
@@ -46,7 +47,7 @@ void CloneSource::configure(const File::Directory& base_dir,
 {
   Source::configure(base_dir, config);
 
-  multigraph.reset(new Dataflow::MultiGraph(graph->get_engine()));
+  multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
   multigraph->configure(base_dir, config);
 
   // Read our own children as sub-graphs, n times
@@ -56,6 +57,13 @@ void CloneSource::configure(const File::Directory& base_dir,
     sub->set_variable("clone-number", Value{(double)(i+1)});
     sub->set_variable("clone-fraction", Value{(double)i/n});
   }
+}
+
+//--------------------------------------------------------------------------
+// Topology calculation
+void CloneSource::calculate_topology(Element::Topology& topo)
+{
+  multigraph->calculate_topology(topo, this);  // Use us as proxy
 }
 
 //--------------------------------------------------------------------------

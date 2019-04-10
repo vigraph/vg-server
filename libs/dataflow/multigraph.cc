@@ -38,7 +38,7 @@ Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
   string id = graph_config["id"];
   if (id.empty()) id = "graph-"+Text::itos(++id_serial);
 
-  Graph *sub = new Graph(engine);
+  Graph *sub = new Graph(engine, parent);
   sub->configure(base_dir, graph_config);
 
   // Lock for write
@@ -49,6 +49,15 @@ Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
     threads.emplace(piecewise_construct,
                     forward_as_tuple(sub), forward_as_tuple(subgraphs.back()));
   return sub;
+}
+
+//------------------------------------------------------------------------
+// Calculate topology (see Element::calculate_topology)
+void MultiGraph::calculate_topology(Element::Topology& topo, Element *owner)
+{
+  MT::RWReadLock lock(mutex);
+  for(const auto it: subgraphs)
+    it->calculate_topology(topo, owner);
 }
 
 //------------------------------------------------------------------------

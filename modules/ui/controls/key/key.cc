@@ -134,13 +134,7 @@ UIKeyControl::UIKeyControl(const Dataflow::Module *module,
 void UIKeyControl::configure(const File::Directory&,
                              const XML::Element&)
 {
-  auto& engine = graph->get_engine();
-  distributor = engine.get_service<KeyDistributor>("key-distributor");
-  if (!distributor)
-  {
-    Log::Error log;
-    log << "No key-distributor service loaded\n";
-  }
+  distributor = graph->find_service<KeyDistributor>("key-distributor");
 }
 
 //--------------------------------------------------------------------------

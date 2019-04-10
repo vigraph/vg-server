@@ -17,6 +17,7 @@ using namespace ViGraph::Module;
 class SendFilter: public FragmentFilter
 {
   // Filter/Element virtuals
+  void calculate_topology(Element::Topology& topo) override;
   void accept(FragmentPtr fragment) override;
 
 public:
@@ -25,6 +26,13 @@ public:
 
   using FragmentFilter::FragmentFilter;
 };
+
+//--------------------------------------------------------------------------
+// Topology calculation - notify we send on our tag
+void SendFilter::calculate_topology(Element::Topology& topo)
+{
+  topo.router_senders[tag].push_back(this);
+}
 
 //--------------------------------------------------------------------------
 // Process some data
@@ -45,7 +53,7 @@ void SendFilter::accept(FragmentPtr fragment)
 // Module definition
 Dataflow::Module module
 {
-  "audio:send",  // ! until we have namespacing !
+  "send",
   "Audio Send",
   "Send audio to router",
   "audio",

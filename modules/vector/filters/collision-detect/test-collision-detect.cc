@@ -25,6 +25,7 @@ TEST(CollisionDetectTest, TestNoTargetsDoesNotNeedConnection)
 {
   const string& xml = R"(
     <graph>
+      <collision-detector/>
       <svg path='M0,0 L1,0'/>
       <collision-detect/>
     </graph>
@@ -37,6 +38,7 @@ TEST(CollisionDetectTest, TestTargetSpecifiedButAbsentFails)
 {
   const string& xml = R"(
     <graph>
+      <collision-detector/>
       <svg path='M0,0 L1,0'/>
       <collision-detect target='foo'/>
     </graph>
@@ -49,6 +51,7 @@ TEST(CollisionDetectTest, TestConnectionWithTarget)
 {
   const string& xml = R"(
     <graph>
+      <collision-detector/>
       <svg path='M0,0 L1,0'/>
       <collision-detect target='m'/>
       <set id='m' property='x'/>
@@ -73,6 +76,5 @@ int main(int argc, char **argv)
   loader.load("../../services/collision-detector/vg-module-vector-service-collision-detector.so");
   loader.load("../translate/vg-module-vector-filter-translate.so");
   loader.load("./vg-module-vector-filter-collision-detect.so");
-  loader.configure_with_service("collision-detector");
   return RUN_ALL_TESTS();
 }

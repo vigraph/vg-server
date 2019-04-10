@@ -17,6 +17,7 @@ using namespace ViGraph::Module;
 class ReceiveSource: public Dataflow::Source, public Router::Receiver
 {
   // Source/Element virtuals
+  void calculate_topology(Element::Topology& topo) override;
   void enable() override;
   void disable() override;
 
@@ -26,9 +27,15 @@ class ReceiveSource: public Dataflow::Source, public Router::Receiver
 public:
   string tag;
 
-  ReceiveSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 };
+
+//--------------------------------------------------------------------------
+// Topology calculation - register as receiver
+void ReceiveSource::calculate_topology(Element::Topology& topo)
+{
+  topo.router_receivers[tag].push_back(this);
+}
 
 //--------------------------------------------------------------------------
 // Enable - register on router
@@ -60,7 +67,7 @@ void ReceiveSource::receive(DataPtr data)
 // Module definition
 Dataflow::Module module
 {
-  "audio:receive", // ! until we have namespacing !
+  "receive",
   "Audio Receive",
   "Receive audio from router",
   "audio",

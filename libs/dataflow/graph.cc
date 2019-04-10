@@ -245,7 +245,7 @@ void Graph::configure_internal(const File::Directory& base_dir,
     const auto& e = *p;
     if (e.name.empty()) continue;
 
-    const auto el = engine.element_registry.create(e.name, e);
+    const auto el = engine.create(e.name, e);
     if (!el) throw(runtime_error("No such dataflow element " + e.name));
 
     // Point back to us (so we're available for configure())
@@ -276,9 +276,66 @@ void Graph::configure_internal(const File::Directory& base_dir,
 
   // Add back any external acceptor that was given in a previous incarnation
   if (external_acceptor) attach(external_acceptor);
+}
 
-  // Generate the topological order from the graph
+//------------------------------------------------------------------------
+// Calculate topology at top level
+void Graph::calculate_topology()
+{
+  Element::Topology topo;
+  calculate_topology(topo);
+}
+
+//------------------------------------------------------------------------
+// Calculate topology (see Element::calculate_topology)
+void Graph::calculate_topology(Element::Topology& topo,
+                               Element *owner)
+{
+  // Algorithm:  Each graph level asks its children (which may be
+  // subgraphs) for a list of router senders and receivers, which it
+  // then combines to add to the senders' downstreams ('before' dependencies)
+
+  // The sub-graph holding elements <graph>, <clone>, <selector> will pass
+  // themselves as 'owner', and we proxy our children's send/receive tags as
+  // the owner, to create the dependencies in the level above.
+
+  // Our internal topology
+  Element::Topology our_topo;
+
+  // Pass down to elements
+  for(const auto& it: elements)
+    it.second->calculate_topology(our_topo);
+
+  // For each sender, find all receivers for its tag, and add as downstreams
+  for(const auto& sit: our_topo.router_senders)
+  {
+    const auto& sender_tag = sit.first;
+    const auto& senders = sit.second;
+
+    const auto rit = our_topo.router_receivers.find(sender_tag);
+    if (rit != our_topo.router_receivers.end())
+    {
+      const auto& receivers = rit->second;
+
+      // Attach all receivers as downstreams of senders
+      for(auto sender: senders)
+        sender->downstreams.insert(sender->downstreams.end(),
+                                   receivers.begin(), receivers.end());
+    }
+  }
+
+  // Calculate our own topological order based on existing and newly-added
+  // element downstreams
   generate_topological_order();
+
+  if (owner) // not at top level
+  {
+    // Add all senders as receivers to parent's topology, proxying as our owner
+    for(const auto& sit: our_topo.router_senders)
+      topo.router_senders[sit.first].push_back(owner);
+    for(const auto& sit: our_topo.router_receivers)
+      topo.router_receivers[sit.first].push_back(owner);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -396,6 +453,20 @@ Element *Graph::get_element(const string& id)
   MT::RWReadLock lock(mutex);
   if (elements.find(id) != elements.end())
     return elements[id].get();
+  else
+    return nullptr;
+}
+
+//------------------------------------------------------------------------
+// Get the nearest particular element by ID, looking upwards in ancestors
+shared_ptr<Element> Graph::get_nearest_element(const string& id)
+{
+  MT::RWReadLock lock(mutex);
+  if (elements.find(id) != elements.end())
+    return elements[id];
+
+  if (parent)
+    return parent->get_nearest_element(id);
   else
     return nullptr;
 }

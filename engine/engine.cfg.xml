@@ -37,6 +37,12 @@
   <!-- Tick frequency (Hz, 25) -->
   <tick frequency="25"/>
 
+  <!-- Default sections for element naming -->
+  <naming>
+    <default section="core"/>
+    <default section="vector"/>
+  </naming>
+
   <!-- The dataflow graph -->
   <graph>
     <lfo target='c1' property="x.freq" period="87" scale="1.5"/>
@@ -60,13 +66,13 @@
     <colour h="0" l="0.8"/>
 
     <websocket-display port="33381"/>
-    <idn-transmit>
+    <laser:idn-transmit>
       <packet size="65280"/>
       <configuration interval="0.5"/>
       <intensity enabled="true"/>
       <source address="0.0.0.0"/>
       <host address="localhost" port="7255"/>
-    </idn-transmit>
+    </laser:idn-transmit>
 
   </graph>
 

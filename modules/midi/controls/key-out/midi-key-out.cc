@@ -51,13 +51,7 @@ public:
 // Setup
 void MIDIKeyOutControl::setup()
 {
-  auto& engine = graph->get_engine();
-  distributor = engine.get_service<Distributor>("midi-distributor");
-  if (!distributor)
-  {
-    Log::Error log;
-    log << "No <midi-distributor> service loaded\n";
-  }
+  distributor = graph->find_service<Distributor>("midi-distributor");
 }
 
 //--------------------------------------------------------------------------

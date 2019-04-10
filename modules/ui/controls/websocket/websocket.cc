@@ -168,13 +168,7 @@ void WebSocketControl::setup()
     server_thread.reset(new Net::TCPServerThread(*server));
   }
 
-  auto& engine = graph->get_engine();
-  key_distributor = engine.get_service<KeyDistributor>("key-distributor");
-  if (!key_distributor)
-  {
-    Log::Error log;
-    log << "No key-distributor service loaded\n";
-  }
+  key_distributor = graph->find_service<KeyDistributor>("key-distributor");
 }
 
 //--------------------------------------------------------------------------

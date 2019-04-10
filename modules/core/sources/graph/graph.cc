@@ -73,6 +73,7 @@ class GraphSource: public Dataflow::Source
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
+  void calculate_topology(Element::Topology& topo) override;
   void attach(Dataflow::Acceptor *_target) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
@@ -96,8 +97,15 @@ public:
 void GraphSource::configure(const File::Directory& base_dir,
                             const XML::Element& config)
 {
-  subgraph.reset(new Dataflow::Graph(graph->get_engine()));
+  subgraph.reset(new Dataflow::Graph(graph->get_engine(), graph));
   subgraph->configure(base_dir, config);
+}
+
+//--------------------------------------------------------------------------
+// Topology calculation
+void GraphSource::calculate_topology(Element::Topology& topo)
+{
+  subgraph->calculate_topology(topo, this);  // Use us as proxy
 }
 
 //--------------------------------------------------------------------------

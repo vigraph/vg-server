@@ -424,6 +424,14 @@ public:
   // with the given property name
   virtual void notify_target_of(const string& /*prop*/) {}
 
+  // Multi-phase topology calculation
+  struct Topology
+  {
+    map<string, list<Element *> > router_senders;    // Wormhole senders
+    map<string, list<Element *> > router_receivers;  // Wormhole receivers
+  };
+  virtual void calculate_topology(Topology&) {}
+
   // Get state as JSON - path is XPath-like path to subelements - ignore
   // in leaf elements (when it should be empty anyway)
   virtual JSON::Value get_json(const string& path="") const;
@@ -626,6 +634,7 @@ class Graph
   Engine& engine;
   mutable MT::RWMutex mutex;
   map<string, shared_ptr<Element> > elements;   // By ID
+  Graph *parent{nullptr};
 
   // Source
   File::Path source_file;  // empty if inline
@@ -657,7 +666,8 @@ class Graph
  public:
   //------------------------------------------------------------------------
   // Constructor
-  Graph(Engine& _engine): engine(_engine) {}
+  Graph(Engine& _engine, Graph *_parent=nullptr):
+    engine(_engine), parent(_parent) {}
 
   //------------------------------------------------------------------------
   // Get engine
@@ -711,10 +721,18 @@ class Graph
   bool attach(Element *el);
 
   //------------------------------------------------------------------------
+  // Calculate topology at top level
+  void calculate_topology();
+
+  //------------------------------------------------------------------------
+  // Calculate topology in hierarchy (see Element::calculate_topology)
+  void calculate_topology(Element::Topology& topo, Element *owner = nullptr);
+
+  //------------------------------------------------------------------------
   // Generate topological order - ordered list of elements which ensures
   // a precursor (upstream) element is ticked before its dependents
   // (downstreams)
-  // (called automatically by configure() - use only for direct testing)
+  // (called automatically by calculate_topology() - use only for testing)
   void generate_topological_order();
 
   //------------------------------------------------------------------------
@@ -751,6 +769,21 @@ class Graph
   //------------------------------------------------------------------------
   // Get a particular element by ID
   Element *get_element(const string& id);
+
+  //------------------------------------------------------------------------
+  // Get the nearest particular element by ID, looking upwards in ancestors
+  shared_ptr<Element> get_nearest_element(const string& id);
+
+  //------------------------------------------------------------------------
+  // Get type-checked nearest service element
+  template <class T> shared_ptr<T> find_service(const string& id)
+  {
+    auto el = get_nearest_element(id);
+    if (!el) throw runtime_error("No such element "+id);
+    auto t = dynamic_pointer_cast<T>(el);
+    if (!t) throw runtime_error("Element "+id+" is the wrong type");
+    return t;
+  }
 
   //------------------------------------------------------------------------
   // Get state as a JSON value - array for top-level graph, single
@@ -804,6 +837,7 @@ class MultiGraph
   vector<shared_ptr<Graph> > subgraphs;          // Owning
   map<string, Graph *> subgraphs_by_id;          // Not owning
   int id_serial{0};
+  Graph *parent{nullptr};
 
   // Thread
   class Thread
@@ -907,7 +941,8 @@ class MultiGraph
  public:
   //------------------------------------------------------------------------
   // Constructor
-  MultiGraph(Engine& _engine): engine(_engine) {}
+  MultiGraph(Engine& _engine, Graph *_parent=nullptr):
+    engine(_engine), parent(_parent) {}
 
   //------------------------------------------------------------------------
   // Configure with XML
@@ -915,6 +950,10 @@ class MultiGraph
   // Throws a runtime_error if configuration fails
   void configure(const File::Directory& base_dir,
                  const XML::Element& config);
+
+  //------------------------------------------------------------------------
+  // Calculate topology in hierarchy (see Element::calculate_topology)
+  void calculate_topology(Element::Topology& topo, Element *owner = nullptr);
 
   //------------------------------------------------------------------------
   // Add a graph from the given XML
@@ -969,8 +1008,7 @@ class MultiGraph
 };
 
 //==========================================================================
-// Generic singleton service - used to provide global services, looked up
-// from an Engine by ID and then dynamic_cast to whatever is required
+// Generic singleton service - no inputs or outputs
 class Service: public Element
 {
  public:
@@ -1006,7 +1044,13 @@ public:
     ModuleInfo(const Module *_module, const Factory *_factory):
       module(_module), factory(_factory) {}
   };
-  map<string, ModuleInfo> modules;
+
+  struct Section
+  {
+    map<string, ModuleInfo> modules;
+  };
+
+  map<string, Section> sections;
 
   //------------------------------------------------------------------------
   // Constructor
@@ -1015,21 +1059,22 @@ public:
   //------------------------------------------------------------------------
   // Register a module with its factory
   void add(const Module& m, const Factory& f)
-  { modules[m.id] = ModuleInfo(&m, &f); }
+  { sections[m.section].modules[m.id] = ModuleInfo(&m, &f); }
 
   //------------------------------------------------------------------------
   // Create an object by module and config
   // Returns the object, or 0 if no factories available or create fails
-  Element *create(const string& name, const XML::Element& config)
+  Element *create(const string& section, const string& id,
+                  const XML::Element& config)
   {
-    const auto p = modules.find(name);
-    if (p!=modules.end())
-    {
-      const auto& mi = p->second;
-      return mi.factory->create(mi.module, config);
-    }
-    else
-      return 0;
+    const auto sp = sections.find(section);
+    if (sp == sections.end()) return 0;
+
+    const auto mp = sp->second.modules.find(id);
+    if (mp == sp->second.modules.end()) return 0;
+
+    const auto& mi = mp->second;
+    return mi.factory->create(mi.module, config);
   }
 };
 
@@ -1069,27 +1114,29 @@ class Router
 };
 
 //==========================================================================
-// Engine class - wrapper containing Graph tree and Element/Service registries
+// Engine class - wrapper containing Graph tree and Element registry
 class Engine
 {
-  // Services
-  map<string, shared_ptr<Element>> services;
-
   // Graph structure
   mutable MT::RWMutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
   Time::Duration tick_interval{0.04};  // 25Hz default
   Time::Stamp start_time;
   uint64_t tick_number{0};
+  list<string> default_sections;  // Note: ordered
 
  public:
   Registry element_registry;
-  Registry service_registry;
   Router router;
 
   //------------------------------------------------------------------------
   // Constructor
   Engine(): graph(new Graph(*this)) {}
+
+  //------------------------------------------------------------------------
+  // Add a default section - use to auto-prefix unqualified element names
+  void add_default_section(const string& s)
+  { default_sections.push_back(s); }
 
   //------------------------------------------------------------------------
   // Set/get the tick interval
@@ -1101,24 +1148,15 @@ class Engine
   Dataflow::Graph& get_graph() { return *graph; }
 
   //------------------------------------------------------------------------
-  // Get a type-checked service
-  template <class T> shared_ptr<T> get_service(const string& id)
-  {
-    const auto it = services.find(id);
-    if (it == services.end())
-      throw runtime_error("No such service "+id);
-
-    auto t = dynamic_pointer_cast<T>(it->second);
-    if (!t) throw runtime_error("Service "+id+" is the wrong type");
-    return t;
-  }
-
-  //------------------------------------------------------------------------
-  // Configure with <graph> and <services> XML
+  // Configure with <graph> XML
   // Throws a runtime_error if configuration fails
   void configure(const File::Directory& base_dir,
-                 const XML::Element& graph_config,
-                 const XML::Element& services_config);
+                 const XML::Element& graph_config);
+
+  //------------------------------------------------------------------------
+  // Create an element with the given name - may be section:id or just id,
+  // which is looked up in default namespaces
+  Element *create(const string& name, const XML::Element& config);
 
   //------------------------------------------------------------------------
   // Get state as a JSON value (see Graph::get_json())

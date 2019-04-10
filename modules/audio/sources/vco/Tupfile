@@ -6,6 +6,6 @@
 
 NAME    = vg-module-audio-source-vco
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry vg-midi ot-log ext-dl
+DEPENDS = vg-dataflow vg-geometry vg-waveform vg-midi ot-log ext-dl
 
 include_rules

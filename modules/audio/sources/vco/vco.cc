@@ -8,12 +8,14 @@
 
 #include "../../audio-module.h"
 #include "vg-geometry.h"
+#include "vg-waveform.h"
 #include "vg-midi.h"
 #include <cmath>
 
 namespace {
 
 using namespace ViGraph::Geometry;
+using namespace ViGraph::Waveform;
 
 //==========================================================================
 // VCO source
@@ -22,16 +24,7 @@ class VCOSource: public Source
 public:
   // Configuration
   double freq;  // Hz
-  enum class Waveform
-  {
-    none,
-    saw,
-    sin,
-    square,
-    triangle,
-    random
-  };
-  Waveform waveform;
+  Type waveform = Type::none;
   double pulse_width = 0.5;
 
 private:
@@ -42,9 +35,6 @@ private:
     enabled,
     completing
   } state = State::enabled;
-
-  // Parse waveform name
-  bool parse_waveform(const string& name, Waveform& waveform);
 
   // Source/Element virtuals
   void tick(const TickData& td) override;
@@ -60,10 +50,10 @@ public:
   { freq = MIDI::get_midi_frequency(MIDI::get_midi_number(note)); }
   int get_number() const { return MIDI::get_midi_frequency_number(freq); }
   void set_number(int number) { freq = MIDI::get_midi_frequency(number); }
-  string get_waveform() const;
+  string get_waveform() const { return Waveform::get_name(waveform); }
   void set_waveform(const string& wave);
   double get_pulse_width() const { return pulse_width; }
-  void set_pulse_width(double pw) {pulse_width = max(0.0, min(1.0, pw)); }
+  void set_pulse_width(double pw) { pulse_width = max(0.0, min(1.0, pw)); }
   void start()
   {
     if (state != State::enabled)
@@ -77,39 +67,11 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Get waveform
-string VCOSource::get_waveform() const
-{
-  switch (waveform)
-  {
-    case Waveform::none: return "none";
-    case Waveform::saw: return "saw";
-    case Waveform::sin: return "sin";
-    case Waveform::square: return "square";
-    case Waveform::triangle: return "triangle";
-    case Waveform::random: return "random";
-  }
-}
-
-//--------------------------------------------------------------------------
 // Set waveform
 void VCOSource::set_waveform(const string& name)
 {
-  if (name.empty() || name == "none")
-    waveform = Waveform::none;
-  else if (name == "saw")
-    waveform = Waveform::saw;
-  else if (name == "sin")
-    waveform = Waveform::sin;
-  else if (name == "square")
-    waveform = Waveform::square;
-  else if (name == "triangle")
-    waveform = Waveform::triangle;
-  else if (name == "random")
-    waveform = Waveform::random;
-  else
+  if (!Waveform::get_type(name, waveform))
   {
-    waveform = Waveform::none;
     Log::Error log;
     log << "Unknown waveform type " << name << " in VCO '" << id << "'\n";
   }
@@ -135,45 +97,7 @@ void VCOSource::tick(const TickData& td)
     samples.resize(nsamples);
     for (auto i=0u; i<nsamples; i++)
     {
-      sample_t v;  // Value -1 .. 1
-
-      switch (waveform)
-      {
-        case Waveform::none:
-          v = 0.0;
-          break;
-
-        case Waveform::saw:
-          if (theta < 0.5)
-            v = theta * 2;
-          else
-            v = theta * 2 - 2;
-          break;
-
-        case Waveform::sin:
-          v = theta < pulse_width ? sin(theta*pi/pulse_width)
-                                  : sin((theta-1.0)*pi/(1.0-pulse_width));
-          break;
-
-        case Waveform::square:
-          v = (theta < pulse_width) ? 1.0 : -1.0;
-          break;
-
-        case Waveform::triangle:
-          if (theta < pulse_width / 2)
-            v = theta / (pulse_width / 2);
-          else if (theta >= (1 - (pulse_width / 2)))
-            v = -1 + (theta - (1 - (pulse_width / 2))) / (pulse_width / 2);
-          else
-            v = 1 - (theta - (pulse_width / 2)) / ((1 - pulse_width) / 2);
-          break;
-
-        case Waveform::random:
-          v = 2.0 * rand() / RAND_MAX - 1;
-          break;
-      }
-
-      samples[i] = v;
+      samples[i] = Waveform::get_value(waveform, pulse_width, theta);
       theta += freq/sample_rate;
       if (theta > 1)
       {
@@ -209,6 +133,7 @@ Dataflow::Module module
     { "wave",  { "Waveform type (none, saw, sin, square, triangle, random)",
                  Value::Type::text,
                  { &VCOSource::get_waveform, &VCOSource::set_waveform },
+                 { "none", "saw", "sin", "square", "triangle", "random" },
                  true } },
     { "pulse-width",  { "Pulse Width", Value::Type::number,
                         &VCOSource::pulse_width, true } },

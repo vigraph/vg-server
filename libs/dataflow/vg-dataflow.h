@@ -495,27 +495,18 @@ class Acceptor
 // Generator - something that generates data on a single output
 class Generator: public Element
 {
- protected:
-  string acceptor_id;   // If specified
-  Acceptor *acceptor{nullptr};
-
  public:
+  map<string, Acceptor *> acceptors;
+
   // Constructor - get acceptor_id as well as Element stuff
-  Generator(const Module *_module, const XML::Element& config):
-    Element(_module, config), acceptor_id(config["acceptor"]) {}
+  Generator(const Module *_module, const XML::Element& config);
 
-  // Get the acceptor ID
-  const string& get_acceptor_id() { return acceptor_id; }
-
-  // Set the acceptor and optionally ID - note either are overridable,
-  // second downcalls to first
-  virtual void attach(Acceptor *_acceptor)
-  { acceptor = _acceptor; }
-  virtual void attach(Acceptor *_acceptor, const string& _acceptor_id)
-  { attach(_acceptor); acceptor_id = _acceptor_id; }
+  // Add an acceptor - can be null for initial intent to connect
+  virtual void attach(const string &id, Acceptor *acceptor=nullptr)
+  { acceptors[id] = acceptor; }
 
   // Send data down
-  void send(DataPtr data) { if (acceptor) acceptor->accept(data); }
+  void send(DataPtr data);
   // Sugar to allow direct send of 'new Data' in sources
   void send(Data *data) { send(DataPtr(data)); }
 
@@ -713,7 +704,7 @@ class Graph
   // Attach a pure Acceptor to all unbound generators remaining in the graph
   // Returns whether any were attached
   // Note, doesn't add to graph ordering and remembers this for reload
-  bool attach(Acceptor *a);
+  bool attach(const string& id, Acceptor *a);
 
   //------------------------------------------------------------------------
   // Attach an Acceptor Element to all unbound generators remaining in the graph
@@ -964,7 +955,7 @@ class MultiGraph
 
   //------------------------------------------------------------------------
   // Attach a pure Acceptor to the end of all subgraphs (for testing only)
-  void attach_to_all(Acceptor *a);
+  void attach_to_all(const string& id, Acceptor *a);
 
   //------------------------------------------------------------------------
   // Attach an Acceptor Element to the end of all subgraphs

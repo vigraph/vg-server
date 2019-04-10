@@ -98,6 +98,23 @@ TEST(GraphTest, TestExplicitReversedAcceptorConstruction)
   construct_graph(xml, graph);
 }
 
+TEST(GraphTest, TestMultipleSubelementAcceptorConstruction)
+{
+  const string& xml = R"(
+    <graph>
+      <test-source>
+        <acceptor id="filter1"/>
+        <acceptor id="filter2"/>
+      </test-source>
+      <test-filter id="filter1"/>
+      <test-filter id="filter2"/>
+    </graph>
+  )";
+
+  Graph graph(engine);
+  construct_graph(xml, graph);
+}
+
 TEST(GraphTest, TestExplicitAcceptorConstructionFailsWhenNoUnboundInput)
 {
   const string& xml = R"(
@@ -117,6 +134,23 @@ TEST(GraphTest, TestExplicitAcceptorConstructionFailsWhenAcceptorNotThere)
   const string& xml = R"(
     <graph>
       <test-source acceptor="foo"/>
+    </graph>
+  )";
+
+  Graph graph(engine);
+  construct_graph_should_fail(xml, graph);
+}
+
+TEST(GraphTest, TestMultipleSubelementAcceptorConstructionFailsWhenNotThere)
+{
+  const string& xml = R"(
+    <graph>
+      <test-source>
+        <acceptor id="filter1"/>
+        <acceptor id="filterx"/>
+      </test-source>
+      <test-filter id="filter1"/>
+      <test-filter id="filter2"/>
     </graph>
   )";
 

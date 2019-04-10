@@ -24,7 +24,7 @@ private:
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void calculate_topology(Element::Topology& topo) override;
-  void attach(Dataflow::Acceptor *_target) override;
+  void attach(const string& id, Dataflow::Acceptor *acceptor) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
   void post_tick(const TickData& td) override;
@@ -69,9 +69,9 @@ void CloneSource::calculate_topology(Element::Topology& topo)
 //--------------------------------------------------------------------------
 // Attach an acceptor
 // Overrides Generator::attach, attaches to all sub-graphs
-void CloneSource::attach(Dataflow::Acceptor *acceptor)
+void CloneSource::attach(const string& id, Dataflow::Acceptor *acceptor)
 {
-  multigraph->attach_to_all(acceptor);
+  multigraph->attach_to_all(id, acceptor);
 }
 
 //--------------------------------------------------------------------------

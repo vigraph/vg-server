@@ -258,13 +258,15 @@ void Element::set_property(const string& prop_name,
                            const Module::Property& prop,
                            const vector<double>& v)
 {
+  if (v.empty())
+    return;
   const Module::Property::Member& member = prop.member;
   if (member.set_multi_d)
     (this->*member.set_multi_d)(v);
   else if (member.d_ptr)
-    this->*member.d_ptr = v.back();
+    this->*member.d_ptr = v.front();
   else if (member.set_d)
-    (this->*member.set_d)(v.back());
+    (this->*member.set_d)(v.front());
   else
     throw runtime_error("No member pointers for numeric property "+prop_name
                         +" in element "+id);

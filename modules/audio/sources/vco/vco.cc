@@ -90,7 +90,7 @@ void VCOSource::tick(const TickData& td)
 {
   if (state == State::enabled || state == State::completing)
   {
-    const auto nsamples = td.samples(sample_rate);
+    const auto nsamples = td.samples();
     auto fragment = new Fragment(td.t);  // mono
     auto& samples = fragment->waveforms[Speaker::front_center];
     samples.resize(nsamples);

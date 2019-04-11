@@ -148,7 +148,7 @@ void WavSource::tick(const TickData& td)
   const auto step = frequency ? (frequency / base_frequency) : 1.0;
   const auto spos = step * td.sample_pos(sample_rate);
 
-  const auto nsamples = td.samples(sample_rate);
+  const auto nsamples = td.samples();
   auto fragment = new Fragment(td.t);
   for (auto& cit: waveforms)
   {

@@ -18,7 +18,7 @@ TEST(AttenuatorTest, TestNoWaveform)
   const string& xml = R"(
     <graph>
       <vco/>
-      <attenuator gain="0.2" interpolate="false"/>
+      <attenuator gain="0.2"/>
     </graph>
   )";
 
@@ -39,7 +39,7 @@ TEST(AttenuatorTest, TestSquareWaveReduced)
   const string& xml = R"(
     <graph>
       <vco wave="square" freq="1"/>
-      <attenuator gain="0.2" interpolate="false"/>
+      <attenuator gain="0.2"/>
     </graph>
   )";
 

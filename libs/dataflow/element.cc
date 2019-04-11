@@ -219,6 +219,8 @@ void Element::set_property(const string& prop_name,
         (this->*member.set_i)(static_cast<int>(round(v.d)));
       else if (member.set_b)
         (this->*member.set_b)(v.d?1.0:0.0);
+      else if (member.set_multi_d)
+        (this->*member.set_multi_d)({v.d});
       else
         throw runtime_error("No member pointers for numeric property "+prop_name
                             +" in element "+id);
@@ -251,9 +253,52 @@ void Element::set_property(const string& prop_name,
 }
 
 //------------------------------------------------------------------------
+// Set a property (internal, with property already looked up)
+void Element::set_property(const string& prop_name,
+                           const Module::Property& prop,
+                           const vector<double>& v)
+{
+  if (v.empty())
+    return;
+  const Module::Property::Member& member = prop.member;
+  if (member.set_multi_d)
+    (this->*member.set_multi_d)(v);
+  else if (member.d_ptr)
+    this->*member.d_ptr = v.front();
+  else if (member.set_d)
+    (this->*member.set_d)(v.front());
+  else
+    throw runtime_error("No member pointers for numeric property "+prop_name
+                        +" in element "+id);
+}
+
+//------------------------------------------------------------------------
 // Set a property (external)
 void Element::set_property(const string& prop_name,
                            const Value& v)
+{
+  try
+  {
+    const auto pit = module->properties.find(prop_name);
+    if (pit == module->properties.end())
+      throw runtime_error("No such property "+prop_name+" on element "+id);
+    set_property(prop_name, pit->second, v);
+
+    // Action changes
+    // !!! Later optimise to only call once for sets of updates?
+    update();
+  }
+  catch (const runtime_error& e)
+  {
+    Log::Error log;
+    log << "Set property failed for " << id << ": " << e.what() << endl;
+  }
+}
+
+//------------------------------------------------------------------------
+// Set a property with multiple values (external)
+void Element::set_property(const string& prop_name,
+                           const vector<double>& v)
 {
   try
   {

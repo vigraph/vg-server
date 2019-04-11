@@ -226,6 +226,29 @@ void ControlImpl::send(const string& name, const Value& v)
 }
 
 //------------------------------------------------------------------------
+// Send a list of values to the target
+void ControlImpl::send(const string& name, const vector<double>& v)
+{
+  for(const auto& it: targets)
+  {
+    const Target& target = it.second;
+    if (target.element)
+    {
+      const auto& p = target.properties.find(name);
+      if (p != target.properties.end())
+        target.element->set_property(p->second.name, v);  // Use their name
+      else
+      {
+        // Look for wildcard, we can send using our name
+        const auto& q = target.properties.find("");
+        if (q != target.properties.end())
+          target.element->set_property(name, v);  // Use our name
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 // Get state as JSON, adding to the given value
 void ControlImpl::add_to_json(JSON::Value& json) const
 {

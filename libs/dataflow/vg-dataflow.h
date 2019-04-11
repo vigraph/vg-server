@@ -42,6 +42,7 @@ struct TickData
   Time::Duration interval;    // Interval of the tick
   timestamp_t global_t = 0.0; // Absolute timestamp
   uint64_t global_n = 0;      // Absolute tick number
+  double sample_rate = 44100; // !!! TODO: get from somewhere else
 
   // Constructors
   TickData() {}
@@ -55,13 +56,31 @@ struct TickData
 
   //------------------------------------------------------------------------
   // Get number of samples required for this tick
-  unsigned samples(double sample_rate) const
+  unsigned samples() const
   {
     const auto last_tick_total = static_cast<uint64_t>(
       floor(interval.seconds() * (global_n) * sample_rate));
     const auto tick_total = static_cast<uint64_t>(
       floor(interval.seconds() * (global_n + 1) * sample_rate));
     return tick_total - last_tick_total;
+  }
+
+  //------------------------------------------------------------------------
+  // Sample duratin
+  timestamp_t sample_duration() const
+  {
+    return 1.0 / sample_rate;
+  }
+
+  //------------------------------------------------------------------------
+  // Get the start time of the first sample in this tick
+  timestamp_t first_sample_start() const
+  {
+    const auto x = fmod(global_t, sample_duration());
+    if (x)
+      return t - x + sample_duration();
+    else
+      return t;
   }
 
   //------------------------------------------------------------------------
@@ -196,18 +215,19 @@ struct Module
     struct Member
     {
       typedef double Element::*MemberDouble;
-      typedef double (Element::*MemberGetDouble)() const ;
+      typedef double (Element::*MemberGetDouble)() const;
       typedef void (Element::*MemberSetDouble)(double);
+      typedef void (Element::*MemberSetMultiDouble)(const vector<double>&);
       typedef string Element::*MemberString;
-      typedef string (Element::*MemberGetString)() const ;
+      typedef string (Element::*MemberGetString)() const;
       typedef void (Element::*MemberSetString)(const string&);
       typedef bool Element::*MemberBool;
-      typedef bool (Element::*MemberGetBool)() const ;
+      typedef bool (Element::*MemberGetBool)() const;
       typedef void (Element::*MemberSetBool)(bool);
       typedef int Element::*MemberInt;
-      typedef int (Element::*MemberGetInt)() const ;
+      typedef int (Element::*MemberGetInt)() const;
       typedef void (Element::*MemberSetInt)(int);
-      typedef JSON::Value (Element::*MemberGetJSON)() const ;
+      typedef JSON::Value (Element::*MemberGetJSON)() const;
       typedef void (Element::*MemberSetJSON)(const JSON::Value&);
       typedef void (Element::*MemberTrigger)();
 
@@ -225,6 +245,7 @@ struct Module
       MemberGetJSON get_json{nullptr};
 
       MemberSetDouble set_d{nullptr};
+      MemberSetMultiDouble set_multi_d{nullptr};
       MemberSetString set_s{nullptr};
       MemberSetBool set_b{nullptr};
       MemberSetInt set_i{nullptr};
@@ -251,6 +272,10 @@ struct Module
       template<typename T>
       Member(void (T::*_set)(double)):
         set_d(static_cast<MemberSetDouble>(_set)) {}
+      template<typename T>
+      Member(double (T::*_get)() const, void (T::*_set)(const vector<double>&)):
+        get_d(static_cast<MemberGetDouble>(_get)),
+        set_multi_d(static_cast<MemberSetMultiDouble>(_set)) {}
       template<typename T>
       Member(string (T::*_get)() const, void (T::*_set)(const string&)):
         get_s(static_cast<MemberGetString>(_get)),
@@ -388,6 +413,8 @@ private:
                           const string& value);
   void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
+  void set_property(const string& prop_name, const Module::Property& prop,
+                    const vector<double>& v);
   JSON::Value get_property_json(const Module::Property& prop) const;
   static Value get_value(const JSON::Value& value);
 
@@ -448,6 +475,9 @@ public:
 
   // Set a control value
   virtual void set_property(const string& property, const Value&);
+
+  // Set a control value with multiple values over time
+  virtual void set_property(const string& property, const vector<double>&);
 
   // Update after setting a property
   virtual void update() {}
@@ -590,11 +620,14 @@ class ControlImpl
   // name is our name for it
   void send(const string& name, const Value& v);
 
+  // Send a set of values to the target
+  void send(const string& name, const vector<double>& v);
+
   // Trigger first target property
-  void trigger() { send({}); }
+  void trigger() { send(Value{}); }
 
   // Trigger named property
-  void trigger(const string& name) { send(name, {}); }
+  void trigger(const string& name) { send(name, Value{}); }
 
   // Get state as JSON, adding to the given value
   void add_to_json(JSON::Value& json) const;

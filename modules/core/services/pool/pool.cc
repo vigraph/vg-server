@@ -79,7 +79,7 @@ void PoolDistributorImpl::deregister_worker(Control *worker)
       if (it->worker == worker)
       {
         if (!it->cleared)
-          it->worker->set_property("clear", {});
+          it->worker->trigger("clear");
         p.second.workers.erase(it++);
       }
       else
@@ -125,7 +125,7 @@ void PoolDistributorImpl::send(const string& pool,
     // (front due to sorting)
     auto& w = pit->second.workers.front();
     // Clear previous recipient
-    w.worker->set_property("clear", {});
+    w.worker->trigger("clear");
     w.send(index, property, v);
   }
 }

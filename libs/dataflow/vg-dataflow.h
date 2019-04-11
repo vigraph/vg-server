@@ -196,18 +196,19 @@ struct Module
     struct Member
     {
       typedef double Element::*MemberDouble;
-      typedef double (Element::*MemberGetDouble)() const ;
+      typedef double (Element::*MemberGetDouble)() const;
       typedef void (Element::*MemberSetDouble)(double);
+      typedef void (Element::*MemberSetMultiDouble)(const vector<double>&);
       typedef string Element::*MemberString;
-      typedef string (Element::*MemberGetString)() const ;
+      typedef string (Element::*MemberGetString)() const;
       typedef void (Element::*MemberSetString)(const string&);
       typedef bool Element::*MemberBool;
-      typedef bool (Element::*MemberGetBool)() const ;
+      typedef bool (Element::*MemberGetBool)() const;
       typedef void (Element::*MemberSetBool)(bool);
       typedef int Element::*MemberInt;
-      typedef int (Element::*MemberGetInt)() const ;
+      typedef int (Element::*MemberGetInt)() const;
       typedef void (Element::*MemberSetInt)(int);
-      typedef JSON::Value (Element::*MemberGetJSON)() const ;
+      typedef JSON::Value (Element::*MemberGetJSON)() const;
       typedef void (Element::*MemberSetJSON)(const JSON::Value&);
       typedef void (Element::*MemberTrigger)();
 
@@ -225,6 +226,7 @@ struct Module
       MemberGetJSON get_json{nullptr};
 
       MemberSetDouble set_d{nullptr};
+      MemberSetMultiDouble set_multi_d{nullptr};
       MemberSetString set_s{nullptr};
       MemberSetBool set_b{nullptr};
       MemberSetInt set_i{nullptr};
@@ -251,6 +253,10 @@ struct Module
       template<typename T>
       Member(void (T::*_set)(double)):
         set_d(static_cast<MemberSetDouble>(_set)) {}
+      template<typename T>
+      Member(double (T::*_get)() const, void (T::*_set)(const vector<double>&)):
+        get_d(static_cast<MemberGetDouble>(_get)),
+        set_multi_d(static_cast<MemberSetMultiDouble>(_set)) {}
       template<typename T>
       Member(string (T::*_get)() const, void (T::*_set)(const string&)):
         get_s(static_cast<MemberGetString>(_get)),
@@ -388,6 +394,8 @@ private:
                           const string& value);
   void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
+  void set_property(const string& prop_name, const Module::Property& prop,
+                    const vector<double>& v);
   JSON::Value get_property_json(const Module::Property& prop) const;
   static Value get_value(const JSON::Value& value);
 
@@ -448,6 +456,9 @@ public:
 
   // Set a control value
   virtual void set_property(const string& property, const Value&);
+
+  // Set a control value with multiple values over time
+  virtual void set_property(const string& property, const vector<double>&);
 
   // Update after setting a property
   virtual void update() {}

@@ -96,69 +96,80 @@ void EnvelopeControl::pre_tick(const TickData& td)
     state_changed = false;
   }
 
-  double value;
-  timestamp_t delta = td.t-state_changed_time;
-  switch (state)
+  vector<double> values;
+
+  const auto nsamples = td.samples();
+  const auto sample_duration = td.sample_duration();
+  auto t = td.first_sample_start();
+
+  for (auto i = 0u; i < nsamples; ++i, t += sample_duration)
   {
-    case State::off:
-      attack_start_value = release_start_value = value = 0;
-      return;
+    timestamp_t delta = t-state_changed_time;
+    switch (state)
+    {
+      case State::off:
+        attack_start_value = release_start_value = 0;
+        values.emplace_back(0);
+        return;
 
-    case State::attack:
-      if (delta >= attack)
-      {
-        value = 1.0;
-        state = State::decay;
-        state_changed_time = td.t;
-      }
-      else
-      {
-        value = attack_start_value + (1-attack_start_value)*delta/attack;
-      }
-      // In case release while attacking
-      release_start_value = value;
-    break;
+      case State::attack:
+        if (delta >= attack)
+        {
+          values.emplace_back(1.0);
+          state = State::decay;
+          state_changed_time = td.t;
+        }
+        else
+        {
+          values.emplace_back(attack_start_value +
+                              (1-attack_start_value)*delta/attack);
+        }
+        // In case release while attacking
+        release_start_value = values.back();
+      break;
 
-    case State::decay:
-      if (delta >= decay)
-      {
-        value = sustain;
-        state = State::sustain;
-        state_changed_time = td.t;
-      }
-      else
-      {
-        value = 1.0-(1.0-sustain)*delta/decay;
-      }
-      // In case either release or new trigger while attacking
-      attack_start_value = release_start_value = value;
-    break;
+      case State::decay:
+        if (delta >= decay)
+        {
+          values.emplace_back(sustain);
+          state = State::sustain;
+          state_changed_time = td.t;
+        }
+        else
+        {
+          values.emplace_back(1.0-(1.0-sustain)*delta/decay);
+        }
+        // In case either release or new trigger while attacking
+        attack_start_value = release_start_value = values.back();
+      break;
 
-    case State::sustain:
-      attack_start_value = release_start_value = value = sustain;
-    break;
+      case State::sustain:
+        attack_start_value = release_start_value = sustain;
+        values.emplace_back(sustain);
+      break;
 
-    case State::release:
-      if (delta >= release)
-      {
-        value = 0;
-        state = State::complete;
-        state_changed_time = td.t;
-      }
-      else
-      {
-        value = release_start_value*(1.0-delta/release);
-      }
-      attack_start_value = value;
-    break;
+      case State::release:
+        if (delta >= release)
+        {
+          values.emplace_back(0);
+          state = State::complete;
+          state_changed_time = td.t;
+        }
+        else
+        {
+          values.emplace_back(release_start_value*(1.0-delta/release));
+        }
+        attack_start_value = values.back();
+      break;
 
-    case State::complete:
-      Control::trigger("clear");
-      state = State::off;
-      return;
+      case State::complete:
+        Control::trigger("clear");
+        state = State::off;
+        return;
+    }
   }
 
-  send("value", Dataflow::Value{value});
+  send("value", values);
 }
 
 //--------------------------------------------------------------------------

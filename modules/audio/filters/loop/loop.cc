@@ -115,7 +115,7 @@ void LoopFilter::tick(const TickData& td)
 {
   if (playing)
   {
-    auto nsamples = td.samples(sample_rate);
+    auto nsamples = td.samples();
     auto& buffer = buffers[playback_buffer];
 
     auto fragment = new Fragment(td.t);
@@ -173,7 +173,7 @@ void LoopFilter::post_tick(const TickData& td)
 {
   if (recording && !tick_captured)
   {
-    const auto nsamples = td.samples(sample_rate);
+    const auto nsamples = td.samples();
     auto& buffer = buffers[recording_buffer];
 
     for (auto& wit: buffer)

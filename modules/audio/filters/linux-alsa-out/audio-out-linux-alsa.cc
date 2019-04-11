@@ -199,7 +199,7 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
 // Record how many samples we need for tick
 void LinuxALSAOutFilter::pre_tick(const TickData &td)
 {
-  tick_samples_required = td.samples(sample_rate);
+  tick_samples_required = td.samples();
 }
 
 //--------------------------------------------------------------------------

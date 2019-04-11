@@ -40,12 +40,12 @@ void ToggleControl::toggle()
   {
     auto& s = multistate[value];
     s = !s;
-    send(s ? "trigger" : "clear", {});
+    trigger(s ? "trigger" : "clear");
   }
   else
   {
     state = !state;
-    send(state ? "trigger" : "clear", {});
+    trigger(state ? "trigger" : "clear");
   }
 }
 

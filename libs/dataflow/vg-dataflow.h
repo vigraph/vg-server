@@ -42,6 +42,7 @@ struct TickData
   Time::Duration interval;    // Interval of the tick
   timestamp_t global_t = 0.0; // Absolute timestamp
   uint64_t global_n = 0;      // Absolute tick number
+  double sample_rate = 44100; // !!! TODO: get from somewhere else
 
   // Constructors
   TickData() {}
@@ -55,13 +56,31 @@ struct TickData
 
   //------------------------------------------------------------------------
   // Get number of samples required for this tick
-  unsigned samples(double sample_rate) const
+  unsigned samples() const
   {
     const auto last_tick_total = static_cast<uint64_t>(
       floor(interval.seconds() * (global_n) * sample_rate));
     const auto tick_total = static_cast<uint64_t>(
       floor(interval.seconds() * (global_n + 1) * sample_rate));
     return tick_total - last_tick_total;
+  }
+
+  //------------------------------------------------------------------------
+  // Sample duratin
+  timestamp_t sample_duration() const
+  {
+    return 1.0 / sample_rate;
+  }
+
+  //------------------------------------------------------------------------
+  // Get the start time of the first sample in this tick
+  timestamp_t first_sample_start() const
+  {
+    const auto x = fmod(global_t, sample_duration());
+    if (x)
+      return t - x + sample_duration();
+    else
+      return t;
   }
 
   //------------------------------------------------------------------------
@@ -601,11 +620,14 @@ class ControlImpl
   // name is our name for it
   void send(const string& name, const Value& v);
 
+  // Send a set of values to the target
+  void send(const string& name, const vector<double>& v);
+
   // Trigger first target property
-  void trigger() { send({}); }
+  void trigger() { send(Value{}); }
 
   // Trigger named property
-  void trigger(const string& name) { send(name, {}); }
+  void trigger(const string& name) { send(name, Value{}); }
 
   // Get state as JSON, adding to the given value
   void add_to_json(JSON::Value& json) const;

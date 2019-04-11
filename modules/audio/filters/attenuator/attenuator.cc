@@ -18,37 +18,49 @@ using namespace ViGraph::Dataflow;
 // Attenuator filter
 class AttenuatorFilter: public FragmentFilter
 {
-public:
-  double gain{1.0};
-  bool interpolate = true;
-
 private:
-  double last_gain{0.0};
+  vector<double> gain{1.0};
 
   // Source/Element virtuals
   void accept(FragmentPtr fragment) override;
 
 public:
   using FragmentFilter::FragmentFilter;
+
+  // Getters/Setters
+  double get_gain() const { return gain.back(); }
+  void set_gain(const vector<double>& g);
 };
+
+//--------------------------------------------------------------------------
+// Set gain
+void AttenuatorFilter::set_gain(const vector<double>& g)
+{
+  if (g.empty())
+    return;
+  gain = g;
+}
 
 //--------------------------------------------------------------------------
 // Process some data
 void AttenuatorFilter::accept(FragmentPtr fragment)
 {
+  auto gain_used = 0ul;
   for (auto& wit: fragment->waveforms)
   {
     auto& w = wit.second;
+    auto g = gain.begin();
     for (auto s = 0u; s < w.size(); ++s)
     {
-      if (interpolate)
-        w[s] *= last_gain + ((gain - last_gain) * s / w.size());
-      else
-        w[s] *= gain;
+      w[s] *= *g;
+      if (g != gain.end() - 1)
+        ++g;
     }
+    if (w.size() > gain_used)
+      gain_used = w.size();
   }
-
-  last_gain = gain;
+  gain_used = min(gain_used, gain.size() - 1);
+  gain.erase(gain.begin(), gain.begin() + gain_used);
 
   send(fragment);
 }
@@ -63,9 +75,8 @@ Dataflow::Module module
   "audio",
   {
     { "gain", { "Gain level (0-1)", Value::Type::number,
-                &AttenuatorFilter::gain, true } },
-    { "interpolate", { "Interpolate up from last gain", Value::Type::boolean,
-                       &AttenuatorFilter::interpolate, true } }
+                { &AttenuatorFilter::get_gain, &AttenuatorFilter::set_gain },
+                true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs

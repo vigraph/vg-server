@@ -154,7 +154,7 @@ bool LinuxALSAInSource::read_samples(vector<sample_t>& samples)
 // Read some data
 void LinuxALSAInSource::tick(const TickData& td)
 {
-  const auto nsamples = td.samples(sample_rate);
+  const auto nsamples = td.samples();
   auto fragment = new Fragment(td.t);
   auto samples = vector<sample_t>(nsamples * channel_mapping.size());
   while (pcm)  // loop after recover

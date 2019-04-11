@@ -118,7 +118,7 @@ void DelayFilter::post_tick(const TickData& td)
 {
   if (enabled && delay && !tick_sent)
   {
-    const auto nsamples = td.samples(sample_rate);
+    const auto nsamples = td.samples();
 
     // Make an empty fragment of the correct channels and size
     auto fragment = FragmentPtr(new Fragment(td.t));

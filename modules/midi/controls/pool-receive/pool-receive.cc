@@ -24,6 +24,7 @@ class PoolReceiveControl: public Dataflow::Control
   void set_property(const string& property, const Value& v) override;
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
+  void calculate_topology(Element::Topology& topo) override;
   void enable() override;
   void disable() override;
 
@@ -49,6 +50,13 @@ void PoolReceiveControl::configure(const File::Directory&,
                                    const XML::Element&)
 {
   distributor = graph->find_service<PoolDistributor>("pool-distributor");
+}
+
+//--------------------------------------------------------------------------
+// Topology calculation - register as receiver
+void PoolReceiveControl::calculate_topology(Element::Topology& topo)
+{
+  topo.router_receivers["pool:" + pool].push_back(this);
 }
 
 //--------------------------------------------------------------------------

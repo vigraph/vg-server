@@ -22,6 +22,7 @@ class PoolSendControl: public Dataflow::Control
 
   // Control/Element virtuals
   void setup() override;
+  void calculate_topology(Element::Topology& topo) override;
 
 public:
   string pool;
@@ -41,6 +42,13 @@ public:
 void PoolSendControl::setup()
 {
   distributor = graph->find_service<PoolDistributor>("pool-distributor");
+}
+
+//--------------------------------------------------------------------------
+// Topology calculation - notify we send on our tag
+void PoolSendControl::calculate_topology(Element::Topology& topo)
+{
+  topo.router_senders["pool:" + pool].push_back(this);
 }
 
 //--------------------------------------------------------------------------

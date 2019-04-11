@@ -89,7 +89,8 @@ void Engine::tick(Time::Stamp t)
 
     try
     {
-      const auto td = TickData{timestamp, tick_number, tick_interval};
+      const auto td = TickData{timestamp, tick_number, tick_interval,
+                               get_sample_rate()};
 
       // Tick the graph
       MT::RWReadLock lock(graph_mutex);

@@ -14,7 +14,6 @@ namespace ViGraph { namespace Engine {
 
 // Defaults
 const auto default_licence = "/etc/vigraph/licence.xml";
-const double default_frequency = 25;
 
 //--------------------------------------------------------------------------
 // Constructor
@@ -136,11 +135,16 @@ void Server::reconfigure()
 
   // Get tick interval from frequency
   double freq = config_xml.get_child("tick").get_attr_real("frequency",
-                                                           default_frequency);
+                                           Dataflow::default_frequency);
   if (freq > 0)
     engine.set_tick_interval(Time::Duration(1/freq));
   else
-    engine.set_tick_interval(Time::Duration(1/default_frequency));
+    engine.set_tick_interval(Time::Duration(1/Dataflow::default_frequency));
+
+  // Get sample rate
+  double sample_rate = config_xml.get_child("sample").get_attr_real("rate",
+                                             Dataflow::default_sample_rate);
+  engine.set_sample_rate(sample_rate);
 
   // (Re)load modules
   const XML::Element& modules_e = config_xml.get_child("modules");

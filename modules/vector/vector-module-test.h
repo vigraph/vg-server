@@ -58,9 +58,9 @@ class FrameGenerator
     uint64_t n = 0;
     for(auto i=0; i<nticks; i++, t+=1.0, ++n)
     {
-      graph.pre_tick({t, n, Time::Duration{1}});
-      graph.tick({t, n, Time::Duration{1}});
-      graph.post_tick({t, n, Time::Duration{1}});
+      graph.pre_tick({t, n, Time::Duration{1}, 1});
+      graph.tick({t, n, Time::Duration{1}, 1});
+      graph.post_tick({t, n, Time::Duration{1}, 1});
     }
   }
 

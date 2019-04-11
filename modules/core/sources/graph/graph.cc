@@ -85,6 +85,8 @@ class GraphSource: public Dataflow::Source
   void set_json(const string& path, const JSON::Value& value) override;
 
 public:
+  double sample_rate = 0;
+
   GraphSource(const Module *module, const XML::Element& config):
     Source(module, config) {}
 };

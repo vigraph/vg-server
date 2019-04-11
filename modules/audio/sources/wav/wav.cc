@@ -25,6 +25,7 @@ public:
   bool loop = false;
   double base_frequency = 0.0;
   double frequency = 0.0;
+  double pos = 0.0;
 
 private:
   map<Speaker, vector<sample_t>> waveforms;
@@ -146,7 +147,7 @@ void WavSource::tick(const TickData& td)
     return;
 
   const auto step = frequency ? (frequency / base_frequency) : 1.0;
-  const auto spos = step * td.sample_pos(sample_rate);
+  const auto spos = pos;
 
   const auto nsamples = td.samples();
   auto fragment = new Fragment(td.t);
@@ -156,7 +157,7 @@ void WavSource::tick(const TickData& td)
     auto& waveform = fragment->waveforms[cit.first];
     waveform.reserve(nsamples);
 
-    auto pos = spos;
+    pos = spos;
     for (auto i = 0u; i < nsamples; ++i, pos += step)
     {
       auto p = pos;

@@ -178,17 +178,17 @@ TEST(GraphTest, TestGraphTickAndFiltering)
   ASSERT_FALSE(!sink);
 
   EXPECT_FALSE(sink->pre_tick_called);
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
   EXPECT_TRUE(sink->pre_tick_called);
 
-  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}, 1}));
 
   EXPECT_FALSE(sink->post_tick_called);
-  ASSERT_NO_THROW(graph.post_tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.post_tick({1.0, 0, Time::Duration{1}, 1}));
   EXPECT_TRUE(sink->post_tick_called);
 
   EXPECT_EQ(6, sink->received_data);
-  ASSERT_NO_THROW(graph.tick({2.0, 1, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.tick({2.0, 1, Time::Duration{1}, 1}));
   EXPECT_EQ(18, sink->received_data);
 }
 
@@ -211,9 +211,9 @@ TEST(GraphTest, TestGraphTickAndMultipleSources)
   TestSink *sink = dynamic_cast<TestSink *>(el);
   ASSERT_FALSE(!sink);
 
-  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}, 1}));
   EXPECT_EQ(4, sink->received_data);
-  ASSERT_NO_THROW(graph.tick({2.0, 1, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.tick({2.0, 1, Time::Duration{1}, 1}));
   EXPECT_EQ(12, sink->received_data);
 }
 
@@ -250,7 +250,7 @@ TEST(GraphTest, TestGraphSimpleTickOrdering)
   ASSERT_FALSE(!sink);
   sink->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
   EXPECT_EQ("Sfs", tick_order);
 }
 
@@ -280,7 +280,7 @@ TEST(GraphTest, TestGraphTickOrderingWithoutRouting)
   ASSERT_FALSE(!s2);
   s2->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
   EXPECT_EQ("S1S2", tick_order);
 }
 
@@ -310,7 +310,7 @@ TEST(GraphTest, TestGraphTickOrderingWithRouting)
   ASSERT_FALSE(!s2);
   s2->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
   EXPECT_EQ("S2S1", tick_order);
 }
 
@@ -342,7 +342,7 @@ TEST(GraphTest, TestGraphTickOrderingWithSubgraphSender)
   ASSERT_FALSE(!s1);
   s1->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
   EXPECT_EQ("GS1", tick_order);
 }
 
@@ -374,7 +374,7 @@ TEST(GraphTest, TestGraphTickOrderingWithSubgraphReceiver)
   ASSERT_FALSE(!s1);
   s1->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
   EXPECT_EQ("S1G", tick_order);
 }
 
@@ -408,7 +408,7 @@ TEST(GraphTest, TestGraphTickOrderingWithPeerSubgraphSenderAndReceiver)
   ASSERT_FALSE(!g2);
   g2->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}}));
+  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
   EXPECT_EQ("G2G1", tick_order);
 }
 

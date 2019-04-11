@@ -178,6 +178,12 @@ void Graph::connect(Element *el)
 void Graph::configure(const File::Directory& base_dir,
                       const XML::Element& config)
 {
+  // Get sample rate from local configuration, else fall back on parent's
+  // or engine's
+  const auto sr = config.get_attr_real("sample-rate", 0);
+  sample_rate = sr ? sr :
+                (parent ? parent->sample_rate : engine.get_sample_rate());
+
   // Check for load from file - if so, read it and recurse
   const auto& fn = config["file"];
   if (fn.empty())
@@ -400,7 +406,16 @@ void Graph::pre_tick(const TickData& td)
   {
     try
     {
-      e->pre_tick(td);
+      if (sample_rate != td.sample_rate)
+      {
+        auto ntd = td;
+        ntd.sample_rate = sample_rate;
+        e->pre_tick(ntd);
+      }
+      else
+      {
+        e->pre_tick(td);
+      }
     }
     catch (const runtime_error& re)
     {
@@ -419,7 +434,16 @@ void Graph::tick(const TickData& td)
   {
     try
     {
-      e->tick(td);
+      if (sample_rate != td.sample_rate)
+      {
+        auto ntd = td;
+        ntd.sample_rate = sample_rate;
+        e->tick(ntd);
+      }
+      else
+      {
+        e->tick(td);
+      }
     }
     catch (const runtime_error& re)
     {
@@ -438,7 +462,16 @@ void Graph::post_tick(const TickData& td)
   {
     try
     {
-      e->post_tick(td);
+      if (sample_rate != td.sample_rate)
+      {
+        auto ntd = td;
+        ntd.sample_rate = sample_rate;
+        e->post_tick(ntd);
+      }
+      else
+      {
+        e->post_tick(td);
+      }
     }
     catch (const runtime_error& re)
     {

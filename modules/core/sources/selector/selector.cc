@@ -253,7 +253,7 @@ void SelectorSource::pre_tick(const TickData& td)
     {
       if (!it.second) it.second = {td.t, td.n};  // Reset datum time
       sub->pre_tick({td.t-it.second.t, td.n-it.second.n, td.interval,
-                     td.global_t, td.global_n});
+                     td.sample_rate, td.global_t, td.global_n});
     }
   }
 }
@@ -267,7 +267,7 @@ void SelectorSource::tick(const TickData& td)
   {
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
     if (sub) sub->tick({td.t-it.second.t, td.n-it.second.n, td.interval,
-                        td.global_t, td.global_n});
+                        td.sample_rate, td.global_t, td.global_n});
   }
 }
 
@@ -280,7 +280,7 @@ void SelectorSource::post_tick(const TickData& td)
   {
     Dataflow::Graph *sub = multigraph->get_subgraph(it.first);
     if (sub) sub->post_tick({td.t-it.second.t, td.n-it.second.n, td.interval,
-                             td.global_t, td.global_n});
+                             td.sample_rate, td.global_t, td.global_n});
   }
 }
 

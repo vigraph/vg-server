@@ -30,6 +30,10 @@ using namespace std;
 using namespace ObTools;
 using namespace ViGraph;
 
+const auto default_frequency = 25.0;
+const auto default_tick_interval = Time::Duration{1.0 / default_frequency};
+const auto default_sample_rate = default_frequency;
+
 // Typedefs
 typedef double timestamp_t; // Relative timestamp
 
@@ -42,16 +46,19 @@ struct TickData
   Time::Duration interval;    // Interval of the tick
   timestamp_t global_t = 0.0; // Absolute timestamp
   uint64_t global_n = 0;      // Absolute tick number
-  double sample_rate = 44100; // !!! TODO: get from somewhere else
+  double sample_rate = default_sample_rate;
 
   // Constructors
   TickData() {}
-  TickData(timestamp_t _t, uint64_t _n, const Time::Duration& _interval):
-    t{_t}, n{_n}, interval{_interval}, global_t{_t}, global_n{_n}
+  TickData(timestamp_t _t, uint64_t _n, const Time::Duration& _interval,
+           double _sample_rate):
+    t{_t}, n{_n}, interval{_interval}, global_t{_t}, global_n{_n},
+    sample_rate{_sample_rate}
   {}
   TickData(timestamp_t _t, uint64_t _n, const Time::Duration& _interval,
-           timestamp_t _global_t, uint64_t _global_n):
-    t{_t}, n{_n}, interval{_interval}, global_t{_global_t}, global_n{_global_n}
+           double _sample_rate, timestamp_t _global_t, uint64_t _global_n):
+    t{_t}, n{_n}, interval{_interval}, global_t{_global_t}, global_n{_global_n},
+    sample_rate{_sample_rate}
   {}
 
   //------------------------------------------------------------------------
@@ -81,28 +88,6 @@ struct TickData
       return t - x + sample_duration();
     else
       return t;
-  }
-
-  //------------------------------------------------------------------------
-  // Get the current sample position (local)
-  uint64_t sample_pos(double sample_rate) const
-  {
-    const auto last_tick_total = static_cast<uint64_t>(
-      floor(interval.seconds() * (global_n) * sample_rate));
-    const auto first_local_tick_total = static_cast<uint64_t>(
-      floor(interval.seconds() * (global_n - n) * sample_rate));
-    return last_tick_total - first_local_tick_total;
-  }
-
-  //------------------------------------------------------------------------
-  // Get the current sample position based on a start-of-time TickData
-  uint64_t sample_pos(double sample_rate, const TickData &start_td) const
-  {
-    const auto last_tick_total = static_cast<uint64_t>(
-      floor(interval.seconds() * (global_n) * sample_rate));
-    const auto first_local_tick_total = static_cast<uint64_t>(
-      floor(interval.seconds() * start_td.global_n * sample_rate));
-    return last_tick_total - first_local_tick_total;
   }
 };
 
@@ -663,6 +648,7 @@ class Graph
   mutable MT::RWMutex mutex;
   map<string, shared_ptr<Element> > elements;   // By ID
   Graph *parent{nullptr};
+  double sample_rate = 0;
 
   // Source
   File::Path source_file;  // empty if inline
@@ -762,6 +748,10 @@ class Graph
   // (downstreams)
   // (called automatically by calculate_topology() - use only for testing)
   void generate_topological_order();
+
+  //------------------------------------------------------------------------
+  // Set sample rate
+  void set_sample_rate(double sr) { sample_rate = sr; }
 
   //------------------------------------------------------------------------
   // Set a variable
@@ -1148,7 +1138,8 @@ class Engine
   // Graph structure
   mutable MT::RWMutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
-  Time::Duration tick_interval{0.04};  // 25Hz default
+  Time::Duration tick_interval = default_tick_interval;
+  double sample_rate = default_sample_rate;
   Time::Stamp start_time;
   uint64_t tick_number{0};
   list<string> default_sections;  // Note: ordered
@@ -1170,6 +1161,12 @@ class Engine
   // Set/get the tick interval
   void set_tick_interval(const Time::Duration& d) { tick_interval = d; }
   Time::Duration get_tick_interval() const { return tick_interval; }
+
+  //------------------------------------------------------------------------
+  // Set/get the sample rate
+  void set_sample_rate(double sr)
+  { sample_rate = sr; graph->set_sample_rate(sr); }
+  double get_sample_rate() const { return sample_rate; }
 
   //------------------------------------------------------------------------
   // Get the graph (for testing only)

@@ -45,6 +45,7 @@ class FragmentGenerator
     {
       graph.configure(File::Directory("."), config.get_root());
       graph.calculate_topology();
+      graph.set_sample_rate(44100);
     }
     catch (runtime_error e)
     {
@@ -58,7 +59,7 @@ class FragmentGenerator
     uint64_t n = 0;
     for(auto i=0; i<nticks; i++, t+=1.0, ++n)
     {
-      const auto td = TickData{t, n, Time::Duration{1}};
+      const auto td = TickData{t, n, Time::Duration{1}, 1};
       graph.pre_tick(td);
       graph.tick(td);
       graph.post_tick(td);

@@ -97,7 +97,7 @@ class ControlTester
 
     for(auto i=0; i<nticks; i++)
     {
-      const auto td = TickData(i, i, Time::Duration{1});
+      const auto td = TickData(i, i, Time::Duration{1}, 1);
       graph.pre_tick(td);
       graph.tick(td);
       graph.post_tick(td);

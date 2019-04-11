@@ -97,6 +97,7 @@ public:
 void GraphSource::configure(const File::Directory& base_dir,
                             const XML::Element& config)
 {
+  Source::configure(base_dir, config);
   subgraph.reset(new Dataflow::Graph(graph->get_engine(), graph));
   subgraph->configure(base_dir, config);
 }

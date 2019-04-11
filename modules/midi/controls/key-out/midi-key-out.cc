@@ -116,8 +116,6 @@ void MIDIKeyOutControl::pre_tick(const TickData& /*td*/)
     if (done) return;
     done = true;
   }
-
-  set_property("trigger", {});
 }
 
 //--------------------------------------------------------------------------

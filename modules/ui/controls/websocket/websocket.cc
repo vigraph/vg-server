@@ -53,9 +53,7 @@ private:
   void shutdown() override;
 
 public:
-  WebSocketControl(const Dataflow::Module *module, const XML::Element& config):
-    Control(module, config, true)
-  {}
+  using Control::Control;
 
   // Handle a key
   void handle_key(int code);

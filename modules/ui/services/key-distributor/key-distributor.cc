@@ -34,19 +34,8 @@ class KeyDistributorImpl: public Dataflow::Service, public KeyDistributor
   void handle_key(int code) override;
 
 public:
-  // Construct
-  KeyDistributorImpl(const Dataflow::Module *module,
-                     const XML::Element& config);
+  using Service::Service;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML:
-//   <key-distributor/>
-KeyDistributorImpl::KeyDistributorImpl(const Dataflow::Module *module,
-                                       const XML::Element& config):
-  Service(module, config)
-{
-}
 
 //--------------------------------------------------------------------------
 // Register a key observer

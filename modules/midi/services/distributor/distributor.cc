@@ -47,19 +47,8 @@ class MIDIDistributor: public Dataflow::Service, public Distributor
   list<Observer> observers;
 
 public:
-  // Construct
-  MIDIDistributor(const Dataflow::Module *module,
-                  const XML::Element& config);
+  using Service::Service;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML:
-//   <midi-distributor/>
-MIDIDistributor::MIDIDistributor(const Dataflow::Module *module,
-                                     const XML::Element& config):
-  Service(module, config)
-{
-}
 
 //--------------------------------------------------------------------------
 // Register an event handler - channel=0 means all (Omni)

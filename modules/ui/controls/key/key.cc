@@ -95,8 +95,7 @@ private:
   } when = When::pressed;
 
   // Control virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
+  void setup() override;
   void enable() override;
   void disable() override;
 
@@ -104,8 +103,7 @@ private:
   void handle_key(int code) override;
 
 public:
-  // Construct
-  UIKeyControl(const Dataflow::Module *module, const XML::Element& config);
+  using Control::Control;
 
   // Property getter/setters
   string get_code() const;
@@ -115,24 +113,8 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Construct from XML:
-//   <key code='up' target=.../>
-//   <key code='up' when='released' target=.../>
-UIKeyControl::UIKeyControl(const Dataflow::Module *module,
-                           const XML::Element& config):
-  Control(module, config)
-{
-  const auto& code_str = config["code"];
-  if (code_str.empty()) throw runtime_error("No key code given in "+id);
-  set_code(code_str);
-
-  set_when(config["when"]);
-}
-
-//--------------------------------------------------------------------------
-// Configure from XML (once we have the engine)
-void UIKeyControl::configure(const File::Directory&,
-                             const XML::Element&)
+// Setup after configuration
+void UIKeyControl::setup()
 {
   distributor = graph->find_service<KeyDistributor>("key-distributor");
 }

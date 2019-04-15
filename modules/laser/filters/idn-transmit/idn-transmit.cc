@@ -52,7 +52,7 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Configure from XML
+// Setup after config
 void IDNTransmitFilter::setup()
 {
   Log::Streams log;

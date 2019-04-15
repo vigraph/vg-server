@@ -22,19 +22,8 @@ class ReorderSegmentsFilter: public FrameFilter
   void accept(FramePtr frame) override;
 
 public:
-  // Construct
-  ReorderSegmentsFilter(const Dataflow::Module *module,
-                    const XML::Element& config);
+  using FrameFilter::FrameFilter;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <reorder-segments/>
-ReorderSegmentsFilter::ReorderSegmentsFilter(const Dataflow::Module *module,
-                                             const XML::Element& config):
-  FrameFilter(module, config)
-{
-}
 
 //--------------------------------------------------------------------------
 // Process some data

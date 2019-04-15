@@ -24,10 +24,7 @@ class JoinFilter: public FrameFilter
   void post_tick(const TickData&) override;
 
 public:
-  // Construct
-  JoinFilter(const Dataflow::Module *module, const XML::Element& config):
-    FrameFilter(module, config)
-  {}
+  using FrameFilter::FrameFilter;
 };
 
 //--------------------------------------------------------------------------

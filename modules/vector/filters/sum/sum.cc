@@ -24,10 +24,7 @@ class SumFilter: public FrameFilter
   void post_tick(const TickData&) override;
 
 public:
-  // Construct
-  SumFilter(const Dataflow::Module *module, const XML::Element& config):
-    FrameFilter(module, config)
-  {}
+  using FrameFilter::FrameFilter;
 };
 
 //--------------------------------------------------------------------------

@@ -29,11 +29,7 @@ class CollisionDetectorImpl: public Dataflow::Service, public CollisionDetector
   void tick(const TickData& td) override;
 
  public:
-  // Construct
-  CollisionDetectorImpl(const Dataflow::Module *module,
-                        const XML::Element& config):
-    Service(module, config)
-  {}
+  using Service::Service;
 
   // Check a frame for collision for the given element ID
   void check_for_collision(const string& group,

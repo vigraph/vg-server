@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: filters/join/join.cc
+// ViGraph dataflow module: filters/combine/combine.cc
 //
 // Simple filter which just combines its inputs into a single frame
 //
@@ -11,10 +11,10 @@
 namespace {
 
 //==========================================================================
-// Join filter
-class JoinFilter: public FrameFilter
+// Combine filter
+class CombineFilter: public FrameFilter
 {
-  shared_ptr<Frame> join{nullptr};
+  shared_ptr<Frame> combine{nullptr};
 
   // Process some data
   void accept(FramePtr frame) override;
@@ -29,38 +29,38 @@ public:
 
 //--------------------------------------------------------------------------
 // Process some data
-void JoinFilter::accept(FramePtr frame)
+void CombineFilter::accept(FramePtr frame)
 {
   // If this is the first, just keep it
-  if (!join)
+  if (!combine)
   {
     // Take it over
-    join = frame;
+    combine = frame;
   }
   else
   {
     // Add to existing
-    join->points.insert(join->points.end(), frame->points.begin(),
+    combine->points.insert(combine->points.end(), frame->points.begin(),
                         frame->points.end());
   }
 }
 
 //--------------------------------------------------------------------------
 // Pre-tick setup
-void JoinFilter::pre_tick(const TickData&)
+void CombineFilter::pre_tick(const TickData&)
 {
-  join.reset();
+  combine.reset();
 }
 
 //--------------------------------------------------------------------------
 // Post-tick flush
-void JoinFilter::post_tick(const TickData& td)
+void CombineFilter::post_tick(const TickData& td)
 {
-  if (!!join)
+  if (!!combine)
   {
     // Reset disparate local timebases to our master
-    join->timestamp = td.t;
-    send(join);
+    combine->timestamp = td.t;
+    send(combine);
   }
 }
 
@@ -68,9 +68,9 @@ void JoinFilter::post_tick(const TickData& td)
 // Module definition
 Dataflow::Module module
 {
-  "join",
-  "Join",
-  "Join multiple frame inputs into one",
+  "combine",
+  "Combine",
+  "Combine multiple frame inputs into one",
   "vector",
   {}, // no properties
   { { "VectorFrame", true } }, // multiple inputs
@@ -79,4 +79,4 @@ Dataflow::Module module
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(JoinFilter, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(CombineFilter, module)

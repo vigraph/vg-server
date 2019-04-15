@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: vector/filters/join/test-join.cc
+// ViGraph dataflow module: vector/filters/combine/test-combine.cc
 //
-// Tests for <join> filter
+// Tests for <combine> filter
 //
 // Copyright (c) 2017 Paul Clark.  All rights reserved
 //==========================================================================
@@ -9,12 +9,12 @@
 #include "../../vector-module-test.h"
 ModuleLoader loader;
 
-TEST(JoinTest, TestSingleInputPassesThrough)
+TEST(CombineTest, TestSingleInputPassesThrough)
 {
   const string& xml = R"(
     <graph>
       <figure points='10'/>
-      <join/>
+      <combine/>
     </graph>
   )";
 
@@ -32,7 +32,7 @@ TEST(JoinTest, TestSingleInputPassesThrough)
   }
 }
 
-TEST(JoinTest, TestTwoInputsJoins)
+TEST(CombineTest, TestTwoInputsCombines)
 {
   const string& xml = R"(
     <graph>
@@ -40,7 +40,7 @@ TEST(JoinTest, TestTwoInputsJoins)
       <figure points='10'>
         <x pos="1"/>
       </figure>
-      <join/>
+      <combine/>
     </graph>
   )";
 
@@ -70,6 +70,6 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../sources/figure/vg-module-vector-source-figure.so");
-  loader.load("./vg-module-vector-filter-join.so");
+  loader.load("./vg-module-vector-filter-combine.so");
   return RUN_ALL_TESTS();
 }

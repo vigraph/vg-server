@@ -94,6 +94,7 @@ class ControlTester
     graph.connect(target);
 
     graph.generate_topological_order();
+    graph.set_sample_rate(50);
 
     for(auto i=0; i<nticks; i++)
     {

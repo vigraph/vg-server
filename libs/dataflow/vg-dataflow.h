@@ -63,7 +63,7 @@ struct TickData
 
   //------------------------------------------------------------------------
   // Get number of samples required for this tick
-  unsigned samples() const
+  unsigned long samples() const
   {
     const auto last_tick_total = static_cast<uint64_t>(
       floor(interval.seconds() * (global_n) * sample_rate));

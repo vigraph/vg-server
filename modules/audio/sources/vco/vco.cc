@@ -24,9 +24,9 @@ public:
   // Configuration
   double freq;  // Hz
   Waveform::Type waveform = Waveform::Type::none;
-  double pulse_width = 0.5;
 
 private:
+  vector<double> pulse_width{0.5};
   double theta = 0.0;
   enum State
   {
@@ -51,8 +51,8 @@ public:
   void set_number(int number) { freq = MIDI::get_midi_frequency(number); }
   string get_waveform() const { return Waveform::get_name(waveform); }
   void set_waveform(const string& wave);
-  double get_pulse_width() const { return pulse_width; }
-  void set_pulse_width(double pw) { pulse_width = max(0.0, min(1.0, pw)); }
+  double get_pulse_width() const { return pulse_width.back(); }
+  void set_pulse_width(const vector<double>& pw);
   void start()
   {
     if (state != State::enabled)
@@ -64,6 +64,17 @@ public:
   }
   void stop() { if (state == State::enabled) state = State::completing; }
 };
+
+//--------------------------------------------------------------------------
+// Set pulse width
+void VCOSource::set_pulse_width(const vector<double>& pw)
+{
+  if (pw.empty())
+    return;
+  pulse_width = pw;
+  for (auto& w: pulse_width)
+    w = max(0.0, min(1.0, w));
+}
 
 //--------------------------------------------------------------------------
 // Set waveform
@@ -94,9 +105,12 @@ void VCOSource::tick(const TickData& td)
     auto fragment = new Fragment(td.t);  // mono
     auto& samples = fragment->waveforms[Speaker::front_center];
     samples.resize(nsamples);
+    auto pw = pulse_width.begin();
     for (auto i=0u; i<nsamples; i++)
     {
-      samples[i] = Waveform::get_value(waveform, pulse_width, theta);
+      samples[i] = Waveform::get_value(waveform, *pw, theta);
+      if (pw != pulse_width.end() - 1)
+        ++pw;
       theta += freq/sample_rate;
       if (theta >= 1)
       {
@@ -108,6 +122,9 @@ void VCOSource::tick(const TickData& td)
         }
       }
     }
+    const auto pulse_width_used = min(nsamples, pulse_width.size() - 1);
+    pulse_width.erase(pulse_width.begin(),
+                      pulse_width.begin() + pulse_width_used);
 
     // Send to output
     send(fragment);
@@ -133,7 +150,8 @@ Dataflow::Module module
                  { &VCOSource::get_waveform, &VCOSource::set_waveform },
                  Waveform::get_names(), true } },
     { "pulse-width",  { "Pulse Width", Value::Type::number,
-                        &VCOSource::pulse_width, true } },
+                        { &VCOSource::get_pulse_width,
+                          &VCOSource::set_pulse_width}, true } },
     { "trigger", { "Trigger on", Value::Type::trigger,
                    &VCOSource::start,
                    true }},

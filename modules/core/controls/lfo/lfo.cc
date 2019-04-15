@@ -29,7 +29,6 @@ class LFOControl: public Dataflow::Control
 {
   // Dynamic state
   double theta = 0.0;
-  double last_t = 0.0;
   bool running{false};
   bool triggered{false};
 
@@ -78,13 +77,10 @@ void LFOControl::enable()
 // Tick
 void LFOControl::pre_tick(const TickData& td)
 {
-  const auto t = td.t;
-
   if (wait)
   {
     if (triggered)
     {
-      last_t = t;
       running = true;
       triggered = false;
     }
@@ -95,25 +91,33 @@ void LFOControl::pre_tick(const TickData& td)
   // Sanity check
   if (!period) return;
 
-  theta += (t - last_t) / period;
-  last_t = t;
-  if (theta >= 1)
+  const auto nsamples = td.samples();
+  const auto sample_rate = td.sample_rate;
+  vector<double> v(nsamples);
+
+  for (auto i = 0u; i < nsamples; ++i)
   {
-    if (once)
-      return;
-    theta -= floor(theta);
+    theta += 1.0 / (period * sample_rate);
+    if (theta >= 1)
+    {
+      if (once)
+        break;
+      theta -= floor(theta);
+    }
+
+    // Get waveform value (-1..1)
+    auto y = Waveform::get_value(waveform, pulse_width, theta);
+
+    // Get raw (0..1) value
+    y = (y + 1) / 2;
+
+    // Adjust to configured output
+    y = y*scale + offset;
+
+    v[i] = y;
   }
 
-  // Get waveform value (-1..1)
-  auto v = Waveform::get_value(waveform, pulse_width, theta);
-
-  // Get raw (0..1) value
-  v = (v + 1) / 2;
-
-  // Adjust to configured output
-  v = v*scale + offset;
-
-  send(Dataflow::Value{v});
+  send("value", v);
 }
 
 //--------------------------------------------------------------------------

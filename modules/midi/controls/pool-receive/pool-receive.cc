@@ -90,7 +90,7 @@ Dataflow::Module module
   "pool-receive",
   "PoolReceive",
   "PoolReceive a control on/off",
-  "core",
+  "midi",
   { },
   {
     { "number", { "Note number", "number", Value::Type::number }},

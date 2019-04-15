@@ -51,7 +51,7 @@ public:
 // Setup
 void MIDIKeyOutControl::setup()
 {
-  distributor = graph->find_service<Distributor>("midi-distributor");
+  distributor = graph->find_service<Distributor>("midi:distributor");
 }
 
 //--------------------------------------------------------------------------
@@ -122,7 +122,7 @@ void MIDIKeyOutControl::pre_tick(const TickData& /*td*/)
 // Module definition
 Dataflow::Module module
 {
-  "midi-key-out",
+  "key-out",
   "MIDI Key Output",
   "Generic MIDI Key Output",
   "midi",

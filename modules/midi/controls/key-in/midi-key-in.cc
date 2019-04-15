@@ -49,7 +49,7 @@ public:
 // Setup
 void MIDIKeyInControl::setup()
 {
-  distributor = graph->find_service<Distributor>("midi-distributor");
+  distributor = graph->find_service<Distributor>("midi:distributor");
 }
 
 //--------------------------------------------------------------------------
@@ -123,7 +123,7 @@ void MIDIKeyInControl::handle(const ViGraph::MIDI::Event& event)
 // Module definition
 Dataflow::Module module
 {
-  "midi-key-in",
+  "key-in",
   "MIDI Key Input",
   "Generic MIDI Key Input",
   "midi",

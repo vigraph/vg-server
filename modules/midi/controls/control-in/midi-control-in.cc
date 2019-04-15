@@ -49,7 +49,7 @@ public:
 // Setup
 void MIDIControlInControl::setup()
 {
-  distributor = graph->find_service<Distributor>("midi-distributor");
+  distributor = graph->find_service<Distributor>("midi:distributor");
 }
 
 //--------------------------------------------------------------------------
@@ -111,7 +111,7 @@ void MIDIControlInControl::notify_target_of(const string& property)
 // Module definition
 Dataflow::Module module
 {
-  "midi-control-in",
+  "control-in",
   "MIDI Control Input",
   "Generic MIDI Control Input",
   "midi",

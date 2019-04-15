@@ -75,7 +75,7 @@ public:
 void MIDIInterface::setup()
 {
   Log::Streams log;
-  distributor = graph->find_service<Distributor>("midi-distributor");
+  distributor = graph->find_service<Distributor>("midi:distributor");
 
   // Input
   log.summary << "Opening MIDI input on ALSA device '" << device << "'\n";

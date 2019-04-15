@@ -97,7 +97,7 @@ void MIDIDistributor::handle_event(const ViGraph::MIDI::Event& event)
 // Module definition
 Dataflow::Module module
 {
-  "midi-distributor",
+  "distributor",
   "MIDI Distributor",
   "MIDI event distributor",
   "midi",

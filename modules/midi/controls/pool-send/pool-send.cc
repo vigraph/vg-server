@@ -91,7 +91,7 @@ Dataflow::Module module
   "pool-send",
   "Pool Send",
   "Send MIDI controls to a pool",
-  "core",
+  "midi",
   {
     { "pool", { "Pool name", Value::Type::text,
                 &PoolSendControl::pool, false }},

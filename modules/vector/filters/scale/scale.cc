@@ -55,13 +55,13 @@ Dataflow::Module module
   "3D scaling",
   "vector",
   {
-    { "all", { {"Factor to scale all axes","1.0"}, Value::Type::number,
-               { &ScaleFilter::set_all }, true } },
-    { "x", { {"Factor to scale X","1.0"}, Value::Type::number,
+    { "all", { "Factor to scale all axes", Value::Type::number,
+        { &ScaleFilter::set_all }, true, true } },
+    { "x", { "Factor to scale X", Value::Type::number,
              &ScaleFilter::sx, true } },
-    { "y", { {"Factor to scale Y","1.0"}, Value::Type::number,
+    { "y", { "Factor to scale Y", Value::Type::number,
              &ScaleFilter::sy, true } },
-    { "z", { {"Factor to scale Z","1.0"}, Value::Type::number,
+    { "z", { "Factor to scale Z", Value::Type::number,
              &ScaleFilter::sz, true } },
   },
   { "VectorFrame" }, // inputs

@@ -53,9 +53,9 @@ Dataflow::Module module
   "Get the fraction (0..1] of a clone",
   "core",
   {
-    { "scale",  { {"Scale to apply to fraction", "1.0"}, Value::Type::number,
+    { "scale",  { "Scale to apply to fraction", Value::Type::number,
                   &CloneFractionControl::scale, true } },
-    { "offset", { {"Offset to apply to fraction", "0"}, Value::Type::number,
+    { "offset", { "Offset to apply to fraction", Value::Type::number,
                   &CloneFractionControl::offset, true } }
   },
   { { "value", { "Clone fraction", "value", Value::Type::number }}}

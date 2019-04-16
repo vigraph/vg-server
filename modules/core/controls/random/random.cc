@@ -86,7 +86,7 @@ Dataflow::Module module
   {
     { "min", { "Minimum value", Value::Type::number,
                &RandomControl::min, true } },
-    { "max", { { "Maximum value", "1.0" }, Value::Type::number,
+    { "max", { "Maximum value", Value::Type::number,
                &RandomControl::max, true } },
     { "wait",  { "Whether to wait for a trigger", Value::Type::boolean,
                  &RandomControl::wait, false } },

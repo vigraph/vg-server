@@ -135,7 +135,7 @@ Dataflow::Module module
   {
     { "phase", { "Phase of pattern (0..1)", Value::Type::number,
                  &PatternFilter::phase, true } },
-    { "repeats", { { "Number of repeats of pattern", "1" },
+    { "repeats", { "Number of repeats of pattern",
                    Value::Type::number, &PatternFilter::repeats, true } },
     { "blend", { "Type of blending to use", Value::Type::choice,
                  { &PatternFilter::get_blend, &PatternFilter::set_blend },

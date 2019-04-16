@@ -179,20 +179,9 @@ struct Module
   string description;          // Long description
   string section;              // Section name
 
-  // Properties of this element
-  struct PropertyDescription
-  {
-    string description;
-    string default_value;
-    PropertyDescription(const string& _desc, const string& _def=""):
-      description(_desc), default_value(_def) {}
-    PropertyDescription(const char *_desc):  // Allow direct set from string
-      description(_desc) {}
-  };
-
   struct Property
   {
-    PropertyDescription desc;
+    string description;
     Value::Type type;
     string other_type;  // If type == other
 
@@ -287,22 +276,22 @@ struct Module
     bool settable{false};      // Can be connected to and changed dynamically
     bool alias{false};         // Another way of representing an earlier value
     // Constructors
-    Property(const PropertyDescription& _desc, Value::Type _type,
+    Property(const string& _desc, Value::Type _type,
              const Member& _member, bool _set=false, bool _alias=false):
-      desc(_desc), type(_type), member(_member), settable(_set),
+      description(_desc), type(_type), member(_member), settable(_set),
       alias(_alias) {}
 
     // choice value
-    Property(const PropertyDescription& _desc, Value::Type _type,
+    Property(const string& _desc, Value::Type _type,
              const Member& _member,
              const set<string>& _options, bool _set=false):
-      desc(_desc), type(_type), member(_member),
+      description(_desc), type(_type), member(_member),
         options(_options), settable(_set) {}
 
     // complex value ('other')
-    Property(const PropertyDescription& _desc, const string& _type,
+    Property(const string& _desc, const string& _type,
              const Member& _member, bool _set=false):
-      desc(_desc), type(Value::Type::other), other_type(_type),
+      description(_desc), type(Value::Type::other), other_type(_type),
         member(_member), settable(_set) {}
   };
 

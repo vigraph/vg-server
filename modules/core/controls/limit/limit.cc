@@ -52,7 +52,7 @@ Dataflow::Module module
                  &LimitControl::value, true } },
     { "min", { "Minimum value", Value::Type::number,
                &LimitControl::min, true } },
-    { "max", { { "Maximum value", "1.0" }, Value::Type::number,
+    { "max", { "Maximum value", Value::Type::number,
                &LimitControl::max, true } }
   },
   { { "value", { "Value output", "value", Value::Type::number }}}

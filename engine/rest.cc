@@ -281,11 +281,13 @@ JSON::Value MetaURLHandler::get_metadata_for_module(
       JSON::Value& pj =
         (prop.settable?ipropsj:propsj).add(JSON::Value(JSON::Value::OBJECT));
       pj.set("id", pit.first);
-      pj.set("description", prop.desc.description);
+      pj.set("description", prop.description);
       if (prop.type == Dataflow::Value::Type::other)
         pj.set("type", prop.other_type);
       else
         pj.set("type", Dataflow::Value::type_str(prop.type));
+      if (prop.alias)
+        pj.set("alias", JSON::Value(JSON::Value::TRUE));
     }
 
     if (!propsj.a.empty()) json.set("props", propsj);

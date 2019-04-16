@@ -67,9 +67,9 @@ Dataflow::Module module
                  true } },
     { "min", { "Minimum value", Value::Type::number,
                &CompareControl::min, true } },
-    { "max", { { "Maximum value", "1.0" }, Value::Type::number,
+    { "max", { "Maximum value", Value::Type::number,
                  &CompareControl::max, true } },
-    { "on-change", { { "Send triggers only on change", "false" },
+    { "on-change", { "Send triggers only on change",
                        Value::Type::boolean,
                        &CompareControl::on_change, true } }
   },

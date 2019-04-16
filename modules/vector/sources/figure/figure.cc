@@ -260,7 +260,7 @@ Dataflow::Module module
                    &FigureSource::x_freq, true } },
     { "x.phase", { "Phase (0..1) on X axis", Value::Type::number,
                    &FigureSource::x_phase, true } },
-    { "x.scale", { { "Scale of X axis", "1.0" }, Value::Type::number,
+    { "x.scale", { "Scale of X axis", Value::Type::number,
                    &FigureSource::x_scale, true } },
     { "y.wave",  { "Waveform on Y axis", Value::Type::choice,
                    { &FigureSource::get_waveform_y,
@@ -272,7 +272,7 @@ Dataflow::Module module
                    &FigureSource::y_freq, true } },
     { "y.phase", { "Phase (0..1) on Y axis", Value::Type::number,
                    &FigureSource::y_phase, true } },
-    { "y.scale", { { "Scale of Y axis", "1.0" }, Value::Type::number,
+    { "y.scale", { "Scale of Y axis", Value::Type::number,
                      &FigureSource::y_scale, true } }
   },
   {},  // no inputs

@@ -69,9 +69,9 @@ Dataflow::Module module
   "Audio amplitude",
   "audio",
   {
-    { "scale",  { {"Scale to apply to amplitude", "1.0"},
+    { "scale",  { "Scale to apply to amplitude",
                   Value::Type::number, &AmplitudeFilter::scale, true } },
-    { "offset", { {"Offset to apply to amplitude", "0"},
+    { "offset", { "Offset to apply to amplitude",
                   Value::Type::number, &AmplitudeFilter::offset, true } }
   },
   { { "", { "Amplitude", "", Value::Type::number }}},

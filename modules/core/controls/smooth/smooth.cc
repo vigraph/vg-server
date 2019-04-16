@@ -65,7 +65,7 @@ Dataflow::Module module
   {
     { "value", { "Value to smooth", Value::Type::number,
                  &SmoothControl::value, true } },
-    { "time", { {"RC time constant (seconds)", "0.3"}, Value::Type::number,
+    { "time", { "RC time constant (seconds)", Value::Type::number,
                 &SmoothControl::rc, true } },
   },
   { { "value", { "Value output", "value", Value::Type::number }}}

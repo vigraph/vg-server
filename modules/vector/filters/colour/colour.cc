@@ -85,7 +85,7 @@ Dataflow::Module module
     { "s", { "Saturation for HSL (0..1)", Value::Type::number,
              { &ColourFilter::get_s, &ColourFilter::set_s },
              true, true } },
-    { "l", { {"Lightnesss for HSL (0..1)","0.5"}, Value::Type::number,
+    { "l", { "Lightness for HSL (0..1)", Value::Type::number,
              { &ColourFilter::get_l, &ColourFilter::set_l },
              true, true } },
   },

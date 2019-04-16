@@ -14,6 +14,9 @@ namespace ViGraph { namespace Dataflow {
 // Get a property value as JSON
 JSON::Value Element::get_property_json(const Module::Property& prop) const
 {
+  // Ignore aliases
+  if (prop.alias) return {};
+
   const auto& member = prop.member;
 
   // Get value from prop through member pointers or getter functions

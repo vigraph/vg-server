@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph join filter module
+# Tupfile for Vigraph vector combine filter module
 #
 # Copyright (c) 2018 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-vector-filter-join
+NAME    = vg-module-vector-filter-combine
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
           vg-module-vector-source-figure

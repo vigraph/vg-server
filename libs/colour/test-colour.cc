@@ -165,8 +165,12 @@ TEST(ColourTest, TestColourRGBIntegerStringConstruction)
 }
 TEST(ColourTest, TestColourRGBToString)
 {
-  Colour::RGB c(0xf0, 0xf8, 0xff);
-  EXPECT_EQ("#F0F8FF", c.str());
+  Colour::RGB c1("#4080c0");
+  EXPECT_EQ("#4080C0", c1.str());
+  Colour::RGB c2(0,0,0);
+  EXPECT_EQ("#000000", c2.str());
+  Colour::RGB c3(1,1,1);
+  EXPECT_EQ("#FFFFFF", c3.str());
 }
 
 

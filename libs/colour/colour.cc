@@ -295,8 +295,10 @@ RGB::RGB(const HSL& hsl)
 string RGB::str() const
 {
   auto s = stringstream{};
-  s << "#" << uppercase << setfill('0') << setw(2) << hex
-    << static_cast<int>(r) << static_cast<int>(g) << static_cast<int>(b);
+  s << "#" << uppercase
+    << setfill('0') << setw(2) << hex << static_cast<int>(r*255)
+    << setfill('0') << setw(2) << hex << static_cast<int>(g*255)
+    << setfill('0') << setw(2) << hex << static_cast<int>(b*255);
   return s.str();
 }
 

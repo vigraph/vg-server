@@ -89,12 +89,39 @@ TEST(ColourTest, TestSpecifiedHSLColour)
   }
 }
 
-TEST(ColourTest, TestSpecifiedHexColour)
+TEST(ColourTest, TestSpecifiedHexColourWithHash)
 {
   const string& xml = R"(
     <graph>
       <figure points='10'/>
-      <colour>#00c0ff</colour>
+      <colour hex="#00c0ff"/>
+    </graph>
+  )";
+
+  FrameGenerator gen(xml, loader);
+  Frame *frame = gen.get_frame();
+  ASSERT_FALSE(!frame);
+
+  EXPECT_EQ(11, frame->points.size());
+  bool first=true;
+  for(const auto& p: frame->points)
+  {
+    EXPECT_EQ(0.0, p.x);
+    EXPECT_EQ(0.0, p.y);
+    EXPECT_EQ(0.0, p.z);
+    EXPECT_DOUBLE_EQ(0.0, p.c.r);
+    EXPECT_NEAR(first?0.0:0.75, p.c.g, 0.01);
+    EXPECT_DOUBLE_EQ(first?0.0:1.0, p.c.b);
+    first = false;
+  }
+}
+
+TEST(ColourTest, TestSpecifiedHexColourWithoutHash)
+{
+  const string& xml = R"(
+    <graph>
+      <figure points='10'/>
+      <colour hex="00c0ff"/>
     </graph>
   )";
 

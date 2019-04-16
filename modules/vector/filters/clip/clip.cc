@@ -120,7 +120,7 @@ Dataflow::Module module
                    &ClipFilter::exclude, true } },
     { "alpha", { "Alpha level to apply to clipped points", Value::Type::number,
                  &ClipFilter::alpha, true } },
-    { "Outline", { "Outline colour", Value::Type::text,
+    { "outline", { "Outline colour", Value::Type::text,
                    { &ClipFilter::get_outline, &ClipFilter::set_outline },
                    true } },
   },

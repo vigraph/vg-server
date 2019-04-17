@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph DMX channel input module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-dmx-control-channel-in
+TYPE    = shared
+DEPENDS = vg-dataflow ext-dl
+
+include_rules

@@ -168,7 +168,7 @@ Dataflow::Module module
   "Clones multiple copies of a sub-graph",
   "core",
   {
-    { "n", { { "Number of copies to clone", "1" }, Value::Type::number,
+    { "n", { "Number of copies to clone", Value::Type::number,
              &CloneSource::n, false } }
   },
   {}, // no inputs

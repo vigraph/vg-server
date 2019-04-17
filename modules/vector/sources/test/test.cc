@@ -80,7 +80,7 @@ Dataflow::Module module
   "Test pattern generator",
   "vector",
   {
-    { "precision", { {"Precision for line generation","0.1"},
+    { "precision", { "Precision for line generation",
                      Value::Type::number, &TestSource::precision, true}}
   },
   {}, // no inputs

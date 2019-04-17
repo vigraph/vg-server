@@ -191,7 +191,7 @@ Dataflow::Module module
   "MIDI Interface for Linux/ALSA",
   "midi",
   {
-    { "device",  { {"Device to listen to", "default"}, Value::Type::text,
+    { "device",  { "Device to listen to", Value::Type::text,
                     &MIDIInterface::device, false} },
     { "channel-offset", { "Offset to apply to channel number",
                           Value::Type::number, &MIDIInterface::channel_offset,

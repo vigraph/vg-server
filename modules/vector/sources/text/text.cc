@@ -49,7 +49,7 @@ Dataflow::Module module
   "vector",
   {
     { "", { "Text to use", Value::Type::text, &TextSource::text, true } },
-    { "precision", { {"Precision for character generation","0.1"},
+    { "precision", { "Precision for character generation",
                      Value::Type::number, &TextSource::precision, true } }
   },
   {}, // no inputs

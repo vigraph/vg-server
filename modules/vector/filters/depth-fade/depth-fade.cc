@@ -56,7 +56,7 @@ Dataflow::Module module
   "Depth-cue from fading over Z distance",
   "vector",
   {
-    { "d", { {"Distance to fade over","1"}, Value::Type::number,
+    { "d", { "Distance to fade over", Value::Type::number,
              &DepthFadeFilter::distance, true } }
   },
   { "VectorFrame" }, // inputs

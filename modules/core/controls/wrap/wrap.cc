@@ -51,7 +51,7 @@ Dataflow::Module module
                  &WrapControl::value, true } },
     { "min", { "Minimum value", Value::Type::number,
                &WrapControl::min, true} },
-    { "max", { { "Maximum value", "1.0" }, Value::Type::number,
+    { "max", { "Maximum value", Value::Type::number,
                &WrapControl::max, true } },
   },
   { { "value", { "Value output", "value", Value::Type::number }}}

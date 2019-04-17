@@ -45,7 +45,7 @@ Dataflow::Module module
   {
     { "value", { "Base value", Value::Type::number,
                   &MultiplyControl::value, true } },
-    { "factor", { { "Factor to multiply with", "1.0" }, Value::Type::number,
+    { "factor", { "Factor to multiply with", Value::Type::number,
                   &MultiplyControl::factor, true } }
   },
   { { "value", { "Value output", "value", Value::Type::number }}}

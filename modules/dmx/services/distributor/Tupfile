@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph Linux DMX distributor module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-dmx-service-distributor
+TYPE    = shared
+DEPENDS = vg-dataflow ot-log ot-web ext-dl
+
+include_rules

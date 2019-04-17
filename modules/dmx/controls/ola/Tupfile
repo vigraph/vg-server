@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph Linux DMX interface module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-dmx-control-ola
+TYPE    = shared
+DEPENDS = vg-dataflow ot-log ext-dl ext-ola
+
+include_rules

@@ -1,0 +1,21 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow DMX modules
+#
+# Copyright (c) 2018 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-dmx
+TYPE     = package
+DEPENDS  = vg-module-dmx-service-distributor \
+           vg-module-dmx-control-ola \
+           vg-module-dmx-control-channel-in
+
+PACKAGE  = $(NAME)
+VERSION  = 0.4.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

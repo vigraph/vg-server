@@ -162,7 +162,7 @@ void Graph::connect(Element *el)
       }
 
       // Attach it
-      c->attach_target(it.first, target_element, el);
+      c->attach_target(it.first, target_element);
       el->downstreams.push_back(target_element);
     }
   }

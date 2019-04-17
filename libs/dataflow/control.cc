@@ -127,13 +127,12 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
 
 //------------------------------------------------------------------------
 // Attach to a target element
-void ControlImpl::attach_target(const string& prop_id,
-                                Element *target_element,
-                                Element *source_element)
+void ControlImpl::attach_target(const string& target_id,
+                                Element *target_element)
 {
-  auto it = targets.find(prop_id);
+  auto it = targets.find(target_id);
   if (it == targets.end())
-    throw runtime_error("No such target "+prop_id+" on control");
+    throw runtime_error("No such target "+target_id+" on control");
 
   auto& target = it->second;
 
@@ -147,7 +146,7 @@ void ControlImpl::attach_target(const string& prop_id,
     {
       // If explicit, this is an error
       if (p.is_explicit)
-        throw runtime_error("Can't connect from "+source_element->id+" to "
+        throw runtime_error("Can't connect from "+control_id+" to "
                             +target_element->id+"("+p.name
                             +"): no such property");
       else
@@ -162,7 +161,7 @@ void ControlImpl::attach_target(const string& prop_id,
     if (p.type != target_type && p.type != Value::Type::any
         && target_type != Value::Type::any)
       throw runtime_error("Control type mismatch connecting "+
-                          source_element->id+" to "
+                          control_id+" to "
                           +target_element->id+"("+p.name
                           +"): expecting "+Value::type_str(target_type)
                           +" but got "+Value::type_str(p.type));
@@ -173,7 +172,7 @@ void ControlImpl::attach_target(const string& prop_id,
       const auto pit = target_element->module->properties.find(p.name);
       if (pit != target_element->module->properties.end()
           && !pit->second.settable)
-        throw runtime_error("Can't connect from "+source_element->id+" to "
+        throw runtime_error("Can't connect from "+control_id+" to "
                             +target_element->id+"("+p.name
                             +"): property not settable");
 
@@ -274,6 +273,93 @@ void ControlImpl::add_to_json(JSON::Value& json) const
       }
     }
   }
+}
+
+//------------------------------------------------------------------------
+// Delete any existing connections for the given our property name
+void ControlImpl::delete_targets_from(const string& prop)
+{
+  for(auto tit = targets.begin(); tit!=targets.end();)
+  {
+    auto& target = tit->second;
+    target.properties.erase(prop);
+
+    // Erase whole target if now no connected properties
+    if (target.properties.empty())
+    {
+      tit = targets.erase(tit);
+      continue;
+    }
+
+    ++tit;
+  }
+}
+
+//------------------------------------------------------------------------
+// Set target from JSON
+void ControlImpl::set_target_from_json(const string& prop,
+                                       const JSON::Value& value,
+                                       Element *source_element)
+{
+  Log::Detail log;
+  log << "Set control " << control_id << " target " << prop << " to "
+      << value << endl;
+
+  const auto& e_v = value["element"];
+
+  // !!! Temporary - if no element, just delete the old one
+  if (!e_v)
+  {
+    delete_targets_from(prop);
+    return;
+  }
+
+  if (!e_v)
+    throw runtime_error("No 'element' in JSON value setting "+prop
+                        +" in "+control_id);
+  const auto& target_id = e_v.as_str();
+  if (target_id.empty())
+    throw runtime_error("Bad 'element' in JSON value setting "+prop
+                        +" in "+control_id);
+
+
+  const auto& p_v = value["prop"];
+  if (!p_v)
+    throw runtime_error("No 'prop' in JSON value setting "+prop
+                        +" in "+control_id);
+  const auto& target_prop = p_v.as_str();
+  if (target_prop.empty())
+    throw runtime_error("Bad 'prop' in JSON value setting "+prop
+                        +" in "+control_id);
+
+  Element *target_element = source_element->graph->get_element(target_id);
+  if (!target_element)
+    throw runtime_error("No element "+target_id+" in local graph of "
+                        +control_id);
+
+  // Remove existing target for this property
+  delete_targets_from(prop);
+
+  // Do we already have a target for this element?
+  auto tit = targets.find(target_id);
+  if (tit != targets.end())
+  {
+    auto& target = tit->second;
+
+    // Update the existing target - we know we just deleted any existing
+    // properties
+    // !!! Type???
+    target.properties[prop] = Property(target_prop, Value::Type::number,
+                                       true);
+  }
+  else
+  {
+    // Create a whole new target
+    auto& target = targets[target_element->id];
+    target.properties[prop] = Property(target_prop, Value::Type::number, true);
+  }
+
+  attach_target(target_id, target_element);
 }
 
 }} // namespaces

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph DMX channel output module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-dmx-control-channel-out
+TYPE    = shared
+DEPENDS = vg-dataflow ext-dl
+
+include_rules

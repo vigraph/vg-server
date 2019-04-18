@@ -50,6 +50,7 @@ class DMXDistributor: public Dataflow::Service, public Distributor
   };
 
   list<Observer> observers;
+  map<unsigned, vector<dmx_value_t>> current_values;
 
 public:
   using Service::Service;
@@ -102,6 +103,28 @@ void DMXDistributor::handle_event(Direction direction, unsigned universe,
 void DMXDistributor::handle_event(Direction direction, unsigned universe,
                                   const vector<dmx_value_t>& values)
 {
+  auto new_values = vector<bool>(values.size());
+  // For incoming data we only care about changes, so figure out what's new
+  if (direction == Direction::in)
+  {
+    auto& current_uni = current_values[universe];
+    auto len = min(current_uni.size(), values.size());
+    for (auto i = 0u; i < len; ++i)
+    {
+      if (current_uni[i] != values[i])
+      {
+        new_values[i] = true;
+        current_uni[i] = values[i];
+      }
+    }
+    if (current_uni.size() < values.size())
+    {
+      new_values.insert(new_values.end(), values.size() - current_uni.size(),
+                        true);
+      copy(values.begin() + current_uni.size(), values.end(),
+           back_inserter(current_uni));
+    }
+  }
   // Send event to all interested observers
   for (const auto& o: observers)
   {
@@ -109,13 +132,18 @@ void DMXDistributor::handle_event(Direction direction, unsigned universe,
         (universe >= o.min_universe && universe <= o.max_universe))
     {
       auto channel = 1u;
+      auto is_new = new_values.begin();
       for (auto v: values)
       {
-        if (channel >= o.min_channel && channel <= o.max_channel)
+        if (*is_new)
         {
-          o.observer->handle(universe, channel, v);
+          if (channel >= o.min_channel && channel <= o.max_channel)
+          {
+            o.observer->handle(universe, channel, v);
+          }
         }
         ++channel;
+        ++is_new;
       }
     }
   }

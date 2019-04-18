@@ -1,3 +1,4 @@
 services/distributor/vg-module-dmx-service-distributor.so /usr/lib/vigraph/modules/
 controls/ola/vg-module-dmx-control-ola.so /usr/lib/vigraph/module
 controls/channel-in/vg-module-dmx-control-channel-in.so /usr/lib/vigraph/modules/
+controls/channel-out/vg-module-dmx-control-channel-out.so /usr/lib/vigraph/modules/

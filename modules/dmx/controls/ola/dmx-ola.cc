@@ -23,6 +23,7 @@ private:
   shared_ptr<Distributor> distributor;
 
   ola::client::OlaClientWrapper ola_client;
+  map<unsigned, ola::DmxBuffer> buffers;
 
   // Control virtuals
   void setup() override;
@@ -111,9 +112,16 @@ void DMXInterface::pre_tick(const TickData&)
 
 //--------------------------------------------------------------------------
 // Handle event
-void DMXInterface::handle(unsigned /*universe*/, unsigned /*channel*/,
-                          dmx_value_t /*value*/)
+void DMXInterface::handle(unsigned universe, unsigned channel,
+                          dmx_value_t value)
 {
+  auto client = ola_client.GetClient();
+  if (client)
+  {
+    auto& buffer = buffers[universe];
+    buffer.SetChannel(channel - 1, value);
+    client->SendDMX(universe, buffer, {});
+  }
 }
 
 //--------------------------------------------------------------------------

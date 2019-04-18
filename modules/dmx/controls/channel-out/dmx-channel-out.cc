@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: dmx/controls/dmx-channel-in/dmx-channel-in.cc
+// ViGraph dataflow module: dmx/controls/dmx-channel-out/dmx-channel-out.cc
 //
-// Generic DMX channel input control
+// Generic DMX channel output control
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -14,15 +14,12 @@ using namespace ViGraph::Module::DMX;
 namespace {
 
 //==========================================================================
-// DMXChannelIn control
-class DMXChannelInControl: public Dataflow::Control,
-                           public Distributor::EventObserver
+// DMXChannelOut control
+class DMXChannelOutControl: public Dataflow::Control
 {
 public:
   int universe{0};
   int channel{0};
-  double scale{1.0};
-  double offset{0.0};
 
 private:
   shared_ptr<Distributor> distributor;
@@ -32,11 +29,13 @@ private:
   void setup() override;
 
   // Event observer implementation
-  void handle(unsigned universe, unsigned channel, dmx_value_t value) override;
   void notify_target_of(const string& property) override;
 
 public:
   using Control::Control;
+
+  // Set the value
+  void set_value(double value);
 
   // Event observer implementation
   void enable() override;
@@ -45,60 +44,58 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void DMXChannelInControl::setup()
+void DMXChannelOutControl::setup()
 {
   distributor = graph->find_service<Distributor>("dmx:distributor");
 }
 
 //--------------------------------------------------------------------------
 // Enable - register for events
-void DMXChannelInControl::enable()
+void DMXChannelOutControl::enable()
 {
   if (distributor && !enabled)
   {
     Log::Detail log;
-    log << "DMX IN controller enable on universe " << universe
+    log << "DMX OUT controller enable on universe " << universe
         << " channel " << channel << endl;
-
-    distributor->register_event_observer(Direction::in,
-                                         universe, universe, channel, channel,
-                                         this);
     enabled = true;
   }
 }
 
 //--------------------------------------------------------------------------
 // Disable - deregister for events
-void DMXChannelInControl::disable()
+void DMXChannelOutControl::disable()
 {
   if (distributor && enabled)
   {
-    Log::Detail log;
-    log << "DMX IN control disable on universe " << universe
+#if OBTOOLS_LOG_DEBUG
+    Log::Debug log;
+    log << "DMX OUT control disable on universe " << universe
         << " channel " << channel << endl;
-
-    distributor->deregister_event_observer(this);
+#endif
     enabled = false;
   }
 }
 
 //--------------------------------------------------------------------------
-// Handle event
-void DMXChannelInControl::handle(unsigned universe, unsigned chan,
-                                 dmx_value_t value)
+// Set value
+void DMXChannelOutControl::set_value(double value)
 {
-  if (static_cast<int>(chan) == channel)
+  if (distributor && enabled)
   {
-    Log::Detail log;
-    log << "DMX IN " << universe << ": channel " << channel
+    value *= 255.0;
+    distributor->handle_event(Direction::out, universe, channel, value);
+#if OBTOOLS_LOG_DEBUG
+    Log::Debug log;
+    log << "DMX OUT " << universe << ": channel " << channel
         << " -> " << static_cast<int>(value) << endl;
-    send(Dataflow::Value(scale * value / 255.0 + offset));
+#endif
   }
 }
 
 //--------------------------------------------------------------------------
 // If recipient of triggers default to disabled
-void DMXChannelInControl::notify_target_of(const string& property)
+void DMXChannelOutControl::notify_target_of(const string& property)
 {
   if (property == "enable")
     disable();
@@ -108,27 +105,24 @@ void DMXChannelInControl::notify_target_of(const string& property)
 // Module definition
 Dataflow::Module module
 {
-  "channel-in",
-  "DMX Channel Input",
-  "Generic DMX Channel Input",
+  "channel-out",
+  "DMX Channel Output",
+  "Generic DMX Channel Output",
   "dmx",
   {
     { "universe", { "DMX universe", Value::Type::number,
-                    &DMXChannelInControl::universe, false } },
+                    &DMXChannelOutControl::universe, false } },
     { "channel", { "Control channel", Value::Type::number,
-                   &DMXChannelInControl::channel, true } },
-    { "scale",  { "Scale to apply to control value", Value::Type::number,
-                  &DMXChannelInControl::scale, true } },
-    { "offset", { "Offset to apply to control value", Value::Type::number,
-                  &DMXChannelInControl::offset, true } },
+                   &DMXChannelOutControl::channel, true } },
+    { "value", { "Channel value", Value::Type::number,
+                 { &DMXChannelOutControl::set_value }, true } },
     { "enable", { "Enable the control", Value::Type::trigger,
-                  &DMXChannelInControl::enable, true } },
+                  &DMXChannelOutControl::enable, true } },
     { "disable", { "Disable the control", Value::Type::trigger,
-                   &DMXChannelInControl::disable, true } },
+                   &DMXChannelOutControl::disable, true } },
   },
-  { { "value", { "Channel value", "value", Value::Type::number }}}
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(DMXChannelInControl, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(DMXChannelOutControl, module)

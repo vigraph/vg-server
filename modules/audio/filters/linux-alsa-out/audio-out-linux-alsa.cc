@@ -20,7 +20,7 @@ const auto default_start_threshold = 1000;
 
 //==========================================================================
 // LinuxAudioOut filter
-class LinuxALSAOutFilter: public FragmentFilter
+class LinuxALSAOutSink: public FragmentSink
 {
 public:
   string device = default_device;
@@ -43,12 +43,12 @@ private:
   void shutdown() override;
 
 public:
-  using FragmentFilter::FragmentFilter;
+  using FragmentSink::FragmentSink;
 };
 
 //--------------------------------------------------------------------------
 // Setup
-void LinuxALSAOutFilter::setup()
+void LinuxALSAOutSink::setup()
 {
   Log::Streams log;
   log.summary << "Opening audio output on ALSA device '" << device << "'\n";
@@ -129,7 +129,7 @@ void LinuxALSAOutFilter::setup()
 
 //--------------------------------------------------------------------------
 // Write samples to device
-bool LinuxALSAOutFilter::write_samples(const vector<sample_t>& samples)
+bool LinuxALSAOutSink::write_samples(const vector<sample_t>& samples)
 {
   const auto samples_to_write = min(tick_samples_required,
                                     static_cast<unsigned long>(samples.size()
@@ -154,7 +154,7 @@ bool LinuxALSAOutFilter::write_samples(const vector<sample_t>& samples)
 
 //--------------------------------------------------------------------------
 // Process some data
-void LinuxALSAOutFilter::accept(FragmentPtr fragment)
+void LinuxALSAOutSink::accept(FragmentPtr fragment)
 {
   auto& waveforms = fragment->waveforms;
 
@@ -190,14 +190,11 @@ void LinuxALSAOutFilter::accept(FragmentPtr fragment)
       continue;
     break;
   }
-
-  // Send it down as well, so these can be chained
-  send(fragment);
 }
 
 //--------------------------------------------------------------------------
 // Record how many samples we need for tick
-void LinuxALSAOutFilter::pre_tick(const TickData &td)
+void LinuxALSAOutSink::pre_tick(const TickData &td)
 {
   tick_samples_required = td.samples();
 }
@@ -205,7 +202,7 @@ void LinuxALSAOutFilter::pre_tick(const TickData &td)
 //--------------------------------------------------------------------------
 // If tick has not been completely fulfilled, fill in with empty data to avoid
 // underruns
-void LinuxALSAOutFilter::post_tick(const TickData &)
+void LinuxALSAOutSink::post_tick(const TickData &)
 {
   if (tick_samples_required)
   {
@@ -223,7 +220,7 @@ void LinuxALSAOutFilter::post_tick(const TickData &)
 
 //--------------------------------------------------------------------------
 // Shut down
-void LinuxALSAOutFilter::shutdown()
+void LinuxALSAOutSink::shutdown()
 {
   if (pcm) snd_pcm_close(pcm);
   pcm = nullptr;
@@ -239,19 +236,19 @@ Dataflow::Module module
   "audio",
   {
       { "device", { "Device output to", Value::Type::text,
-                    &LinuxALSAOutFilter::device, false } },
+                    &LinuxALSAOutSink::device, false } },
       { "channels", { "Number of channels", Value::Type::number,
-                      &LinuxALSAOutFilter::nchannels, false } },
+                      &LinuxALSAOutSink::nchannels, false } },
       { "start-threshold",
         { "Number of samples to buffer before playback will start",
           Value::Type::number,
-          &LinuxALSAOutFilter::start_threshold, false } },
+          &LinuxALSAOutSink::start_threshold, false } },
   },
   { "Audio" }, // inputs
-  { "Audio" }  // outputs
+  {}
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(LinuxALSAOutFilter, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(LinuxALSAOutSink, module)
 

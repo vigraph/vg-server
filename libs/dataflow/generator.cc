@@ -62,4 +62,42 @@ JSON::Value Generator::get_json(const string& path) const
   return json;
 }
 
+//------------------------------------------------------------------------
+// Set acceptor from JSON
+// ! output_id ignored until we have multiple output types
+void Generator::set_output_from_json(const string& /*output_id*/,
+                                     const JSON::Value& json)
+{
+  // Clear all current outputs
+  acceptors.clear();
+  downstreams.clear();  // !!! What about control downstreams?
+                        // !!! Need to dynamically regenerate on topo calc
+
+  if (json.type != JSON::Value::ARRAY)
+    throw runtime_error("JSON to set outputs must be an array");
+
+  for(const auto& value: json.a)
+  {
+    const auto& e_v = value["element"];
+    if (!e_v)
+      throw runtime_error("No 'element' in JSON value setting output in "+id);
+    const auto& element_id = e_v.as_str();
+    if (element_id.empty())
+      throw runtime_error("Bad 'element' in JSON value setting output in "+id);
+
+    Element *element = graph->get_element(element_id);
+    if (!element)
+      throw runtime_error("No element "+element_id+" in local graph of "+id);
+
+    // ! Note use 'prop' when multiple output types
+    // !!! Type check!
+    // !!! Loop check?
+
+    Acceptor *acceptor = dynamic_cast<Acceptor *>(element);
+    if (!acceptor) throw runtime_error("Element "+element_id+" has no inputs");
+    acceptors[element_id] = acceptor;
+    downstreams.push_back(element);
+  }
+}
+
 }} // namespaces

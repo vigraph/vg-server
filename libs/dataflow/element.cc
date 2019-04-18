@@ -67,9 +67,39 @@ void Element::set_json(const string& path, const JSON::Value& value)
   {
     // Individual property - note must be leaf path now
     const auto pit = module->properties.find(path);
-    if (pit == module->properties.end())
-      throw runtime_error("No such property "+path+" in element "+id);
-    set_property(path, pit->second, Value(value));
+    if (pit != module->properties.end())
+    {
+      set_property(path, pit->second, Value(value));
+    }
+    else if (path == "default") // !!! For now, later look up in named outputs
+    {
+      // Only Generators
+      const auto this_g = dynamic_cast<Generator *>(this);
+      if (this_g)
+      {
+        this_g->set_output_from_json(path, value);
+        graph->generate_topological_order(); // !!! Uses downstreams
+      }
+      else
+        throw runtime_error("Element "+id+" has no data outputs");
+    }
+    else
+    {
+      // Look for controlled property target to redirect
+      const auto cpit = module->controlled_properties.find(path);
+      if (cpit != module->controlled_properties.end())
+      {
+        // Only for controls
+        ControlImpl *this_c = dynamic_cast<ControlImpl *>(this);
+        if (this_c)
+        {
+          this_c->set_target_from_json(path, value, this);
+          graph->generate_topological_order(); // !!! Uses downstreams
+        }
+      }
+      else
+        throw runtime_error("No such property "+path+" in element "+id);
+    }
   }
 
   // Action changes

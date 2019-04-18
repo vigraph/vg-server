@@ -500,7 +500,7 @@ class Acceptor
 class Generator: public Element
 {
  public:
-  map<string, Acceptor *> acceptors;
+  map<string, Acceptor *> acceptors;  // Element ID to Acceptor
 
   // Constructor - get acceptor_id as well as Element stuff
   Generator(const Module *_module, const XML::Element& config);
@@ -520,6 +520,9 @@ class Generator: public Element
   // Clone a data pointer - called by send() if it needs to send different
   // copies to multiple outputs
   virtual DataPtr clone(DataPtr p) { return p; }
+
+  // Set acceptor from JSON
+  void set_output_from_json(const string& output_id, const JSON::Value& json);
 };
 
 //==========================================================================
@@ -552,6 +555,8 @@ class ControlImpl
 {
   string control_id;
 
+  void delete_targets_from(const string& prop, Element *source_element);
+
  public:
   struct Property
   {
@@ -583,9 +588,8 @@ class ControlImpl
   const map<string, Target>& get_targets() { return targets; }
 
   // Attach to a target element
-  void attach_target(const string& prop_id,
-                     Element *target_element,
-                     Element *source_element);
+  void attach_target(const string& target_id,
+                     Element *target_element);
 
   // Send a value to the target using only (first) property
   void send(const Value& v);
@@ -605,6 +609,10 @@ class ControlImpl
 
   // Get state as JSON, adding to the given value
   void add_to_json(JSON::Value& json) const;
+
+  // Set target from JSON
+  void set_target_from_json(const string& prop, const JSON::Value& value,
+                            Element *source_element);
 };
 
 //==========================================================================

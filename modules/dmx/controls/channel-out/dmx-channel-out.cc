@@ -84,12 +84,12 @@ void DMXChannelOutControl::set_value(double value)
   if (distributor && enabled)
   {
     value *= 255.0;
-    distributor->handle_event(Direction::out, universe, channel, value);
 #if OBTOOLS_LOG_DEBUG
     Log::Debug log;
     log << "DMX OUT " << universe << ": channel " << channel
         << " -> " << static_cast<int>(value) << endl;
 #endif
+    distributor->handle_event(Direction::out, universe, channel, value);
   }
 }
 

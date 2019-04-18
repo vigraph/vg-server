@@ -9,7 +9,9 @@ TYPE     = package
 DEPENDS  = vg-module-midi-service-distributor \
            vg-module-midi-control-linux-alsa \
            vg-module-midi-control-key-in \
-           vg-module-midi-control-control-in
+           vg-module-midi-control-key-out \
+           vg-module-midi-control-control-in \
+           vg-module-midi-control-control-out
 
 PACKAGE  = $(NAME)
 VERSION  = 0.4.0

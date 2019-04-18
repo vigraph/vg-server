@@ -630,7 +630,6 @@ class Control: public Element, public ControlImpl
   // Hide these tick calls because Controls should do all their work in the
   // pre-tick phase
   void tick(const TickData&) final {}
-  void post_tick(const TickData&) final {}
 
   // Add control JSON
   JSON::Value get_json(const string &path="") const override

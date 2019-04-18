@@ -23,11 +23,17 @@ private:
   shared_ptr<Distributor> distributor;
 
   ola::client::OlaClientWrapper ola_client;
-  map<unsigned, ola::DmxBuffer> buffers;
+  struct BufferInfo
+  {
+    bool modified = false;
+    ola::DmxBuffer buffer;
+  };
+  map<unsigned, BufferInfo> buffers;
 
   // Control virtuals
   void setup() override;
   void pre_tick(const TickData& td) override;
+  void post_tick(const TickData&) override;
   void shutdown() override;
 
   // Event observer implementation
@@ -111,6 +117,30 @@ void DMXInterface::pre_tick(const TickData&)
 }
 
 //--------------------------------------------------------------------------
+// Post Tick
+void DMXInterface::post_tick(const TickData&)
+{
+  auto client = ola_client.GetClient();
+  if (client)
+  {
+    for (auto& bit: buffers)
+    {
+      auto& buffer_info = bit.second;
+      if (buffer_info.modified)
+      {
+        client->SendDMX(universe, buffer_info.buffer, {});
+        buffer_info.modified = false;
+      }
+    }
+  }
+  auto select_server = ola_client.GetSelectServer();
+  if (select_server)
+  {
+    select_server->RunOnce();
+  }
+}
+
+//--------------------------------------------------------------------------
 // Handle event
 void DMXInterface::handle(unsigned universe, unsigned channel,
                           dmx_value_t value)
@@ -118,9 +148,9 @@ void DMXInterface::handle(unsigned universe, unsigned channel,
   auto client = ola_client.GetClient();
   if (client)
   {
-    auto& buffer = buffers[universe];
-    buffer.SetChannel(channel - 1, value);
-    client->SendDMX(universe, buffer, {});
+    auto& buffer_info = buffers[universe];
+    buffer_info.buffer.SetChannel(channel - 1, value);
+    buffer_info.modified = true;
   }
 }
 

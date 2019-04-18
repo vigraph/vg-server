@@ -277,7 +277,8 @@ void ControlImpl::add_to_json(JSON::Value& json) const
 
 //------------------------------------------------------------------------
 // Delete any existing connections for the given our property name
-void ControlImpl::delete_targets_from(const string& prop)
+void ControlImpl::delete_targets_from(const string& prop,
+                                      Element *source_element)
 {
   for(auto tit = targets.begin(); tit!=targets.end();)
   {
@@ -287,6 +288,10 @@ void ControlImpl::delete_targets_from(const string& prop)
     // Erase whole target if now no connected properties
     if (target.properties.empty())
     {
+      // !!! Safer to regenerate dynamically!
+      if (target.element)
+        source_element->downstreams.remove(target.element);
+
       tit = targets.erase(tit);
       continue;
     }
@@ -310,7 +315,7 @@ void ControlImpl::set_target_from_json(const string& prop,
   // !!! Temporary - if no element, just delete the old one
   if (!e_v)
   {
-    delete_targets_from(prop);
+    delete_targets_from(prop, source_element);
     return;
   }
 
@@ -338,7 +343,7 @@ void ControlImpl::set_target_from_json(const string& prop,
                         +control_id);
 
   // Remove existing target for this property
-  delete_targets_from(prop);
+  delete_targets_from(prop, source_element);
 
   // Do we already have a target for this element?
   auto tit = targets.find(target_id);
@@ -360,6 +365,7 @@ void ControlImpl::set_target_from_json(const string& prop,
   }
 
   attach_target(target_id, target_element);
+  source_element->downstreams.push_back(target_element);
 }
 
 }} // namespaces

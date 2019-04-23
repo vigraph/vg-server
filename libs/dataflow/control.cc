@@ -257,6 +257,8 @@ void ControlImpl::add_to_json(JSON::Value& json) const
     for(const auto& tit: targets)
     {
       const auto& target = tit.second;
+      if (!target.element) continue;
+
       for(const auto& pit: target.properties)
       {
         JSON::Value pj(JSON::Value::OBJECT);

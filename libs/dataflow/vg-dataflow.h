@@ -668,6 +668,8 @@ class Graph
   map<string, Value> variables;
 
   // Internals
+  Element *create_element(const string& type, const XML::Element& config,
+                          const File::Directory& base_dir);
   void configure_from_source_file();
   void configure_internal(const File::Directory& base_dir,
                           const XML::Element& config);

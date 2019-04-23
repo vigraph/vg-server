@@ -172,6 +172,31 @@ void Graph::connect(Element *el)
 }
 
 //------------------------------------------------------------------------
+// Create an element
+Element *Graph::create_element(const string& type,
+                               const XML::Element& config,
+                               const File::Directory& base_dir)
+{
+  const auto el = engine.create(type, config);
+  if (!el) throw runtime_error("No such dataflow element " + type);
+
+  // Point back to us (so we're available for configure())
+  el->graph = this;
+
+  // Invent an ID if not explicitly set
+  if (el->id.empty()) el->id = type;
+
+  // See if it already exists - if so, add a serial number
+  if (elements.find(el->id) != elements.end())
+    el->id += "-"+Text::itos(++id_serials[type]);
+
+  // Configure it
+  el->configure(base_dir, config);
+
+  return el;
+}
+
+//------------------------------------------------------------------------
 // Configure with XML, with a base directory for files
 // Throws a runtime_error if configuration fails
 // Public version which allows source file
@@ -253,21 +278,7 @@ void Graph::configure_internal(const File::Directory& base_dir,
     const auto& e = *p;
     if (e.name.empty()) continue;
 
-    const auto el = engine.create(e.name, e);
-    if (!el) throw(runtime_error("No such dataflow element " + e.name));
-
-    // Point back to us (so we're available for configure())
-    el->graph = this;
-
-    // Invent an ID if not explicitly set
-    if (el->id.empty()) el->id = e.name;
-
-    // See if it already exists - if so, add a serial number
-    if (elements.find(el->id) != elements.end())
-      el->id += "-"+Text::itos(++id_serials[e.name]);
-
-    // Configure it
-    el->configure(base_dir, e);
+    const auto el = create_element(e.name, e, base_dir);
 
     // Add it
     add(el);
@@ -579,8 +590,30 @@ void Graph::add_json(const string& path, const JSON::Value& value)
     }
     else
     {
-      // !!! Create an element here
-      throw runtime_error("Element creation not yet implemented!");
+      // Check it doesn't already exist
+      if (elements.find(path) != elements.end())
+        throw runtime_error("Element '"+path+"' already exists");
+
+      // Get type
+      if (value.type != JSON::Value::OBJECT)
+        throw runtime_error("Element creation needs a JSON object with 'type'");
+      const auto& type = value["type"].as_str();
+      if (type.empty())
+        throw runtime_error("Element creation needs a 'type'");
+
+      // Create an element here
+      XML::Element config;  // Empty
+      File::Directory base_dir("."); // !!! What should this be?
+      auto el = create_element(type, config, base_dir);
+      el->id = path; // Override default ID
+      elements[path].reset(el);
+
+      // Add to end of topological order for now, it will be updated once
+      // connected
+      topological_order.push_back(el);
+
+      Log::Detail log;
+      log << "Created " << type << " '" << path << "'\n";
     }
   }
 }

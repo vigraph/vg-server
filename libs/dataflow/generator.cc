@@ -100,4 +100,12 @@ void Generator::set_output_from_json(const string& /*output_id*/,
   }
 }
 
+//------------------------------------------------------------------------
+// Disconnect an element from all acceptors
+void Generator::disconnect(Element *el)
+{
+  Element::disconnect(el);
+  acceptors.erase(el->id);
+}
+
 }} // namespaces

@@ -78,6 +78,15 @@ void Engine::add_json(const string& path, const JSON::Value& value)
 }
 
 //------------------------------------------------------------------------
+// Delete an item (from REST)
+// path is a path/to/leaf
+void Engine::delete_item(const string& path)
+{
+  MT::RWWriteLock lock(graph_mutex);
+  graph->delete_item(path);
+}
+
+//------------------------------------------------------------------------
 // Tick the engine
 void Engine::tick(Time::Stamp t)
 {

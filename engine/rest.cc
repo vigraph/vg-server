@@ -175,12 +175,22 @@ bool GraphURLHandler::handle_post(const string& path,
 // Returns whether request was valid
 bool GraphURLHandler::handle_delete(const string& path,
                                     const Web::HTTPMessage& /*request*/,
-                                    Web::HTTPMessage& /*response*/ )
+                                    Web::HTTPMessage& response)
 {
   Log::Streams log;
   log.detail << "REST Graph: DELETE " << path << endl;
 
-  // !!!
+  try
+  {
+    engine.delete_item(path);
+  }
+  catch (runtime_error& e)
+  {
+    Log::Error log;
+    log << "REST Graph DELETE failed: " << e.what() << endl;
+    response.code = 404;
+    response.reason = "Not found";
+  }
 
   return true;
 }

@@ -83,6 +83,8 @@ class GraphSource: public Dataflow::Source
   void shutdown() override;
   JSON::Value get_json(const string& path) const override;
   void set_json(const string& path, const JSON::Value& value) override;
+  void add_json(const string& path, const JSON::Value& value) override;
+  void delete_item(const string& path) override;
 
 public:
   double sample_rate = 0;
@@ -225,7 +227,7 @@ JSON::Value GraphSource::get_json(const string& path) const
 // Set from JSON
 void GraphSource::set_json(const string& path, const JSON::Value& value)
 {
-  // Whole selector?
+  // Whole graph?
   if (path.empty())
   {
     // !!!
@@ -234,6 +236,34 @@ void GraphSource::set_json(const string& path, const JSON::Value& value)
   else
   {
     subgraph->set_json(path, value);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Add to JSON
+void GraphSource::add_json(const string& path, const JSON::Value& value)
+{
+  if (path.empty())
+  {
+    throw runtime_error("Can't add to a whole graph - needs a sub-element ID");
+  }
+  else
+  {
+    subgraph->add_json(path, value);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Delete an item
+void GraphSource::delete_item(const string& path)
+{
+  if (path.empty())
+  {
+    throw runtime_error("Can't delete a whole graph - needs a sub-element ID");
+  }
+  else
+  {
+    subgraph->delete_item(path);
   }
 }
 

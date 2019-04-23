@@ -32,6 +32,8 @@ private:
   void disable() override;
   JSON::Value get_json(const string& path) const override;
   void set_json(const string& path, const JSON::Value& value) override;
+  void add_json(const string& path, const JSON::Value& value) override;
+  void delete_item(const string& path) override;
 
 public:
   using Source::Source;
@@ -156,6 +158,52 @@ void CloneSource::set_json(const string& path, const JSON::Value& value)
       // Set our own property ('n' only)
       Element::set_json(path, value);
     }
+  }
+}
+
+//--------------------------------------------------------------------------
+// Add from JSON
+void CloneSource::add_json(const string& path, const JSON::Value& value)
+{
+  // Whole thing?
+  if (path.empty())
+  {
+    throw runtime_error("Can't add to entire clone contents");
+  }
+  else
+  {
+    // If 'graph/xxx', pass down to cloned subgraphs
+    vector<string> bits = Text::split(path, '/', false, 2);
+    if (bits[0] == "graph")
+    {
+      const auto& subgraphs = multigraph->get_subgraphs();
+      for(const auto& sub: subgraphs)
+        sub.second->add_json(bits.size()>1 ? bits[1] : "", value);
+    }
+    else throw runtime_error("Can't add directly to a <clone>");
+  }
+}
+
+//--------------------------------------------------------------------------
+// Delete item
+void CloneSource::delete_item(const string& path)
+{
+  // Whole thing?
+  if (path.empty())
+  {
+    throw runtime_error("Can't delete entire clone contents");
+  }
+  else
+  {
+    // If 'graph/xxx', pass down to cloned subgraphs
+    vector<string> bits = Text::split(path, '/', false, 2);
+    if (bits[0] == "graph")
+    {
+      const auto& subgraphs = multigraph->get_subgraphs();
+      for(const auto& sub: subgraphs)
+        sub.second->delete_item(bits.size()>1 ? bits[1] : "");
+    }
+    else throw runtime_error("Can't delete directly from a <clone>");
   }
 }
 

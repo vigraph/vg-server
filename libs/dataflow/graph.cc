@@ -618,6 +618,44 @@ void Graph::add_json(const string& path, const JSON::Value& value)
   }
 }
 
+//------------------------------------------------------------------------
+// Delete an item (from REST)
+// path is a path/to/leaf
+void Graph::delete_item(const string& path)
+{
+  if (path.empty())
+    throw runtime_error("Can't delete in whole graph");
+
+  vector<string> bits = Text::split(path, '/', false, 2);
+  const auto& it = elements.find(bits[0]);
+  if (it == elements.end())
+    throw runtime_error("No such element "+bits[0]+" in graph");
+  auto el = it->second.get();
+
+  if (bits.size() > 1)
+  {
+    // Pass down to subgraph/element
+    el->delete_item(bits[1]);
+  }
+  else
+  {
+    // Disconnect from (e.g.) router etc.
+    el->disable();
+
+    // Disconnect from other elements in the graph
+    for(const auto eit: elements)
+      eit.second->disconnect(el);
+
+    // Delete it
+    topological_order.remove(el);
+    el->shutdown();
+    elements.erase(it);
+  }
+
+  // Recalculate topological order
+  generate_topological_order();
+}
+
 //--------------------------------------------------------------------------
 // Does this require an update? (i.e. there is a new config)
 bool Graph::requires_update(File::Path& file, Time::Duration& check_interval,

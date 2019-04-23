@@ -49,6 +49,8 @@ private:
   void disable() override;
   JSON::Value get_json(const string& path) const override;
   void set_json(const string& path, const JSON::Value& value) override;
+  void add_json(const string& path, const JSON::Value& value) override;
+  void delete_item(const string& path) override;
 
 public:
   using Source::Source;
@@ -336,6 +338,52 @@ void SelectorSource::set_json(const string& path, const JSON::Value& value)
       throw runtime_error("No such sub-graph "+bits[0]+" in selector");
 
     it->second->set_json(bits.size()>1 ? bits[1] : "", value);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Add to JSON
+void SelectorSource::add_json(const string& path, const JSON::Value& value)
+{
+  // Whole selector?
+  if (path.empty())
+  {
+    // !!! Add an option?
+    throw runtime_error("Can't add to entire selector contents");
+  }
+  else
+  {
+    // Select specific subgraph and pass it the rest of the path
+    vector<string> bits = Text::split(path, '/', false, 2);
+    const auto& subgraphs = multigraph->get_subgraphs();
+    const auto it = subgraphs.find(bits[0]);
+    if (it == subgraphs.end())
+      throw runtime_error("No such sub-graph "+bits[0]+" in selector");
+
+    it->second->add_json(bits.size()>1 ? bits[1] : "", value);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Delete item
+void SelectorSource::delete_item(const string& path)
+{
+  // Whole selector?
+  if (path.empty())
+  {
+    // !!! Delete an option?
+    throw runtime_error("Can't delete entire selector contents");
+  }
+  else
+  {
+    // Select specific subgraph and pass it the rest of the path
+    vector<string> bits = Text::split(path, '/', false, 2);
+    const auto& subgraphs = multigraph->get_subgraphs();
+    const auto it = subgraphs.find(bits[0]);
+    if (it == subgraphs.end())
+      throw runtime_error("No such sub-graph "+bits[0]+" in selector");
+
+    it->second->delete_item(bits.size()>1 ? bits[1] : "");
   }
 }
 

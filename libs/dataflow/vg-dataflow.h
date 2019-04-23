@@ -447,6 +447,17 @@ public:
   virtual void add_json(const string& path, const JSON::Value& /*value*/)
   { throw runtime_error("Can't add subelement "+path+" to leaf element "+id); }
 
+  // Delete item from JSON
+  // path is a path/to/leaf
+  // Fails here, override in container elements
+  virtual void delete_item(const string& path)
+  { throw runtime_error("Can't delete subelement "+path+
+                        " in leaf element "+id); }
+
+  // Disconnect an element from outputs etc.
+  virtual void disconnect(Element *el)
+  { downstreams.remove(el); }
+
   // Set a control value
   virtual void set_property(const string& property, const Value&);
 
@@ -523,6 +534,9 @@ class Generator: public Element
 
   // Set acceptor from JSON
   void set_output_from_json(const string& output_id, const JSON::Value& json);
+
+  // Disconnect from an element
+  void disconnect(Element *el) override;
 };
 
 //==========================================================================
@@ -613,6 +627,9 @@ class ControlImpl
   // Set target from JSON
   void set_target_from_json(const string& prop, const JSON::Value& value,
                             Element *source_element);
+
+  // Disconnect from an element
+  void disconnect(Element *el);
 };
 
 //==========================================================================
@@ -634,6 +651,10 @@ class Control: public Element, public ControlImpl
   // Add control JSON
   JSON::Value get_json(const string &path="") const override
   { JSON::Value json=Element::get_json(path); add_to_json(json); return json; }
+
+  // Disconnect from an element
+  void disconnect(Element *el) override
+  { Element::disconnect(el); ControlImpl::disconnect(el); }
 };
 
 //==========================================================================
@@ -817,6 +838,11 @@ class Graph
   // Add a new element from JSON
   // path is a path/to/leaf
   void add_json(const string& path, const JSON::Value& value);
+
+  //------------------------------------------------------------------------
+  // Delete an item (from REST)
+  // path is a path/to/leaf
+  void delete_item(const string& path);
 
   //------------------------------------------------------------------------
   // Does this require an update? (i.e. there is a new config)
@@ -1194,6 +1220,11 @@ class Engine
   // Add a new element from JSON
   // path is a path/to/leaf
   void add_json(const string& path, const JSON::Value& value);
+
+  //------------------------------------------------------------------------
+  // Delete an item (from REST)
+  // path is a path/to/leaf
+  void delete_item(const string& path);
 
   //------------------------------------------------------------------------
   // Tick the graph

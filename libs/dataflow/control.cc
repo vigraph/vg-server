@@ -344,29 +344,22 @@ void ControlImpl::set_target_from_json(const string& prop,
       throw runtime_error("No element "+target_id+" in local graph of "
                           +control_id);
 
-    // Do we already have a target for this element?
-    auto tit = targets.find(target_id);
-    if (tit != targets.end())
-    {
-      auto& target = tit->second;
-
-      // Update the existing target - we know we just deleted any existing
-      // properties
-      // !!! Type???
-      target.properties[prop] = Property(target_prop, Value::Type::number,
-                                         true);
-    }
-    else
-    {
-      // Create a whole new target
-      auto& target = targets[target_element->id];
-      target.properties[prop] = Property(target_prop, Value::Type::number,
-                                         true);
-    }
+    // Add property to target (optionally creating it)
+    auto& target = targets[target_element->id];
+    // !!! Type??
+    target.properties[prop] = Property(target_prop, Value::Type::number,
+                                       true);
 
     attach_target(target_id, target_element);
     source_element->downstreams.push_back(target_element);
   }
+}
+
+//------------------------------------------------------------------------
+// Disconnect an element from all targets
+void ControlImpl::disconnect(Element *el)
+{
+  targets.erase(el->id);
 }
 
 }} // namespaces

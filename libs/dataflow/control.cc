@@ -303,69 +303,68 @@ void ControlImpl::delete_targets_from(const string& prop,
 //------------------------------------------------------------------------
 // Set target from JSON
 void ControlImpl::set_target_from_json(const string& prop,
-                                       const JSON::Value& value,
+                                       const JSON::Value& json,
                                        Element *source_element)
 {
   Log::Detail log;
   log << "Set control " << control_id << " target " << prop << " to "
-      << value << endl;
+      << json << endl;
 
-  const auto& e_v = value["element"];
+  if (json.type != JSON::Value::ARRAY)
+    throw runtime_error("JSON to set control targets must be an array");
 
-  // !!! Temporary - if no element, just delete the old one
-  if (!e_v)
-  {
-    delete_targets_from(prop, source_element);
-    return;
-  }
-
-  if (!e_v)
-    throw runtime_error("No 'element' in JSON value setting "+prop
-                        +" in "+control_id);
-  const auto& target_id = e_v.as_str();
-  if (target_id.empty())
-    throw runtime_error("Bad 'element' in JSON value setting "+prop
-                        +" in "+control_id);
-
-
-  const auto& p_v = value["prop"];
-  if (!p_v)
-    throw runtime_error("No 'prop' in JSON value setting "+prop
-                        +" in "+control_id);
-  const auto& target_prop = p_v.as_str();
-  if (target_prop.empty())
-    throw runtime_error("Bad 'prop' in JSON value setting "+prop
-                        +" in "+control_id);
-
-  Element *target_element = source_element->graph->get_element(target_id);
-  if (!target_element)
-    throw runtime_error("No element "+target_id+" in local graph of "
-                        +control_id);
-
-  // Remove existing target for this property
+  // Remove all existing targets from this property
   delete_targets_from(prop, source_element);
 
-  // Do we already have a target for this element?
-  auto tit = targets.find(target_id);
-  if (tit != targets.end())
+  for(const auto& value: json.a)
   {
-    auto& target = tit->second;
+    const auto& e_v = value["element"];
 
-    // Update the existing target - we know we just deleted any existing
-    // properties
-    // !!! Type???
-    target.properties[prop] = Property(target_prop, Value::Type::number,
-                                       true);
-  }
-  else
-  {
-    // Create a whole new target
-    auto& target = targets[target_element->id];
-    target.properties[prop] = Property(target_prop, Value::Type::number, true);
-  }
+    if (!e_v)
+      throw runtime_error("No 'element' in JSON value setting "+prop
+                          +" in "+control_id);
+    const auto& target_id = e_v.as_str();
+    if (target_id.empty())
+      throw runtime_error("Bad 'element' in JSON value setting "+prop
+                          +" in "+control_id);
 
-  attach_target(target_id, target_element);
-  source_element->downstreams.push_back(target_element);
+    const auto& p_v = value["prop"];
+    if (!p_v)
+      throw runtime_error("No 'prop' in JSON value setting "+prop
+                          +" in "+control_id);
+    const auto& target_prop = p_v.as_str();
+    if (target_prop.empty())
+      throw runtime_error("Bad 'prop' in JSON value setting "+prop
+                          +" in "+control_id);
+
+    Element *target_element = source_element->graph->get_element(target_id);
+    if (!target_element)
+      throw runtime_error("No element "+target_id+" in local graph of "
+                          +control_id);
+
+    // Do we already have a target for this element?
+    auto tit = targets.find(target_id);
+    if (tit != targets.end())
+    {
+      auto& target = tit->second;
+
+      // Update the existing target - we know we just deleted any existing
+      // properties
+      // !!! Type???
+      target.properties[prop] = Property(target_prop, Value::Type::number,
+                                         true);
+    }
+    else
+    {
+      // Create a whole new target
+      auto& target = targets[target_element->id];
+      target.properties[prop] = Property(target_prop, Value::Type::number,
+                                         true);
+    }
+
+    attach_target(target_id, target_element);
+    source_element->downstreams.push_back(target_element);
+  }
 }
 
 }} // namespaces

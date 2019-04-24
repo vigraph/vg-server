@@ -16,9 +16,9 @@ namespace {
 class ScaleFilter: public FrameFilter
 {
 public:
-  double sx{0.0};
-  double sy{0.0};
-  double sz{0.0};
+  double sx{1.0};
+  double sy{1.0};
+  double sz{1.0};
 
 private:
   // Filter/Element virtuals

@@ -39,6 +39,7 @@ private:
 
 public:
   double level{0};
+  int points{0};  // If 0, whatever is in the waveform
 
   using FragmentFilter::FragmentFilter;
 
@@ -114,64 +115,79 @@ void AudioToVectorFilter::accept(FragmentPtr fragment)
   FramePtr frame{new Frame{0}};
   auto c = 0u;
   auto s = 0u;
-  auto triggered = false;
   const auto channels = fragment->waveforms.size();
   for (const auto& wit: fragment->waveforms)
   {
     const auto& w = wit.second;
-    if (mode == Mode::multi)
-      frame->points.resize(frame->points.size() + w.size());
-    else
-      frame->points.resize(max(frame->points.size(), w.size()));
-    auto xi = 0u;
-    auto last_a = 0.0;
-    for (auto i = 0u; i < w.size(); ++i)
+    auto npoints = w.size();
+    auto start_point = 0u;
+
+    // Find start point from trigger slope
+    switch (slope)
     {
-      const auto a = max(-1.0f, min(1.0f, w[i]));
+      case Slope::free:
+        // Use all of it
+        break;
 
-      switch (slope)
-      {
-        case Slope::free:
-          // Always pass
-          break;
+      case Slope::rising:
+        for (auto i = 0u; i < npoints; ++i)
+        {
+          if (i && w[i-1] < level && w[i] >= level)
+          {
+            start_point = i;
+            break;
+          }
+        }
+        break;
 
-        case Slope::rising:
-          if (!triggered && i && last_a < level && a >= level) triggered = true;
-          last_a = a;
-          if (!triggered) continue;
-          break;
+      case Slope::falling:
+        for (auto i = 0u; i < npoints; ++i)
+        {
+          if (i && w[i-1] > level && w[i] <= level)
+          {
+            start_point = i;
+            break;
+          }
+        }
+        break;
+    }
 
-        case Slope::falling:
-          if (!triggered && i && last_a > level && a <= level) triggered = true;
-          last_a = a;
-          if (!triggered) continue;
-          break;
-      }
+    npoints -= start_point;
 
-      xi++;
+    // Limit to max points - this remove trailing flicker when
+    // using triggering
+    if (points && points < (int)npoints) npoints = points;
+
+    if (mode == Mode::multi)
+      frame->points.resize(frame->points.size() + npoints);
+    else
+      frame->points.resize(max(frame->points.size(), npoints));
+
+    for (auto i = 0u; i < npoints; ++i, ++s)
+    {
+      const auto a = max(-1.0f, min(1.0f, w[start_point+i]));
 
       switch (mode)
       {
         case Mode::multi:
-          frame->points[s] = {static_cast<double>(xi) / w.size() - 0.5,
+          frame->points[s] = {static_cast<double>(i) / npoints - 0.5,
                               ((a + 1.0) / 2) / channels
                                 - static_cast<double>(c + 1) / channels,
-                              xi ? Colour::white : Colour::black};
+                              i ? Colour::white : Colour::black};
           break;
         case Mode::combined:
           if (c)
             frame->points[i].y += (a / channels) / 2;
           else
-            frame->points[i] = {static_cast<double>(xi) / w.size() - 0.5,
+            frame->points[i] = {static_cast<double>(i) / npoints - 0.5,
                                 (a / channels) / 2,
-                                xi ? Colour::white : Colour::black};
+                                i ? Colour::white : Colour::black};
           break;
         case Mode::first:
-          frame->points[i] = {static_cast<double>(xi) / w.size() - 0.5,
-                              a / 2, xi ? Colour::white : Colour::black};
+          frame->points[i] = {static_cast<double>(i) / npoints - 0.5,
+                              a / 2, i ? Colour::white : Colour::black};
           break;
       }
-      ++s;
     }
     if (mode == Mode::first)
       break;
@@ -200,6 +216,8 @@ Dataflow::Module module
                 { "free", "rising", "falling" }, true } },
     { "level", { "Trigger level (0-1)", Value::Type::number,
                  &AudioToVectorFilter::level, true } },
+    { "points", { "Maximum points (0 = unlimited)", Value::Type::number,
+                 &AudioToVectorFilter::points, true } }
   },
   { "Audio" }, // inputs
   { "VectorFrame" }  // outputs

@@ -16,7 +16,7 @@ using namespace ViGraph::Dataflow;
 
 const auto default_device{"default"};
 const auto default_channels = 2;
-const auto default_start_threshold = 1000;
+const auto default_start_threshold = 2000;
 
 //==========================================================================
 // LinuxAudioOut filter

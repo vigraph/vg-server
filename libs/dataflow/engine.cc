@@ -107,7 +107,7 @@ void Engine::tick(Time::Stamp t)
       graph->tick(td);
       graph->post_tick(td);
     }
-    catch (runtime_error e)
+    catch (const runtime_error& e)
     {
       Log::Error log;
       log << "Graph tick failed: " << e.what() << endl;

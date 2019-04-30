@@ -181,6 +181,7 @@ string UIKeyControl::get_when() const
     case When::released:
       return "released";
   }
+  return "";
 }
 
 //--------------------------------------------------------------------------

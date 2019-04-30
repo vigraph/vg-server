@@ -64,7 +64,7 @@ namespace Tags
   const Tag blue{Tag::colour(460)};
   const Tag prec16{4,0,1,0};
   const Tag intensity{5,12,1,0};
-};
+}
 
 //==========================================================================
 // IDN Stream Channel Message
@@ -216,7 +216,7 @@ struct HelloHeader
 namespace Hello
 {
   const int default_port = 7255;
-};
+}
 
 //==========================================================================
 // IDN Stream format reader

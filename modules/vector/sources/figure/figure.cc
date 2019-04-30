@@ -118,6 +118,7 @@ string FigureSource::get_waveform_name(Waveform waveform) const
     case Waveform::triangle: return "triangle";
     case Waveform::random:   return "random";
   }
+  return "";
 }
 
 //--------------------------------------------------------------------------

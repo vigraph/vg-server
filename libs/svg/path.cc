@@ -134,7 +134,7 @@ void Path::read(const XML::Element& xml)
           {
             colour = Colour::RGB(bits[1]);
           }
-          catch (exception) {}  // Can fail on e.g. "none"
+          catch (const exception&) {}  // Can fail on e.g. "none"
         }
       }
     }

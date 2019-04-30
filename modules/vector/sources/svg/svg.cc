@@ -67,7 +67,7 @@ void SVGSource::setup(const File::Directory& base_dir)
       path.read(root);
     }
   }
-  catch (runtime_error e)
+  catch (const runtime_error& e)
   {
     log.error << "Failed to read SVG: " << e.what() << endl;
     return;

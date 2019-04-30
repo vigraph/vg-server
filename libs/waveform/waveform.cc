@@ -32,6 +32,7 @@ string get_name(Type wf)
     case Type::random:
       return "random";
   }
+  return "";
 }
 
 //==========================================================================
@@ -99,6 +100,7 @@ double get_value(Type wf, double pw, double theta)
     case Type::random:
       return 2.0 * rand() / RAND_MAX - 1;
   }
+  return 0;
 }
 
 }} //namespaces

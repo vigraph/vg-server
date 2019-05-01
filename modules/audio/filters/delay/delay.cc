@@ -54,8 +54,7 @@ void DelayFilter::set_time(double t)
   delay = Time::Duration{max(t, 0.0)};
   if (!buffer.empty())
   {
-    const auto new_size = static_cast<unsigned long>(delay.seconds()
-                                                     * sample_rate);
+    const auto new_size = static_cast<uint64_t>(delay.seconds() * sample_rate);
     for (auto& bit: buffer)
     {
       auto& b = bit.second;

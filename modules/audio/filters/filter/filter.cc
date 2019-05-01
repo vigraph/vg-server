@@ -71,6 +71,7 @@ string FilterFilter::get_mode() const
     case Mode::high_pass: return "high-pass";
     case Mode::band_pass: return "band-pass";
   }
+  return "";
 }
 
 //--------------------------------------------------------------------------

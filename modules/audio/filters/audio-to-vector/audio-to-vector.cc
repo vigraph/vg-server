@@ -60,6 +60,7 @@ string AudioToVectorFilter::get_mode() const
     case Mode::combined: return "combined";
     case Mode::first: return "first";
   }
+  return "";
 }
 
 //--------------------------------------------------------------------------
@@ -89,6 +90,7 @@ string AudioToVectorFilter::get_slope() const
     case Slope::rising: return "rising";
     case Slope::falling: return "falling";
   }
+  return "";
 }
 
 //--------------------------------------------------------------------------

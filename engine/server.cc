@@ -8,7 +8,6 @@
 
 #include "engine.h"
 #include "vg-licence.h"
-#include <dlfcn.h>
 
 namespace ViGraph { namespace Engine {
 
@@ -214,37 +213,34 @@ bool Server::load_module(const File::Path& path)
     }
 
     // Unload the old one, and erase
-    dlclose(it->second.dl_handle);
     modules.erase(it);
   }
 
   log.detail << "Loading module " << path << endl;
-  void *dl_handle = dlopen(path.c_str(), RTLD_NOW);
-  if (!dl_handle)
+  auto mod = make_unique<Lib::Library>(path.str());
+  if (!*mod)
   {
     log.error << "Can't open dynamic library " << path << ": "
-              << dlerror() << endl;
+              << mod->get_error() << endl;
     return false;
   }
 
-  void *fn = dlsym(dl_handle, "vg_init");
+  auto fn = mod->get_function<vg_init_fn_t *>("vg_init");
   if (!fn)
   {
     log.error << "No 'vg_init' symbol in dynamic library " << path << endl;
-    dlclose(dl_handle);
     return false;
   }
 
   // Pass our logger in, so the module can connect its own, and the registries
-  if (!reinterpret_cast<vg_init_fn_t *>(fn)(Log::logger, engine))
+  if (!fn(Log::logger, engine))
   {
     log.error << "Module " << path << " initialisation failed\n";
-    dlclose(dl_handle);
     return false;
   }
 
   // Remember it, with the file's mtime
-  modules[path.str()] = Module(dl_handle, mtime);
+  modules[path.str()] = Module(mod.release(), mtime);
   return true;
 }
 
@@ -262,7 +258,7 @@ void Server::cleanup()
   engine.shutdown();
 
   log << "Unloading modules\n";
-  for(const auto& m: modules) dlclose(m.second.dl_handle);
+  modules.clear();
 
   log << "Shutdown complete\n";
 }

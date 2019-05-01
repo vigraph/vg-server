@@ -297,7 +297,7 @@ JSON::Value MetaURLHandler::get_metadata_for_module(
       else
         pj.set("type", Dataflow::Value::type_str(prop.type));
       if (prop.alias)
-        pj.set("alias", JSON::Value(JSON::Value::TRUE));
+        pj.set("alias", JSON::Value(JSON::Value::TRUE_));
     }
 
     if (!propsj.a.empty()) json.set("props", propsj);
@@ -328,7 +328,7 @@ JSON::Value MetaURLHandler::get_metadata_for_module(
       JSON::Value& ij = inputsj.add(JSON::Value(JSON::Value::OBJECT));
       ij.set("type", input.type);
       if (input.multiple)
-        ij.set("multiple", JSON::Value(JSON::Value::TRUE));
+        ij.set("multiple", JSON::Value(JSON::Value::TRUE_));
     }
   }
 
@@ -341,7 +341,7 @@ JSON::Value MetaURLHandler::get_metadata_for_module(
       JSON::Value& oj = outsj.add(JSON::Value(JSON::Value::OBJECT));
       oj.set("type", output.type);
       if (output.multiple)
-        oj.set("multiple", JSON::Value(JSON::Value::TRUE));
+        oj.set("multiple", JSON::Value(JSON::Value::TRUE_));
     }
   }
 

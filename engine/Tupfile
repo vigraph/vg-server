@@ -8,7 +8,7 @@ NAME     = vg-engine
 TYPE     = exe
 DEPENDS  = ot-daemon ot-soap ot-g2d ot-json \
            vg-dataflow vg-geometry vg-licence \
-           ext-dl
+           ot-lib
 
 PACKAGE  = $(NAME)
 VERSION  = 0.4.0

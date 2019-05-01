@@ -11,6 +11,7 @@
 
 #include "ot-daemon.h"
 #include "ot-soap.h"
+#include "ot-lib.h"
 #include "vg-dataflow.h"
 #include "vg-geometry.h"
 
@@ -48,12 +49,12 @@ class Server: public Daemon::Application
   // Loaded modules
   struct Module
   {
-    void *dl_handle{0};
+    unique_ptr<Lib::Library> lib;
     Time::Stamp mtime;
     Module() {}
-    Module(void *_h, const Time::Stamp& _t): dl_handle(_h), mtime(_t) {}
+    Module(Lib::Library *_lib, const Time::Stamp& _t): lib(_lib), mtime(_t) {}
   };
-  map <string, Module> modules;   // By pathname
+  map<string, Module> modules;   // By pathname
 
   // Dataflow engine
   Dataflow::Engine engine;

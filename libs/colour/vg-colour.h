@@ -11,6 +11,11 @@
 
 #include <string>
 
+// There's an RGB macro in the windows headers :-(
+#ifdef __WIN32__
+#undef RGB
+#endif
+
 namespace ViGraph { namespace Colour {
 
 using namespace std;

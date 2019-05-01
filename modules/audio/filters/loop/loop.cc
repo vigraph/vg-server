@@ -20,7 +20,7 @@ class LoopFilter: public FragmentFilter
   // 3 sets of per channel buffers
   vector<map<Speaker, vector<sample_t>>>
     buffers = vector<map<Speaker, vector<sample_t>>>(3);
-  unsigned long playback_pos = 0;
+  uint64_t playback_pos = 0;
 
   const unsigned playback_buffer = 0;
   const unsigned recording_buffer = 1;

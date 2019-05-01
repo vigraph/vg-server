@@ -8,7 +8,6 @@
 
 #include "../../../module.h"
 #include "../../midi-services.h"
-#include "ot-web.h"
 #include "vg-midi.h"
 
 using namespace ViGraph::Module::MIDI;

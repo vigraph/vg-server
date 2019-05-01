@@ -6,7 +6,7 @@
 
 NAME    = vg-module-core-control-smooth
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
+DEPENDS = vg-dataflow vg-geometry ot-lib \
           vg-module-core-control-lfo
 
 include_rules

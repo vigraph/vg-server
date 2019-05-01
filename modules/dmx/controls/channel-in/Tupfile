@@ -6,6 +6,6 @@
 
 NAME    = vg-module-dmx-control-channel-in
 TYPE    = shared
-DEPENDS = vg-dataflow ext-dl
+DEPENDS = vg-dataflow
 
 include_rules

@@ -6,6 +6,6 @@
 
 NAME    = vg-module-laser-source-ilda
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl vg-ilda
+DEPENDS = vg-dataflow vg-geometry vg-ilda
 
 include_rules

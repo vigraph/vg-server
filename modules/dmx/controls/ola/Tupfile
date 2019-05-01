@@ -4,8 +4,9 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-dmx-control-ola
-TYPE    = shared
-DEPENDS = vg-dataflow ot-log ext-dl ext-ola
+NAME      = vg-module-dmx-control-ola
+TYPE      = shared
+DEPENDS   = vg-dataflow ext-ola
+PLATFORMS = linux
 
 include_rules

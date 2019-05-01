@@ -4,9 +4,10 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-audio-filter-shift
-TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl ext-pkg-soundtouch \
-          vg-module-audio-source-vco
+NAME      = vg-module-audio-filter-shift
+TYPE      = shared
+DEPENDS   = vg-dataflow vg-geometry ext-pkg-soundtouch \
+            vg-module-audio-source-vco
+PLATFORMS = linux
 
 include_rules

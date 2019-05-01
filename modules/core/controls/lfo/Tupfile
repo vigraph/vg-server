@@ -6,6 +6,6 @@
 
 NAME    = vg-module-core-control-lfo
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry vg-waveform ot-log ext-dl
+DEPENDS = vg-dataflow vg-geometry vg-waveform
 
 include_rules

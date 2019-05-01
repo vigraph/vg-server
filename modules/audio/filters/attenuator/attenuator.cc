@@ -45,7 +45,7 @@ void AttenuatorFilter::set_gain(const vector<double>& g)
 // Process some data
 void AttenuatorFilter::accept(FragmentPtr fragment)
 {
-  auto gain_used = 0ul;
+  auto gain_used = uint64_t{};
   for (auto& wit: fragment->waveforms)
   {
     auto& w = wit.second;

@@ -6,6 +6,6 @@
 
 NAME    = vg-module-vector-source-svg
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl vg-svg
+DEPENDS = vg-dataflow vg-geometry ot-log vg-svg
 
 include_rules

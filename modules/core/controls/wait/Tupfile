@@ -6,7 +6,7 @@
 
 NAME    = vg-module-core-control-wait
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
+DEPENDS = vg-dataflow vg-geometry \
           vg-module-core-control-trigger
 
 include_rules

@@ -6,6 +6,6 @@
 
 NAME    = vg-module-vector-service-collision-detector
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ot-web ext-dl
+DEPENDS = vg-dataflow vg-geometry ot-log ot-web
 
 include_rules

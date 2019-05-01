@@ -4,8 +4,9 @@
 # Copyright (c) 2018 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-midi-control-linux-alsa
-TYPE    = shared
-DEPENDS = vg-dataflow vg-midi ot-log ot-web ext-dl ext-asound
+NAME      = vg-module-midi-control-linux-alsa
+TYPE      = shared
+DEPENDS   = vg-dataflow vg-midi ext-asound
+PLATFORMS = linux
 
 include_rules

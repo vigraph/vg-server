@@ -6,7 +6,7 @@
 
 NAME    = vg-module-audio-filter-amplitude
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
+DEPENDS = vg-dataflow vg-geometry \
           vg-module-core-control-set \
           vg-module-audio-source-vco vg-module-audio-filter-attenuator
 

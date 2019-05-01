@@ -4,8 +4,9 @@
 # Copyright (c) 2018 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-analyse-midi
-TYPE    = exe
-DEPENDS = vg-midi ext-asound
+NAME      = vg-analyse-midi
+TYPE      = exe
+DEPENDS   = vg-midi ext-asound
+PLATFORMS = linux
 
 include_rules

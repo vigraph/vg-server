@@ -6,6 +6,6 @@
 
 NAME    = vg-module-midi-control-key-in
 TYPE    = shared
-DEPENDS = vg-dataflow vg-midi ot-log ot-web ext-dl
+DEPENDS = vg-dataflow vg-midi
 
 include_rules

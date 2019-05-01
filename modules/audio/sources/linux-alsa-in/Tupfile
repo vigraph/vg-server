@@ -4,8 +4,9 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-audio-source-linux-alsa-in
-TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl ext-asound
+NAME      = vg-module-audio-source-linux-alsa-in
+TYPE      = shared
+DEPENDS   = vg-dataflow vg-geometry ext-asound
+PLATFORMS = linux
 
 include_rules

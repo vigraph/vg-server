@@ -6,6 +6,6 @@
 
 NAME    = vg-module-ui-service-key-distributor
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ot-web ext-dl
+DEPENDS = vg-dataflow vg-geometry ot-web
 
 include_rules

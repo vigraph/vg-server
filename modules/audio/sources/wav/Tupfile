@@ -4,8 +4,9 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-audio-source-wav
-TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl ext-pkg-sdl2
+NAME      = vg-module-audio-source-wav
+TYPE      = shared
+DEPENDS   = vg-dataflow vg-geometry ot-lib ext-pkg-sdl2
+PLATFORMS = linux
 
 include_rules

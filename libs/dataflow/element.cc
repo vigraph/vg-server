@@ -25,8 +25,8 @@ JSON::Value Element::get_property_json(const Module::Property& prop) const
   else if (member.s_ptr)
     return JSON::Value(this->*member.s_ptr);
   else if (member.b_ptr)
-    return JSON::Value((this->*member.b_ptr)?JSON::Value::TRUE
-                       :JSON::Value::FALSE);
+    return JSON::Value((this->*member.b_ptr)?JSON::Value::TRUE_
+                       :JSON::Value::FALSE_);
   else if (member.i_ptr)
     return JSON::Value(this->*member.i_ptr);
   else if (member.get_d)
@@ -34,8 +34,8 @@ JSON::Value Element::get_property_json(const Module::Property& prop) const
   else if (member.get_s)
     return JSON::Value((this->*member.get_s)());
   else if (member.get_b)
-    return JSON::Value((this->*member.get_b)()?JSON::Value::TRUE
-                       :JSON::Value::FALSE);
+    return JSON::Value((this->*member.get_b)()?JSON::Value::TRUE_
+                       :JSON::Value::FALSE_);
   else if (member.get_i)
     return JSON::Value((this->*member.get_i)());
   else if (member.get_json)

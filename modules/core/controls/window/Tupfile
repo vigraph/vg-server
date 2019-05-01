@@ -6,7 +6,7 @@
 
 NAME    = vg-module-core-control-window
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl \
+DEPENDS = vg-dataflow vg-geometry \
           vg-module-core-control-set
 
 include_rules

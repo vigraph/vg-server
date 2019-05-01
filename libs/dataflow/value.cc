@@ -50,12 +50,12 @@ Value::Value(const JSON::Value& json)
       s = json.s;
       break;
 
-    case JSON::Value::TRUE:
+    case JSON::Value::TRUE_:
       type = Type::number;
       d = 1.0;
       break;
 
-    case JSON::Value::FALSE:
+    case JSON::Value::FALSE_:
       type = Type::number;
       d = 0.0;
       break;

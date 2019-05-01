@@ -11,7 +11,7 @@
 
 #include "module.h"
 #include <gtest/gtest.h>
-#include <dlfcn.h>
+#include "ot-lib.h"
 
 // Module vg_init function interface
 typedef bool vg_init_fn_t(Log::Channel&, Dataflow::Engine&);
@@ -21,6 +21,9 @@ namespace ViGraph { namespace Module { namespace Test {
 // Module loader
 class ModuleLoader
 {
+private:
+  map<string, unique_ptr<ObTools::Lib::Library>> libs;
+
 public:
   Dataflow::Engine engine;
 
@@ -31,12 +34,14 @@ public:
 
   void load(const string& path)
   {
-    void *dl_handle = dlopen(path.c_str(), RTLD_NOW);
-    ASSERT_FALSE(!dl_handle) << "Can't load " << path << endl;
-    void *fn = dlsym(dl_handle, "vg_init");
-    ASSERT_FALSE(!fn);
-
-    ASSERT_TRUE(reinterpret_cast<vg_init_fn_t *>(fn)(Log::logger, engine));
+    ASSERT_TRUE(libs.find(path) == libs.end())
+      << "Library already loaded: " << path << endl;
+    auto lib = make_unique<ObTools::Lib::Library>(path);
+    ASSERT_TRUE(*lib) << "Can't load " << path << endl;
+    auto fn = lib->get_function<vg_init_fn_t *>("vg_init");
+    ASSERT_TRUE(fn);
+    ASSERT_TRUE(fn(Log::logger, engine));
+    libs.emplace(path, lib.release());
   }
 };
 

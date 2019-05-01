@@ -6,6 +6,6 @@
 
 NAME    = vg-module-laser-filter-show-blanking
 TYPE    = shared
-DEPENDS = vg-dataflow ot-log ext-dl vg-module-vector-source-svg
+DEPENDS = vg-dataflow ot-lib vg-module-vector-source-svg
 
 include_rules

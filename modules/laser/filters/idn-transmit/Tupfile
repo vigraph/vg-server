@@ -6,6 +6,6 @@
 
 NAME    = vg-module-laser-filter-idn-transmit
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log ext-dl vg-idn
+DEPENDS = vg-dataflow vg-geometry vg-idn
 
 include_rules

@@ -47,6 +47,7 @@ string CombineFilter::get_mode() const
     case Mode::add: return "add";
     case Mode::multiply: return "multiply";
   }
+  return "";
 }
 
 //--------------------------------------------------------------------------

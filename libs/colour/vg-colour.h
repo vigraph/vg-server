@@ -12,7 +12,7 @@
 #include <string>
 
 // There's an RGB macro in the windows headers :-(
-#ifdef __WIN32__
+#if defined(PLATFORM_WINDOWS)
 #undef RGB
 #endif
 

@@ -7,6 +7,5 @@
 NAME      = vg-module-audio-source-wav
 TYPE      = shared
 DEPENDS   = vg-dataflow vg-geometry ot-lib ext-pkg-sdl2
-PLATFORMS = linux
 
 include_rules

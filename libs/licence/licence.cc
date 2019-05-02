@@ -14,6 +14,11 @@
 #include "ot-crypto.h"
 #include <errno.h>
 
+#if defined(PLATFORM_WINDOWS)
+#include <comdef.h>
+#include <wbemidl.h>
+#endif
+
 namespace ViGraph { namespace Licence {
 
 //--------------------------------------------------------------------------
@@ -33,6 +38,100 @@ bosV1Eh/Nv+3nYy0nCojEr7kCuhJ2CIZ62LxrB34xlm0GvOrI01Qejmdl96Zp5Qj
 AiUC5TD8LicS+kJnhBxEFt3mHP2QFOJxDc1twCha4fSkVFInVX896tO5eYExMXPd
 ewWQVWMJ+Ojifu7bDT/cGPMCAwEAAQ==
 -----END PUBLIC KEY-----)";
+
+#if defined(PLATFORM_WINDOWS)
+string get_windows_machine_uuid()
+{
+  auto hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+  if (FAILED(hres))
+    return "";
+
+  hres = CoInitializeSecurity(nullptr, -1, nullptr, nullptr,
+                              RPC_C_AUTHN_LEVEL_DEFAULT,
+                              RPC_C_IMP_LEVEL_IMPERSONATE,
+                              nullptr, EOAC_NONE, nullptr);
+  if (FAILED(hres))
+  {
+    CoUninitialize();
+    return "";
+  }
+
+  auto locator = static_cast<IWbemLocator *>(nullptr);
+  hres = CoCreateInstance(CLSID_WbemLocator, nullptr,
+                          CLSCTX_INPROC_SERVER, IID_IWbemLocator,
+                          reinterpret_cast<void **>(&locator));
+
+  if (FAILED(hres))
+  {
+    CoUninitialize();
+    return "";
+  }
+
+  auto services = static_cast<IWbemServices *>(nullptr);
+  hres = locator->ConnectServer(_bstr_t(L"ROOT\\CIMV2"),
+                                nullptr, nullptr, nullptr,
+                                0, nullptr, nullptr, &services);
+
+  if (FAILED(hres))
+  {
+    locator->Release();
+    CoUninitialize();
+    return "";
+  }
+
+  hres = CoSetProxyBlanket(services, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE,
+                           nullptr, RPC_C_AUTHN_LEVEL_CALL,
+                           RPC_C_IMP_LEVEL_IMPERSONATE, nullptr, EOAC_NONE);
+
+  if (FAILED(hres))
+  {
+    services->Release();
+    locator->Release();
+    CoUninitialize();
+    return "";
+  }
+
+  auto enumerator = static_cast<IEnumWbemClassObject *>(nullptr);
+  auto wql = SysAllocString(L"WQL");
+  auto select = SysAllocString(L"SELECT UUID FROM Win32_ComputerSystemProduct");
+  hres = services->ExecQuery(wql, select,
+                       WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
+                       nullptr, &enumerator);
+  SysFreeString(wql);
+  SysFreeString(select);
+
+  if (FAILED(hres))
+  {
+    services->Release();
+    locator->Release();
+    CoUninitialize();
+    return "";
+  }
+
+  auto uuid = string{};
+  auto object = static_cast<IWbemClassObject *>(nullptr);
+  auto ret = 0ul;
+
+  while (enumerator)
+  {
+    enumerator->Next(static_cast<long>(WBEM_INFINITE), 1, &object, &ret);
+    if (!ret)
+      break;
+
+    auto prop = VARIANT{};
+    object->Get(L"UUID", 0, &prop, 0, 0);
+    uuid = Text::UTF8::encode(prop.bstrVal);
+    VariantClear(&prop);
+    object->Release();
+  }
+
+  services->Release();
+  locator->Release();
+  enumerator->Release();
+  CoUninitialize();
+  return uuid;
+}
+#endif
 
 //--------------------------------------------------------------------------
 // Constructor
@@ -139,6 +238,24 @@ bool File::check()
 {
   if (!validate()) return false;
 
+#if defined(PLATFORM_WINDOWS)
+  auto uuid = get_windows_machine_uuid();
+
+  // Get all <computer> elements
+  list<XML::Element *> computers = get_elements("computers/computer");
+  for(XML::ElementIterator cp(computers); cp; ++cp)
+  {
+    const XML::Element& ce = *cp;
+    string allowed_id = ce["id"];
+    allowed_id = Text::canonicalise_space(allowed_id);
+    allowed_id = Text::toupper(allowed_id);
+    if (allowed_id == uuid || allowed_id == "ANY")
+      return true;
+  }
+
+  serr << "Licence not valid for this computer - this computer's UUID is:\n"
+       << uuid << endl;
+#else
   // Get our MAC addresses
   Net::UDPSocket socket;
   set<string> macs = socket.get_host_macs();
@@ -158,6 +275,7 @@ bool File::check()
   serr << "Licence not valid for this computer - this computer's MACs are:\n";
   for(set<string>::iterator p = macs.begin(); p!=macs.end(); ++p)
     serr << "  " << *p << endl;
+#endif
 
   return false;
 }

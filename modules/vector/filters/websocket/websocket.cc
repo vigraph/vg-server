@@ -177,7 +177,8 @@ void WebSocketFilter::shutdown()
     server->queue(nullptr);
     server->shutdown();
   }
-  server_thread->join();
+  if (server_thread)
+    server_thread->join();
   server_thread.reset();
   server.reset();
 }

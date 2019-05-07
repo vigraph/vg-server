@@ -551,8 +551,8 @@ void Graph::set_json(const string& path, const JSON::Value& value)
 {
   if (path.empty())
   {
-    // !!! Reset entire graph!
-    throw runtime_error("Wholesale graph setting not yet implemented");
+    // Treat set (POST) and add (PUT) the same
+    add_json(path, value);
   }
   else
   {
@@ -575,7 +575,26 @@ void Graph::add_json(const string& path, const JSON::Value& value)
 {
   if (path.empty())
   {
-    throw runtime_error("Graph already exists");
+    // Top-level replacement - destroy any existing, then recreate
+    shutdown();
+
+    if (value.type != JSON::Value::ARRAY)
+      throw runtime_error("Whole graph setting needs a JSON array");
+
+    // Create elements first, recursively
+    for(const auto& v: value.a)
+    {
+      const auto& id = v["id"].as_str();
+      if (id.empty()) throw runtime_error("Graph element requires an 'id'");
+      add_json(id, v);
+    }
+
+    // Then configure and connect them
+    for(const auto& v: value.a)
+    {
+      const auto& id = v["id"].as_str();
+      set_json(id, v);
+    }
   }
   else
   {

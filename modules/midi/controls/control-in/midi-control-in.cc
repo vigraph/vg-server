@@ -26,11 +26,7 @@ public:
   double offset{0.0};
 
 private:
-  shared_ptr<Distributor> distributor;
   bool enabled = false;
-
-  // Control virtuals
-  void setup() override;
 
   // Event observer implementation
   void handle(const ViGraph::MIDI::Event& event) override;
@@ -44,17 +40,13 @@ public:
   void disable() override;
 };
 
-//--------------------------------------------------------------------------
-// Setup
-void MIDIControlInControl::setup()
-{
-  distributor = graph->find_service<Distributor>("midi:distributor");
-}
+
 
 //--------------------------------------------------------------------------
 // Enable - register for events
 void MIDIControlInControl::enable()
 {
+  auto distributor = graph->find_service<Distributor>("midi", "distributor");
   if (distributor && !enabled)
   {
     Log::Detail log;
@@ -74,6 +66,7 @@ void MIDIControlInControl::enable()
 // Disable - deregister for events
 void MIDIControlInControl::disable()
 {
+  auto distributor = graph->find_service<Distributor>("midi", "distributor");
   if (distributor && enabled)
   {
     Log::Detail log;

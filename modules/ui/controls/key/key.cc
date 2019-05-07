@@ -86,7 +86,6 @@ class UIKeyControl: public Dataflow::Control,
                     public KeyDistributor::KeyObserver
 {
 private:
-  shared_ptr<KeyDistributor> distributor;
   int code{0};
   enum class When
   {
@@ -95,7 +94,6 @@ private:
   } when = When::pressed;
 
   // Control virtuals
-  void setup() override;
   void enable() override;
   void disable() override;
 
@@ -113,16 +111,11 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Setup after configuration
-void UIKeyControl::setup()
-{
-  distributor = graph->find_service<KeyDistributor>("key-distributor");
-}
-
-//--------------------------------------------------------------------------
 // Enable - register for events
 void UIKeyControl::enable()
 {
+  auto distributor =
+    graph->find_service<KeyDistributor>("ui", "key-distributor");
   if (distributor)
   {
     distributor->register_key_observer(when == When::released ? -code : code,
@@ -134,6 +127,8 @@ void UIKeyControl::enable()
 // Disable (deregister for keys)
 void UIKeyControl::disable()
 {
+  auto distributor =
+    graph->find_service<KeyDistributor>("ui", "key-distributor");
   if (distributor)
     distributor->deregister_key_observer(this);
 }

@@ -22,11 +22,9 @@ public:
   string group_name = default_group_name;
 
 private:
-  shared_ptr<CollisionDetector> detector;
   unsigned long tick_collisions = 0;
 
   // Filter/Element virtuals
-  void setup() override;
   void accept(FramePtr frame) override;
   void pre_tick(const TickData& td) override;
 
@@ -47,16 +45,12 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Setup
-void CollisionDetectFilter::setup()
-{
-  detector = graph->find_service<CollisionDetector>("collision-detector");
-}
-
-//--------------------------------------------------------------------------
 // Process some data
 void CollisionDetectFilter::accept(FramePtr frame)
 {
+  auto detector =
+    graph->find_service<CollisionDetector>("vector", "collision-detector");
+
   // Pass frame to collision detector
   if (detector) detector->check_for_collision(group_name, this, frame.get());
 

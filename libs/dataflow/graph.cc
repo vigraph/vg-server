@@ -504,15 +504,20 @@ Element *Graph::get_element(const string& id)
 }
 
 //------------------------------------------------------------------------
-// Get the nearest particular element by ID, looking upwards in ancestors
-shared_ptr<Element> Graph::get_nearest_element(const string& id)
+// Get the nearest particular element by section and type, looking upwards
+// in ancestors
+shared_ptr<Element> Graph::get_nearest_element(const string& section,
+                                               const string& type)
 {
   MT::RWReadLock lock(mutex);
-  if (elements.find(id) != elements.end())
-    return elements[id];
+  // !!! Linear search!
+  for(const auto& it: elements)
+    if (it.second->module->section == section
+     && it.second->module->id == type)
+      return it.second;
 
   if (parent)
-    return parent->get_nearest_element(id);
+    return parent->get_nearest_element(section, type);
   else
     return nullptr;
 }
@@ -595,6 +600,10 @@ void Graph::add_json(const string& path, const JSON::Value& value)
       const auto& id = v["id"].as_str();
       set_json(id, v);
     }
+
+    // Then set them all up
+    for(const auto& it: elements)
+      it.second->setup();
   }
   else
   {

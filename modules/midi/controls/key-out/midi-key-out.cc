@@ -18,14 +18,11 @@ namespace {
 // MIDIKeyOut control
 class MIDIKeyOutControl: public Dataflow::Control
 {
-  shared_ptr<Distributor> distributor;
-
   // Dynamic state
   bool done{false};
   bool triggered{false};
 
   // Control virtuals
-  void setup() override;
   void pre_tick(const TickData& td) override;
   void notify_target_of(const string& property) override;
   void enable() override;
@@ -47,13 +44,6 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Setup
-void MIDIKeyOutControl::setup()
-{
-  distributor = graph->find_service<Distributor>("midi:distributor");
-}
-
-//--------------------------------------------------------------------------
 // Automatically set wait flag if we are the trigger target of something
 void MIDIKeyOutControl::notify_target_of(const string& property)
 {
@@ -65,6 +55,7 @@ void MIDIKeyOutControl::notify_target_of(const string& property)
 // Send a key on
 void MIDIKeyOutControl::on()
 {
+  auto distributor = graph->find_service<Distributor>("midi", "distributor");
   if (distributor)
   {
     Log::Detail log;
@@ -81,6 +72,7 @@ void MIDIKeyOutControl::on()
 // Send a key off
 void MIDIKeyOutControl::off()
 {
+  auto distributor = graph->find_service<Distributor>("midi", "distributor");
   if (distributor)
   {
     Log::Detail log;

@@ -23,11 +23,7 @@ public:
   int number{0};
 
 private:
-  shared_ptr<Distributor> distributor;
   bool enabled = false;
-
-  // Control virtuals
-  void setup() override;
 
   // Event observer implementation
   void notify_target_of(const string& property) override;
@@ -45,17 +41,10 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Setup
-void MIDIControlOutControl::setup()
-{
-  distributor = graph->find_service<Distributor>("midi:distributor");
-}
-
-//--------------------------------------------------------------------------
 // Enable - register for events
 void MIDIControlOutControl::enable()
 {
-  if (distributor && !enabled)
+  if (!enabled)
   {
     Log::Detail log;
     log << "MIDI OUT controller enable on channel " << channel
@@ -68,7 +57,7 @@ void MIDIControlOutControl::enable()
 // Disable - deregister for events
 void MIDIControlOutControl::disable()
 {
-  if (distributor && enabled)
+  if (enabled)
   {
     Log::Detail log;
     log << "MIDI OUT control disable on channel " << channel
@@ -81,18 +70,22 @@ void MIDIControlOutControl::disable()
 // Set value
 void MIDIControlOutControl::set_value(double value)
 {
-  if (distributor && enabled)
+  if (enabled)
   {
-    value *= 127.0;
+    auto distributor = graph->find_service<Distributor>("midi", "distributor");
+    if (distributor)
+    {
+      value *= 127.0;
 #if OBTOOLS_LOG_DEBUG
-    Log::Debug log;
-    log << "MIDI OUT " << channel << ": control " << number
-        << " -> " << static_cast<int>(value) << endl;
+      Log::Debug log;
+      log << "MIDI OUT " << channel << ": control " << number
+          << " -> " << static_cast<int>(value) << endl;
 #endif
-    auto event = MIDI::Event(MIDI::Event::Direction::out,
-                             MIDI::Event::Type::control_change,
-                             channel, number, value);
-    distributor->handle_event(event);
+      auto event = MIDI::Event(MIDI::Event::Direction::out,
+                               MIDI::Event::Type::control_change,
+                               channel, number, value);
+      distributor->handle_event(event);
+    }
   }
 }
 

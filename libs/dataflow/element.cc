@@ -132,7 +132,7 @@ JSON::Value Element::get_json(const string& path) const
     // Whole element
     JSON::Value json(JSON::Value::Type::OBJECT);
     json.set("id", id);
-    if (module) json.set("type", module->id);
+    if (module) json.set("type", module->section+":"+module->id);
 
     JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::OBJECT));
     for(const auto pit: module->properties)

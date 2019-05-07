@@ -11,13 +11,9 @@
 
 namespace ViGraph { namespace Engine {
 
-// Defaults
-const auto default_licence = "/etc/vigraph/licence.xml";
-
 //--------------------------------------------------------------------------
 // Constructor
-Server::Server(const string& _licence_file):
-  licence_file{_licence_file.empty() ? default_licence : _licence_file}
+Server::Server(const string& _licence_file): licence_file{_licence_file}
 {
 }
 

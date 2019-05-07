@@ -68,7 +68,7 @@ class Server: public Daemon::Application
 public:
   //------------------------------------------------------------------------
   // Constructor
-  Server(const string& _licence_file = "");
+  Server(const string& _licence_file);
 
   //------------------------------------------------------------------------
   // Get the engine

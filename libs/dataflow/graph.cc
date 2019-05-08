@@ -32,7 +32,7 @@ void Graph::add(Element *el)
 // Attach a pure Acceptor to all unbound generators remaining in the graph
 // Returns whether any were attached
 // Note, doesn't add to graph ordering and remembers this for reload
-bool Graph::attach(Acceptor *a)
+bool Graph::attach_external(Acceptor *a)
 {
   if (unbound_generators.empty()) return false;
 
@@ -294,7 +294,7 @@ void Graph::configure_internal(const File::Directory& base_dir,
     throw runtime_error("Element "+el->id+" has no inputs");
 
   // Add back any external acceptor that was given in a previous incarnation
-  if (external_acceptor) attach(external_acceptor);
+  if (external_acceptor) attach_external(external_acceptor);
 }
 
 //------------------------------------------------------------------------

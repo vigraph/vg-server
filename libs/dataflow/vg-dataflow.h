@@ -748,7 +748,7 @@ class Graph
   // Attach a pure Acceptor to all unbound generators remaining in the graph
   // Returns whether any were attached
   // Note, doesn't add to graph ordering and remembers this for reload
-  bool attach(Acceptor *a);
+  bool attach_external(Acceptor *a);
 
   //------------------------------------------------------------------------
   // Attach an Acceptor Element to all unbound generators remaining in the graph

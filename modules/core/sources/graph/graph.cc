@@ -119,7 +119,7 @@ void GraphSource::calculate_topology(Element::Topology& topo)
 void GraphSource::attach(const string& id, Dataflow::Acceptor *acceptor)
 {
   Source::attach(id, acceptor);
-  subgraph->attach(acceptor);
+  subgraph->attach_external(acceptor);
 }
 
 //--------------------------------------------------------------------------

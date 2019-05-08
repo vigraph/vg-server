@@ -112,7 +112,7 @@ class TestSubgraph: public Source
 
   void attach(const string&, Dataflow::Acceptor *acceptor) override
   {
-    subgraph->attach(acceptor);
+    subgraph->attach_external(acceptor);
   }
 
   void pre_tick(const TickData&) override

@@ -52,7 +52,7 @@ class FrameGenerator
       return;
     }
 
-    graph.attach(&catcher);
+    graph.attach_external(&catcher);
 
     double t = 0.0;
     uint64_t n = 0;

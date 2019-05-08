@@ -110,9 +110,9 @@ class TestSubgraph: public Source
     subgraph->calculate_topology(topo, this);
   }
 
-  void attach(const string& id, Dataflow::Acceptor *acceptor) override
+  void attach(const string&, Dataflow::Acceptor *acceptor) override
   {
-    subgraph->attach(id, acceptor);
+    subgraph->attach(acceptor);
   }
 
   void pre_tick(const TickData&) override

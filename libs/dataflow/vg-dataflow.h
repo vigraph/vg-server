@@ -512,6 +512,7 @@ class Generator: public Element
 {
  public:
   map<string, Acceptor *> acceptors;  // Element ID to Acceptor
+                                      // "" => auto-created uplink to parent
 
   // Constructor - get acceptor_id as well as Element stuff
   Generator(const Module *_module, const XML::Element& config);
@@ -746,7 +747,7 @@ class Graph
   // Attach a pure Acceptor to all unbound generators remaining in the graph
   // Returns whether any were attached
   // Note, doesn't add to graph ordering and remembers this for reload
-  bool attach(const string& id, Acceptor *a);
+  bool attach(Acceptor *a);
 
   //------------------------------------------------------------------------
   // Attach an Acceptor Element to all unbound generators remaining in the graph
@@ -1009,12 +1010,8 @@ class MultiGraph
                       const XML::Element& graph_config);
 
   //------------------------------------------------------------------------
-  // Attach a pure Acceptor to the end of all subgraphs (for testing only)
-  void attach_to_all(const string& id, Acceptor *a);
-
-  //------------------------------------------------------------------------
-  // Attach an Acceptor Element to the end of all subgraphs
-  void attach_to_all(Element *el);
+  // Attach a pure Acceptor to the end of all subgraphs
+  void attach_to_all(Acceptor *a);
 
   //------------------------------------------------------------------------
   // Enable all subgraphs

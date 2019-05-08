@@ -96,7 +96,7 @@ void SelectorSource::calculate_topology(Element::Topology& topo)
 void SelectorSource::attach(const string& id, Dataflow::Acceptor *acceptor)
 {
   Source::attach(id, acceptor);
-  multigraph->attach_to_all(id, acceptor);
+  multigraph->attach_to_all(acceptor);
 }
 
 //--------------------------------------------------------------------------

@@ -62,37 +62,19 @@ void MultiGraph::calculate_topology(Element::Topology& topo, Element *owner)
 
 //------------------------------------------------------------------------
 // Attach an Acceptor to the end of all subgraphs (testing only)
-void MultiGraph::attach_to_all(const string& id, Acceptor *a)
+void MultiGraph::attach_to_all(Acceptor *a)
 {
   MT::RWReadLock lock(mutex);
   if (thread_serialiser)
   {
     thread_serialiser->attach(a);
     for(const auto it: subgraphs)
-      it->attach(id, thread_serialiser.get());
+      it->attach(thread_serialiser.get());
   }
   else
   {
     for(const auto it: subgraphs)
-      it->attach(id, a);
-  }
-}
-
-//------------------------------------------------------------------------
-// Attach an Acceptor Element to the end of all subgraphs
-void MultiGraph::attach_to_all(Element *el)
-{
-  MT::RWReadLock lock(mutex);
-  if (thread_serialiser)
-  {
-    thread_serialiser->attach(el);
-    for(const auto it: subgraphs)
-      it->attach(el->id, thread_serialiser.get());
-  }
-  else
-  {
-    for(const auto it: subgraphs)
-      it->attach(el);
+      it->attach(a);
   }
 }
 

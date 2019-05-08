@@ -123,7 +123,7 @@ TEST(MultiGraphTest, TestAttachAll)
   construct_multigraph(xml, mg);
 
   // Attach catcher to end of all subgraphs
-  mg.attach_to_all("catcher", catcher.get());
+  mg.attach_to_all(catcher.get());
 
   // Tick all subgraphs
   mg.tick_all({1, 0, Time::Duration{1}, 1});

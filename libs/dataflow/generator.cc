@@ -54,9 +54,12 @@ JSON::Value Generator::get_json(const string& path) const
     JSON::Value& defj = outsj.set("default", JSON::Value(JSON::Value::ARRAY));
     for(const auto& it: acceptors)
     {
-      JSON::Value& oj = defj.add(JSON::Value(JSON::Value::OBJECT));
-      oj.set("element", it.first);
-      oj.set("prop", "default");
+      if (!it.first.empty())
+      {
+        JSON::Value& oj = defj.add(JSON::Value(JSON::Value::OBJECT));
+        oj.set("element", it.first);
+        oj.set("prop", "default");
+      }
     }
   }
   return json;

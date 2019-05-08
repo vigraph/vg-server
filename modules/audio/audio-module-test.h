@@ -53,7 +53,7 @@ class FragmentGenerator
       return;
     }
 
-    graph.attach("catcher", &catcher);
+    graph.attach(&catcher);
 
     double t = 0.0;
     uint64_t n = 0;

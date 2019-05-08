@@ -25,8 +25,6 @@ class MIDIInterface: public Dataflow::Control,
                      public Distributor::EventObserver
 {
 private:
-  shared_ptr<Distributor> distributor;
-
   snd_rawmidi_t *midi_in{nullptr};
   snd_rawmidi_t *midi_out{nullptr};
   unique_ptr<MIDIInThread> thread;
@@ -75,7 +73,6 @@ public:
 void MIDIInterface::setup()
 {
   Log::Streams log;
-  distributor = graph->find_service<Distributor>("midi:distributor");
 
   // Input
   log.summary << "Opening MIDI input on ALSA device '" << device << "'\n";
@@ -97,7 +94,8 @@ void MIDIInterface::setup()
   running = true;
 
   // Output
-  distributor->register_event_observer(
+  auto distributor = graph->find_service<Distributor>("midi", "distributor");
+  if (distributor) distributor->register_event_observer(
                                 ViGraph::MIDI::Event::Direction::out,
                                 channel_offset, channel_offset + 15,
                                 ViGraph::MIDI::Event::Type::none, this);
@@ -150,6 +148,7 @@ void MIDIInterface::pre_tick(const TickData&)
     MIDI::Event event = reader.get();
     if (event.type == ViGraph::MIDI::Event::Type::none) break;
     event.channel += channel_offset;
+    auto distributor = graph->find_service<Distributor>("midi", "distributor");
     if (distributor) distributor->handle_event(event);
   }
 }
@@ -172,6 +171,9 @@ void MIDIInterface::shutdown()
 {
   Log::Detail log;
   log << "Shutting down MIDI input\n";
+
+  auto distributor = graph->find_service<Distributor>("midi", "distributor");
+  if (distributor) distributor->deregister_event_observer(this);
 
   running = false;
   if (thread) thread->join();

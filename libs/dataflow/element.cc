@@ -54,14 +54,31 @@ void Element::set_json(const string& path, const JSON::Value& value)
     if (value.type != JSON::Value::OBJECT)
       throw runtime_error("Setting a whole element must use a JSON object");
 
-    // Do each property individually
-    for(const auto& it: value.o)
+    // Look for properties
+    const auto& props = value["props"];
+    if (props.type == JSON::Value::OBJECT)
     {
-      const auto pit = module->properties.find(it.first);
-      if (pit == module->properties.end())
-        throw runtime_error("No such property "+it.first+" in element "+id);
-      set_property(it.first, pit->second, Value(it.second));
+      // Do each property individually
+      for(const auto& it: props.o)
+      {
+        const auto pit = module->properties.find(it.first);
+        // Make this forward compatible
+        if (pit == module->properties.end()) continue;
+        set_property(it.first, pit->second, Value(it.second));
+      }
     }
+
+    // And outputs
+    const auto& outputs = value["outputs"];
+    if (outputs.type == JSON::Value::OBJECT)
+    {
+      // Do each output individually, recursing
+      for(const auto& it: outputs.o)
+        set_json(it.first, it.second);
+    }
+
+    // Note, can't set 'id' or 'type', these have to be set by an add to
+    // level above - we just ignore them
   }
   else
   {
@@ -115,7 +132,7 @@ JSON::Value Element::get_json(const string& path) const
     // Whole element
     JSON::Value json(JSON::Value::Type::OBJECT);
     json.set("id", id);
-    if (module) json.set("type", module->id);
+    if (module) json.set("type", module->section+":"+module->id);
 
     JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::OBJECT));
     for(const auto pit: module->properties)

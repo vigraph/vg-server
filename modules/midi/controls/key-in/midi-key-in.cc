@@ -26,10 +26,7 @@ public:
   int max{-1};
 
 private:
-  shared_ptr<Distributor> distributor;
-
   // Control virtuals
-  void setup() override;
   void enable() override;
   void disable() override;
 
@@ -45,19 +42,13 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Setup
-void MIDIKeyInControl::setup()
-{
-  distributor = graph->find_service<Distributor>("midi:distributor");
-}
-
-//--------------------------------------------------------------------------
 // Enable - register for events
 void MIDIKeyInControl::enable()
 {
   Log::Detail log;
   log << "MIDI key enable on channel " << channel << endl;
 
+  auto distributor = graph->find_service<Distributor>("midi", "distributor");
   if (distributor)
   {
     distributor->register_event_observer(
@@ -80,6 +71,7 @@ void MIDIKeyInControl::disable()
   Log::Detail log;
   log << "MIDI key disable on channel " << channel << endl;
 
+  auto distributor = graph->find_service<Distributor>("midi", "distributor");
   if (distributor)
     distributor->deregister_event_observer(this);
 }

@@ -25,11 +25,7 @@ public:
   double offset{0.0};
 
 private:
-  shared_ptr<Distributor> distributor;
   bool enabled = false;
-
-  // Control virtuals
-  void setup() override;
 
   // Event observer implementation
   void handle(unsigned universe, unsigned channel, dmx_value_t value) override;
@@ -44,16 +40,10 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Setup
-void DMXChannelInControl::setup()
-{
-  distributor = graph->find_service<Distributor>("dmx:distributor");
-}
-
-//--------------------------------------------------------------------------
 // Enable - register for events
 void DMXChannelInControl::enable()
 {
+  auto distributor = graph->find_service<Distributor>("dmx", "distributor");
   if (distributor && !enabled)
   {
     Log::Detail log;
@@ -71,6 +61,7 @@ void DMXChannelInControl::enable()
 // Disable - deregister for events
 void DMXChannelInControl::disable()
 {
+  auto distributor = graph->find_service<Distributor>("dmx", "distributor");
   if (distributor && enabled)
   {
     Log::Detail log;

@@ -22,11 +22,7 @@ public:
   int channel{0};
 
 private:
-  shared_ptr<Distributor> distributor;
   bool enabled = false;
-
-  // Control virtuals
-  void setup() override;
 
   // Event observer implementation
   void notify_target_of(const string& property) override;
@@ -42,18 +38,12 @@ public:
   void disable() override;
 };
 
-//--------------------------------------------------------------------------
-// Setup
-void DMXChannelOutControl::setup()
-{
-  distributor = graph->find_service<Distributor>("dmx:distributor");
-}
 
 //--------------------------------------------------------------------------
 // Enable - register for events
 void DMXChannelOutControl::enable()
 {
-  if (distributor && !enabled)
+  if (!enabled)
   {
     Log::Detail log;
     log << "DMX OUT controller enable on universe " << universe
@@ -66,7 +56,7 @@ void DMXChannelOutControl::enable()
 // Disable - deregister for events
 void DMXChannelOutControl::disable()
 {
-  if (distributor && enabled)
+  if (enabled)
   {
 #if OBTOOLS_LOG_DEBUG
     Log::Debug log;
@@ -81,6 +71,7 @@ void DMXChannelOutControl::disable()
 // Set value
 void DMXChannelOutControl::set_value(double value)
 {
+  auto distributor = graph->find_service<Distributor>("dmx", "distributor");
   if (distributor && enabled)
   {
     value *= 255.0;

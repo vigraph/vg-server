@@ -17,11 +17,9 @@ namespace {
 // PoolSend control
 class PoolSendControl: public Dataflow::Control
 {
-  shared_ptr<PoolDistributor> distributor;
   unsigned index = 0;
 
   // Control/Element virtuals
-  void setup() override;
   void calculate_topology(Element::Topology& topo) override;
 
 public:
@@ -38,13 +36,6 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Setup
-void PoolSendControl::setup()
-{
-  distributor = graph->find_service<PoolDistributor>("pool-distributor");
-}
-
-//--------------------------------------------------------------------------
 // Topology calculation - notify we send on our tag
 void PoolSendControl::calculate_topology(Element::Topology& topo)
 {
@@ -56,6 +47,8 @@ void PoolSendControl::calculate_topology(Element::Topology& topo)
 void PoolSendControl::set_number(double number)
 {
   index = number;
+  auto distributor =
+    graph->find_service<PoolDistributor>("core", "pool-distributor");
   if (distributor)
     distributor->send(pool, index, "number", {number});
 }
@@ -64,6 +57,8 @@ void PoolSendControl::set_number(double number)
 // Set velocity
 void PoolSendControl::set_velocity(double velocity)
 {
+  auto distributor =
+    graph->find_service<PoolDistributor>("core", "pool-distributor");
   if (distributor)
     distributor->send(pool, index, "velocity", {velocity});
 }
@@ -72,6 +67,8 @@ void PoolSendControl::set_velocity(double velocity)
 // Key on
 void PoolSendControl::on()
 {
+  auto distributor =
+    graph->find_service<PoolDistributor>("core", "pool-distributor");
   if (distributor)
     distributor->send(pool, index, "trigger", {});
 }
@@ -80,6 +77,8 @@ void PoolSendControl::on()
 // Key on
 void PoolSendControl::off()
 {
+  auto distributor =
+    graph->find_service<PoolDistributor>("core", "pool-distributor");
   if (distributor)
     distributor->send(pool, index, "clear", {});
 }

@@ -17,13 +17,10 @@ namespace {
 // PoolReceive control
 class PoolReceiveControl: public Dataflow::Control
 {
-  shared_ptr<PoolDistributor> distributor;
   string pool;
 
   // Control/Element virtuals
   void set_property(const string& property, const Value& v) override;
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
   void calculate_topology(Element::Topology& topo) override;
   void enable() override;
   void disable() override;
@@ -45,14 +42,6 @@ PoolReceiveControl::PoolReceiveControl(const Dataflow::Module *module,
 }
 
 //--------------------------------------------------------------------------
-// Configure from XML
-void PoolReceiveControl::configure(const File::Directory&,
-                                   const XML::Element&)
-{
-  distributor = graph->find_service<PoolDistributor>("pool-distributor");
-}
-
-//--------------------------------------------------------------------------
 // Topology calculation - register as receiver
 void PoolReceiveControl::calculate_topology(Element::Topology& topo)
 {
@@ -63,6 +52,8 @@ void PoolReceiveControl::calculate_topology(Element::Topology& topo)
 // Enable - register for events
 void PoolReceiveControl::enable()
 {
+  auto distributor =
+    graph->find_service<PoolDistributor>("core", "pool-distributor");
   if (distributor)
     distributor->register_worker(pool, this);
 }
@@ -71,6 +62,8 @@ void PoolReceiveControl::enable()
 // Disable - deregister for events
 void PoolReceiveControl::disable()
 {
+  auto distributor =
+    graph->find_service<PoolDistributor>("core", "pool-distributor");
   if (distributor)
     distributor->deregister_worker(this);
 }

@@ -20,8 +20,6 @@ class DMXInterface: public Dataflow::Control,
                     public Distributor::EventObserver
 {
 private:
-  shared_ptr<Distributor> distributor;
-
   ola::client::OlaClientWrapper ola_client;
   struct BufferInfo
   {
@@ -59,7 +57,6 @@ public:
 void DMXInterface::setup()
 {
   Log::Streams log;
-  distributor = graph->find_service<Distributor>("dmx:distributor");
 
   // Input
   log.summary << "Starting OLA client\n";
@@ -76,8 +73,10 @@ void DMXInterface::setup()
              ola::NewSingleCallback(this, &DMXInterface::register_callback));
 
   // Output
-  distributor->register_event_observer(Direction::out, universe, universe,
-                                       0, 512, this);
+  auto distributor = graph->find_service<Distributor>("dmx", "distributor");
+  if (distributor)
+    distributor->register_event_observer(Direction::out, universe, universe,
+                                         0, 512, this);
 }
 
 //--------------------------------------------------------------------------
@@ -96,6 +95,7 @@ void DMXInterface::register_callback(const ola::client::Result& result)
 void DMXInterface::dmx_callback(const ola::client::DMXMetadata& metadata,
                                 const ola::DmxBuffer& data)
 {
+  auto distributor = graph->find_service<Distributor>("dmx", "distributor");
   if (distributor)
   {
     auto values = vector<dmx_value_t>(data.Size());
@@ -160,6 +160,10 @@ void DMXInterface::shutdown()
 {
   Log::Detail log;
   log << "Shutting down DMX OLA\n";
+
+  auto distributor = graph->find_service<Distributor>("dmx", "distributor");
+  if (distributor)
+    distributor->deregister_event_observer(this);
 }
 
 //--------------------------------------------------------------------------

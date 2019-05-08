@@ -808,17 +808,20 @@ class Graph
   Element *get_element(const string& id);
 
   //------------------------------------------------------------------------
-  // Get the nearest particular element by ID, looking upwards in ancestors
-  shared_ptr<Element> get_nearest_element(const string& id);
+  // Get the nearest particular element by section and type
+  shared_ptr<Element> get_nearest_element(const string& section,
+                                          const string& type);
 
   //------------------------------------------------------------------------
   // Get type-checked nearest service element
-  template <class T> shared_ptr<T> find_service(const string& id)
+  template <class T> shared_ptr<T> find_service(const string& section,
+                                                const string& type)
   {
-    auto el = get_nearest_element(id);
-    if (!el) throw runtime_error("No such element "+id);
+    auto el = get_nearest_element(section, type);
+    if (!el) throw runtime_error("No such element "+section+":"+type);
     auto t = dynamic_pointer_cast<T>(el);
-    if (!t) throw runtime_error("Element "+id+" is the wrong type");
+    if (!t)
+      throw runtime_error("Element "+section+":"+type+" is the wrong type");
     return t;
   }
 

@@ -222,6 +222,7 @@ void IDNTransmitFilter::shutdown()
 {
   Log::Detail log;
   log << "Shutting down IDNTransmit server\n";
+  socket.reset();
 }
 
 //--------------------------------------------------------------------------

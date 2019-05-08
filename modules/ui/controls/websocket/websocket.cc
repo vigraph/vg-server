@@ -46,7 +46,6 @@ public:
 private:
   unique_ptr<WebSocketControlServer> server;
   unique_ptr<Net::TCPServerThread> server_thread;
-  shared_ptr<KeyDistributor> key_distributor;
 
   // Control virtuals
   void setup() override;
@@ -165,14 +164,14 @@ void WebSocketControl::setup()
     // Start threads
     server_thread.reset(new Net::TCPServerThread(*server));
   }
-
-  key_distributor = graph->find_service<KeyDistributor>("key-distributor");
 }
 
 //--------------------------------------------------------------------------
 // Handle a key press
 void WebSocketControl::handle_key(int code)
 {
+  auto key_distributor =
+    graph->find_service<KeyDistributor>("ui", "key-distributor");
   if (key_distributor)
     key_distributor->handle_key(code);
 }

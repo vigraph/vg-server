@@ -140,8 +140,28 @@ void CloneSource::set_json(const string& path, const JSON::Value& value)
   // Whole thing?
   if (path.empty())
   {
-    // !!!
-    throw runtime_error("Setting entire clone contents not implemented!");
+    // Set our properties (including 'n')
+    Element::set_json(path, value);
+
+    // Create new multigraph
+    multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
+
+    // 'graph' contains the array of sub-elements - we can just pass
+    // direct to the subgraphs
+    const auto& elements = value["graph"];
+
+    // !!! Hopefully these disappear when XML config does
+    File::Directory base_dir(".");
+    XML::Element config;
+
+    // Create children as sub-graphs, n times
+    for(auto i=0; i<n; i++)
+    {
+      Graph *sub = multigraph->add_subgraph(base_dir, config);
+      sub->set_variable("clone-number", Value{(double)(i+1)});
+      sub->set_variable("clone-fraction", Value{(double)i/n});
+      sub->set_json(path, elements);
+    }
   }
   else
   {

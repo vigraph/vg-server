@@ -230,8 +230,13 @@ void GraphSource::set_json(const string& path, const JSON::Value& value)
   // Whole graph?
   if (path.empty())
   {
-    // !!!
-    throw runtime_error("Setting entire graph contents not implemented!");
+    // Set our properties (if we ever have any)
+    Element::set_json(path, value);
+
+    // 'elements' contains the array of sub-elements - we can just pass
+    // direct to the subgraph
+    const auto& elements = value["elements"];
+    subgraph->set_json(path, elements);
   }
   else
   {
@@ -245,7 +250,8 @@ void GraphSource::add_json(const string& path, const JSON::Value& value)
 {
   if (path.empty())
   {
-    throw runtime_error("Can't add to a whole graph - needs a sub-element ID");
+    const auto& elements = value["elements"];
+    subgraph->set_json(path, elements);
   }
   else
   {

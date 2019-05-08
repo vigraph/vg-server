@@ -72,9 +72,10 @@ void Element::set_json(const string& path, const JSON::Value& value)
     const auto& outputs = value["outputs"];
     if (outputs.type == JSON::Value::OBJECT)
     {
-      // Do each output individually, recursing
+      // Do each output individually, recursing - note to this level,
+      // not module overrides
       for(const auto& it: outputs.o)
-        set_json(it.first, it.second);
+        Element::set_json(it.first, it.second);
     }
 
     // Note, can't set 'id' or 'type', these have to be set by an add to

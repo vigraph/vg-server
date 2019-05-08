@@ -586,24 +586,33 @@ void Graph::add_json(const string& path, const JSON::Value& value)
     if (value.type != JSON::Value::ARRAY)
       throw runtime_error("Whole graph setting needs a JSON array");
 
-    // Create elements first, recursively
-    for(const auto& v: value.a)
+    // If any of this fails, clean up and rethrow
+    try
     {
-      const auto& id = v["id"].as_str();
-      if (id.empty()) throw runtime_error("Graph element requires an 'id'");
-      add_json(id, v);
-    }
+      // Create elements first, recursively
+      for(const auto& v: value.a)
+      {
+        const auto& id = v["id"].as_str();
+        if (id.empty()) throw runtime_error("Graph element requires an 'id'");
+        add_json(id, v);
+      }
 
-    // Then configure and connect them
-    for(const auto& v: value.a)
+      // Then configure and connect them
+      for(const auto& v: value.a)
+      {
+        const auto& id = v["id"].as_str();
+        set_json(id, v);
+      }
+
+      // Then set them all up
+      for(const auto& it: elements)
+        it.second->setup();
+    }
+    catch (runtime_error e)
     {
-      const auto& id = v["id"].as_str();
-      set_json(id, v);
+      shutdown();
+      throw e;
     }
-
-    // Then set them all up
-    for(const auto& it: elements)
-      it.second->setup();
   }
   else
   {

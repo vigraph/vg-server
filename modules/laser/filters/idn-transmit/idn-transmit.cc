@@ -83,6 +83,8 @@ void IDNTransmitFilter::accept(FramePtr frame)
 // Transmit a frame
 void IDNTransmitFilter::transmit(FramePtr frame)
 {
+  if (!socket) return;
+
   // Construct message
   IDN::Message message(IDN::Message::ChunkType::laser_frame_samples_entire);
 

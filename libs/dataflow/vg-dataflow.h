@@ -808,7 +808,8 @@ class Graph
   Element *get_element(const string& id);
 
   //------------------------------------------------------------------------
-  // Get the nearest particular element by section and type
+  // Get the nearest particular element by section and type, looking upwards
+  // in ancestors
   shared_ptr<Element> get_nearest_element(const string& section,
                                           const string& type);
 

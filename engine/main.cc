@@ -12,7 +12,9 @@ namespace {
 const auto server_name    = "ViGraph dataflow engine daemon";
 const auto server_version = VERSION;
 const auto default_config_file_name = "engine.cfg.xml";
+#if defined(PLATFORM_WINDOWS)
 const auto default_licence_file_name = "licence.xml";
+#endif
 #ifdef DEBUG
 const auto default_config_file = default_config_file_name;
 #else

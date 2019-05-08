@@ -308,10 +308,6 @@ void ControlImpl::set_target_from_json(const string& prop,
                                        const JSON::Value& json,
                                        Element *source_element)
 {
-  Log::Detail log;
-  log << "Set control " << control_id << " target " << prop << " to "
-      << json << endl;
-
   if (json.type != JSON::Value::ARRAY)
     throw runtime_error("JSON to set control targets must be an array");
 

@@ -390,6 +390,7 @@ private:
   void set_property(const string& prop_name, const Module::Property& prop,
                     const vector<double>& v);
   JSON::Value get_property_json(const Module::Property& prop) const;
+  void set_output_json(const string& path, const JSON::Value& value);
   static Value get_value(const JSON::Value& value);
 
 public:

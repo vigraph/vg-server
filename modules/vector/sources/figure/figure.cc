@@ -168,7 +168,7 @@ void FigureSource::calculate_waveform(double pos, Waveform waveform,
       double theta = phase + freq*i/points;
       double theta1 = theta - floor(theta); // Repeating 0..1
 
-      double offset;  // Offset from baseline (-0.5 .. 0.5)
+      double offset = 0;  // Offset from baseline (-0.5 .. 0.5)
 
       switch (waveform)
       {

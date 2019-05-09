@@ -177,7 +177,7 @@ Value::Type Element::get_property_type(const string& property)
 //------------------------------------------------------------------------
 // Configure all properties from XML
 // Throws a runtime_error if configuration fails
-void Element::configure(const File::Directory& base_dir,
+void Element::configure(const File::Directory&,
                         const XML::Element& config)
 {
   // Check all properties to see if attribute exists
@@ -218,8 +218,6 @@ void Element::configure(const File::Directory& base_dir,
       configure_property(name, pit.second, value);
     }
   }
-
-  setup(base_dir);
 }
 
 //------------------------------------------------------------------------

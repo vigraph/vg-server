@@ -269,7 +269,7 @@ void Graph::configure_internal(const File::Directory& base_dir,
   topological_order.clear();
   last_element = nullptr;
 
-  // Two-phase create/connect to allow forward references
+  // Three-phase create/connect to allow forward references
 
   // Create all children, but don't connect yet
   list<Element *> ordered_elements;
@@ -288,6 +288,10 @@ void Graph::configure_internal(const File::Directory& base_dir,
   // Connect all elements - note original ordering is required for shortcuts
   for(auto el: ordered_elements)
     connect(el);
+
+  // Final setup - note <graph> etc require connections for setup
+  for(auto el: ordered_elements)
+    el->setup(base_dir);
 
   // Check for acceptors that never received any input
   for(auto& el: disconnected_acceptors)

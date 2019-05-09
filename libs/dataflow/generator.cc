@@ -98,7 +98,7 @@ void Generator::set_output_from_json(const string& /*output_id*/,
 
     Acceptor *acceptor = dynamic_cast<Acceptor *>(element);
     if (!acceptor) throw runtime_error("Element "+element_id+" has no inputs");
-    acceptors[element_id] = acceptor;
+    attach(element_id, acceptor);  // Note downcall to <graph> etc.
     downstreams.push_back(element);
   }
 }

@@ -41,10 +41,10 @@ private:
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void calculate_topology(Element::Topology& topo) override;
-  void attach(const string& id, Dataflow::Acceptor *acceptor) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
   void post_tick(const TickData& td) override;
+  void setup() override;
   void enable() override;
   void disable() override;
   JSON::Value get_json(const string& path) const override;
@@ -82,21 +82,21 @@ void SelectorSource::configure(const File::Directory& base_dir,
 }
 
 //--------------------------------------------------------------------------
+// Setup after configuration
+void SelectorSource::setup()
+{
+  // Connect our acceptor(s) to the subgraph
+  for(const auto& it: acceptors)
+    multigraph->attach_to_all(it.second);
+}
+
+//--------------------------------------------------------------------------
 // Topology calculation
 void SelectorSource::calculate_topology(Element::Topology& topo)
 {
   // Note we include all subs in the topology, whether or not activated,
   // to avoid having to recalculate the topology dynamically
   multigraph->calculate_topology(topo, this);
-}
-
-//--------------------------------------------------------------------------
-// Attach an acceptor
-// Overrides Generator::attach, attaches to all sub-graphs
-void SelectorSource::attach(const string& id, Dataflow::Acceptor *acceptor)
-{
-  Source::attach(id, acceptor);
-  multigraph->attach_to_all(acceptor);
 }
 
 //--------------------------------------------------------------------------

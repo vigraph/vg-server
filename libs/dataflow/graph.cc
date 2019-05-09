@@ -618,7 +618,10 @@ void Graph::add_json(const string& path, const JSON::Value& value)
 
       // Then set them all up
       for(const auto& it: elements)
-        it.second->setup();
+      {
+        File::Directory base_dir(".");  // !!! Remove once this dies!
+        it.second->setup(base_dir);
+      }
     }
     catch (const runtime_error& e)
     {

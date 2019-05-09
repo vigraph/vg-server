@@ -80,6 +80,7 @@ vg-engine.exe
 ../modules/midi/controls/control-out/vg-module-midi-control-control-out.dll modules
 ../modules/midi/controls/pool-receive/vg-module-midi-control-pool-receive.dll modules
 ../modules/midi/controls/control-in/vg-module-midi-control-control-in.dll modules
+../modules/midi/controls/win-mm/vg-module-midi-control-win-mm.dll modules
 ../modules/dmx/services/distributor/vg-module-dmx-service-distributor.dll modules
 ../modules/dmx/controls/channel-in/vg-module-dmx-control-channel-in.dll modules
 ../modules/dmx/controls/channel-out/vg-module-dmx-control-channel-out.dll modules

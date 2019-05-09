@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for Vigraph Windows MIDI interface module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-module-midi-control-win-mm
+TYPE      = shared
+DEPENDS   = vg-dataflow vg-midi ext-winmm
+PLATFORMS = windows
+
+include_rules

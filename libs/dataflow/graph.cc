@@ -34,13 +34,21 @@ void Graph::add(Element *el)
 // Note, doesn't add to graph ordering and remembers this for reload
 bool Graph::attach_external(Acceptor *a)
 {
-  if (unbound_generators.empty()) return false;
+  // Find all generators which currently have no acceptors and add this
+  // to them
+  bool done = false;
+  for(const auto& it: elements)
+  {
+    Generator *g = dynamic_cast<Generator *>(it.second.get());
+    if (g && g->acceptors.empty())
+    {
+      g->attach("", a);
+      done = true;
+    }
+  }
 
-  for(auto g: unbound_generators)
-    g->attach("", a);
-  unbound_generators.clear();
-  external_acceptor = a;
-  return true;
+  external_acceptor = a;  // Remove once XML gone !!!
+  return done;
 }
 
 //------------------------------------------------------------------------

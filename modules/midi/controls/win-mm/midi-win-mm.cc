@@ -124,8 +124,17 @@ void MIDIInterface::pre_tick(const TickData&)
 
 //--------------------------------------------------------------------------
 // Handle event
-void MIDIInterface::handle(const ViGraph::MIDI::Event& /*event*/)
+void MIDIInterface::handle(const ViGraph::MIDI::Event& event)
 {
+  ViGraph::MIDI::Event e = event;
+  e.channel -= channel_offset;
+  vector<uint8_t> data;
+  auto writer = ViGraph::MIDI::Writer{data};
+  writer.write(event);
+  auto d = DWORD{};
+  for (auto i = 0u; i < data.size() && i < sizeof(DWORD); ++i)
+    d |= data[i] << (i * 8);
+  auto status = midiOutShortMsg(midi_out, d);
 }
 
 //--------------------------------------------------------------------------

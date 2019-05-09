@@ -11,19 +11,19 @@
 namespace {
 const auto server_name    = "ViGraph dataflow engine daemon";
 const auto server_version = VERSION;
-const auto default_config_file_name = "engine.cfg.xml";
 
 #if defined(PLATFORM_WINDOWS)
 const auto default_licence_file_name = "licence.xml";
+const auto default_config_file_name = "engine.cfg.xml";
 #else
 const auto default_licence = "/etc/vigraph/licence.xml";
+#ifdef DEBUG
+const auto default_config_file = "engine.cfg.xml";
+#else
+const auto default_config_file = "/etc/vigraph/engine.cfg.xml";
+#endif
 #endif
 
-#ifdef DEBUG
-const auto default_config_file = default_config_file_name;
-#else
-const auto default_config_file = "/etc/vigraph/" + default_config_file_name;
-#endif
 const auto config_file_root = "engine";
 const auto default_log_file = "/var/log/vigraph/engine.log";
 const auto pid_file         = "/var/run/vg-engine.pid";

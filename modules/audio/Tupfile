@@ -19,7 +19,8 @@ DEPENDS  = vg-module-audio-filter-linux-alsa-out  \
            vg-module-audio-source-linux-alsa-in   \
            vg-module-audio-source-vco             \
            vg-module-audio-source-wav             \
-           vg-module-audio-source-receive
+           vg-module-audio-source-receive         \
+           vg-module-audio-sink-sdl
 
 PACKAGE  = $(NAME)
 VERSION  = 0.1.0

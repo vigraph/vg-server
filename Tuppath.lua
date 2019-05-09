@@ -52,6 +52,8 @@ function get_dependency_path(name)
     return 'modules/audio/filters/' .. string.sub(name, 24)
   elseif string.sub(name, 1, 23) == 'vg-module-audio-source-' then
     return 'modules/audio/sources/' .. string.sub(name, 24)
+  elseif string.sub(name, 1, 21) == 'vg-module-audio-sink-' then
+    return 'modules/audio/sinks/' .. string.sub(name, 22)
 
   elseif string.sub(name, 1, 22) == 'vg-module-dmx-service-' then
     return 'modules/dmx/services/' .. string.sub(name, 23)

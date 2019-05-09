@@ -61,6 +61,7 @@ vg-engine.exe
 ../modules/audio/filters/filter/vg-module-audio-filter-filter.dll modules
 ../modules/audio/filters/attenuator/vg-module-audio-filter-attenuator.dll modules
 ../modules/audio/filters/amplitude/vg-module-audio-filter-amplitude.dll modules
+../modules/audio/sinks/sdl/vg-module-audio-sink-sdl.dll modules
 ../modules/laser/sources/ilda/vg-module-laser-source-ilda.dll modules
 ../modules/laser/filters/beamify/vg-module-laser-filter-beamify.dll modules
 ../modules/laser/filters/idn-transmit/vg-module-laser-filter-idn-transmit.dll modules

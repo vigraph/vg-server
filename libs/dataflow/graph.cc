@@ -612,7 +612,7 @@ void Graph::add_json(const string& path, const JSON::Value& value)
       for(const auto& it: elements)
         it.second->setup();
     }
-    catch (runtime_error e)
+    catch (const runtime_error& e)
     {
       shutdown();
       throw e;

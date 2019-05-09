@@ -12,3 +12,4 @@ sources/linux-alsa-in/vg-module-audio-source-linux-alsa-in.so /usr/lib/vigraph/m
 sources/vco/vg-module-audio-source-vco.so /usr/lib/vigraph/modules
 sources/wav/vg-module-audio-source-wav.so /usr/lib/vigraph/modules
 sources/receive/vg-module-audio-source-receive.so /usr/lib/vigraph/modules
+sinks/sdl/vg-module-audio-sink-sdl.so /usr/lib/vigraph/modules

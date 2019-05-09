@@ -8,6 +8,7 @@
 
 #include "engine.h"
 #include "vg-licence.h"
+#include <SDL.h>
 
 namespace ViGraph { namespace Engine {
 
@@ -100,8 +101,32 @@ int Server::tick()
 // Returns whether successful
 bool Server::configure()
 {
-  Log::Summary log;
-  log << "Configuring server permanent state" << endl;
+  Log::Streams log;
+  log.summary << "Configuring server permanent state" << endl;
+
+  // Initialise SDL
+  SDL_version linked;
+  SDL_GetVersion(&linked);
+  log.detail << "Loaded SDL library version: "
+             << static_cast<int>(linked.major) << "."
+             << static_cast<int>(linked.minor) << "."
+             << static_cast<int>(linked.patch)  << endl;
+  SDL_version compiled;
+  SDL_VERSION(&compiled);
+  if (compiled.major != linked.major ||
+      compiled.minor != linked.minor ||
+      compiled.patch != linked.patch)
+  {
+    log.summary << "SDL compiled version: "
+                << static_cast<int>(compiled.major) << "."
+                << static_cast<int>(compiled.minor) << "."
+                << static_cast<int>(compiled.patch)
+                << ", linked version: "
+                << static_cast<int>(linked.major) << "."
+                << static_cast<int>(linked.minor) << "."
+                << static_cast<int>(linked.patch) << endl;
+  }
+  SDL_Init(SDL_INIT_EVERYTHING);
 
   XML::XPathProcessor config(config_xml);
 
@@ -150,7 +175,11 @@ void Server::reconfigure()
     {
       log.summary << "Searching directory " << dir << " for modules\n";
       list<File::Path> paths;
+#if defined(PLATFORM_WINDOWS)
+      dir.inspect_recursive(paths, "*.dll");
+#else
       dir.inspect_recursive(paths, "*.so");
+#endif
       for(const auto& p: paths) load_module(p);
     }
   }
@@ -255,6 +284,9 @@ void Server::cleanup()
 
   log << "Unloading modules\n";
   modules.clear();
+
+  log << "Shutting down SDL\n";
+  SDL_Quit();
 
   log << "Shutdown complete\n";
 }

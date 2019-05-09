@@ -104,6 +104,8 @@ bool Server::configure()
   Log::Streams log;
   log.summary << "Configuring server permanent state" << endl;
 
+  // !!! Crashes on Ubuntu18 - removed to get Tom working
+#if 0
   // Initialise SDL
   SDL_version linked;
   SDL_GetVersion(&linked);
@@ -127,6 +129,7 @@ bool Server::configure()
                 << static_cast<int>(linked.patch) << endl;
   }
   SDL_Init(SDL_INIT_EVERYTHING);
+#endif
 
   XML::XPathProcessor config(config_xml);
 

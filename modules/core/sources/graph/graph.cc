@@ -74,10 +74,10 @@ class GraphSource: public Dataflow::Source
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void calculate_topology(Element::Topology& topo) override;
-  void attach(const string& id, Dataflow::Acceptor *acceptor) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
   void post_tick(const TickData& td) override;
+  void setup() override;
   void enable() override;
   void disable() override;
   void shutdown() override;
@@ -114,12 +114,12 @@ void GraphSource::calculate_topology(Element::Topology& topo)
 }
 
 //--------------------------------------------------------------------------
-// Attach an acceptor
-// Overrides Generator::attach, attaches to sub-graph
-void GraphSource::attach(const string& id, Dataflow::Acceptor *acceptor)
+// Setup after configuration
+void GraphSource::setup()
 {
-  Source::attach(id, acceptor);
-  subgraph->attach_external(acceptor);
+  // Connect our acceptor(s) to the subgraph
+  for(const auto& it: acceptors)
+    subgraph->attach_external(it.second);
 }
 
 //--------------------------------------------------------------------------

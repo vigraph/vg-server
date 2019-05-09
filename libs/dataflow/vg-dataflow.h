@@ -519,8 +519,8 @@ class Generator: public Element
   Generator(const Module *_module, const XML::Element& config);
 
   // Add an acceptor - can be null for initial intent to connect
-  virtual void attach(const string &id, Acceptor *acceptor=nullptr)
-  { acceptors[id] = acceptor; }
+  virtual void attach(const string &aid, Acceptor *acceptor=nullptr)
+  { acceptors[aid] = acceptor; }
 
   // Send data down
   void send(DataPtr data);

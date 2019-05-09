@@ -25,6 +25,8 @@ private:
 
   // Filter/Element virtuals
   void accept(FramePtr frame) override;
+  JSON::Value get_json(const string& path) const override;
+  void set_json(const string& path, const JSON::Value& value) override;
 
 public:
   double phase{0};
@@ -65,6 +67,43 @@ PatternFilter::PatternFilter(const Dataflow::Module *module,
                       ce.get_attr_real("g"),
                       ce.get_attr_real("b"));
     colours.push_back(c);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Get JSON
+JSON::Value PatternFilter::get_json(const string& path) const
+{
+  JSON::Value json = Filter::get_json(path);
+
+  if (path.empty())
+  {
+    // Whole thing - add array of colours
+    auto& cols = json.set("colours", JSON::Value(JSON::Value::ARRAY));
+    for(const auto c: colours)
+      cols.add(c.str());
+  }
+
+  return json;
+}
+
+//--------------------------------------------------------------------------
+// Set from JSON
+void PatternFilter::set_json(const string& path, const JSON::Value& value)
+{
+  Element::set_json(path, value);
+
+  if (path.empty())
+  {
+    // Whole thing?
+    colours.clear();
+
+    const auto& cols = value["colours"];
+    for(const auto& cv: cols.a)
+    {
+      const auto& c = cv.as_str();
+      if (!c.empty()) colours.push_back(Colour::RGB(c));
+    }
   }
 }
 

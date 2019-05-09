@@ -42,7 +42,6 @@ bool Graph::attach_external(Acceptor *a)
     Generator *g = dynamic_cast<Generator *>(it.second.get());
     if (g && g->acceptors.empty())
     {
-      cout << "Attaching external acceptor " << a << " to " << g->id << endl;
       g->attach("", a);
       done = true;
     }

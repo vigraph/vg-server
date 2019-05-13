@@ -82,6 +82,9 @@
     <!-- HTTP port -->
     <http port="33380"/>
 
+    <!-- Layout file -->
+    <layout file="layout.json"/>
+
   </rest>
 
 </engine>

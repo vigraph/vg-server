@@ -33,7 +33,8 @@ class RESTInterface
   unique_ptr<Net::TCPServerThread> http_server_thread;
 
 public:
-  RESTInterface(const XML::Element& config, Dataflow::Engine& _engine);
+  RESTInterface(const XML::Element& config, Dataflow::Engine& _engine,
+                const File::Directory& base_dir);
   ~RESTInterface();
 };
 

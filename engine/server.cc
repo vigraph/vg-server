@@ -216,7 +216,8 @@ void Server::reconfigure()
   // (re-)create the REST interface
   rest.reset();
   const XML::Element& rest_e = config_xml.get_child("rest");
-  if (!!rest_e) rest.reset(new RESTInterface(rest_e, engine));
+  if (!!rest_e) rest.reset(new RESTInterface(rest_e, engine,
+                                             config_file.dirname()));
 }
 
 //--------------------------------------------------------------------------

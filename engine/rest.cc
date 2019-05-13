@@ -18,6 +18,7 @@ namespace
 {
   const int default_http_port{33380};
   const string server_ident{"ViGraph Engine Server REST interface"};
+  const string default_layout_file{"layout.json"};
 }
 
 //==========================================================================
@@ -442,22 +443,121 @@ bool MetaURLHandler::handle_request(const Web::HTTPMessage& request,
 }
 
 //==========================================================================
+// /layout URL Handler
+// Operations:  GET, POST
+
+// URL format:
+// /layout                     Entire top-level layout (GET/POST)
+
+class LayoutURLHandler: public Web::URLHandler
+{
+  File::Path layout_path;
+  bool handle_get(Web::HTTPMessage& response);
+  bool handle_post(const Web::HTTPMessage& request,
+                   Web::HTTPMessage& response);
+  bool handle_request(const Web::HTTPMessage& request,
+                      Web::HTTPMessage& response,
+                      const SSL::ClientDetails& client);
+
+public:
+  LayoutURLHandler(const File::Path& _layout_path):
+    URLHandler("/layout*"), layout_path(_layout_path)
+  {}
+};
+
+//--------------------------------------------------------------------------
+// Handle a GET request
+// Returns whether request was valid
+bool LayoutURLHandler::handle_get(Web::HTTPMessage& response)
+{
+  Log::Streams log;
+  log.detail << "REST Layout: GET from " << layout_path << endl;
+
+  if (!layout_path.read_all(response.body))
+  {
+    Log::Error log;
+    log << "REST Layout can't read file " << layout_path
+        << ": " << response.body << endl;
+    response.code = 404;
+    response.reason = "Not found";
+  }
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Handle a POST request
+// Returns whether request was valid
+bool LayoutURLHandler::handle_post(const Web::HTTPMessage& request,
+                                   Web::HTTPMessage& response)
+{
+  Log::Streams log;
+  log.detail << "REST Layout: POST to " << layout_path << endl;
+
+  const auto& error = layout_path.write_all(request.body);
+  if (!error.empty())
+  {
+    Log::Error log;
+    log << "REST Layout can't write file " << layout_path
+        << ": " << error << endl;
+    response.code = 403;
+    response.reason = "Forbidden";
+  }
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Handle the request
+bool LayoutURLHandler::handle_request(const Web::HTTPMessage& request,
+                                      Web::HTTPMessage& response,
+                                      const SSL::ClientDetails& /* client */)
+{
+  if (request.method == "GET")
+  {
+    if (!handle_get(response))
+    {
+      response.code = 400;
+      response.reason = "Bad request";
+    }
+  }
+  else if (request.method == "POST")
+  {
+    if (!handle_post(request, response))
+    {
+      response.code = 400;
+      response.reason = "Bad request";
+    }
+  }
+  else
+  {
+    response.code = 405;
+    response.reason = "Method not allowed";
+  }
+  return true;
+}
+
+//==========================================================================
 // REST interface
 //--------------------------------------------------------------------------
 // Constructor
 RESTInterface::RESTInterface(const XML::Element& config,
-                             Dataflow::Engine& engine)
+                             Dataflow::Engine& engine,
+                             const File::Directory& base_dir)
 {
   Log::Streams log;
   XML::ConstXPathProcessor xpath(config);
 
-   // Start HTTP server
+  // Config
+  const auto& layout_file = config.get_child("layout")
+                                  .get_attr("file", default_layout_file);
+
+  // Start HTTP server
   int hport = xpath.get_value_int("http/@port", default_http_port);
   log.summary << "REST: Starting HTTP server at port " << hport << endl;
   http_server.reset(new Web::SimpleHTTPServer(hport, server_ident));
 
   http_server->add(new GraphURLHandler(engine));
   http_server->add(new MetaURLHandler(engine));
+  http_server->add(new LayoutURLHandler(base_dir.resolve(layout_file)));
 
   // Allow cross-origin fetch from anywhere
   http_server->set_cors_origin();

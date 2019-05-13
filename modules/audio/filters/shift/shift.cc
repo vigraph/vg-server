@@ -8,18 +8,29 @@
 //==========================================================================
 
 #include "../../audio-module.h"
+#if defined(PLATFORM_WINDOWS)
+#include "SoundTouchDLL.h"
+#else
 #include "SoundTouch.h"
+#endif
 
 namespace {
 
 using namespace ViGraph::Dataflow;
+#if !defined(PLATFORM_WINDOWS)
 using namespace soundtouch;
+#endif
 
 //==========================================================================
 // Shift filter
 class ShiftFilter: public FragmentFilter
 {
+#if defined(PLATFORM_WINDOWS)
+  map<Speaker, unique_ptr<remove_pointer<HANDLE>::type,
+                          decltype(&soundtouch_destroyInstance)>> sound_touch;
+#else
   map<Speaker, SoundTouch> sound_touch;
+#endif
   double pitch = 0;
   bool enabled = true;
 
@@ -43,7 +54,13 @@ void ShiftFilter::set_pitch(double p)
 {
   pitch = p;
   for (auto &st: sound_touch)
+  {
+#if defined(PLATFORM_WINDOWS)
+    soundtouch_setPitchSemiTones(st.second.get(), pitch);
+#else
     st.second.setPitchSemiTones(pitch);
+#endif
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -61,6 +78,16 @@ void ShiftFilter::accept(FragmentPtr fragment)
       auto stit = sound_touch.find(c);
       if (stit == sound_touch.end())
       {
+#if defined(PLATFORM_WINDOWS)
+        stit = sound_touch.emplace(piecewise_construct,
+                                   forward_as_tuple(c),
+                                   forward_as_tuple(
+                                     soundtouch_createInstance(),
+                                     soundtouch_destroyInstance)).first;
+        soundtouch_setChannels(stit->second.get(), 1);
+        soundtouch_setSampleRate(stit->second.get(), sample_rate);
+        soundtouch_setPitchSemiTones(stit->second.get(), pitch);
+#else
         // SoundTouch doesn't copy well, so this defers construction until
         // it's in place
         stit = sound_touch.emplace(piecewise_construct,
@@ -69,12 +96,20 @@ void ShiftFilter::accept(FragmentPtr fragment)
         stit->second.setChannels(1);
         stit->second.setSampleRate(sample_rate);
         stit->second.setPitchSemiTones(pitch);
+#endif
       }
 
+#if defined(PLATFORM_WINDOWS)
+      soundtouch_putSamples(stit->second.get(), &w[0], w.size());
+      max_samples = min(max_samples,
+                        min(w.size(), static_cast<vector<float>::size_type>(
+                                soundtouch_numSamples(stit->second.get()))));
+#else
       stit->second.putSamples(&w[0], w.size());
       max_samples = min(max_samples,
                         min(w.size(), static_cast<unsigned long>(
                                       stit->second.numSamples())));
+#endif
     }
 
     if (max_samples)
@@ -84,7 +119,12 @@ void ShiftFilter::accept(FragmentPtr fragment)
         const auto c = wit.first;
         auto& w = wit.second;
         auto stit = sound_touch.find(c);
+#if defined(PLATFORM_WINDOWS)
+        const auto samples = soundtouch_receiveSamples(stit->second.get(),
+                                                       &w[0], max_samples);
+#else
         const auto samples = stit->second.receiveSamples(&w[0], max_samples);
+#endif
         w.resize(samples);
       }
 

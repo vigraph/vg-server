@@ -6,8 +6,8 @@
 
 NAME      = vg-module-audio-filter-shift
 TYPE      = shared
-DEPENDS   = vg-dataflow vg-geometry ext-pkg-soundtouch \
-            vg-module-audio-source-vco
-PLATFORMS = linux
+DEPENDS   = vg-dataflow vg-module-audio-source-vco
+LINUX-DEPENDS = ext-pkg-soundtouch
+WINDOWS-DEPENDS = ext-SoundTouch_x64
 
 include_rules

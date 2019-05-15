@@ -109,8 +109,7 @@ void EnvelopeControl::pre_tick(const TickData& td)
     {
       case State::off:
         attack_start_value = release_start_value = 0;
-        values.emplace_back(0);
-        return;
+        break;
 
       case State::attack:
         if (delta >= attack)
@@ -165,11 +164,13 @@ void EnvelopeControl::pre_tick(const TickData& td)
       case State::complete:
         Control::trigger("clear");
         state = State::off;
-        return;
+        values.emplace_back(0);
+        break;
     }
   }
 
-  send("value", values);
+  if (!values.empty())
+    send("value", values);
 }
 
 //--------------------------------------------------------------------------

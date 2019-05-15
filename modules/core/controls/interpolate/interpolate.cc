@@ -15,16 +15,7 @@ namespace {
 // Interpolate control
 class InterpolateControl: public Control
 {
-  // Fixed points
-  struct Point
-  {
-    double at;
-    map<string, double> values;  // Property values
-
-    Point(double _at): at(_at) {}
-  };
-
-  vector<Point> points;
+  map<double, double> curve;  // t -> value
 
 public:
   // Construct
@@ -40,10 +31,10 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML
 // <interpolate property="...">
-//   <point at="0" x="0"/>
-//   <point at="1" x="0.5"/>
+//   <point t="0" value="0"/>
+//   <point t="1" value="0.5"/>
 // </interpolate>
-// Note both 'at's are optional and assumed 0,1 in this simple case
+// Note both 't's are optional and assumed 0,1 in this simple case
 // !!! No way to replace this at the moment
 InterpolateControl::InterpolateControl(const Module *module,
                                        const XML::Element& config):
@@ -51,23 +42,15 @@ InterpolateControl::InterpolateControl(const Module *module,
 {
   const auto& point_es = config.get_children("point");
   const auto np = point_es.size();
-  double default_at = 0.0;
+  double default_t = 0.0;
   for(const auto& it: point_es)
   {
     const XML::Element& te = *it;
-    double at = te.get_attr_real("at", default_at);
-    if (np > 1) default_at += 1.0 / (np-1);
+    double t = te.get_attr_real("t", default_t);
+    if (np > 1) default_t += 1.0 / (np-1);
 
-    Point p(at);
-
-    // Add other attributes as values
-    for(const auto ait: te.attrs)
-    {
-      if (ait.first != "at")
-        p.values[ait.first] = Text::stof(ait.second);
-    }
-
-    points.push_back(p);
+    double value = te.get_attr_real("value");
+    curve[t] = value;
   }
 }
 
@@ -76,12 +59,11 @@ InterpolateControl::InterpolateControl(const Module *module,
 JSON::Value InterpolateControl::get_curve() const
 {
   JSON::Value json(JSON::Value::ARRAY);
-  for(const auto& p: points)
+  for(const auto& it: curve)
   {
     JSON::Value o(JSON::Value::OBJECT);
-    o.set("at", p.at);
-    for(const auto& pit: p.values)
-      o.set(pit.first, pit.second);
+    o.set("t", it.first);
+    o.set("value", it.second);
   }
 
   return json;
@@ -92,25 +74,17 @@ JSON::Value InterpolateControl::get_curve() const
 void InterpolateControl::set_curve(const JSON::Value& json)
 {
   if (json.type != JSON::Value::ARRAY) return;
-  points.clear();
-  double default_at = 0.0;
+  curve.clear();
+  double default_t = 0.0;
   const auto np = json.a.size();
   for(const auto& o: json.a)
   {
     if (o.type != JSON::Value::OBJECT) continue;
-    double at = o["at"].as_float(default_at);
-    if (np > 1) default_at += 1.0 / (np-1);
+    double t = o["t"].as_float(default_t);
+    if (np > 1) default_t += 1.0 / (np-1);
 
-    Point p(at);
-
-    // Add other attributes as values
-    for(const auto& pit: o.o)
-    {
-      if (pit.first != "at")
-        p.values[pit.first] = pit.second.as_float();
-    }
-
-    points.push_back(p);
+    double value = o["value"].as_float();
+    curve[t] = value;
   }
 }
 
@@ -118,47 +92,37 @@ void InterpolateControl::set_curve(const JSON::Value& json)
 // Set 't'
 void InterpolateControl::set_t(double t)
 {
-  if (!points.size()) return;
+  if (!curve.size()) return;
 
-  // Values to send
-  map<string, double> values;
-  double start_at = 0;
+  double start_t{0};
+  double value{0};
+  bool started{false};
 
   // Find which point we start from
-  for(const auto& p: points)
+  for(const auto& it: curve)
   {
-    if (t >= p.at)
+    if (t >= it.first)
     {
       // Start here
-      start_at = p.at;
-      values = p.values;
+      start_t = it.first;
+      value = it.second;
+      started = true;
     }
-    else if (!values.empty())
+    else if (started)
     {
       // Caught start last time, this point is now the end
-      t -= start_at;
-      for(auto& it: values)
-      {
-        // Find value in this point
-        const auto it2 = p.values.find(it.first);
-        if (it2 != p.values.end())
-        {
-          double this_span = p.at - start_at;
-          if (!this_span) continue;
-          double this_t = t / this_span;  // Range to this span
-          it.second += this_t * (it2->second - it.second);  // Linear
-        }
+      t -= start_t;
 
-        // Note if not found it just leaves the previous specified value
-      }
-
+      double this_span = it.first - start_t;
+      if (!this_span) continue;
+      double this_t = t / this_span;  // Range to this span
+      value += this_t * (it.second - value);  // Linear
       break;
     }
   }
 
-  // Send all values
-  for(const auto it: values)
-    send(it.first, Value(it.second));
+  // Send the value
+  send(Value(value));
 }
 
 //--------------------------------------------------------------------------
@@ -177,7 +141,7 @@ Dataflow::Module module
                  { &InterpolateControl::get_curve,
                    &InterpolateControl::set_curve }, } }
   },
-  { { "", { "Any value", "", Value::Type::any }}} // Flexible controlled property
+  { { "value", { "Value output", "value", Value::Type::number }}}
 };
 
 } // anon

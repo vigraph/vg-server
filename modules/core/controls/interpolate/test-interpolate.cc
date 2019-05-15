@@ -21,8 +21,8 @@ TEST(InterpolateTest, TestInterpolateWithOnePointHasEffect)
 {
   ControlTester tester(loader);
   tester.test("<set value='1' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
+              "<interpolate property='foo'>"
+                "<point value='1'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
@@ -34,9 +34,9 @@ TEST(InterpolateTest, TestInterpolateWithTwoPoints)
 {
   ControlTester tester(loader);
   tester.test("<set value='0.5' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
+              "<interpolate property='foo'>"
+                "<point value='1'/>"
+                "<point value='2'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
@@ -48,10 +48,10 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsOnBoundary)
 {
   ControlTester tester(loader);
   tester.test("<set value='0.5' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
-                "<point foo='3'/>"
+              "<interpolate property='foo'>"
+                "<point value='1'/>"
+                "<point value='2'/>"
+                "<point value='3'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
@@ -63,10 +63,10 @@ TEST(InterpolateTest, TestInterpolateWithThreePoints)
 {
   ControlTester tester(loader);
   tester.test("<set value='0.75' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
-                "<point foo='3'/>"
+              "<interpolate property='foo'>"
+                "<point value='1'/>"
+                "<point value='2'/>"
+                "<point value='3'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
@@ -78,10 +78,10 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsAtEnd)
 {
   ControlTester tester(loader);
   tester.test("<set value='1' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
-                "<point foo='3'/>"
+              "<interpolate property='foo'>"
+                "<point value='1'/>"
+                "<point value='2'/>"
+                "<point value='3'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
@@ -89,28 +89,13 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsAtEnd)
   EXPECT_EQ(3, v.d);
 }
 
-TEST(InterpolateTest, TestInterpolateWithMissingValueUsesLast)
-{
-  ControlTester tester(loader);
-  tester.test("<set value='0.75' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
-                "<point/>"
-              "</interpolate>");
-  ASSERT_TRUE(tester.target->got("foo"));
-  const auto& v = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, v.type);
-  EXPECT_EQ(2, v.d);
-}
-
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPoints)
 {
   ControlTester tester(loader);
   tester.test("<set value='0.2' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point at='0.4' foo='2'/>"
+              "<interpolate property='foo'>"
+                "<point value='1'/>"
+                "<point t='0.4' value='2'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
@@ -122,9 +107,9 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsAfterLast)
 {
   ControlTester tester(loader);
   tester.test("<set value='0.5' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point at='0.4' foo='2'/>"
+              "<interpolate property='foo'>"
+                "<point value='1'/>"
+                "<point t='0.4' value='2'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
@@ -136,9 +121,9 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsLargeAtValues)
 {
   ControlTester tester(loader);
   tester.test("<set value='500' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point at='1000' foo='2'/>"
+              "<interpolate property='foo'>"
+                "<point value='1'/>"
+                "<point t='1000' value='2'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
@@ -150,10 +135,10 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtThreePoints)
 {
   ControlTester tester(loader);
   tester.test("<set value='2.25' property='t'/>",
-              "<interpolate>"
-                "<point at='1.0' foo='1'/>"
-                "<point at='2.0' foo='2'/>"
-                "<point at='3.0' foo='3'/>"
+              "<interpolate property='foo'>"
+                "<point t='1.0' value='1'/>"
+                "<point t='2.0' value='2'/>"
+                "<point t='3.0' value='3'/>"
               "</interpolate>");
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");

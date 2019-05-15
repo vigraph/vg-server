@@ -95,26 +95,27 @@ class GraphTester
     Element *e;
     ElementProxy(Element *_e): e(_e) {}
 
-    ElementProxy& set(const string& name, const Value& v)
+    // All methods return *this, for chaining
+    // Set a property
+    const ElementProxy& set(const string& name, const Value& v) const
     { e->set_property(name, v); return *this; }
 
     // Connect to another element
-    // Note - returns element connected to, for chaining
-    ElementProxy& connect(const string& src_prop,
-                          ElementProxy& dest,
-                          const string& dest_prop)
+    const ElementProxy& connect(const string& src_prop,
+                                const ElementProxy& dest,
+                                const string& dest_prop) const
     {
       JSON::Value json(JSON::Value::ARRAY);
       auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));
       pj.set("element", dest.e->id);
       pj.set("prop", dest_prop);
       e->set_output_json(src_prop, json);
-      return dest;
+      return *this;
     }
 
     // Connect to test target
-    // Returns this
-    ElementProxy& connect_test(const string& src_prop, const string& dest_prop)
+    const ElementProxy& connect_test(const string& src_prop,
+                                     const string& dest_prop) const
     {
       JSON::Value json(JSON::Value::ARRAY);
       auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));

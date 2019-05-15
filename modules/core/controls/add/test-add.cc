@@ -13,12 +13,11 @@ TEST(AddTest, TestAddZeroDoesNothing)
 {
   GraphTester tester(loader);
 
-  auto add = tester.add("add")
-    .connect_test("value", "x");
+  auto set = tester.add("set").set("value", 0.2);
+  auto add = tester.add("add");
 
-  tester.add("set")
-    .set("value", 0.2)
-    .connect("value", add, "value");
+  set.connect("value", add, "value");
+  add.connect_test("value", "x");
 
   tester.test();
 
@@ -32,13 +31,11 @@ TEST(AddTest, TestAddValue)
 {
   GraphTester tester(loader);
 
-  auto add = tester.add("add")
-    .set("offset", 0.13)
-    .connect_test("value", "x");
+  auto set = tester.add("set").set("value", 0.2);
+  auto add = tester.add("add").set("offset", 0.13);
 
-  tester.add("set")
-    .set("value", 0.2)
-    .connect("value", add, "value");
+  set.connect("value", add, "value");
+  add.connect_test("value", "x");
 
   tester.test();
 
@@ -51,16 +48,13 @@ TEST(AddTest, TestModifyAddOffset)
 {
   GraphTester tester(loader);
 
-  auto add = tester.add("add")
-    .connect_test("value", "x");
+  auto set1 = tester.add("set").set("value", 0.2);
+  auto set2 = tester.add("set").set("value", 0.3);
+  auto add = tester.add("add");
 
-  tester.add("set")
-    .set("value", 0.2)
-    .connect("value", add, "value");
-
-  tester.add("set")
-    .set("value", 0.3)
-    .connect("value", add, "offset");
+  set1.connect("value", add, "value");
+  set2.connect("value", add, "offset");
+  add.connect_test("value", "x");
 
   tester.test();
 

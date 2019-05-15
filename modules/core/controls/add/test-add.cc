@@ -11,9 +11,13 @@ ModuleLoader loader;
 
 TEST(AddTest, TestAddZeroDoesNothing)
 {
-  ControlTester tester(loader);
-  tester.test("<set property='value' value='0.2'/>",
-              "<add property='x'/>");
+  GraphTester tester(loader);
+  auto set = tester.add("set", "value", 0.2);
+  auto add = tester.add("add");
+  tester.connect(set, "value", add, "value");
+  tester.connect_final(add, "value");
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("x"));
   const auto& v = tester.target->get("x");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -22,10 +26,13 @@ TEST(AddTest, TestAddZeroDoesNothing)
 
 TEST(AddTest, TestAddValue)
 {
-  ControlTester tester(loader);
-  tester.test("<set property='value' value='0.2'/>",
-              "<add property='x' offset='0.13'/>");
-  ASSERT_TRUE(tester.target->got("x"));
+  GraphTester tester(loader);
+  auto set = tester.add("set", "value", 0.2);
+  auto add = tester.add("add", "offset", 0.13);
+  tester.connect(set, "value", add, "value");
+  tester.connect_final(add, "value");
+  tester.test();
+
   const auto& v = tester.target->get("x");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_NEAR(0.33, v.d, 1e-5);
@@ -33,10 +40,15 @@ TEST(AddTest, TestAddValue)
 
 TEST(AddTest, TestModifyAddOffset)
 {
-  ControlTester tester(loader);
-  tester.test("<set target='add' property='value' value='0.2'/>",
-              "<set target='add' property='offset' value='0.3'/>",
-              "<add id='add' property='x'/>");
+  GraphTester tester(loader);
+  auto set1 = tester.add("set", "value", 0.2);
+  auto set2 = tester.add("set", "value", 0.3);
+  auto add = tester.add("add");
+  tester.connect(set1, "value", add, "value");
+  tester.connect(set2, "value", add, "offset");
+  tester.connect_final(add, "value");
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("x"));
   const auto& v = tester.target->get("x");
   ASSERT_EQ(Value::Type::number, v.type);

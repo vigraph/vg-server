@@ -390,7 +390,6 @@ private:
   void set_property(const string& prop_name, const Module::Property& prop,
                     const vector<double>& v);
   JSON::Value get_property_json(const Module::Property& prop) const;
-  void set_output_json(const string& path, const JSON::Value& value);
   static Value get_value(const JSON::Value& value);
 
 public:
@@ -454,6 +453,9 @@ public:
   virtual void delete_item(const string& path)
   { throw runtime_error("Can't delete subelement "+path+
                         " in leaf element "+id); }
+
+  // Set a data or control output from JSON value (testing only)
+  void set_output_json(const string& path, const JSON::Value& value);
 
   // Disconnect an element from outputs etc.
   virtual void disconnect(Element *el)

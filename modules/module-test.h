@@ -75,13 +75,88 @@ public:
 public:
   // Construct
  TestTarget(Value::Type _prop_type = Value::Type::number):
-  Element(&module_data, XML::Element("test")), prop_type(_prop_type) {}
+  Element(&module_data, XML::Element("test", "id", "test")),
+    prop_type(_prop_type) {}
 
   // Test helpers
   bool got(const string& prop) { return properties.find(prop)!=properties.end(); }
   const Value& get(const string& prop) { return properties[prop]; }
 };
 
+// Graph constructor
+class GraphTester
+{
+  ModuleLoader& loader;
+  int id_serial{0};
+
+ public:
+  Graph graph;
+  TestTarget *target;
+
+  // Add an element
+  Element *add(const string& name,
+               const map<string, Value>& properties = {})
+  {
+    XML::Element config;  // !!! Until XML goes
+    Element *e = loader.engine.create(name, config);
+    if (!e) throw runtime_error("Can't create element "+name);
+    if (e->id.empty()) e->id = name + Text::itos(++id_serial);
+    graph.add(e);
+    e->graph = &graph;
+    for(const auto& it: properties)
+      e->set_property(it.first, it.second);
+    return e;
+  }
+
+  // Sugar for a single property
+  Element *add(const string& name, const string& prop, Value v)
+  { return add(name, { { prop, v } } ); }
+
+  // Connect elements
+  void connect(Element *src, const string& src_prop,
+               Element *dest, const string& dest_prop)
+  {
+    JSON::Value json(JSON::Value::ARRAY);
+    auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));
+    pj.set("element", dest->id);
+    pj.set("prop", dest_prop);
+    src->set_output_json(src_prop, json);
+  }
+
+  // Connect to test target
+  void connect_final(Element *src, const string& src_prop)
+  {
+    JSON::Value json(JSON::Value::ARRAY);
+    auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));
+    pj.set("element", target->id);
+    pj.set("prop", "x");
+    src->set_output_json(src_prop, json);
+  }
+
+  // Run test
+  void test(int nticks = 1)
+  {
+    graph.generate_topological_order();
+    graph.set_sample_rate(50);
+
+    for(auto i=0; i<nticks; i++)
+    {
+      const auto td = TickData(i, i, Time::Duration{1}, 1);
+      graph.pre_tick(td);
+      graph.tick(td);
+      graph.post_tick(td);
+    }
+  }
+
+  GraphTester(ModuleLoader& _loader,
+              Value::Type prop_type = Value::Type::number):
+  loader(_loader), graph(loader.engine), target(new TestTarget(prop_type))
+  {
+    graph.add(target);
+  }
+};
+
+// !!! Remove once XML gone!
 // Control tester - creates a control graph from XML, attaches the test
 // control to it and looks at its set output
 class ControlTester

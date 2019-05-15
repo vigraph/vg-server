@@ -16,8 +16,6 @@ using namespace ViGraph::Module::MIDI;
 
 namespace {
 
-const auto default_device = 0;
-
 //==========================================================================
 // MIDI interface implementation
 class MIDIInterface: public Dataflow::Control,
@@ -37,8 +35,20 @@ private:
   // Event observer implementation
   void handle(const ViGraph::MIDI::Event& event) override;
 
+  // Get list of devices
+  struct IODevice
+  {
+    int in = -1;
+    int out = -1;
+  };
+  static map<string, IODevice> get_devices();
+
+
+  // Get error string
+  static string get_error(MMRESULT result);
+
 public:
-  int device = default_device;
+  string device;
   int channel_offset = 0;
 
   // Construct
@@ -67,29 +77,63 @@ void MIDIInterface::setup()
 {
   Log::Streams log;
 
-  // Input
-  log.summary << "Opening MIDI input on device '" << device << "'\n";
-
-  auto status = midiInOpen(&midi_in, device,
-                           reinterpret_cast<DWORD_PTR>(callback),
-                           reinterpret_cast<DWORD_PTR>(this),
-                           CALLBACK_FUNCTION);
-  if (status)
+  const auto devices = get_devices();
+  const auto dev = devices.find(device);
+  if (dev == devices.end())
   {
-    log.error << "Can't open MIDI input" << endl;
-    return;
+    log.error << "Unknown MIDI device: '" << device << "'" << endl;
+    log.summary << "Available MIDI devices:" << endl;
+    if (devices.empty())
+    {
+      log.summary << "  No MIDI devices found." << endl;
+    }
+    else
+    {
+      for (const auto& d: devices)
+      {
+        log.summary << "  '" << d.first << "' ("
+                    << (d.second.in >= 0 ? "in" : "")
+                    << (d.second.out >= 0 ?
+                        string{d.second.in >= 0 ? "/" : ""} + "out" : "")
+                    << ")" << endl;
+      }
+    }
   }
-  midiInStart(midi_in);
 
-  // Output
-  status = midiOutOpen(&midi_out, device,
-                       reinterpret_cast<DWORD_PTR>(nullptr),
-                       reinterpret_cast<DWORD_PTR>(nullptr),
-                       CALLBACK_NULL);
-  if (status)
+  if (dev->second.in >= 0)
   {
-    log.error << "Can't open MIDI output" << endl;
-    return;
+    // Input
+    log.summary << "Opening MIDI input on device '" << device << "'\n";
+
+    auto status = midiInOpen(&midi_in, dev->second.in,
+                             reinterpret_cast<DWORD_PTR>(callback),
+                             reinterpret_cast<DWORD_PTR>(this),
+                             CALLBACK_FUNCTION);
+    if (status)
+    {
+      log.error << "Can't open MIDI input: " << get_error(status) << endl;
+      midi_in = nullptr;
+    }
+    else
+    {
+      midiInStart(midi_in);
+    }
+  }
+
+  if (dev->second.out >= 0)
+  {
+    // Output
+    log.summary << "Opening MIDI output on device '" << device << "'\n";
+
+    auto status = midiOutOpen(&midi_out, dev->second.out,
+                              reinterpret_cast<DWORD_PTR>(nullptr),
+                              reinterpret_cast<DWORD_PTR>(nullptr),
+                              CALLBACK_NULL);
+    if (status)
+    {
+      log.error << "Can't open MIDI output: " << get_error(status) << endl;
+      midi_out = nullptr;
+    }
   }
 
   auto distributor = graph->find_service<Distributor>("midi", "distributor");
@@ -126,15 +170,23 @@ void MIDIInterface::pre_tick(const TickData&)
 // Handle event
 void MIDIInterface::handle(const ViGraph::MIDI::Event& event)
 {
-  ViGraph::MIDI::Event e = event;
-  e.channel -= channel_offset;
-  vector<uint8_t> data;
-  auto writer = ViGraph::MIDI::Writer{data};
-  writer.write(event);
-  auto d = DWORD{};
-  for (auto i = 0u; i < data.size() && i < sizeof(DWORD); ++i)
-    d |= data[i] << (i * 8);
-  auto status = midiOutShortMsg(midi_out, d);
+  if (midi_out)
+  {
+    ViGraph::MIDI::Event e = event;
+    e.channel -= channel_offset;
+    vector<uint8_t> data;
+    auto writer = ViGraph::MIDI::Writer{data};
+    writer.write(event);
+    auto d = DWORD{};
+    for (auto i = 0u; i < data.size() && i < sizeof(DWORD); ++i)
+      d |= data[i] << (i * 8);
+    auto result = midiOutShortMsg(midi_out, d);
+    if (result != MMSYSERR_NOERROR)
+    {
+      Log::Error log;
+      log << "MIDI send error: " << get_error(result) << endl;
+    }
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -154,6 +206,73 @@ void MIDIInterface::shutdown()
 }
 
 //--------------------------------------------------------------------------
+// Get list of MIDI devices
+map<string, MIDIInterface::IODevice> MIDIInterface::get_devices()
+{
+  auto devices = map<string, IODevice>{};
+
+  auto seen_count = map<string, int>{};
+  const auto num_in = midiInGetNumDevs();
+  auto in_caps = MIDIINCAPS{};
+  for (auto i = 0u; i < num_in; ++i)
+  {
+    if (midiInGetDevCaps(i, &in_caps, sizeof(in_caps)) == MMSYSERR_NOERROR)
+    {
+      auto name = string{in_caps.szPname};
+      auto seen = ++seen_count[name];
+      if (seen > 1)
+        name += " (" + Text::itos(seen) + ")";
+      devices[name].in = i;
+    }
+  }
+
+  seen_count.clear();
+  const auto num_out = midiOutGetNumDevs();
+  auto out_caps = MIDIOUTCAPS{};
+  for (auto i = 0u; i < num_out; ++i)
+  {
+    if (midiOutGetDevCaps(i, &out_caps, sizeof(out_caps)) == MMSYSERR_NOERROR)
+    {
+      auto name = string{out_caps.szPname};
+      auto seen = ++seen_count[name];
+      if (seen > 1)
+        name += " (" + Text::itos(seen) + ")";
+      devices[name].out = i;
+    }
+  }
+
+  return devices;
+}
+
+//--------------------------------------------------------------------------
+// Get error string
+string MIDIInterface::get_error(MMRESULT result)
+{
+  switch (result)
+  {
+    case MMSYSERR_ALLOCATED:
+      return "The specified resource is already allocated";
+    case MMSYSERR_BADDEVICEID:
+      return "The specified device identifier is out of range";
+    case MMSYSERR_INVALFLAG:
+      return "The flags specified by dwFlags are invalid";
+    case MMSYSERR_INVALPARAM:
+      return "The specified pointer or structure is invalid";
+    case MMSYSERR_NOMEM:
+      return "The system is unable to allocate or lock memory";
+    case MIDIERR_BADOPENMODE:
+      return "The application sent a message without a status byte "
+             "to a stream handle";
+    case MIDIERR_NOTREADY:
+      return "The hardware is busy with other data";
+    case MMSYSERR_INVALHANDLE:
+      return "The specified device handle is invalid";
+    default:
+      return string{"Unknown error: "} + Text::itos(result);
+  }
+}
+
+//--------------------------------------------------------------------------
 // Module definition
 Dataflow::Module module
 {
@@ -162,7 +281,7 @@ Dataflow::Module module
   "MIDI Interface for Windows Multimedia",
   "midi",
   {
-    { "device",  { "Device to listen to", Value::Type::number,
+    { "device",  { "Device to listen to", Value::Type::text,
                     &MIDIInterface::device, false} },
     { "channel-offset", { "Offset to apply to channel number",
                           Value::Type::number, &MIDIInterface::channel_offset,

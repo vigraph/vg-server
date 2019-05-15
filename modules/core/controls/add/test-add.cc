@@ -12,10 +12,14 @@ ModuleLoader loader;
 TEST(AddTest, TestAddZeroDoesNothing)
 {
   GraphTester tester(loader);
-  auto set = tester.add("set", "value", 0.2);
-  auto add = tester.add("add");
-  tester.connect(set, "value", add, "value");
-  tester.connect_final(add, "value");
+
+  auto add = tester.add("add")
+    .connect_test("value", "x");
+
+  tester.add("set")
+    .set("value", 0.2)
+    .connect("value", add, "value");
+
   tester.test();
 
   ASSERT_TRUE(tester.target->got("x"));
@@ -27,10 +31,15 @@ TEST(AddTest, TestAddZeroDoesNothing)
 TEST(AddTest, TestAddValue)
 {
   GraphTester tester(loader);
-  auto set = tester.add("set", "value", 0.2);
-  auto add = tester.add("add", "offset", 0.13);
-  tester.connect(set, "value", add, "value");
-  tester.connect_final(add, "value");
+
+  auto add = tester.add("add")
+    .set("offset", 0.13)
+    .connect_test("value", "x");
+
+  tester.add("set")
+    .set("value", 0.2)
+    .connect("value", add, "value");
+
   tester.test();
 
   const auto& v = tester.target->get("x");
@@ -41,12 +50,18 @@ TEST(AddTest, TestAddValue)
 TEST(AddTest, TestModifyAddOffset)
 {
   GraphTester tester(loader);
-  auto set1 = tester.add("set", "value", 0.2);
-  auto set2 = tester.add("set", "value", 0.3);
-  auto add = tester.add("add");
-  tester.connect(set1, "value", add, "value");
-  tester.connect(set2, "value", add, "offset");
-  tester.connect_final(add, "value");
+
+  auto add = tester.add("add")
+    .connect_test("value", "x");
+
+  tester.add("set")
+    .set("value", 0.2)
+    .connect("value", add, "value");
+
+  tester.add("set")
+    .set("value", 0.3)
+    .connect("value", add, "offset");
+
   tester.test();
 
   ASSERT_TRUE(tester.target->got("x"));

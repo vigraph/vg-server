@@ -90,12 +90,46 @@ class GraphTester
   int id_serial{0};
 
  public:
+  struct ElementProxy
+  {
+    Element *e;
+    ElementProxy(Element *_e): e(_e) {}
+
+    ElementProxy& set(const string& name, const Value& v)
+    { e->set_property(name, v); return *this; }
+
+    // Connect to another element
+    // Note - returns element connected to, for chaining
+    ElementProxy& connect(const string& src_prop,
+                          ElementProxy& dest,
+                          const string& dest_prop)
+    {
+      JSON::Value json(JSON::Value::ARRAY);
+      auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));
+      pj.set("element", dest.e->id);
+      pj.set("prop", dest_prop);
+      e->set_output_json(src_prop, json);
+      return dest;
+    }
+
+    // Connect to test target
+    // Returns this
+    ElementProxy& connect_test(const string& src_prop, const string& dest_prop)
+    {
+      JSON::Value json(JSON::Value::ARRAY);
+      auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));
+      pj.set("element", "test");
+      pj.set("prop", dest_prop);
+      e->set_output_json(src_prop, json);
+      return *this;
+    }
+  };
+
   Graph graph;
   TestTarget *target;
 
   // Add an element
-  Element *add(const string& name,
-               const map<string, Value>& properties = {})
+  ElementProxy add(const string& name)
   {
     XML::Element config;  // !!! Until XML goes
     Element *e = loader.engine.create(name, config);
@@ -103,34 +137,7 @@ class GraphTester
     if (e->id.empty()) e->id = name + Text::itos(++id_serial);
     graph.add(e);
     e->graph = &graph;
-    for(const auto& it: properties)
-      e->set_property(it.first, it.second);
-    return e;
-  }
-
-  // Sugar for a single property
-  Element *add(const string& name, const string& prop, Value v)
-  { return add(name, { { prop, v } } ); }
-
-  // Connect elements
-  void connect(Element *src, const string& src_prop,
-               Element *dest, const string& dest_prop)
-  {
-    JSON::Value json(JSON::Value::ARRAY);
-    auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));
-    pj.set("element", dest->id);
-    pj.set("prop", dest_prop);
-    src->set_output_json(src_prop, json);
-  }
-
-  // Connect to test target
-  void connect_final(Element *src, const string& src_prop)
-  {
-    JSON::Value json(JSON::Value::ARRAY);
-    auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));
-    pj.set("element", target->id);
-    pj.set("prop", "x");
-    src->set_output_json(src_prop, json);
+    return ElementProxy(e);
   }
 
   // Run test

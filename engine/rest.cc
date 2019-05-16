@@ -308,7 +308,7 @@ JSON::Value MetaURLHandler::get_metadata_for_module(
   // Controlled properties
   if (!module.controlled_properties.empty())
   {
-    JSON::Value& propsj = json.set("oprops",
+    JSON::Value& propsj = json.put("oprops",
                                    JSON::Value(JSON::Value::ARRAY));
     for(const auto pit: module.controlled_properties)
     {
@@ -323,7 +323,7 @@ JSON::Value MetaURLHandler::get_metadata_for_module(
   // Inputs
   if (!module.inputs.empty())
   {
-    JSON::Value& inputsj = json.set("inputs", JSON::Value(JSON::Value::ARRAY));
+    JSON::Value& inputsj = json.put("inputs", JSON::Value(JSON::Value::ARRAY));
     for(const auto input: module.inputs)
     {
       JSON::Value& ij = inputsj.add(JSON::Value(JSON::Value::OBJECT));
@@ -336,7 +336,7 @@ JSON::Value MetaURLHandler::get_metadata_for_module(
   // Outputs
   if (!module.outputs.empty())
   {
-    JSON::Value& outsj = json.set("outputs", JSON::Value(JSON::Value::ARRAY));
+    JSON::Value& outsj = json.put("outputs", JSON::Value(JSON::Value::ARRAY));
     for(const auto output: module.outputs)
     {
       JSON::Value& oj = outsj.add(JSON::Value(JSON::Value::OBJECT));

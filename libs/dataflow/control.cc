@@ -253,7 +253,7 @@ void ControlImpl::add_to_json(JSON::Value& json) const
 {
   if (!targets.empty())
   {
-    JSON::Value& oj = json.set("outputs", JSON::Value(JSON::Value::OBJECT));
+    JSON::Value& oj = json.put("outputs", JSON::Value(JSON::Value::OBJECT));
     for(const auto& tit: targets)
     {
       const auto& target = tit.second;
@@ -269,7 +269,7 @@ void ControlImpl::add_to_json(JSON::Value& json) const
         // there
         JSON::Value& psj = oj[pit.first];
         if (!psj)
-          oj.set(pit.first, JSON::Value(JSON::Value::ARRAY)).add(pj);
+          oj.put(pit.first, JSON::Value(JSON::Value::ARRAY)).add(pj);
         else
           psj.add(pj);
       }

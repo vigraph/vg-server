@@ -79,7 +79,7 @@ JSON::Value PatternFilter::get_json(const string& path) const
   if (path.empty())
   {
     // Whole thing - add array of colours
-    auto& cols = json.set("colours", JSON::Value(JSON::Value::ARRAY));
+    auto& cols = json.put("colours", JSON::Value(JSON::Value::ARRAY));
     for(const auto c: colours)
       cols.add(c.str());
   }

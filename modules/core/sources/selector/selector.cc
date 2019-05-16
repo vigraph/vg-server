@@ -296,7 +296,7 @@ JSON::Value SelectorSource::get_json(const string& path) const
   if (path.empty())
   {
     JSON::Value json = Source::get_json();
-    JSON::Value& gsj = json.set("graphs", JSON::Value(JSON::Value::ARRAY));
+    JSON::Value& gsj = json.put("graphs", JSON::Value(JSON::Value::ARRAY));
     for(const auto& sgit: subgraphs)
     {
       JSON::Value& gj = gsj.add(JSON::Value(JSON::Value::OBJECT));

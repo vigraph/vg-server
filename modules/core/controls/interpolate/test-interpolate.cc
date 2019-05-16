@@ -143,7 +143,7 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedTAtTwoPoints)
 
   JSON::Value json(JSON::Value::ARRAY);
   json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
-  json.add(JSON::Value(JSON::Value::OBJECT)).setd("t", 0.4).set("value", 2);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 0.4).set("value", 2);
   auto itp = tester.add("interpolate").set("curve", json);
 
   set.connect("value", itp, "t");
@@ -165,7 +165,7 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsAfterLast)
 
   JSON::Value json(JSON::Value::ARRAY);
   json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
-  json.add(JSON::Value(JSON::Value::OBJECT)).setd("t", 0.4).set("value", 2);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 0.4).set("value", 2);
   auto itp = tester.add("interpolate").set("curve", json);
 
   set.connect("value", itp, "t");
@@ -208,9 +208,9 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtThreePoints)
   auto set = tester.add("set").set("value", 2.25);
 
   JSON::Value json(JSON::Value::ARRAY);
-  json.add(JSON::Value(JSON::Value::OBJECT)).setd("t", 1.0).set("value", 1);
-  json.add(JSON::Value(JSON::Value::OBJECT)).setd("t", 2.0).set("value", 2);
-  json.add(JSON::Value(JSON::Value::OBJECT)).setd("t", 3.0).set("value", 3);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 1.0).set("value", 1);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 2.0).set("value", 2);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 3.0).set("value", 3);
   auto itp = tester.add("interpolate").set("curve", json);
 
   set.connect("value", itp, "t");

@@ -48,10 +48,10 @@ JSON::Value Generator::get_json(const string& path) const
   JSON::Value json = Element::get_json(path);
   if (!acceptors.empty())
   {
-    JSON::Value& outsj = json.set("outputs", JSON::Value(JSON::Value::OBJECT));
+    JSON::Value& outsj = json.put("outputs", JSON::Value(JSON::Value::OBJECT));
 
     // ! currently default only, until we have multiple output types
-    JSON::Value& defj = outsj.set("default", JSON::Value(JSON::Value::ARRAY));
+    JSON::Value& defj = outsj.put("default", JSON::Value(JSON::Value::ARRAY));
     for(const auto& it: acceptors)
     {
       if (!it.first.empty())

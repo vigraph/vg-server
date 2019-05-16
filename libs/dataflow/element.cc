@@ -21,7 +21,7 @@ JSON::Value Element::get_property_json(const Module::Property& prop) const
 
   // Get value from prop through member pointers or getter functions
   if (member.d_ptr)
-    return JSON::Value(JSON::Value::NUMBER, this->*member.d_ptr);
+    return JSON::Value(this->*member.d_ptr);
   else if (member.s_ptr)
     return JSON::Value(this->*member.s_ptr);
   else if (member.b_ptr)
@@ -30,7 +30,7 @@ JSON::Value Element::get_property_json(const Module::Property& prop) const
   else if (member.i_ptr)
     return JSON::Value(this->*member.i_ptr);
   else if (member.get_d)
-    return JSON::Value(JSON::Value::NUMBER, (this->*member.get_d)());
+    return JSON::Value((this->*member.get_d)());
   else if (member.get_s)
     return JSON::Value((this->*member.get_s)());
   else if (member.get_b)
@@ -141,7 +141,7 @@ JSON::Value Element::get_json(const string& path) const
     json.set("id", id);
     if (module) json.set("type", module->section+":"+module->id);
 
-    JSON::Value& propsj = json.set("props", JSON::Value(JSON::Value::OBJECT));
+    JSON::Value& propsj = json.put("props", JSON::Value(JSON::Value::OBJECT));
     for(const auto pit: module->properties)
     {
       JSON::Value value = get_property_json(pit.second);
@@ -298,6 +298,14 @@ void Element::set_property(const string& prop_name,
         (this->*member.trigger)();
       else
         throw runtime_error("No function for trigger property "+prop_name
+                            +" in element "+id);
+      break;
+
+    case Value::Type::other:
+      if (member.set_json)
+        (this->*member.set_json)(v.j);
+      else
+        throw runtime_error("No member pointers for JSON property "+prop_name
                             +" in element "+id);
       break;
 

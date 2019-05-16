@@ -11,8 +11,14 @@ ModuleLoader loader;
 
 TEST(BeatTest, TestInterval)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<beat interval='2' property='go'/>", 10);
+  GraphTester tester(loader, Value::Type::trigger);
+
+  tester.add("beat")
+    .set("interval", 2)
+    .connect_test("trigger", "go");
+
+  tester.test(10);
+
   ASSERT_TRUE(tester.target->got("go"));
   const auto& v = tester.target->get("go");
   ASSERT_EQ(Value::Type::trigger, v.type);
@@ -21,8 +27,14 @@ TEST(BeatTest, TestInterval)
 
 TEST(BeatTest, TestBPM)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<beat bpm='30' property='go'/>", 10);
+  GraphTester tester(loader, Value::Type::trigger);
+
+  tester.add("beat")
+    .set("bpm", 30)
+    .connect_test("trigger", "go");
+
+  tester.test(10);
+
   ASSERT_TRUE(tester.target->got("go"));
   const auto& v = tester.target->get("go");
   ASSERT_EQ(Value::Type::trigger, v.type);
@@ -31,8 +43,14 @@ TEST(BeatTest, TestBPM)
 
 TEST(BeatTest, TestFreq)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<beat freq='0.5' property='go'/>", 10);
+  GraphTester tester(loader, Value::Type::trigger);
+
+  tester.add("beat")
+    .set("freq", 0.5)
+    .connect_test("trigger", "go");
+
+  tester.test(10);
+
   ASSERT_TRUE(tester.target->got("go"));
   const auto& v = tester.target->get("go");
   ASSERT_EQ(Value::Type::trigger, v.type);
@@ -41,9 +59,16 @@ TEST(BeatTest, TestFreq)
 
 TEST(BeatTest, TestSetInterval)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='interval' value='2'/>",
-              "<beat property='go'/>", 10);
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto set = tester.add("set").set("value", 2);
+  auto beat = tester.add("beat");
+
+  set.connect("value", beat, "interval");
+  beat.connect_test("trigger", "go");
+
+  tester.test(10);
+
   ASSERT_TRUE(tester.target->got("go"));
   const auto& v = tester.target->get("go");
   ASSERT_EQ(Value::Type::trigger, v.type);
@@ -52,9 +77,16 @@ TEST(BeatTest, TestSetInterval)
 
 TEST(BeatTest, TestSetBPM)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='bpm' value='30'/>",
-              "<beat property='go'/>", 10);
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto set = tester.add("set").set("value", 30);
+  auto beat = tester.add("beat");
+
+  set.connect("value", beat, "bpm");
+  beat.connect_test("trigger", "go");
+
+  tester.test(10);
+
   ASSERT_TRUE(tester.target->got("go"));
   const auto& v = tester.target->get("go");
   ASSERT_EQ(Value::Type::trigger, v.type);
@@ -63,9 +95,16 @@ TEST(BeatTest, TestSetBPM)
 
 TEST(BeatTest, TestSetFreq)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set property='freq' value='0.5'/>",
-              "<beat property='go'/>", 10);
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto set = tester.add("set").set("value", 0.5);
+  auto beat = tester.add("beat");
+
+  set.connect("value", beat, "freq");
+  beat.connect_test("trigger", "go");
+
+  tester.test(10);
+
   ASSERT_TRUE(tester.target->got("go"));
   const auto& v = tester.target->get("go");
   ASSERT_EQ(Value::Type::trigger, v.type);
@@ -74,17 +113,31 @@ TEST(BeatTest, TestSetFreq)
 
 TEST(BeatTest, TestIntervalWithTriggerDoesntAutoRun)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger property='start' wait='yes'/>",
-              "<beat interval='2' property='go'/>", 10);
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto trigger = tester.add("trigger").set("wait", true);
+  auto beat = tester.add("beat").set("interval", 2);
+
+  trigger.connect("trigger", beat, "start");
+  beat.connect_test("trigger", "go");
+
+  tester.test(10);
+
   ASSERT_FALSE(tester.target->got("go"));
 }
 
 TEST(BeatTest, TestIntervalWithTriggeredStartRuns)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger property='start'/>",
-              "<beat interval='2' property='go'/>", 10);
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto trigger = tester.add("trigger");
+  auto beat = tester.add("beat").set("interval", 2);
+
+  trigger.connect("trigger", beat, "start");
+  beat.connect_test("trigger", "go");
+
+  tester.test(10);
+
   ASSERT_TRUE(tester.target->got("go"));
   const auto& v = tester.target->get("go");
   ASSERT_EQ(Value::Type::trigger, v.type);
@@ -93,15 +146,18 @@ TEST(BeatTest, TestIntervalWithTriggeredStartRuns)
 
 TEST(BeatTest, TestIntervalWithTriggeredStartAndStopRunsAndStops)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  // ! Note the set(start) is after the beat(stop) so that it acts
-  // after the initial trigger at 0.  To avoid this needs a <delay/> which
-  // only fires once
-  tester.test({
-      "<beat target='b' interval='5' property='stop'/>",
-      "<trigger property='start'/>",
-      "<beat id='b' interval='2.0' property='go'/>"
-        }, 10);
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto trigger = tester.add("trigger");
+  auto beat1 = tester.add("beat").set("interval", 5);
+  auto beat2 = tester.add("beat").set("interval", 2);
+
+  trigger.connect("trigger", beat2, "start");
+  beat1.connect("trigger", beat2, "stop");
+  beat2.connect_test("trigger", "go");
+
+  tester.test(10);
+
   ASSERT_TRUE(tester.target->got("go"));
   const auto& v = tester.target->get("go");
   ASSERT_EQ(Value::Type::trigger, v.type);

@@ -98,7 +98,7 @@ Dataflow::Module module
     { "trigger", { "Trigger to make modification", Value::Type::trigger,
                    &CountControl::trigger, true } }
   },
-  { { "", { "Modified value", "", Value::Type::number }}}
+  { { "value", { "Modified value", "", Value::Type::number }}}
 };
 
 } // anon

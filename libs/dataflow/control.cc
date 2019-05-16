@@ -253,7 +253,7 @@ void ControlImpl::add_to_json(JSON::Value& json) const
 {
   if (!targets.empty())
   {
-    JSON::Value& oj = json.set("outputs", JSON::Value(JSON::Value::OBJECT));
+    JSON::Value& oj = json.put("outputs", JSON::Value(JSON::Value::OBJECT));
     for(const auto& tit: targets)
     {
       const auto& target = tit.second;
@@ -269,7 +269,7 @@ void ControlImpl::add_to_json(JSON::Value& json) const
         // there
         JSON::Value& psj = oj[pit.first];
         if (!psj)
-          oj.set(pit.first, JSON::Value(JSON::Value::ARRAY)).add(pj);
+          oj.put(pit.first, JSON::Value(JSON::Value::ARRAY)).add(pj);
         else
           psj.add(pj);
       }
@@ -320,31 +320,36 @@ void ControlImpl::set_target_from_json(const string& prop,
 
     if (!e_v)
       throw runtime_error("No 'element' in JSON value setting "+prop
-                          +" in "+control_id);
+                          +" in "+source_element->id);
     const auto& target_id = e_v.as_str();
     if (target_id.empty())
       throw runtime_error("Bad 'element' in JSON value setting "+prop
-                          +" in "+control_id);
+                          +" in "+source_element->id);
 
     const auto& p_v = value["prop"];
     if (!p_v)
       throw runtime_error("No 'prop' in JSON value setting "+prop
-                          +" in "+control_id);
+                          +" in "+source_element->id);
     const auto& target_prop = p_v.as_str();
     if (target_prop.empty())
       throw runtime_error("Bad 'prop' in JSON value setting "+prop
-                          +" in "+control_id);
+                          +" in "+source_element->id);
 
     Element *target_element = source_element->graph->get_element(target_id);
     if (!target_element)
       throw runtime_error("No element "+target_id+" in local graph of "
-                          +control_id);
+                          +source_element->id);
+
+    // Get type of our property
+    const auto it = source_element->module->controlled_properties.find(prop);
+    if (it == source_element->module->controlled_properties.end())
+      throw runtime_error("Element "+source_element->id+" has no property "
+                          +prop);
+    auto type = it->second.type;
 
     // Add property to target (optionally creating it)
     auto& target = targets[target_element->id];
-    // !!! Type??
-    target.properties[prop] = Property(target_prop, Value::Type::number,
-                                       true);
+    target.properties[prop] = Property(target_prop, type, true);
 
     attach_target(target_id, target_element);
     source_element->downstreams.push_back(target_element);

@@ -9,44 +9,94 @@
 #include "../../../module-test.h"
 ModuleLoader loader;
 
-TEST(CompareTest, TestCompareDoesNothingInRange)
+TEST(CompareTest, TestDefaultCompareTriggersInRange)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set value='0.2'/>",
-              "<compare/>");
-  EXPECT_TRUE(tester.target->got("trigger"));
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto set = tester.add("set").set("value", 0.2);
+  auto compare = tester.add("compare");
+
+  set.connect("value", compare, "value");
+  compare.connect_test("trigger", "yes");
+
+  tester.test();
+
+  EXPECT_TRUE(tester.target->got("yes"));
 }
 
-TEST(CompareTest, TestDefaultCompareAbsoluteValueUpper)
+TEST(CompareTest, TestDefaultCompareClearsAboveRange)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set value='1.5'/>",
-              "<compare property-clear='clear'/>");
-  EXPECT_TRUE(tester.target->got("clear"));
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto set = tester.add("set").set("value", 1.5);
+  auto compare = tester.add("compare");
+
+  set.connect("value", compare, "value");
+  compare.connect_test("clear", "no");
+
+  tester.test();
+
+  EXPECT_TRUE(tester.target->got("no"));
 }
 
-TEST(CompareTest, TestDefaultCompareAbsoluteValueLower)
+TEST(CompareTest, TestDefaultCompareClearsBelowRange)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set value='-0.5'/>",
-              "<compare property-clear='clear'/>");
-  EXPECT_TRUE(tester.target->got("clear"));
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto set = tester.add("set").set("value", -0.5);
+  auto compare = tester.add("compare");
+
+  set.connect("value", compare, "value");
+  compare.connect_test("clear", "no");
+
+  tester.test();
+
+  EXPECT_TRUE(tester.target->got("no"));
+}
+
+TEST(CompareTest, TestSpecifiedCompareTriggersInRange)
+{
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto set = tester.add("set").set("value", 3.5);
+  auto compare = tester.add("compare").set("min", 3).set("max", 4);
+
+  set.connect("value", compare, "value");
+  compare.connect_test("trigger", "yes");
+
+  tester.test();
+
+  EXPECT_TRUE(tester.target->got("yes"));
 }
 
 TEST(CompareTest, TestSpecifiedCompareAbsoluteValueUpper)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set value='5.5'/>",
-              "<compare min='3' max='4' property-clear='clear'/>");
-  EXPECT_TRUE(tester.target->got("clear"));
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto set = tester.add("set").set("value", 5.5);
+  auto compare = tester.add("compare").set("min", 3).set("max", 4);
+
+  set.connect("value", compare, "value");
+  compare.connect_test("clear", "no");
+
+  tester.test();
+
+  EXPECT_TRUE(tester.target->got("no"));
 }
 
 TEST(CompareTest, TestSpecifiedCompareAbsoluteValueLower)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<set value='-0.5'/>",
-              "<compare min='3' max='4' property-clear='clear'/>");
-  EXPECT_TRUE(tester.target->got("clear"));
+  GraphTester tester(loader, Value::Type::trigger);
+
+  auto set = tester.add("set").set("value", 0);
+  auto compare = tester.add("compare").set("min", 3).set("max", 4);
+
+  set.connect("value", compare, "value");
+  compare.connect_test("clear", "no");
+
+  tester.test();
+
+  EXPECT_TRUE(tester.target->got("no"));
 }
 
 int main(int argc, char **argv)

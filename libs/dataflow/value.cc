@@ -60,6 +60,12 @@ Value::Value(const JSON::Value& json)
       d = 0.0;
       break;
 
+    case JSON::Value::ARRAY:
+    case JSON::Value::OBJECT:
+      type = Type::other;
+      j = json;
+      break;
+
     default:
       type = Type::invalid;
   }

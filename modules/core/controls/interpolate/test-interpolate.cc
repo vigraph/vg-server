@@ -11,19 +11,33 @@ ModuleLoader loader;
 
 TEST(InterpolateTest, TestInterpolateWithNoPointsHasNoEffect)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='1' property='t'/>",
-              "<interpolate property='foo'/>");
+  GraphTester tester(loader);
+
+  auto set = tester.add("set").set("value", 1);
+  auto itp = tester.add("interpolate");
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
   ASSERT_FALSE(tester.target->got("foo"));
 }
 
 TEST(InterpolateTest, TestInterpolateWithOnePointHasEffect)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='1' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-              "</interpolate>");
+  GraphTester tester(loader);
+
+  auto set = tester.add("set").set("value", 1);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
+  auto itp = tester.add("interpolate").set("curve", json);
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -32,12 +46,20 @@ TEST(InterpolateTest, TestInterpolateWithOnePointHasEffect)
 
 TEST(InterpolateTest, TestInterpolateWithTwoPoints)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='0.5' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
-              "</interpolate>");
+  GraphTester tester(loader);
+
+  auto set = tester.add("set").set("value", 0.5);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 2);
+  auto itp = tester.add("interpolate").set("curve", json);
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -46,13 +68,21 @@ TEST(InterpolateTest, TestInterpolateWithTwoPoints)
 
 TEST(InterpolateTest, TestInterpolateWithThreePointsOnBoundary)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='0.5' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
-                "<point foo='3'/>"
-              "</interpolate>");
+  GraphTester tester(loader);
+
+  auto set = tester.add("set").set("value", 0.5);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 2);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 3);
+  auto itp = tester.add("interpolate").set("curve", json);
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -61,13 +91,21 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsOnBoundary)
 
 TEST(InterpolateTest, TestInterpolateWithThreePoints)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='0.75' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
-                "<point foo='3'/>"
-              "</interpolate>");
+  GraphTester tester(loader);
+
+  auto set = tester.add("set").set("value", 0.75);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 2);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 3);
+  auto itp = tester.add("interpolate").set("curve", json);
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -76,42 +114,43 @@ TEST(InterpolateTest, TestInterpolateWithThreePoints)
 
 TEST(InterpolateTest, TestInterpolateWithThreePointsAtEnd)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='1' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
-                "<point foo='3'/>"
-              "</interpolate>");
+  GraphTester tester(loader);
+
+  auto set = tester.add("set").set("value", 1);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 2);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 3);
+  auto itp = tester.add("interpolate").set("curve", json);
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_EQ(3, v.d);
 }
 
-TEST(InterpolateTest, TestInterpolateWithMissingValueUsesLast)
+TEST(InterpolateTest, TestInterpolateWithSpecifiedTAtTwoPoints)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='0.75' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point foo='2'/>"
-                "<point/>"
-              "</interpolate>");
-  ASSERT_TRUE(tester.target->got("foo"));
-  const auto& v = tester.target->get("foo");
-  ASSERT_EQ(Value::Type::number, v.type);
-  EXPECT_EQ(2, v.d);
-}
+  GraphTester tester(loader);
 
-TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPoints)
-{
-  ControlTester tester(loader);
-  tester.test("<set value='0.2' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point at='0.4' foo='2'/>"
-              "</interpolate>");
+  auto set = tester.add("set").set("value", 0.2);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 0.4).set("value", 2);
+  auto itp = tester.add("interpolate").set("curve", json);
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -120,12 +159,20 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPoints)
 
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsAfterLast)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='0.5' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point at='0.4' foo='2'/>"
-              "</interpolate>");
+  GraphTester tester(loader);
+
+  auto set = tester.add("set").set("value", 0.5);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 0.4).set("value", 2);
+  auto itp = tester.add("interpolate").set("curve", json);
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -134,12 +181,20 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsAfterLast)
 
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsLargeAtValues)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='500' property='t'/>",
-              "<interpolate>"
-                "<point foo='1'/>"
-                "<point at='1000' foo='2'/>"
-              "</interpolate>");
+  GraphTester tester(loader);
+
+  auto set = tester.add("set").set("value", 500);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 1000).set("value", 2);
+  auto itp = tester.add("interpolate").set("curve", json);
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -148,13 +203,21 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsLargeAtValues)
 
 TEST(InterpolateTest, TestInterpolateWithSpecifiedAtThreePoints)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='2.25' property='t'/>",
-              "<interpolate>"
-                "<point at='1.0' foo='1'/>"
-                "<point at='2.0' foo='2'/>"
-                "<point at='3.0' foo='3'/>"
-              "</interpolate>");
+  GraphTester tester(loader);
+
+  auto set = tester.add("set").set("value", 2.25);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 1.0).set("value", 1);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 2.0).set("value", 2);
+  json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 3.0).set("value", 3);
+  auto itp = tester.add("interpolate").set("curve", json);
+
+  set.connect("value", itp, "t");
+  itp.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);

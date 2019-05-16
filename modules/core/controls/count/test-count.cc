@@ -11,8 +11,12 @@ ModuleLoader loader;
 
 TEST(CountTest, TestCountDefault)
 {
-  ControlTester tester(loader);
-  tester.test("<count property='foo'/>");
+  GraphTester tester(loader);
+
+  tester.add("count").connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -21,8 +25,14 @@ TEST(CountTest, TestCountDefault)
 
 TEST(CountTest, TestCountSpecified)
 {
-  ControlTester tester(loader);
-  tester.test("<count property='foo' delta='42'/>");
+  GraphTester tester(loader);
+
+  tester.add("count")
+    .set("delta", 42)
+    .connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
   const auto& v = tester.target->get("foo");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -31,24 +41,44 @@ TEST(CountTest, TestCountSpecified)
 
 TEST(CountTest, TestCountWithWaitNotTriggeredHasNoEffect)
 {
-  ControlTester tester(loader);
-  tester.test("<count property='foo' wait='yes'/>");
+  GraphTester tester(loader);
+
+  tester.add("count")
+    .set("wait", true)
+    .connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_FALSE(tester.target->got("foo"));
 }
 
 TEST(CountTest, TestCountWithAutoWaitNotTriggeredHasNoEffect)
 {
-  ControlTester tester(loader);
-  tester.test("<trigger wait='yes'/>",
-              "<count property='foo'/>", 2);
+  GraphTester tester(loader);
+
+  auto trigger = tester.add("trigger").set("wait", true);
+  auto count = tester.add("count");
+
+  trigger.connect("trigger", count, "trigger");
+  count.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_FALSE(tester.target->got("foo"));
 }
 
 TEST(CountTest, TestCountWithWaitTriggeredHasEffect)
 {
-  ControlTester tester(loader);
-  tester.test("<trigger/>",
-              "<count property='foo' wait='yes'/>");
+  GraphTester tester(loader);
+
+  auto trigger = tester.add("trigger");
+  auto count = tester.add("count");
+
+  trigger.connect("trigger", count, "trigger");
+  count.connect_test("value", "foo");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("foo"));
 }
 

@@ -96,9 +96,16 @@ class GraphTester
     ElementProxy(Element *_e): e(_e) {}
 
     // All methods return *this, for chaining
-    // Set a property
-    const ElementProxy& set(const string& name, const Value& v) const
+    // Set a property direct with Dataflow::Value
+    // Template to avoid ambiguity with JSON version
+    template <typename T> const ElementProxy&
+    set(const string& name, const T& v) const
     { e->set_property(name, v); return *this; }
+
+    // Set a complex property with JSON
+    const ElementProxy& set(const string& name,
+                            const JSON::Value& v) const
+    { e->set_json(name, v); return *this; }
 
     // Connect to another element
     const ElementProxy& connect(const string& src_prop,

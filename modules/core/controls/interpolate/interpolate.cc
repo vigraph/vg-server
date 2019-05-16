@@ -61,7 +61,7 @@ JSON::Value InterpolateControl::get_curve() const
   JSON::Value json(JSON::Value::ARRAY);
   for(const auto& it: curve)
   {
-    JSON::Value o(JSON::Value::OBJECT);
+    auto& o = json.add(JSON::Value(JSON::Value::OBJECT));
     o.set("t", it.first);
     o.set("value", it.second);
   }
@@ -139,7 +139,7 @@ Dataflow::Module module
               true }},
     { "curve", { "Interpolation curve", "curve",
                  { &InterpolateControl::get_curve,
-                   &InterpolateControl::set_curve }, } }
+                   &InterpolateControl::set_curve }, true } }
   },
   { { "value", { "Value output", "value", Value::Type::number }}}
 };

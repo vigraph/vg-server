@@ -145,6 +145,7 @@ struct Value
   // One of the following - can't be in a union because of string
   double d{0.0};
   string s;
+  JSON::Value j;
 
   // Constructors
   Value(): type(Type::trigger) {}

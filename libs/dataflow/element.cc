@@ -301,6 +301,14 @@ void Element::set_property(const string& prop_name,
                             +" in element "+id);
       break;
 
+    case Value::Type::other:
+      if (member.set_json)
+        (this->*member.set_json)(v.j);
+      else
+        throw runtime_error("No member pointers for JSON property "+prop_name
+                            +" in element "+id);
+      break;
+
     default:
       throw runtime_error("Unsettable type in property "+prop_name
                           +" in element "+id);

@@ -49,6 +49,7 @@ vg-engine.exe
 ../modules/vector/filters/perspective/vg-module-vector-filter-perspective.dll modules
 ../modules/vector/filters/collision-detect/vg-module-vector-filter-collision-detect.dll modules
 ../modules/audio/sources/receive/vg-module-audio-source-receive.dll modules
+../modules/audio/sources/sdl/vg-module-audio-source-sdl.dll modules
 ../modules/audio/sources/vco/vg-module-audio-source-vco.dll modules
 ../modules/audio/sources/wav/vg-module-audio-source-wav.dll modules
 ../modules/audio/filters/bitcrush/vg-module-audio-filter-bitcrush.dll modules

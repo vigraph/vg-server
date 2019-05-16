@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph SDL audio source module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-module-audio-source-sdl
+TYPE      = shared
+DEPENDS   = vg-dataflow ext-pkg-sdl2
+
+include_rules

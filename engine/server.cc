@@ -218,6 +218,12 @@ void Server::reconfigure()
   const XML::Element& rest_e = config_xml.get_child("rest");
   if (!!rest_e) rest.reset(new RESTInterface(rest_e, engine,
                                              config_file.dirname()));
+
+  // (re-)create the file server
+  file_server.reset();
+  const XML::Element& file_server_e = config_xml.get_child("file-server");
+  if (!!file_server_e) file_server.reset(new FileServer(file_server_e,
+                                                        config_file.dirname()));
 }
 
 //--------------------------------------------------------------------------
@@ -276,6 +282,9 @@ void Server::cleanup()
 {
   Log::Summary log;
   log << "Shutting down\n";
+
+  log << "Shutting down file server\n";
+  file_server.reset();
 
   log << "Shutting down REST server\n";
   rest.reset();

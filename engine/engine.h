@@ -39,6 +39,18 @@ public:
 };
 
 //==========================================================================
+// File Server
+class FileServer
+{
+  unique_ptr<Web::SimpleHTTPServer> http_server;
+  unique_ptr<Net::TCPServerThread> http_server_thread;
+
+public:
+  FileServer(const XML::Element& config, const File::Directory& base_dir);
+  ~FileServer();
+};
+
+//==========================================================================
 // Global state
 // Singleton instance of server-wide state
 class Server: public Daemon::Application
@@ -62,6 +74,9 @@ class Server: public Daemon::Application
 
   // Management interface
   unique_ptr<RESTInterface> rest;
+
+  // Basic file server
+  unique_ptr<FileServer> file_server;
 
   // Internal
   bool load_module(const File::Path& path);

@@ -11,9 +11,18 @@ ModuleLoader loader;
 
 TEST(SmoothTest, TestZeroRCDoesNothing)
 {
-  ControlTester tester(loader);
-  tester.test("<lfo wave='square' phase='0.5' period='100'/>",
-              "<smooth time='0' />", 1);
+  GraphTester tester{loader};
+
+  auto lfo = tester.add("lfo").set("wave", "square")
+                              .set("phase", 0.5)
+                              .set("period", 100);
+  auto smo = tester.add("smooth").set("time", 0);
+
+  lfo.connect("value", smo, "value");
+  smo.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -22,9 +31,18 @@ TEST(SmoothTest, TestZeroRCDoesNothing)
 
 TEST(SmoothTest, TestSingleRCPeriodIs63Percent)
 {
-  ControlTester tester(loader);
-  tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
-              "<smooth time='10000'/>", 10000);
+  GraphTester tester{loader};
+
+  auto lfo = tester.add("lfo").set("wave", "square")
+                              .set("phase", 0.5)
+                              .set("period", 100000);
+  auto smo = tester.add("smooth").set("time", 10000);
+
+  lfo.connect("value", smo, "value");
+  smo.connect_test("value", "value");
+
+  tester.test(10000);
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -33,9 +51,18 @@ TEST(SmoothTest, TestSingleRCPeriodIs63Percent)
 
 TEST(SmoothTest, TestTwoRCPeriodsIs86Percent)
 {
-  ControlTester tester(loader);
-  tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
-              "<smooth time='10000'/>", 20000);
+  GraphTester tester{loader};
+
+  auto lfo = tester.add("lfo").set("wave", "square")
+                              .set("phase", 0.5)
+                              .set("period", 100000);
+  auto smo = tester.add("smooth").set("time", 10000);
+
+  lfo.connect("value", smo, "value");
+  smo.connect_test("value", "value");
+
+  tester.test(20000);
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -44,9 +71,18 @@ TEST(SmoothTest, TestTwoRCPeriodsIs86Percent)
 
 TEST(SmoothTest, TestThreeRCPeriodsIs95Percent)
 {
-  ControlTester tester(loader);
-  tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
-              "<smooth time='10000'/>", 30000);
+  GraphTester tester{loader};
+
+  auto lfo = tester.add("lfo").set("wave", "square")
+                              .set("phase", 0.5)
+                              .set("period", 100000);
+  auto smo = tester.add("smooth").set("time", 10000);
+
+  lfo.connect("value", smo, "value");
+  smo.connect_test("value", "value");
+
+  tester.test(30000);
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -55,9 +91,18 @@ TEST(SmoothTest, TestThreeRCPeriodsIs95Percent)
 
 TEST(SmoothTest, TestFourRCPeriodsIs98Percent)
 {
-  ControlTester tester(loader);
-  tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
-              "<smooth time='10000'/>", 40000);
+  GraphTester tester{loader};
+
+  auto lfo = tester.add("lfo").set("wave", "square")
+                              .set("phase", 0.5)
+                              .set("period", 100000);
+  auto smo = tester.add("smooth").set("time", 10000);
+
+  lfo.connect("value", smo, "value");
+  smo.connect_test("value", "value");
+
+  tester.test(40000);
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -66,9 +111,18 @@ TEST(SmoothTest, TestFourRCPeriodsIs98Percent)
 
 TEST(SmoothTest, TestFiveRCPeriodsIs99Percent)
 {
-  ControlTester tester(loader);
-  tester.test("<lfo wave='square' phase='0.5' period='100000'/>",
-              "<smooth time='10000'/>", 50000);
+  GraphTester tester{loader};
+
+  auto lfo = tester.add("lfo").set("wave", "square")
+                              .set("phase", 0.5)
+                              .set("period", 100000);
+  auto smo = tester.add("smooth").set("time", 10000);
+
+  lfo.connect("value", smo, "value");
+  smo.connect_test("value", "value");
+
+  tester.test(50000);
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);

@@ -13,10 +13,16 @@ TEST(RandomTest, TestDefaultMinMax)
 {
   for(int i=0; i<100; i++)
   {
-    ControlTester tester(loader);
-    tester.test("<random property='foo'/>");
-    ASSERT_TRUE(tester.target->got("foo"));
-    const auto& v = tester.target->get("foo");
+    GraphTester tester{loader};
+
+    auto rnd = tester.add("random");
+
+    rnd.connect_test("value", "value");
+
+    tester.test();
+
+    ASSERT_TRUE(tester.target->got("value"));
+    const auto& v = tester.target->get("value");
     ASSERT_EQ(Value::Type::number, v.type);
     EXPECT_LE(0.0, v.d);
     EXPECT_GE(1.0, v.d);
@@ -27,10 +33,16 @@ TEST(RandomTest, TestSpecifiedMinMax)
 {
   for(int i=0; i<100; i++)
   {
-    ControlTester tester(loader);
-    tester.test("<random property='foo' min='0.4' max='0.6'/>");
-    ASSERT_TRUE(tester.target->got("foo"));
-    const auto& v = tester.target->get("foo");
+    GraphTester tester{loader};
+
+    auto rnd = tester.add("random").set("min", 0.4).set("max", 0.6);
+
+    rnd.connect_test("value", "value");
+
+    tester.test();
+
+    ASSERT_TRUE(tester.target->got("value"));
+    const auto& v = tester.target->get("value");
     ASSERT_EQ(Value::Type::number, v.type);
     EXPECT_LE(0.4, v.d);
     EXPECT_GE(0.6, v.d);
@@ -39,25 +51,45 @@ TEST(RandomTest, TestSpecifiedMinMax)
 
 TEST(RandomTest, TestRandomWithWaitNotTriggeredHasNoEffect)
 {
-  ControlTester tester(loader);
-  tester.test("<random property='foo' wait='yes'/>");
-  ASSERT_FALSE(tester.target->got("foo"));
+  GraphTester tester{loader};
+
+  auto rnd = tester.add("random").set("wait", true);
+
+  rnd.connect_test("value", "value");
+
+  tester.test();
+
+  ASSERT_FALSE(tester.target->got("value"));
 }
 
 TEST(RandomTest, TestRandomWithAutoWaitNotTriggeredHasNoEffect)
 {
-  ControlTester tester(loader);
-  tester.test("<trigger wait='yes'/>",
-              "<random property='foo'/>", 2);
-  ASSERT_FALSE(tester.target->got("foo"));
+  GraphTester tester{loader};
+
+  auto trg = tester.add("trigger").set("wait", true);
+  auto rnd = tester.add("random");
+
+  trg.connect("trigger", rnd, "trigger");
+  rnd.connect_test("value", "value");
+
+  tester.test(2);
+
+  ASSERT_FALSE(tester.target->got("value"));
 }
 
 TEST(RandomTest, TestRandomWithWaitTriggeredHasEffect)
 {
-  ControlTester tester(loader);
-  tester.test("<trigger/>",
-              "<random property='foo' wait='yes'/>", 2);
-  ASSERT_TRUE(tester.target->got("foo"));
+  GraphTester tester{loader};
+
+  auto trg = tester.add("trigger");
+  auto rnd = tester.add("random");
+
+  trg.connect("trigger", rnd, "trigger");
+  rnd.connect_test("value", "value");
+
+  tester.test(2);
+
+  ASSERT_TRUE(tester.target->got("value"));
 }
 
 int main(int argc, char **argv)

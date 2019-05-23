@@ -11,25 +11,46 @@ ModuleLoader loader;
 
 TEST(RoundTest, TestZeroNDoesNothing)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='1'/>",
-              "<round n='0'/>", 1);
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 1);
+  auto rnd = tester.add("round").set("n", 0);
+
+  set.connect("value", rnd, "value");
+  rnd.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_FALSE(tester.target->got("value"));
 }
 
 TEST(RoundTest, TestZeroDDoesNothing)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='1'/>",
-              "<round d='0'/>", 1);
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 1);
+  auto rnd = tester.add("round").set("d", 0);
+
+  set.connect("value", rnd, "value");
+  rnd.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_FALSE(tester.target->got("value"));
 }
 
 TEST(RoundTest, TestNearestThree)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='1.5'/>",
-              "<round n='3'/>", 1);
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 1.5);
+  auto rnd = tester.add("round").set("n", 3);
+
+  set.connect("value", rnd, "value");
+  rnd.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -38,9 +59,16 @@ TEST(RoundTest, TestNearestThree)
 
 TEST(RoundTest, TestNearestThird)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='0.4'/>",
-              "<round d='3'/>", 1);
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 0.4);
+  auto rnd = tester.add("round").set("d", 3);
+
+  set.connect("value", rnd, "value");
+  rnd.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -49,9 +77,16 @@ TEST(RoundTest, TestNearestThird)
 
 TEST(RoundTest, TestNearestTwoThird)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='0.8'/>",
-              "<round n='2' d='3'/>", 1);
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 0.8);
+  auto rnd = tester.add("round").set("n", 2).set("d", 3);
+
+  set.connect("value", rnd, "value");
+  rnd.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);

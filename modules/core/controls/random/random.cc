@@ -93,7 +93,7 @@ Dataflow::Module module
     { "trigger", { "Trigger to set value", Value::Type::trigger,
                    &RandomControl::set_triggered, true } }
   },
-  { { "", { "Random value", "", Value::Type::number }}}
+  { { "value", { "Random value", "value", Value::Type::number }}}
 };
 
 } // anon

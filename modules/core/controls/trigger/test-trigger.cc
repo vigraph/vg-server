@@ -11,8 +11,14 @@ ModuleLoader loader;
 
 TEST(TriggerTest, TestTriggerTriggers)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger/>");
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg = tester.add("trigger");
+
+  trg.connect_test("trigger", "trigger");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("trigger"));
   const auto& v = tester.target->get("trigger");
   EXPECT_EQ(Value::Type::trigger, v.type);
@@ -20,24 +26,42 @@ TEST(TriggerTest, TestTriggerTriggers)
 
 TEST(TriggerTest, TestTriggerWithWaitNotTriggeredHasNoEffect)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger wait='yes'/>");
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg = tester.add("trigger").set("wait", true);
+
+  trg.connect_test("trigger", "trigger");
+
+  tester.test();
+
   EXPECT_FALSE(tester.target->got("trigger"));
 }
 
 TEST(TriggerTest, TestTriggerWithAutoWaitNotTriggeredHasNoEffect)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger wait='yes'/>",
-              "<trigger/>", 2);
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg = tester.add("trigger").set("wait", true);
+
+  trg.connect_test("trigger", "trigger");
+
+  tester.test(2);
+
   EXPECT_FALSE(tester.target->got("trigger"));
 }
 
 TEST(TriggerTest, TestTriggerWithWaitTriggeredHasEffect)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger/>",
-              "<trigger wait='yes'/>", 2);
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg = tester.add("trigger");
+  auto trg2 = tester.add("trigger").set("wait", true);
+
+  trg.connect("trigger", trg2, "trigger");
+  trg2.connect_test("trigger", "trigger");
+
+  tester.test(2);
+
   EXPECT_TRUE(tester.target->got("trigger"));
 }
 

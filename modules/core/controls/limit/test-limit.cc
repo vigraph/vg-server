@@ -11,55 +11,90 @@ ModuleLoader loader;
 
 TEST(LimitTest, TestLimitDoesNothingInRange)
 {
-  ControlTester tester(loader);
-  tester.test("<set property='value' value='0.2'/>",
-              "<limit property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& v = tester.target->get("x");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 0.2);
+  auto limit = tester.add("limit");
+
+  set.connect("value", limit, "value");
+  limit.connect_test("value", "value");
+
+  tester.test();
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_NEAR(0.2, v.d, 1e-5);
 }
 
 TEST(LimitTest, TestDefaultLimitAbsoluteValueUpper)
 {
-  ControlTester tester(loader);
-  tester.test("<set property='value' value='1.5'/>",
-              "<limit property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& v = tester.target->get("x");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 1.5);
+  auto limit = tester.add("limit");
+
+  set.connect("value", limit, "value");
+  limit.connect_test("value", "value");
+
+  tester.test();
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_NEAR(1.0, v.d, 1e-5);
 }
 
 TEST(LimitTest, TestDefaultLimitAbsoluteValueLower)
 {
-  ControlTester tester(loader);
-  tester.test("<set property='value' value='-0.5'/>",
-              "<limit property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& v = tester.target->get("x");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", -0.5);
+  auto limit = tester.add("limit");
+
+  set.connect("value", limit, "value");
+  limit.connect_test("value", "value");
+
+  tester.test();
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_NEAR(0.0, v.d, 1e-5);
 }
 
 TEST(LimitTest, TestSpecifiedLimitAbsoluteValueUpper)
 {
-  ControlTester tester(loader);
-  tester.test("<set property='value' value='5.5'/>",
-              "<limit property='x' min='3' max='4'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& v = tester.target->get("x");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 5.5);
+  auto limit = tester.add("limit").set("min", 3).set("max", 4);
+
+  set.connect("value", limit, "value");
+  limit.connect_test("value", "value");
+
+  tester.test();
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_NEAR(4.0, v.d, 1e-5);
 }
 
 TEST(LimitTest, TestSpecifiedLimitAbsoluteValueLower)
 {
-  ControlTester tester(loader);
-  tester.test("<set property='value' value='-0.5'/>",
-              "<limit property='x' min='3' max='4'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& v = tester.target->get("x");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", -0.5);
+  auto limit = tester.add("limit").set("min", 3).set("max", 4);
+
+  set.connect("value", limit, "value");
+  limit.connect_test("value", "value");
+
+  tester.test();
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_NEAR(3.0, v.d, 1e-5);
 }

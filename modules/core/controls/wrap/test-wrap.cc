@@ -11,9 +11,16 @@ ModuleLoader loader;
 
 TEST(WrapTest, TestWrapDoesNothingInRange)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='0.2'/>",
-              "<wrap/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 0.2);
+  auto wrp = tester.add("wrap");
+
+  set.connect("value", wrp, "value");
+  wrp.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -22,9 +29,16 @@ TEST(WrapTest, TestWrapDoesNothingInRange)
 
 TEST(WrapTest, TestDefaultWrapAbsoluteValueUpper)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='1.3'/>",
-              "<wrap/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 1.3);
+  auto wrp = tester.add("wrap");
+
+  set.connect("value", wrp, "value");
+  wrp.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -33,9 +47,16 @@ TEST(WrapTest, TestDefaultWrapAbsoluteValueUpper)
 
 TEST(WrapTest, TestDefaultWrapAbsoluteValueLower)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='-0.3'/>",
-              "<wrap/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", -0.3);
+  auto wrp = tester.add("wrap");
+
+  set.connect("value", wrp, "value");
+  wrp.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -44,9 +65,16 @@ TEST(WrapTest, TestDefaultWrapAbsoluteValueLower)
 
 TEST(WrapTest, TestSpecifiedWrapAbsoluteValueUpper)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='4.3'/>",
-              "<wrap min='3' max='4'/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 4.3);
+  auto wrp = tester.add("wrap").set("min", 3).set("max", 4);
+
+  set.connect("value", wrp, "value");
+  wrp.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -55,9 +83,16 @@ TEST(WrapTest, TestSpecifiedWrapAbsoluteValueUpper)
 
 TEST(WrapTest, TestSpecifiedWrapAbsoluteValueLower)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='2.7'/>",
-              "<wrap min='3' max='4'/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 2.7);
+  auto wrp = tester.add("wrap").set("min", 3).set("max", 4);
+
+  set.connect("value", wrp, "value");
+  wrp.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);

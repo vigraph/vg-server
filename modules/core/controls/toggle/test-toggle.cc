@@ -11,18 +11,33 @@ ModuleLoader loader;
 
 TEST(ToggleTest, TestOneTrigger)
 {
-  ControlTester tester(loader, Value::Type::any);
-  tester.test("<trigger/>",
-              "<toggle />");
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg = tester.add("trigger");
+  auto tog = tester.add("toggle");
+
+  trg.connect("trigger", tog, "trigger");
+  tog.connect_test("trigger", "trigger");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("trigger"));
 }
 
 TEST(ToggleTest, TestTwoTriggers)
 {
-  ControlTester tester(loader, Value::Type::any);
-  tester.test("<trigger target='tog'/>",
-              "<trigger/>",
-              "<toggle id='tog' />");
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg1 = tester.add("trigger");
+  auto trg2 = tester.add("trigger");
+  auto tog = tester.add("toggle");
+
+  trg1.connect("trigger", tog, "trigger");
+  trg2.connect("trigger", tog, "trigger");
+  tog.connect_test("clear", "clear");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("clear"));
 }
 

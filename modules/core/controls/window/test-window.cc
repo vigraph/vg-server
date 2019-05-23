@@ -11,9 +11,16 @@ ModuleLoader loader;
 
 TEST(WindowTest, TestWindowDoesNothingInRange)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='0.2'/>",
-              "<window/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 0.2);
+  auto wnd = tester.add("window");
+
+  set.connect("value", wnd, "value");
+  wnd.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
@@ -22,33 +29,61 @@ TEST(WindowTest, TestWindowDoesNothingInRange)
 
 TEST(WindowTest, TestDefaultWindowAbsoluteValueUpper)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='1.5'/>",
-              "<window/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 1.5);
+  auto wnd = tester.add("window");
+
+  set.connect("value", wnd, "value");
+  wnd.connect_test("value", "value");
+
+  tester.test();
+
   EXPECT_FALSE(tester.target->got("value"));
 }
 
 TEST(WindowTest, TestDefaultWindowAbsoluteValueLower)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='-0.5'/>",
-              "<window/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", -0.5);
+  auto wnd = tester.add("window");
+
+  set.connect("value", wnd, "value");
+  wnd.connect_test("value", "value");
+
+  tester.test();
+
   EXPECT_FALSE(tester.target->got("value"));
 }
 
 TEST(WindowTest, TestSpecifiedWindowAbsoluteValueUpper)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='5.5'/>",
-              "<window min='3' max='4'/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 5.5);
+  auto wnd = tester.add("window").set("min", 3).set("max", 4);
+
+  set.connect("value", wnd, "value");
+  wnd.connect_test("value", "value");
+
+  tester.test();
+
   EXPECT_FALSE(tester.target->got("value"));
 }
 
 TEST(WindowTest, TestSpecifiedWindowAbsoluteValueLower)
 {
-  ControlTester tester(loader);
-  tester.test("<set value='-0.5'/>",
-              "<window min='3' max='4'/>");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", -0.5);
+  auto wnd = tester.add("window").set("min", 3).set("max", 4);
+
+  set.connect("value", wnd, "value");
+  wnd.connect_test("value", "value");
+
+  tester.test();
+
   EXPECT_FALSE(tester.target->got("value"));
 }
 

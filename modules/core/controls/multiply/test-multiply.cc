@@ -11,34 +11,56 @@ ModuleLoader loader;
 
 TEST(MultiplyTest, TestMultiplyDefaultDoesNothing)
 {
-  ControlTester tester(loader);
-  tester.test("<set property='value' value='0.2'/>",
-              "<multiply property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& v = tester.target->get("x");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 0.2);
+  auto mul = tester.add("multiply");
+
+  set.connect("value", mul, "value");
+  mul.connect_test("value", "value");
+
+  tester.test();
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_NEAR(0.2, v.d, 1e-5);
 }
 
 TEST(MultiplyTest, TestMultiplyBy2)
 {
-  ControlTester tester(loader);
-  tester.test("<set property='value' value='1.5'/>",
-              "<multiply factor='2' property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& v = tester.target->get("x");
+  GraphTester tester{loader};
+
+  auto set = tester.add("set").set("value", 1.5);
+  auto mul = tester.add("multiply").set("factor", 2);
+
+  set.connect("value", mul, "value");
+  mul.connect_test("value", "value");
+
+  tester.test();
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_NEAR(3.0, v.d, 1e-5);
 }
 
 TEST(MultiplyTest, TestMultiplyBySetFactor)
 {
-  ControlTester tester(loader);
-  tester.test("<set target='m' property='factor' value='2'/>",
-              "<set property='value' value='1.5'/>",
-              "<multiply id='m' property='x'/>");
-  ASSERT_TRUE(tester.target->got("x"));
-  const auto& v = tester.target->get("x");
+  GraphTester tester{loader};
+
+  auto setv = tester.add("set").set("value", 1.5);
+  auto setf = tester.add("set").set("value", 2);
+  auto mul = tester.add("multiply").set("factor", 2);
+
+  setv.connect("value", mul, "value");
+  setf.connect("value", mul, "factor");
+  mul.connect_test("value", "value");
+
+  tester.test();
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_NEAR(3.0, v.d, 1e-5);
 }

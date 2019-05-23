@@ -11,33 +11,61 @@ ModuleLoader loader;
 
 TEST(WaitTest, TestZeroDelayDoesNotTriggerSameTick)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger/>",
-              "<wait/>", 1);
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg = tester.add("trigger");
+  auto wat = tester.add("wait");
+
+  trg.connect("trigger", wat, "trigger");
+  wat.connect_test("trigger", "trigger");
+
+  tester.test();
+
   EXPECT_FALSE(tester.target->got("trigger"));
 }
 
 TEST(WaitTest, TestZeroDelayTriggersNextTick)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger/>",
-              "<wait/>", 2);
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg = tester.add("trigger");
+  auto wat = tester.add("wait");
+
+  trg.connect("trigger", wat, "trigger");
+  wat.connect_test("trigger", "trigger");
+
+  tester.test(2);
+
   EXPECT_TRUE(tester.target->got("trigger"));
 }
 
 TEST(WaitTest, TestWaitDelayDoesntTriggerEarly)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger/>",
-              "<wait for='2' />", 2);
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg = tester.add("trigger");
+  auto wat = tester.add("wait").set("for", 2);
+
+  trg.connect("trigger", wat, "trigger");
+  wat.connect_test("trigger", "trigger");
+
+  tester.test(2);
+
   EXPECT_FALSE(tester.target->got("trigger"));
 }
 
 TEST(WaitTest, TestWaitDelayTriggers)
 {
-  ControlTester tester(loader, Value::Type::trigger);
-  tester.test("<trigger/>",
-              "<wait for='2'/>", 3);
+  GraphTester tester{loader, Value::Type::trigger};
+
+  auto trg = tester.add("trigger");
+  auto wat = tester.add("wait").set("for", 2);
+
+  trg.connect("trigger", wat, "trigger");
+  wat.connect_test("trigger", "trigger");
+
+  tester.test(3);
+
   EXPECT_TRUE(tester.target->got("trigger"));
 }
 

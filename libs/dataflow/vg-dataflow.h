@@ -152,6 +152,7 @@ struct Value
   Value(Type _type): type(_type) {}
   Value(double _d): type(Type::number), d(_d) {}
   Value(const string& _s): type(Type::text), s(_s) {}
+  Value(const char *_s): type(Type::text), s(_s) {}
 
   // Construct from a JSON value
   Value(const JSON::Value& json);

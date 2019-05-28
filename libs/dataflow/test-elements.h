@@ -267,7 +267,7 @@ inline void construct_graph(const string& xml, Dataflow::Graph& graph)
   {
     register_elements();
     graph.configure(File::Directory("."), config.get_root());
-    graph.calculate_topology();
+    graph.setup();
   }
   catch (runtime_error e)
   {

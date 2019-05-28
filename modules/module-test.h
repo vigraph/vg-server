@@ -29,7 +29,12 @@ public:
 
   ModuleLoader()
   {
-    engine.add_default_section("core");
+    add_default_section("core");
+  }
+
+  void add_default_section(const string& section)
+  {
+    engine.add_default_section(section);
   }
 
   void load(const string& path)

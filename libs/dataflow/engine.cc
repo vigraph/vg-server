@@ -20,8 +20,8 @@ void Engine::configure(const File::Directory& base_dir,
   // Configure graph from graph config
   graph->configure(base_dir, graph_config);
 
-  // Calculate topology
-  graph->calculate_topology();
+  // Setup elements and calculate topology
+  graph->setup();
 
   // Enable it
   graph->enable();

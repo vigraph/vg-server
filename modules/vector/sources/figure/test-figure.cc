@@ -13,14 +13,11 @@ ModuleLoader loader;
 
 TEST(FigureTest, TestNull)
 {
-  const string& xml = R"(
-    <graph>
-      <figure/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure");
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 101 points at (0,0), white except first
@@ -42,47 +39,40 @@ TEST(FigureTest, TestNull)
 
 TEST(FigureTest, TestSpecifiedPoints)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='33'/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure").set("points", 33);
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
+
   EXPECT_EQ(34, frame->points.size());
 }
 
 TEST(FigureTest, TestClosedAddsExtraPoint)
 {
-  const string& xml = R"(
-    <graph>
-      <figure closed='yes'/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure").set("closed", true);
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
+
   ASSERT_EQ(102, frame->points.size());
   EXPECT_EQ(frame->points[1], frame->points[101]);
 }
 
 TEST(FigureTest, TestNullWithPosOffset)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x pos='0.2'/>
-        <y pos='0.3'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure")
+    .set("x.pos", 0.2)
+    .set("y.pos", 0.3);
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
+
   EXPECT_EQ(101, frame->points.size());
   for(const auto& p: frame->points)
   {
@@ -93,16 +83,11 @@ TEST(FigureTest, TestNullWithPosOffset)
 
 TEST(FigureTest, TestFlatline)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x wave='saw'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure").set("x.wave", "saw");
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 100 points along horizontal line -0.5 .. 0.5, plus blank
@@ -115,22 +100,19 @@ TEST(FigureTest, TestFlatline)
     const auto& p=frame->points[i];
     EXPECT_DOUBLE_EQ(-0.5 + (i-1)/100.0, p.x) << i;
     EXPECT_EQ(0.0, p.y) << i;
+    EXPECT_TRUE(p.is_lit());
   }
 }
 
 TEST(FigureTest, TestSawXY)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x wave='saw'/>
-        <y wave='saw'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure")
+    .set("x.wave", "saw")
+    .set("y.wave", "saw");
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 100 points along line -0.5 .. 0.5 on both axes
@@ -143,22 +125,21 @@ TEST(FigureTest, TestSawXY)
     const auto& p=frame->points[i];
     EXPECT_DOUBLE_EQ(-0.5 + (i-1)/100.0, p.x) << i;
     EXPECT_DOUBLE_EQ(-0.5 + (i-1)/100.0, p.y) << i;
+    EXPECT_TRUE(p.is_lit());
   }
 }
 
 TEST(FigureTest, TestSawXYScaled)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x wave='saw' scale='2'/>
-        <y wave='saw' scale='4'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure")
+    .set("x.wave", "saw")
+    .set("x.scale", 2)
+    .set("y.wave", "saw")
+    .set("y.scale", 4);
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 100 points along line (-1.0, -2.0) .. (1.0, 2.0)
@@ -171,22 +152,21 @@ TEST(FigureTest, TestSawXYScaled)
     const auto& p=frame->points[i];
     EXPECT_DOUBLE_EQ(-1.0 + 2.0*(i-1)/100.0, p.x) << i;
     EXPECT_DOUBLE_EQ(-2.0 + 4.0*(i-1)/100.0, p.y) << i;
+    EXPECT_TRUE(p.is_lit());
   }
 }
 
 TEST(FigureTest, TestSawXYFrequencies)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x wave='saw' freq='2.0'/>
-        <y wave='saw' freq='3.0'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure")
+    .set("x.wave", "saw")
+    .set("x.freq", 2.0)
+    .set("y.wave", "saw")
+    .set("y.freq", 3.0);
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(101, frame->points.size());
@@ -199,22 +179,21 @@ TEST(FigureTest, TestSawXYFrequencies)
     double d;
     EXPECT_DOUBLE_EQ(-0.5 + modf(2.0*(i-1)/100.0, &d), p.x) << i;
     EXPECT_DOUBLE_EQ(-0.5 + modf(3.0*(i-1)/100.0, &d), p.y) << i;
+    EXPECT_TRUE(p.is_lit());
   }
 }
 
 TEST(FigureTest, TestSawXYPhases)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x wave='saw' phase='0.5'/>
-        <y wave='saw' phase='-0.6'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure")
+    .set("x.wave", "saw")
+    .set("x.phase", 0.5)
+    .set("y.wave", "saw")
+    .set("y.phase", -0.6);
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(101, frame->points.size());
@@ -229,22 +208,19 @@ TEST(FigureTest, TestSawXYPhases)
     // Note:  Within 1 in 100,000 is good enough for 16 bit
     EXPECT_NEAR(-0.5 + modf((i-1)/100.0+0.5, &d),     p.x, 0.00001) << i;
     EXPECT_NEAR(-0.5 + modf((i-1)/100.0+1.0-0.6, &d), p.y, 0.00001) << i;
+    EXPECT_TRUE(p.is_lit());
   }
 }
 
 TEST(FigureTest, TestSquareXY)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x wave='square'/>
-        <y wave='square'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure")
+    .set("x.wave", "square")
+    .set("y.wave", "square");
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(101, frame->points.size());
@@ -256,22 +232,19 @@ TEST(FigureTest, TestSquareXY)
     const auto& p=frame->points[i];
     EXPECT_DOUBLE_EQ((i-1>=50)?0.5:-0.5, p.x) << i;
     EXPECT_DOUBLE_EQ((i-1>=50)?0.5:-0.5, p.y) << i;
+    EXPECT_TRUE(p.is_lit());
   }
 }
 
 TEST(FigureTest, TestTriangleXY)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x wave='triangle'/>
-        <y wave='triangle'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure")
+    .set("x.wave", "triangle")
+    .set("y.wave", "triangle");
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(101, frame->points.size());
@@ -284,22 +257,19 @@ TEST(FigureTest, TestTriangleXY)
     const auto& p=frame->points[i];
     EXPECT_NEAR((i-1<50)?((i-1)/50.0-0.5):((101-i)/50.0-0.5), p.x, 0.00001)<< i;
     EXPECT_NEAR((i-1<50)?((i-1)/50.0-0.5):((101-i)/50.0-0.5), p.y, 0.00001)<< i;
+    EXPECT_TRUE(p.is_lit());
   }
 }
 
 TEST(FigureTest, TestSinXY)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x wave='sin'/>
-        <y wave='sin'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure")
+    .set("x.wave", "sin")
+    .set("y.wave", "sin");
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(101, frame->points.size());
@@ -312,22 +282,19 @@ TEST(FigureTest, TestSinXY)
     const auto& p=frame->points[i];
     EXPECT_NEAR(0.5*sin((i-1)/100.0*2*pi), p.x, 0.00001) << i;
     EXPECT_NEAR(0.5*sin((i-1)/100.0*2*pi), p.y, 0.00001) << i;
+    EXPECT_TRUE(p.is_lit());
   }
 }
 
 TEST(FigureTest, TestRandomXY)
 {
-  const string& xml = R"(
-    <graph>
-      <figure>
-        <x wave='random'/>
-        <y wave='random'/>
-      </figure>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  tester.add("figure")
+    .set("x.wave", "random")
+    .set("y.wave", "random");
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(101, frame->points.size());
@@ -342,6 +309,7 @@ TEST(FigureTest, TestRandomXY)
     EXPECT_GE(0.5, p.y);
     EXPECT_LE(-0.5, p.y);
     EXPECT_NE(p.x, p.y);  // Vanishingly unlikely and checks for all (0,0)
+    EXPECT_TRUE(p.is_lit());
   }
 }
 
@@ -355,5 +323,6 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("./vg-module-vector-source-figure.so");
+  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

@@ -44,7 +44,6 @@ class FragmentGenerator
     try
     {
       graph.configure(File::Directory("."), config.get_root());
-      graph.calculate_topology();
       graph.set_sample_rate(44100);
     }
     catch (runtime_error e)

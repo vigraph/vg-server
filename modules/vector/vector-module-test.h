@@ -26,6 +26,25 @@ public:
   }
 };
 
+// Test harness which catches frames
+class FrameGraphTester: public GraphTester
+{
+  Catcher catcher;
+
+public:
+  FrameGraphTester(ModuleLoader& _loader): GraphTester(_loader) {}
+
+  void run(int nticks=1)
+  {
+    graph.setup();
+    graph.attach_external(&catcher);
+    test(nticks);
+  }
+
+  Frame *get_frame() { return catcher.last_frame.get(); }
+};
+
+// !!! Remove once XML gone!
 // Generator class - creates graph from XML, ticks it and captures
 // first frame
 class FrameGenerator
@@ -44,7 +63,6 @@ class FrameGenerator
     try
     {
       graph.configure(File::Directory("."), config.get_root());
-      graph.calculate_topology();
     }
     catch (runtime_error e)
     {

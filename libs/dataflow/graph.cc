@@ -297,22 +297,25 @@ void Graph::configure_internal(const File::Directory& base_dir,
   for(auto el: ordered_elements)
     connect(el);
 
-  // Final setup - note <graph> etc require connections for setup
-  for(auto el: ordered_elements)
-    el->setup(base_dir);
-
   // Check for acceptors that never received any input
   for(auto& el: disconnected_acceptors)
     throw runtime_error("Element "+el->id+" has no inputs");
+
+  // Final setup and topology calculation
+  setup();
 
   // Add back any external acceptor that was given in a previous incarnation
   if (external_acceptor) attach_external(external_acceptor);
 }
 
 //------------------------------------------------------------------------
-// Calculate topology at top level
-void Graph::calculate_topology()
+// Final setup for elements and calculate topology
+void Graph::setup()
 {
+  File::Directory base_dir(".");  // !!! Remove once this dies!
+  for(const auto& it: elements)
+    it.second->setup(base_dir);
+
   Element::Topology topo;
   calculate_topology(topo);
 }
@@ -616,12 +619,8 @@ void Graph::add_json(const string& path, const JSON::Value& value)
         set_json(id, v);
       }
 
-      // Then set them all up
-      for(const auto& it: elements)
-      {
-        File::Directory base_dir(".");  // !!! Remove once this dies!
-        it.second->setup(base_dir);
-      }
+      // Do final setup and topology
+      setup();
     }
     catch (const runtime_error& e)
     {

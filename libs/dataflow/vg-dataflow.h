@@ -760,8 +760,8 @@ class Graph
   bool attach(Element *el);
 
   //------------------------------------------------------------------------
-  // Calculate topology at top level
-  void calculate_topology();
+  // Final setup for elements and calculate topology
+  void setup();
 
   //------------------------------------------------------------------------
   // Calculate topology in hierarchy (see Element::calculate_topology)

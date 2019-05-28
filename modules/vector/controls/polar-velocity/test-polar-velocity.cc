@@ -12,17 +12,23 @@ ModuleLoader loader;
 
 TEST(PolarVelocityTest, TestZeroVelocityDoesNothing)
 {
-  // Move at 1/s vertically up
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <polar-velocity x="1" y="2" v="0" angle="0"/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure")
+    .set("points", 1);
+  auto pv = tester.add("polar-velocity")
+    .set("x", 1)
+    .set("y", 2)
+    .set("v", 0)
+    .set("angle", 0);
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  pv.connect("x", translate, "x");
+  pv.connect("y", translate, "y");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 2 points at 0, 0
@@ -37,17 +43,22 @@ TEST(PolarVelocityTest, TestZeroVelocityDoesNothing)
 
 TEST(PolarVelocityTest, TestMovementRight)
 {
-  // Move at 1/s horizontally
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <polar-velocity v="1" angle="0"/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure")
+    .set("points", 1);
+  // Move at 1/s horizontally
+  auto pv = tester.add("polar-velocity")
+    .set("v", 1)
+    .set("angle", 0);
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  pv.connect("x", translate, "x");
+  pv.connect("y", translate, "y");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 2 points at 1,0
@@ -62,17 +73,22 @@ TEST(PolarVelocityTest, TestMovementRight)
 
 TEST(PolarVelocityTest, TestMovementUp)
 {
-  // Move at 1/s vertically up
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <polar-velocity v="1" angle="0.25"/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure")
+    .set("points", 1);
+  // Move at 1/s vertically up
+  auto pv = tester.add("polar-velocity")
+    .set("v", 1)
+    .set("angle", 0.25);
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  pv.connect("x", translate, "x");
+  pv.connect("y", translate, "y");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 2 points at 0, 1
@@ -87,17 +103,22 @@ TEST(PolarVelocityTest, TestMovementUp)
 
 TEST(PolarVelocityTest, TestMovementLeft)
 {
-  // Move at 2/s horizontally left
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <polar-velocity v="2" angle="0.5"/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure")
+    .set("points", 1);
+  // Move at 2/s horizontally left
+  auto pv = tester.add("polar-velocity")
+    .set("v", 2)
+    .set("angle", 0.5);
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  pv.connect("x", translate, "x");
+  pv.connect("y", translate, "y");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 2 points at -2,0
@@ -112,17 +133,22 @@ TEST(PolarVelocityTest, TestMovementLeft)
 
 TEST(PolarVelocityTest, TestMovementDown)
 {
-  // Move at 0.5/s vertically up
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <polar-velocity v="0.5" angle="0.75"/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure")
+    .set("points", 1);
+  // Move at 0.5/s vertically down
+  auto pv = tester.add("polar-velocity")
+    .set("v", 0.5)
+    .set("angle", 0.75);
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  pv.connect("x", translate, "x");
+  pv.connect("y", translate, "y");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 2 points at 0, -0.5
@@ -137,21 +163,29 @@ TEST(PolarVelocityTest, TestMovementDown)
 
 TEST(PolarVelocityTest, TestSetAngleAndVelocity)
 {
-  // Move at 0.5/s vertically up
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <set target="pv" value="1.0" property="x"/>
-      <set target="pv" value="2.0" property="y"/>
-      <set target="pv" value="1.0" property="v"/>
-      <set target="pv" value="0.25" property="angle"/>
-      <polar-velocity id="pv" v="0" angle="0"/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure")
+    .set("points", 1);
+
+  // Move at 0.5/s vertically up
+  auto setx = tester.add("set").set("value", 1.0);
+  auto sety = tester.add("set").set("value", 2.0);
+  auto setv = tester.add("set").set("value", 1.0);
+  auto seta = tester.add("set").set("value", 0.25);
+  auto pv = tester.add("polar-velocity");
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  setx.connect("value", pv, "x");
+  sety.connect("value", pv, "y");
+  setv.connect("value", pv, "v");
+  seta.connect("value", pv, "angle");
+  pv.connect("x", translate, "x");
+  pv.connect("y", translate, "y");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 2 points at 1, 3
@@ -177,5 +211,6 @@ int main(int argc, char **argv)
   loader.load("../../sources/figure/vg-module-vector-source-figure.so");
   loader.load("../../filters/translate/vg-module-vector-filter-translate.so");
   loader.load("./vg-module-vector-control-polar-velocity.so");
+  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

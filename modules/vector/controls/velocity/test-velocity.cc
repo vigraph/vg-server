@@ -11,16 +11,19 @@ ModuleLoader loader;
 
 TEST(VelocityTest, TestZeroVelocityDoesNothing)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <velocity/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 1);
+  auto velocity = tester.add("velocity");
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  velocity.connect("x", translate, "x");
+  velocity.connect("y", translate, "y");
+  velocity.connect("z", translate, "z");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 2 points at 0, 0
@@ -35,20 +38,28 @@ TEST(VelocityTest, TestZeroVelocityDoesNothing)
 
 TEST(VelocityTest, TestMovement)
 {
-  // Move at 1/s horizontally
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <velocity x="1" y="2" z="3" dx="1" dy="2" dz="-0.5"/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 1);
+  auto velocity = tester.add("velocity")
+    .set("x", 1)
+    .set("y", 2)
+    .set("z", 3)
+    .set("dx", 1)
+    .set("dy", 2)
+    .set("dz", -0.5);
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  velocity.connect("x", translate, "x");
+  velocity.connect("y", translate, "y");
+  velocity.connect("z", translate, "z");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
-  // Should be 2 points at 1,2,-0.5
+  // Should be 2 points at 2,4,2.5
   EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
@@ -60,26 +71,34 @@ TEST(VelocityTest, TestMovement)
 
 TEST(VelocityTest, TestSetVelocity)
 {
-  // Move at 0.5/s vertically up
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <set target="v" value="1.0" property="x"/>
-      <set target="v" value="2.0" property="y"/>
-      <set target="v" value="3.0" property="z"/>
-      <set target="v" value="1.0" property="dx"/>
-      <set target="v" value="2.0" property="dy"/>
-      <set target="v" value="-0.5" property="dz"/>
-      <velocity id="v"/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 1);
+  auto setx = tester.add("set").set("value", 1.0);
+  auto sety = tester.add("set").set("value", 2.0);
+  auto setz = tester.add("set").set("value", 3.0);
+  auto setdx = tester.add("set").set("value", 1.0);
+  auto setdy = tester.add("set").set("value", 2.0);
+  auto setdz = tester.add("set").set("value", -0.5);
+  auto velocity = tester.add("velocity");
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  setx.connect("value", velocity, "x");
+  sety.connect("value", velocity, "y");
+  setz.connect("value", velocity, "z");
+  setdx.connect("value", velocity, "dx");
+  setdy.connect("value", velocity, "dy");
+  setdz.connect("value", velocity, "dz");
+  velocity.connect("x", translate, "x");
+  velocity.connect("y", translate, "y");
+  velocity.connect("z", translate, "z");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
-  // Should be 2 points at 1.0, 2.0, -0.5
+  // Should be 2 points at 2.0, 4.0, 2.5
   EXPECT_EQ(2, frame->points.size());
   for(const auto& p: frame->points)
   {
@@ -91,21 +110,27 @@ TEST(VelocityTest, TestSetVelocity)
 
 TEST(VelocityTest, TestSetVelocityWithMax)
 {
-  // Move at 0.5/s vertically up
-  const string& xml = R"(
-    <graph>
-      <figure points='1'/>
-      <set target="v" value="1.0" property="dx"/>
-      <set target="v" value="2.0" property="dy"/>
-      <set target="v" value="-2.0" property="dz"/>
-      <set target="v" value="1.5" property="max"/>
-      <velocity id="v"/>
-      <translate/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 2);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 1);
+  auto setdx = tester.add("set").set("value", 1.0);
+  auto setdy = tester.add("set").set("value", 2.0);
+  auto setdz = tester.add("set").set("value", -2.0);
+  auto setmax = tester.add("set").set("value", 1.5);
+  auto velocity = tester.add("velocity");
+  auto translate = tester.add("translate");
+
+  figure.connect("default", translate, "default");
+  setdx.connect("value", velocity, "dx");
+  setdy.connect("value", velocity, "dy");
+  setdz.connect("value", velocity, "dz");
+  setmax.connect("value", velocity, "max");
+  velocity.connect("x", translate, "x");
+  velocity.connect("y", translate, "y");
+  velocity.connect("z", translate, "z");
+
+  tester.run(2);  // First tick absorbed by PV
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Requested magnitude is sqrt(1+4+4) = 3, max is 1.5, so
@@ -133,5 +158,6 @@ int main(int argc, char **argv)
   loader.load("../../sources/figure/vg-module-vector-source-figure.so");
   loader.load("../../filters/translate/vg-module-vector-filter-translate.so");
   loader.load("./vg-module-vector-control-velocity.so");
+  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

@@ -12,21 +12,22 @@ ModuleLoader loader;
 
 TEST(InfillLinesTest, TestMaximumDistancePointInsertion)
 {
-  // Flat line respaced to 0.1 distance
-  // Remember that <svg> normalises to -0.5..0.5 square
-  const string& xml = R"(
-    <graph>
-      <svg path="M0,0 L1,0"/>
-      <laser:infill-lines lit="0.1"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  // Flat line respaced to 0.1 distance
+  auto svg = tester.add("svg")
+    .set("path", "M 0 0 L 1 0")
+    .set("normalise", false);
+  auto ifl = tester.add("infill-lines").set("lit", 0.1);
+
+  svg.connect("default", ifl, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   ASSERT_EQ(11, frame->points.size());  // 11 fence posts, 10 rails
-  double x = -0.5;
+  double x = 0;
   for(const auto& p: frame->points)
   {
     EXPECT_NEAR(x, p.x, 1e-5);
@@ -47,5 +48,7 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../../vector/sources/svg/vg-module-vector-source-svg.so");
   loader.load("./vg-module-laser-filter-infill-lines.so");
+  loader.add_default_section("vector");
+  loader.add_default_section("laser");
   return RUN_ALL_TESTS();
 }

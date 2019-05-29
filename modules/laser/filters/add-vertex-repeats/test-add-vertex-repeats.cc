@@ -12,16 +12,18 @@ ModuleLoader loader;
 
 TEST(AddVertexRepeatsTest, TestMaximumAngleVertexPointInsertion)
 {
-  // Right-angle turn downwards (remembering SVG is upside down)
-  const string& xml = R"(
-    <graph>
-      <svg path="M0,0 L1,0 1,1"/>
-      <laser:add-vertex-repeats max-angle="30" repeats="5"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  // Right-angle turn downwards (remembering SVG is upside down)
+  auto svg = tester.add("svg").set("path", "M 0,0 L 1,0 1,1");
+  auto avr = tester.add("add-vertex-repeats")
+    .set("max-angle", "30")
+    .set("repeats", 5);
+
+  svg.connect("default", avr, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   ASSERT_EQ(8, frame->points.size());  // 3 points, 5 added at vertex
@@ -36,16 +38,18 @@ TEST(AddVertexRepeatsTest, TestMaximumAngleVertexPointInsertion)
 
 TEST(AddVertexRepeatsTest, TestMaximumAngleIgnoresSmallAngles)
 {
-  // Slight turn
-  const string& xml = R"(
-    <graph>
-      <svg path="M0,0 L1,0 2,0.5"/>
-      <laser:add-vertex-repeats max-angle="30" repeats="5"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  // Slight turn
+  auto svg = tester.add("svg").set("path", "M 0,0 L 1,0 2,0.5");
+  auto avr = tester.add("add-vertex-repeats")
+    .set("max-angle", "30")
+    .set("repeats", 5);
+
+  svg.connect("default", avr, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   ASSERT_EQ(3, frame->points.size());  // None added
@@ -62,5 +66,7 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../../vector/sources/svg/vg-module-vector-source-svg.so");
   loader.load("./vg-module-laser-filter-add-vertex-repeats.so");
+  loader.add_default_section("vector");
+  loader.add_default_section("laser");
   return RUN_ALL_TESTS();
 }

@@ -12,15 +12,19 @@ ModuleLoader loader;
 
 TEST(AddBlankingAnchorsTest, TestBlankingPointInsertion)
 {
-  const string& xml = R"(
-    <graph>
-      <svg path="M0,0 L1,0 M2,0 L3,0" normalise="false"/>
-      <laser:add-blanking-anchors leading="1" trailing="2"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto svg = tester.add("svg")
+    .set("path", "M 0 0 L 1 0 M 2 0 L 3 0")
+    .set("normalise", false);
+  auto aba = tester.add("add-blanking-anchors")
+    .set("leading", 1)
+    .set("trailing", 2);
+
+  svg.connect("default", aba, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   vector<Point>& opoints = frame->points;
@@ -69,5 +73,7 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../../vector/sources/svg/vg-module-vector-source-svg.so");
   loader.load("./vg-module-laser-filter-add-blanking-anchors.so");
+  loader.add_default_section("vector");
+  loader.add_default_section("laser");
   return RUN_ALL_TESTS();
 }

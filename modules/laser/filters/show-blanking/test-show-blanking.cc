@@ -11,15 +11,15 @@ ModuleLoader loader;
 
 TEST(ShowBlankingTest, TestBlankingIsRedAndLitPointsLeftAlone)
 {
-  const string& xml = R"(
-    <graph>
-      <svg path="M0,0 L1,0"/>
-      <laser:show-blanking colour="red"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto svg = tester.add("svg").set("path", "M 0 0 L 1 0");
+  auto sb = tester.add("show-blanking").set("colour", "red");
+
+  svg.connect("default", sb, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   ASSERT_EQ(2, frame->points.size());
@@ -38,5 +38,7 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../../vector/sources/svg/vg-module-vector-source-svg.so");
   loader.load("./vg-module-laser-filter-show-blanking.so");
+  loader.add_default_section("vector");
+  loader.add_default_section("laser");
   return RUN_ALL_TESTS();
 }

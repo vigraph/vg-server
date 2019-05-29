@@ -15,53 +15,45 @@ using namespace ViGraph::Geometry;
 
 TEST(AmplitudeTest, TestNoWaveform)
 {
-  const string& xml = R"(
-    <graph>
-      <vco/>
-      <amplitude property="gain"/>
-      <attenuator gain="1.0" interpolate="false"/>
-    </graph>
-  )";
+  GraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
-  ASSERT_FALSE(!fragment);
+  auto vco = tester.add("vco");
+  auto amp = tester.add("amplitude");
 
-  const auto& waveform = fragment->waveforms[Speaker::front_center];
+  vco.connect("default", amp, "default");
+  amp.connect_test("value", "value");
 
-  // Should be 44100 samples at 0
-  EXPECT_EQ(44100, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ(0.0, waveform[i]);
+  tester.test();
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(0, v.d);
 }
 
 TEST(AmplitudeTest, TestSquareWave)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-      <amplitude target="a" property="gain"/>
-      <attenuator id="a" gain="0.0" interpolate="false"/>
-    </graph>
-  )";
+  GraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);
-  Fragment *fragment = gen.get_fragment();
-  ASSERT_FALSE(!fragment);
+  auto vco = tester.add("vco").set("wave", "square").set("freq", 0.00001);
+  auto amp = tester.add("amplitude");
 
-  const auto& waveform = fragment->waveforms[Speaker::front_center];
+  vco.connect("default", amp, "default");
+  amp.connect_test("value", "value");
 
-  // Should be 44100 samples at -1 or 1
-  EXPECT_EQ(44100, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ((i < 22050)?1:-1, waveform[i]) << i;
+  tester.test(10);
+
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
+  ASSERT_EQ(Value::Type::number, v.type);
+  EXPECT_EQ(1.0, v.d);
 }
 
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../sources/vco/vg-module-audio-source-vco.so");
-  loader.load("../attenuator/vg-module-audio-filter-attenuator.so");
   loader.load("./vg-module-audio-filter-amplitude.so");
+  loader.add_default_section("audio");
   return RUN_ALL_TESTS();
 }

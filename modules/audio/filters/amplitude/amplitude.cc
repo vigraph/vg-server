@@ -74,7 +74,7 @@ Dataflow::Module module
     { "offset", { "Offset to apply to amplitude",
                   Value::Type::number, &AmplitudeFilter::offset, true } }
   },
-  { { "", { "Amplitude", "", Value::Type::number }}},
+  { { "value", { "Amplitude", "value", Value::Type::number }}},
   { "Audio" }, // inputs
   { "Audio" }  // outputs
 };

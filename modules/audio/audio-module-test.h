@@ -26,6 +26,25 @@ public:
   }
 };
 
+// Test harness which catches fragments
+class FragmentGraphTester: public GraphTester
+{
+  Catcher catcher;
+
+public:
+  FragmentGraphTester(ModuleLoader& _loader): GraphTester(_loader) {}
+
+  void run(int nticks=1)
+  {
+    graph.setup();
+    graph.attach_external(&catcher);
+    test(nticks);
+  }
+
+  Fragment *get_fragment() { return catcher.last_fragment.get(); }
+};
+
+// !!! Remove once XML gone!
 // Generator class - creates graph from XML, ticks it and captures
 // first fragment
 class FragmentGenerator

@@ -15,7 +15,6 @@ namespace {
 // Sequence control
 class SequenceControl: public Dataflow::Control
 {
-  string property;
   vector<string> values;
   unsigned index = 0;
 
@@ -26,6 +25,8 @@ public:
   SequenceControl(const Module *module, const XML::Element& config);
 
   // Getters/Setters
+  JSON::Value get_values() const;
+  void set_values(const JSON::Value& json);
   int get_index() const { return index; }
   void set_index(int index);
   void next();
@@ -40,12 +41,36 @@ public:
 SequenceControl::SequenceControl(const Module *module, const XML::Element& config):
   Control(module, config)
 {
-  values = Text::split_words(config["values"]);
+  values = Text::split_words(config["value-list"]);
   if (values.empty())
   {
     const auto els = config.get_children("value");
     for (const auto& el: els)
       values.push_back(el->content);
+  }
+}
+
+//--------------------------------------------------------------------------
+// Get values as JSON value
+JSON::Value SequenceControl::get_values() const
+{
+  JSON::Value json(JSON::Value::ARRAY);
+  for(const auto& it: values)
+    json.add(it);
+
+  return json;
+}
+
+//--------------------------------------------------------------------------
+// Set values from JSON value
+void SequenceControl::set_values(const JSON::Value& json)
+{
+  if (json.type != JSON::Value::ARRAY) return;
+  values.clear();
+  for(const auto& o: json.a)
+  {
+    if (o.type != JSON::Value::STRING) continue;
+    values.push_back(o.as_str());
   }
 }
 
@@ -83,6 +108,9 @@ Dataflow::Module module
   "Sequence a set of control values",
   "core",
   {
+    { "values", { "Sequence values", "sequence",
+                 { &SequenceControl::get_values,
+                   &SequenceControl::set_values }, true } },
     { "index", { "Index number", Value::Type::number,
                  { &SequenceControl::get_index, &SequenceControl::set_index },
                  true } },

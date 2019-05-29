@@ -9,40 +9,52 @@
 #include "../../../module-test.h"
 ModuleLoader loader;
 
-TEST(SequenceTest, TestSequenceAttrValues)
+TEST(SequenceTest, TestSequenceSetIndex)
 {
-  ControlTester tester(loader, Value::Type::text);
-  tester.test("<set property='index' value='2'/>",
-              "<sequence values='zero one two three four' />");
+  GraphTester tester(loader, Value::Type::text);
+
+  auto set = tester.add("set").set("value", 2);
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add("zero");
+  json.add("one");
+  json.add("two");
+  json.add("three");
+  json.add("four");
+  auto seq = tester.add("sequence").set("values", json);
+
+  set.connect("value", seq, "index");
+  seq.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::text, v.type);
   EXPECT_EQ("two", v.s);
 }
 
-TEST(SequenceTest, TestSequenceElementValues)
-{
-  ControlTester tester(loader, Value::Type::text);
-  tester.test("<set property='index' value='3'/>",
-              "<sequence>"
-              "  <value>zero</value>"
-              "  <value>one</value>"
-              "  <value>two</value>"
-              "  <value>three</value>"
-              "  <value>four</value>"
-              "</sequence>");
-  ASSERT_TRUE(tester.target->got("value"));
-  const auto& v = tester.target->get("value");
-  ASSERT_EQ(Value::Type::text, v.type);
-  EXPECT_EQ("three", v.s);
-}
-
 TEST(SequenceTest, TestSequenceTriggerNext)
 {
-  ControlTester tester(loader, Value::Type::text);
-  tester.test("<trigger target='seq' property='next'/>",
-              "<trigger property='next'/>",
-              "<sequence id='seq' values='zero one two three four' />");
+  GraphTester tester(loader, Value::Type::text);
+
+  auto trigger1 = tester.add("trigger");
+  auto trigger2 = tester.add("trigger");
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add("zero");
+  json.add("one");
+  json.add("two");
+  json.add("three");
+  json.add("four");
+  auto seq = tester.add("sequence").set("values", json);
+
+  trigger1.connect("trigger", seq, "next");
+  trigger2.connect("trigger", seq, "next");
+  seq.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::text, v.type);
@@ -51,14 +63,26 @@ TEST(SequenceTest, TestSequenceTriggerNext)
 
 TEST(SequenceTest, TestSequenceTriggerNextLoop)
 {
-  ControlTester tester(loader, Value::Type::text);
-  tester.test({"<trigger target='seq' property='next'/>",
-               "<trigger target='seq' property='next'/>",
-               "<trigger target='seq' property='next'/>",
-               "<trigger target='seq' property='next'/>",
-               "<trigger target='seq' property='next'/>",
-               "<trigger property='next'/>",
-               "<sequence id='seq' values='zero one two three four' />"});
+  GraphTester tester(loader, Value::Type::text);
+
+  vector<GraphTester::ElementProxy> triggers;
+  for(auto i=0; i<6; i++)
+    triggers.push_back(tester.add("trigger"));
+
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add("zero");
+  json.add("one");
+  json.add("two");
+  json.add("three");
+  json.add("four");
+  auto seq = tester.add("sequence").set("values", json);
+
+  for(auto& trigger: triggers)
+    trigger.connect("trigger", seq, "next");
+  seq.connect_test("value", "value");
+
+  tester.test();
+
   ASSERT_TRUE(tester.target->got("value"));
   const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::text, v.type);

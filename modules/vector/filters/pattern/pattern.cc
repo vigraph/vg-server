@@ -25,8 +25,6 @@ private:
 
   // Filter/Element virtuals
   void accept(FramePtr frame) override;
-  JSON::Value get_json(const string& path) const override;
-  void set_json(const string& path, const JSON::Value& value) override;
 
 public:
   double phase{0};
@@ -36,6 +34,8 @@ public:
   PatternFilter(const Dataflow::Module *module, const XML::Element& config);
 
   // Getters/Setters
+  JSON::Value get_colours() const;
+  void set_colours(const JSON::Value& json);
   string get_blend() const
   { return (blend_type == BlendType::linear ? "linear" : "none"); }
   void set_blend(const string& b)
@@ -71,39 +71,26 @@ PatternFilter::PatternFilter(const Dataflow::Module *module,
 }
 
 //--------------------------------------------------------------------------
-// Get JSON
-JSON::Value PatternFilter::get_json(const string& path) const
+// Get colours as JSON value
+JSON::Value PatternFilter::get_colours() const
 {
-  JSON::Value json = Filter::get_json(path);
-
-  if (path.empty())
-  {
-    // Whole thing - add array of colours
-    auto& cols = json.put("colours", JSON::Value(JSON::Value::ARRAY));
-    for(const auto c: colours)
-      cols.add(c.str());
-  }
+  JSON::Value json(JSON::Value::ARRAY);
+  for(const auto& it: colours)
+    json.add(it.str());
 
   return json;
 }
 
 //--------------------------------------------------------------------------
-// Set from JSON
-void PatternFilter::set_json(const string& path, const JSON::Value& value)
+// Set colours from JSON value
+void PatternFilter::set_colours(const JSON::Value& json)
 {
-  Element::set_json(path, value);
-
-  if (path.empty())
+  if (json.type != JSON::Value::ARRAY) return;
+  colours.clear();
+  for(const auto& o: json.a)
   {
-    // Whole thing?
-    colours.clear();
-
-    const auto& cols = value["colours"];
-    for(const auto& cv: cols.a)
-    {
-      const auto& c = cv.as_str();
-      if (!c.empty()) colours.push_back(Colour::RGB(c));
-    }
+    if (o.type != JSON::Value::STRING) continue;
+    colours.push_back(Colour::RGB(o.as_str()));
   }
 }
 
@@ -172,6 +159,9 @@ Dataflow::Module module
   "Adds a pattern of colours, optionally blending",
   "vector",
   {
+    { "colours", { "Sequence of colours", "colours",
+                 { &PatternFilter::get_colours,
+                   &PatternFilter::set_colours }, true } },
     { "phase", { "Phase of pattern (0..1)", Value::Type::number,
                  &PatternFilter::phase, true } },
     { "repeats", { "Number of repeats of pattern",

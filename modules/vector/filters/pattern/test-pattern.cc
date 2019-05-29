@@ -11,15 +11,15 @@ ModuleLoader loader;
 
 TEST(PatternTest, TestDefaultHasNoEffect)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <pattern/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto pattern = tester.add("pattern");
+
+  figure.connect("default", pattern, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 11 points at (0,0), first blanked, rest white
@@ -39,18 +39,18 @@ TEST(PatternTest, TestDefaultHasNoEffect)
 
 TEST(PatternTest, TestSimpleAlternatingOneRepeat)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <pattern>
-        <colour>red</colour>
-        <colour g="1.0"/>
-      </pattern>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add("red");
+  json.add("#0f0");
+  auto pattern = tester.add("pattern").set("colours", json);
+
+  figure.connect("default", pattern, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 11 points at (0,0), first blanked, 5 red, 5 green
@@ -74,18 +74,20 @@ TEST(PatternTest, TestSimpleAlternatingOneRepeat)
 
 TEST(PatternTest, TestSimpleAlternating5Repeats)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <pattern repeats="5">
-        <colour>#ffff00</colour>
-        <colour b="1.0"/>
-      </pattern>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add("#ffff00");
+  json.add("#0000ff");
+  auto pattern = tester.add("pattern")
+    .set("colours", json)
+    .set("repeats", 5);
+
+  figure.connect("default", pattern, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 11 points at (0,0), first blanked, rest alternating yellow, blue
@@ -111,18 +113,21 @@ TEST(PatternTest, TestSimpleAlternating5Repeats)
 
 TEST(PatternTest, TestSimpleAlternating5RepeatsAntiPhase)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <pattern repeats="5" phase="0.5">
-        <colour>#ffff00</colour>
-        <colour b="1.0"/>
-      </pattern>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add("#ffff00");
+  json.add("#0000ff");
+  auto pattern = tester.add("pattern")
+    .set("colours", json)
+    .set("repeats", 5)
+    .set("phase", 0.5);
+
+  figure.connect("default", pattern, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 11 points at (0,0), first blanked, rest alternating yellow, blue
@@ -148,18 +153,20 @@ TEST(PatternTest, TestSimpleAlternating5RepeatsAntiPhase)
 
 TEST(PatternTest, TestBlendOneRepeat)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <pattern blend="linear">
-        <colour>red</colour>
-        <colour g="1.0"/>
-      </pattern>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  JSON::Value json(JSON::Value::ARRAY);
+  json.add("red");
+  json.add("#0f0");
+  auto pattern = tester.add("pattern")
+    .set("colours", json)
+    .set("blend", "linear");
+
+  figure.connect("default", pattern, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 11 points at (0,0), first blanked,
@@ -194,5 +201,6 @@ int main(int argc, char **argv)
   loader.load("../../../core/controls/set/vg-module-core-control-set.so");
   loader.load("../../sources/figure/vg-module-vector-source-figure.so");
   loader.load("./vg-module-vector-filter-pattern.so");
+  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

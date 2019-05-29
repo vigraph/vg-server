@@ -17,7 +17,8 @@ using Colour::HSL;
 // Colour filter
 class ColourFilter: public FrameFilter
 {
-  RGB c;
+  RGB rgb;
+  HSL hsl;  // Kept separately for HSL updates, otherwise order dependent
 
   // Filter/Element virtuals
   void accept(FramePtr frame) override;
@@ -26,20 +27,20 @@ public:
   using FrameFilter::FrameFilter;
 
   // Getters/Setters
-  string get() const { return c.str(); }
-  void set(const string& colour) { c = RGB{colour}; }
-  double get_r() const { return c.r; }
-  void set_r(double r) { c.r = r; }
-  double get_g() const { return c.g; }
-  void set_g(double g) { c.g = g; }
-  double get_b() const { return c.b; }
-  void set_b(double b) { c.b = b; }
-  double get_h() const { return HSL{c}.h; }
-  void set_h(double h) { auto hsl = HSL{c}; hsl.h = h; c = RGB{hsl}; }
-  double get_s() const { return HSL{c}.s; }
-  void set_s(double s) { auto hsl = HSL{c}; hsl.s = s; c = RGB{hsl}; }
-  double get_l() const { return HSL{c}.l; }
-  void set_l(double l) { auto hsl = HSL{c}; hsl.l = l; c = RGB{hsl}; }
+  string get() const { return rgb.str(); }
+  void set(const string& colour) { rgb = RGB{colour}; hsl=HSL{rgb}; }
+  double get_r() const { return rgb.r; }
+  void set_r(double r) { rgb.r = r; hsl=HSL{rgb}; }
+  double get_g() const { return rgb.g; }
+  void set_g(double g) { rgb.g = g; hsl=HSL{rgb}; }
+  double get_b() const { return rgb.b; }
+  void set_b(double b) { rgb.b = b; hsl=HSL{rgb}; }
+  double get_h() const { return hsl.h; }
+  void set_h(double h) { hsl.h = h; rgb = RGB{hsl}; }
+  double get_s() const { return hsl.s; }
+  void set_s(double s) { hsl.s = s; rgb = RGB{hsl}; }
+  double get_l() const { return hsl.l; }
+  void set_l(double l) { hsl.l = l; rgb = RGB{hsl}; }
 };
 
 //--------------------------------------------------------------------------
@@ -48,7 +49,7 @@ void ColourFilter::accept(FramePtr frame)
 {
   // Set all lit points to this colour
   for(auto& p: frame->points)
-    if (p.is_lit()) p.c = c;
+    if (p.is_lit()) p.c = rgb;
 
   send(frame);
 }

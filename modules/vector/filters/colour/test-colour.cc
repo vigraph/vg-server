@@ -11,15 +11,15 @@ ModuleLoader loader;
 
 TEST(ColourTest, TestDefaultIsBlack)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour");
+
+  figure.connect("default", colour, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 11 points at (0,0), black
@@ -37,15 +37,18 @@ TEST(ColourTest, TestDefaultIsBlack)
 
 TEST(ColourTest, TestSpecifiedRGBColour)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour r='0.1' g='0.2' b='0.3'/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour")
+    .set("r", 0.1)
+    .set("g", 0.2)
+    .set("b", 0.3);
+
+  figure.connect("default", colour, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -64,15 +67,20 @@ TEST(ColourTest, TestSpecifiedRGBColour)
 
 TEST(ColourTest, TestSpecifiedHSLColour)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour h='0' s='1.0' l='0.5'/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour")
+    .set("h", 0)
+    .set("s", 1.0)
+    .set("l", 0.5);
+  // Note the above tests order dependency, because setting 'h' and 's' when
+  // l is 0, will result in RGB black, then setting l=0.5 makes grey.
+
+  figure.connect("default", colour, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -91,15 +99,15 @@ TEST(ColourTest, TestSpecifiedHSLColour)
 
 TEST(ColourTest, TestSpecifiedHexColourWithHash)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour hex="#00c0ff"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour").set("hex", "#00c0ff");
+
+  figure.connect("default", colour, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -118,15 +126,15 @@ TEST(ColourTest, TestSpecifiedHexColourWithHash)
 
 TEST(ColourTest, TestSpecifiedHexColourWithoutHash)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour hex="00c0ff"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour").set("hex", "00c0ff");
+
+  figure.connect("default", colour, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -145,18 +153,24 @@ TEST(ColourTest, TestSpecifiedHexColourWithoutHash)
 
 TEST(ColourTest, TestColourRGBPropertiesChanged)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <set target='c' property='r' value='0.4'/>
-      <set target='c' property='g' value='0.5'/>
-      <set target='c' property='b' value='0.6'/>
-      <colour id='c' r='0.1' g='0.2' b='0.3'/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto setr = tester.add("set").set("value", 0.4);
+  auto setg = tester.add("set").set("value", 0.5);
+  auto setb = tester.add("set").set("value", 0.6);
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour")
+    .set("r", 0.1)
+    .set("g", 0.2)
+    .set("b", 0.3);
+
+  setr.connect("value", colour, "r");
+  setg.connect("value", colour, "g");
+  setb.connect("value", colour, "b");
+  figure.connect("default", colour, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -175,21 +189,25 @@ TEST(ColourTest, TestColourRGBPropertiesChanged)
 
 TEST(ColourTest, TestColourHSLPropertiesChanged)
 {
-  // Note order of sets - because colours have to be converted back
-  // to RGB, if you set saturation while lightness is zero, you get back
-  // grey because of conical model
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <set target='c' property='l' value='0.5'/>
-      <set target='c' property='s' value='1.0'/>
-      <set target='c' property='h' value='0.33333'/>
-      <colour id='c' h='0' s='0' l='0'/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto seth = tester.add("set").set("value", 0.33333);
+  auto sets = tester.add("set").set("value", 1.0);
+  auto setl = tester.add("set").set("value", 0.5);
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour")
+    .set("h", 0)
+    .set("s", 0)
+    .set("l", 0);
+
+  // Note order of sets - this tests separate HSL storage
+  seth.connect("value", colour, "h");
+  sets.connect("value", colour, "s");
+  setl.connect("value", colour, "l");
+  figure.connect("default", colour, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -218,5 +236,6 @@ int main(int argc, char **argv)
   loader.load("../../../core/controls/set/vg-module-core-control-set.so");
   loader.load("../../sources/figure/vg-module-vector-source-figure.so");
   loader.load("./vg-module-vector-filter-colour.so");
+  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

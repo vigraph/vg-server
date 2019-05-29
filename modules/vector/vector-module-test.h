@@ -36,7 +36,6 @@ public:
 
   void run(int nticks=1)
   {
-    graph.setup();
     graph.attach_external(&catcher);
     test(nticks);
   }

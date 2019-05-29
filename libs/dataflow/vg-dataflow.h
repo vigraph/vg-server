@@ -820,15 +820,15 @@ class Graph
                                           const string& type);
 
   //------------------------------------------------------------------------
-  // Get type-checked nearest service element
+  // Get type-checked nearest service element (can be nullptr if doesn't
+  // exist or wrong type)
   template <class T> shared_ptr<T> find_service(const string& section,
                                                 const string& type)
   {
     auto el = get_nearest_element(section, type);
-    if (!el) throw runtime_error("No such element "+section+":"+type);
+    if (!el) return {};
     auto t = dynamic_pointer_cast<T>(el);
-    if (!t)
-      throw runtime_error("Element "+section+":"+type+" is the wrong type");
+    if (!t) return {};
     return t;
   }
 

@@ -11,15 +11,17 @@ ModuleLoader loader;
 
 TEST(ClipTest, TestDefaultIsNoChange)
 {
-  const string& xml = R"(
-    <graph>
-      <svg path="M 0 0 L 0.5 0" normalise="false"/>
-      <clip/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto svg = tester.add("svg")
+    .set("path", "M 0 0 L 0.5 0")
+    .set("normalise", false);
+  auto clip = tester.add("clip");
+
+  svg.connect("default", clip, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(2, frame->points.size());
@@ -31,15 +33,18 @@ TEST(ClipTest, TestDefaultIsNoChange)
 
 TEST(ClipTest, TestSimpleClipOutsideWithAlphaJustFades)
 {
-  const string& xml = R"(
-    <graph>
-      <svg path="M 0 0 L 2 0" normalise="false"/>
-      <clip alpha="0.5"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto svg = tester.add("svg")
+    .set("path", "M 0 0 L 2 0")
+    .set("normalise", false);
+  auto clip = tester.add("clip")
+    .set("alpha", 0.5);
+
+  svg.connect("default", clip, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(2, frame->points.size());
@@ -52,15 +57,17 @@ TEST(ClipTest, TestSimpleClipOutsideWithAlphaJustFades)
 
 TEST(ClipTest, TestSimpleClipOutsideMovesToLastAndBlanks)
 {
-  const string& xml = R"(
-    <graph>
-      <svg path="M 0 0 L 2 0" normalise="false"/>
-      <clip/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto svg = tester.add("svg")
+    .set("path", "M 0 0 L 2 0")
+    .set("normalise", false);
+  auto clip = tester.add("clip");
+
+  svg.connect("default", clip, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(2, frame->points.size());
@@ -72,18 +79,20 @@ TEST(ClipTest, TestSimpleClipOutsideMovesToLastAndBlanks)
 
 TEST(ClipTest, TestClipInsideMovesToLastAndBlanks)
 {
-  const string& xml = R"(
-    <graph>
-      <svg path="M 0 0 L 1 0" normalise="false"/>
-      <clip exclude="yes">
-       <min x="0.5"/>
-       <max x="1.5"/>
-      </clip>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto svg = tester.add("svg")
+    .set("path", "M 0 0 L 1 0")
+    .set("normalise", false);
+  auto clip = tester.add("clip")
+    .set("exclude", true)
+    .set("min.x", 0.5)
+    .set("max.x", 1.5);
+
+  svg.connect("default", clip, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(2, frame->points.size());
@@ -105,5 +114,6 @@ int main(int argc, char **argv)
   loader.load("../../../core/controls/set/vg-module-core-control-set.so");
   loader.load("../../sources/svg/vg-module-vector-source-svg.so");
   loader.load("./vg-module-vector-filter-clip.so");
+  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

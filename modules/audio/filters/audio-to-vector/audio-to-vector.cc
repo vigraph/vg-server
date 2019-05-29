@@ -205,7 +205,7 @@ Dataflow::Module module
 {
   "audio-to-vector",
   "Audio-to-Vector",
-  "Send copy of audio data to vector data via router",
+  "Convert audio data to a vector waveform",
   "audio",
   {
     { "mode", { "Mode to run in", Value::Type::choice,

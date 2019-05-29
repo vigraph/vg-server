@@ -7,20 +7,24 @@
 //==========================================================================
 
 #include "../../vector-module-test.h"
-ModuleLoader loader; 
+ModuleLoader loader;
 
 TEST(FadeTest, TestDefaultIsNoChange)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour r="1.0" g="0.5" b="0.3"/>
-      <fade/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour")
+    .set("r", 1.0)
+    .set("g", 0.5)
+    .set("b", 0.3);
+  auto fade = tester.add("fade");
+
+  figure.connect("default", colour, "default");
+  colour.connect("default", fade, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -36,16 +40,21 @@ TEST(FadeTest, TestDefaultIsNoChange)
 
 TEST(FadeTest, TestFadeAllChannels)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour r="1.0" g="0.5" b="0.3"/>
-      <fade all="0.5"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour")
+    .set("r", 1.0)
+    .set("g", 0.5)
+    .set("b", 0.3);
+  auto fade = tester.add("fade")
+    .set("all", 0.5);
+
+  figure.connect("default", colour, "default");
+  colour.connect("default", fade, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -61,16 +70,23 @@ TEST(FadeTest, TestFadeAllChannels)
 
 TEST(FadeTest, TestFadeIndividualChannels)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour r="1.0" g="0.5" b="0.3"/>
-      <fade r="0.7" g="0.6" b="0.5"/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour")
+    .set("r", 1.0)
+    .set("g", 0.5)
+    .set("b", 0.3);
+  auto fade = tester.add("fade")
+    .set("r", 0.7)
+    .set("g", 0.6)
+    .set("b", 0.5);
+
+  figure.connect("default", colour, "default");
+  colour.connect("default", fade, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -86,17 +102,22 @@ TEST(FadeTest, TestFadeIndividualChannels)
 
 TEST(FadeTest, TestFadeAllPropertyChanged)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour r="1.0" g="0.5" b="0.3"/>
-      <set property='all' value='0.5'/>
-      <fade/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour")
+    .set("r", 1.0)
+    .set("g", 0.5)
+    .set("b", 0.3);
+  auto set = tester.add("set").set("value", 0.5);
+  auto fade = tester.add("fade");
+
+  figure.connect("default", colour, "default");
+  colour.connect("default", fade, "default");
+  set.connect("value", fade, "all");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -112,19 +133,26 @@ TEST(FadeTest, TestFadeAllPropertyChanged)
 
 TEST(FadeTest, TestFadeIndividualPropertyChanged)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <colour r="1.0" g="0.5" b="0.3"/>
-      <set target='fade' property='r' value='0.7'/>
-      <set target='fade' property='g' value='0.6'/>
-      <set target='fade' property='b' value='0.5'/>
-      <fade/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto colour = tester.add("colour")
+    .set("r", 1.0)
+    .set("g", 0.5)
+    .set("b", 0.3);
+  auto setr = tester.add("set").set("value", 0.7);
+  auto setg = tester.add("set").set("value", 0.6);
+  auto setb = tester.add("set").set("value", 0.5);
+  auto fade = tester.add("fade");
+
+  figure.connect("default", colour, "default");
+  colour.connect("default", fade, "default");
+  setr.connect("value", fade, "r");
+  setg.connect("value", fade, "g");
+  setb.connect("value", fade, "b");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   EXPECT_EQ(11, frame->points.size());
@@ -151,5 +179,6 @@ int main(int argc, char **argv)
   loader.load("../../sources/figure/vg-module-vector-source-figure.so");
   loader.load("../../filters/colour/vg-module-vector-filter-colour.so");
   loader.load("./vg-module-vector-filter-fade.so");
+  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

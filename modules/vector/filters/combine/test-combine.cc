@@ -11,15 +11,15 @@ ModuleLoader loader;
 
 TEST(CombineTest, TestSingleInputPassesThrough)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <combine/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure = tester.add("figure").set("points", 10);
+  auto combine = tester.add("combine");
+
+  figure.connect("default", combine, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 11 points at (0,0)
@@ -34,18 +34,17 @@ TEST(CombineTest, TestSingleInputPassesThrough)
 
 TEST(CombineTest, TestTwoInputsCombines)
 {
-  const string& xml = R"(
-    <graph>
-      <figure points='10'/>
-      <figure points='10'>
-        <x pos="1"/>
-      </figure>
-      <combine/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader);
-  Frame *frame = gen.get_frame();
+  auto figure1 = tester.add("figure").set("points", 10);
+  auto figure2 = tester.add("figure").set("points", 10).set("x.pos", 1);
+  auto combine = tester.add("combine");
+
+  figure1.connect("default", combine, "default");
+  figure2.connect("default", combine, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
   ASSERT_FALSE(!frame);
 
   // Should be 11 points at (0,0) then 11 at (1,0)
@@ -71,5 +70,6 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../sources/figure/vg-module-vector-source-figure.so");
   loader.load("./vg-module-vector-filter-combine.so");
+  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

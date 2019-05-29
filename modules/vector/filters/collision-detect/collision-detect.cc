@@ -55,7 +55,7 @@ void CollisionDetectFilter::accept(FramePtr frame)
   if (detector) detector->check_for_collision(group_name, this, frame.get());
 
   // Pass it on
-  Generator::send(frame);
+  FrameFilter::send(frame);
 }
 
 //--------------------------------------------------------------------------

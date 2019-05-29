@@ -9,57 +9,82 @@
 #include "../../vector-module-test.h"
 ModuleLoader loader;
 
-TEST(CollisionDetectTest, TestWithNoCollisionGroupFails)
+TEST(CollisionDetectTest, TestWithNoCollisionDetectorPassesThrough)
 {
-  const string& xml = R"(
-    <graph>
-      <svg path='M0,0 L1,0'/>
-      <collision-detect target='foo'/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  BadFrameGenerator gen(xml, loader);
+  auto svg = tester.add("svg").set("path", "M 0 0 L 1 0");
+  auto cd = tester.add("collision-detect");
+
+  svg.connect("default", cd, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
+  ASSERT_FALSE(!frame);
 }
 
-TEST(CollisionDetectTest, TestNoTargetsDoesNotNeedConnection)
+TEST(CollisionDetectTest, TestWithCollisionDetectorPassesThrough)
 {
-  const string& xml = R"(
-    <graph>
-      <collision-detector/>
-      <svg path='M0,0 L1,0'/>
-      <collision-detect/>
-    </graph>
-  )";
+  FrameGraphTester tester{loader};
 
-  FrameGenerator gen(xml, loader, 0);
+  tester.add("collision-detector");
+  auto svg = tester.add("svg").set("path", "M 0 0 L 1 0");
+  auto cd = tester.add("collision-detect");
+
+  svg.connect("default", cd, "default");
+
+  tester.run();
+  Frame *frame = tester.get_frame();
+  ASSERT_FALSE(!frame);
 }
 
-TEST(CollisionDetectTest, TestTargetSpecifiedButAbsentFails)
+TEST(CollisionDetectTest, TestOverlappingSVGsCollide)
 {
-  const string& xml = R"(
-    <graph>
-      <collision-detector/>
-      <svg path='M0,0 L1,0'/>
-      <collision-detect target='foo'/>
-    </graph>
-  )";
+  GraphTester tester{loader, Value::Type::trigger};
 
-  BadFrameGenerator gen(xml, loader);
+  tester.add("collision-detector");
+  auto svg1 = tester.add("svg").set("path", "M 0 0 L 2 2")
+    .set("normalise", false);
+  auto cd1 = tester.add("collision-detect");
+  auto svg2 = tester.add("svg").set("path", "M 1 1 L 3 3")
+    .set("normalise", false);
+  auto cd2 = tester.add("collision-detect");
+
+  svg1.connect("default", cd1, "default");
+  svg2.connect("default", cd2, "default");
+  cd1.connect_test("trigger", "cd1t");
+  cd2.connect_test("trigger", "cd2t");
+
+  tester.test(2);  // Trigger on second pretick
+
+  ASSERT_TRUE(tester.target->got("cd1t"));
+  ASSERT_EQ(Value::Type::trigger, tester.target->get("cd1t").type);
+
+  ASSERT_TRUE(tester.target->got("cd2t"));
+  ASSERT_EQ(Value::Type::trigger, tester.target->get("cd2t").type);
 }
 
-TEST(CollisionDetectTest, TestConnectionWithTarget)
+TEST(CollisionDetectTest, TestNonOverlappingSVGsDontCollide)
 {
-  const string& xml = R"(
-    <graph>
-      <collision-detector/>
-      <svg path='M0,0 L1,0'/>
-      <collision-detect target='m'/>
-      <set id='m' property='x'/>
-      <translate/>
-    </graph>
-  )";
+  GraphTester tester{loader, Value::Type::trigger};
 
-  FrameGenerator gen(xml, loader, 0);
+  tester.add("collision-detector");
+  auto svg1 = tester.add("svg").set("path", "M 0 0 L 2 2")
+    .set("normalise", false);
+  auto cd1 = tester.add("collision-detect");
+  auto svg2 = tester.add("svg").set("path", "M 3 3 L 4 4")
+    .set("normalise", false);
+  auto cd2 = tester.add("collision-detect");
+
+  svg1.connect("default", cd1, "default");
+  svg2.connect("default", cd2, "default");
+  cd1.connect_test("trigger", "cd1t");
+  cd2.connect_test("trigger", "cd2t");
+
+  tester.test(2);  // Trigger on second pretick
+
+  ASSERT_FALSE(tester.target->got("cd1t"));
+  ASSERT_FALSE(tester.target->got("cd2t"));
 }
 
 int main(int argc, char **argv)
@@ -74,7 +99,7 @@ int main(int argc, char **argv)
   loader.load("../../../core/controls/set/vg-module-core-control-set.so");
   loader.load("../../sources/svg/vg-module-vector-source-svg.so");
   loader.load("../../services/collision-detector/vg-module-vector-service-collision-detector.so");
-  loader.load("../translate/vg-module-vector-filter-translate.so");
   loader.load("./vg-module-vector-filter-collision-detect.so");
+  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

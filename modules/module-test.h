@@ -156,7 +156,7 @@ class GraphTester
   // Run test
   void test(int nticks = 1)
   {
-    graph.generate_topological_order();
+    graph.setup();
     graph.set_sample_rate(50);
 
     for(auto i=0; i<nticks; i++)

@@ -35,7 +35,6 @@ public:
 //   <point t="1" value="0.5"/>
 // </interpolate>
 // Note both 't's are optional and assumed 0,1 in this simple case
-// !!! No way to replace this at the moment
 InterpolateControl::InterpolateControl(const Module *module,
                                        const XML::Element& config):
   Control(module, config)

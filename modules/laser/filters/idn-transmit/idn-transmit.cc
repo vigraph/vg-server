@@ -188,8 +188,17 @@ void IDNTransmitFilter::transmit(FramePtr frame)
     writer.write(hello);
     writer.write(message);
 
-    // Send it !!! exceptions
-    socket->sendto(packet.data(), size, 0, destination);
+    // Send it
+    try
+    {
+      socket->sendto(packet.data(), size, 0, destination);
+    }
+    catch (Net::SocketError e)
+    {
+      Log::Error log;
+      log << "IDN transmit socket error: " << e.get_string() << endl;
+      return;
+    }
 
     // If nothing sent this time, that's it
     if (!points_this_message) break;

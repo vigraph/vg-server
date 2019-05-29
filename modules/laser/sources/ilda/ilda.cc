@@ -20,7 +20,8 @@ class ILDASource: public Dataflow::Source
 {
 public:
   string filename;
-  double frame_rate = default_frame_rate;
+  double frame_rate{default_frame_rate};
+  bool loop{true};
 
 private:
   ILDA::Animation animation;
@@ -57,10 +58,16 @@ void ILDASource::tick(const TickData& td)
 {
   Frame *frame = new Frame(td.t);
 
-  size_t nframes = animation.frames.size();
+  // Get notional frame number
+  size_t i = static_cast<size_t>(td.t * frame_rate);
 
-  // Get frame number, looping !!! make looping optional?
-  size_t i = static_cast<size_t>(td.t * frame_rate) % nframes;
+  // If not looping and past end, that's it
+  size_t nframes = animation.frames.size();
+  if (!loop && i >= nframes) return;
+
+  // Otherwise loop
+  i %= nframes;
+
   frame->points = animation.frames[i].points;
 
   // Send to output
@@ -77,9 +84,11 @@ Dataflow::Module module
   "laser",
   {
     { "file", { "Filename of ILDA file", Value::Type::file,
-                &ILDASource::filename, false } },
+          &ILDASource::filename, false } },
     { "frame-rate", { "Frame rate (frames per sec)", Value::Type::number,
-                      &ILDASource::frame_rate, true } }
+          &ILDASource::frame_rate, true } },
+    { "loop", { "Whether to loop", Value::Type::boolean,
+          &ILDASource::loop, true } }
   },
   {}, // no inputs
   { "VectorFrame" }

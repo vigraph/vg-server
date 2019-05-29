@@ -15,12 +15,12 @@ namespace {
 // Log control
 class LogControl: public Control
 {
-  string message;
-
   // Control virtuals
   void enable();
 
 public:
+  string message;
+
   // Construct
   LogControl(const Module *module, const XML::Element& config);
 };
@@ -28,7 +28,6 @@ public:
 //--------------------------------------------------------------------------
 // Construct from XML
 // <log>A message</log>
-// !!! Needs replacing!
 LogControl::LogControl(const Module *module, const XML::Element& config):
   Control(module, config)
 {
@@ -51,7 +50,10 @@ Dataflow::Module module
   "Log",
   "Log a message on enabling",
   "core",
-  {},
+  {
+    { "message", { "Message to log", Value::Type::text,
+          &LogControl::message, true } }
+  },
   {}
 };
 

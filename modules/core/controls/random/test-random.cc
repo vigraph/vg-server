@@ -17,7 +17,7 @@ TEST(RandomTest, TestDefaultMinMax)
 
     auto rnd = tester.add("random");
 
-    rnd.connect_test("value", "value");
+    rnd.connect_test("value");
 
     tester.test();
 
@@ -37,7 +37,7 @@ TEST(RandomTest, TestSpecifiedMinMax)
 
     auto rnd = tester.add("random").set("min", 0.4).set("max", 0.6);
 
-    rnd.connect_test("value", "value");
+    rnd.connect_test("value");
 
     tester.test();
 
@@ -55,7 +55,7 @@ TEST(RandomTest, TestRandomWithWaitNotTriggeredHasNoEffect)
 
   auto rnd = tester.add("random").set("wait", true);
 
-  rnd.connect_test("value", "value");
+  rnd.connect_test("value");
 
   tester.test();
 
@@ -70,7 +70,7 @@ TEST(RandomTest, TestRandomWithAutoWaitNotTriggeredHasNoEffect)
   auto rnd = tester.add("random");
 
   trg.connect("trigger", rnd, "trigger");
-  rnd.connect_test("value", "value");
+  rnd.connect_test("value");
 
   tester.test(2);
 
@@ -85,7 +85,7 @@ TEST(RandomTest, TestRandomWithWaitTriggeredHasEffect)
   auto rnd = tester.add("random");
 
   trg.connect("trigger", rnd, "trigger");
-  rnd.connect_test("value", "value");
+  rnd.connect_test("value");
 
   tester.test(2);
 

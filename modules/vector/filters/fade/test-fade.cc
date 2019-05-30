@@ -114,7 +114,7 @@ TEST(FadeTest, TestFadeAllPropertyChanged)
 
   figure.connect("default", colour, "default");
   colour.connect("default", fade, "default");
-  set.connect("value", fade, "all");
+  set.connect(fade, "all");
 
   tester.run();
   Frame *frame = tester.get_frame();
@@ -147,9 +147,9 @@ TEST(FadeTest, TestFadeIndividualPropertyChanged)
 
   figure.connect("default", colour, "default");
   colour.connect("default", fade, "default");
-  setr.connect("value", fade, "r");
-  setg.connect("value", fade, "g");
-  setb.connect("value", fade, "b");
+  setr.connect(fade, "r");
+  setg.connect(fade, "g");
+  setb.connect(fade, "b");
 
   tester.run();
   Frame *frame = tester.get_frame();

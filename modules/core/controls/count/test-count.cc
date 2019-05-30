@@ -13,12 +13,12 @@ TEST(CountTest, TestCountDefault)
 {
   GraphTester tester(loader);
 
-  tester.add("count").connect_test("value", "foo");
+  tester.add("count").connect_test();
 
   tester.test();
 
-  ASSERT_TRUE(tester.target->got("foo"));
-  const auto& v = tester.target->get("foo");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_EQ(1, v.d);
 }
@@ -29,12 +29,12 @@ TEST(CountTest, TestCountSpecified)
 
   tester.add("count")
     .set("delta", 42)
-    .connect_test("value", "foo");
+    .connect_test();
 
   tester.test();
 
-  ASSERT_TRUE(tester.target->got("foo"));
-  const auto& v = tester.target->get("foo");
+  ASSERT_TRUE(tester.target->got("value"));
+  const auto& v = tester.target->get("value");
   ASSERT_EQ(Value::Type::number, v.type);
   EXPECT_EQ(42, v.d);
 }
@@ -45,11 +45,11 @@ TEST(CountTest, TestCountWithWaitNotTriggeredHasNoEffect)
 
   tester.add("count")
     .set("wait", true)
-    .connect_test("value", "foo");
+    .connect_test();
 
   tester.test();
 
-  ASSERT_FALSE(tester.target->got("foo"));
+  ASSERT_FALSE(tester.target->got("value"));
 }
 
 TEST(CountTest, TestCountWithAutoWaitNotTriggeredHasNoEffect)
@@ -60,11 +60,11 @@ TEST(CountTest, TestCountWithAutoWaitNotTriggeredHasNoEffect)
   auto count = tester.add("count");
 
   trigger.connect("trigger", count, "trigger");
-  count.connect_test("value", "foo");
+  count.connect_test();
 
   tester.test();
 
-  ASSERT_FALSE(tester.target->got("foo"));
+  ASSERT_FALSE(tester.target->got("value"));
 }
 
 TEST(CountTest, TestCountWithWaitTriggeredHasEffect)
@@ -75,11 +75,11 @@ TEST(CountTest, TestCountWithWaitTriggeredHasEffect)
   auto count = tester.add("count");
 
   trigger.connect("trigger", count, "trigger");
-  count.connect_test("value", "foo");
+  count.connect_test();
 
   tester.test();
 
-  ASSERT_TRUE(tester.target->got("foo"));
+  ASSERT_TRUE(tester.target->got("value"));
 }
 
 int main(int argc, char **argv)

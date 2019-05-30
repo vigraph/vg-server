@@ -126,6 +126,11 @@ class GraphTester
       return *this;
     }
 
+    // Default output for controls
+    const ElementProxy& connect(const ElementProxy& dest,
+                                const string& dest_prop="value") const
+    { return connect("output", dest, dest_prop); }
+
     // Connect to test target
     const ElementProxy& connect_test(const string& src_prop,
                                      const string& dest_prop) const
@@ -137,6 +142,10 @@ class GraphTester
       e->set_output_json(src_prop, json);
       return *this;
     }
+
+    // Default output for controls
+    const ElementProxy& connect_test(const string& dest_prop="value") const
+    { return connect_test("output", dest_prop); }
   };
 
   Graph graph;

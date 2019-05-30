@@ -16,8 +16,8 @@ TEST(WindowTest, TestWindowDoesNothingInRange)
   auto set = tester.add("set").set("value", 0.2);
   auto wnd = tester.add("window");
 
-  set.connect("value", wnd, "value");
-  wnd.connect_test("value", "value");
+  set.connect(wnd);
+  wnd.connect_test();
 
   tester.test();
 
@@ -34,8 +34,8 @@ TEST(WindowTest, TestDefaultWindowAbsoluteValueUpper)
   auto set = tester.add("set").set("value", 1.5);
   auto wnd = tester.add("window");
 
-  set.connect("value", wnd, "value");
-  wnd.connect_test("value", "value");
+  set.connect(wnd);
+  wnd.connect_test();
 
   tester.test();
 
@@ -49,8 +49,8 @@ TEST(WindowTest, TestDefaultWindowAbsoluteValueLower)
   auto set = tester.add("set").set("value", -0.5);
   auto wnd = tester.add("window");
 
-  set.connect("value", wnd, "value");
-  wnd.connect_test("value", "value");
+  set.connect(wnd);
+  wnd.connect_test();
 
   tester.test();
 
@@ -64,8 +64,8 @@ TEST(WindowTest, TestSpecifiedWindowAbsoluteValueUpper)
   auto set = tester.add("set").set("value", 5.5);
   auto wnd = tester.add("window").set("min", 3).set("max", 4);
 
-  set.connect("value", wnd, "value");
-  wnd.connect_test("value", "value");
+  set.connect(wnd);
+  wnd.connect_test();
 
   tester.test();
 
@@ -79,8 +79,8 @@ TEST(WindowTest, TestSpecifiedWindowAbsoluteValueLower)
   auto set = tester.add("set").set("value", -0.5);
   auto wnd = tester.add("window").set("min", 3).set("max", 4);
 
-  set.connect("value", wnd, "value");
-  wnd.connect_test("value", "value");
+  set.connect(wnd);
+  wnd.connect_test();
 
   tester.test();
 

@@ -16,7 +16,7 @@ TEST(CompareTest, TestDefaultCompareTriggersInRange)
   auto set = tester.add("set").set("value", 0.2);
   auto compare = tester.add("compare");
 
-  set.connect("value", compare, "value");
+  set.connect(compare);
   compare.connect_test("trigger", "yes");
 
   tester.test();
@@ -31,7 +31,7 @@ TEST(CompareTest, TestDefaultCompareClearsAboveRange)
   auto set = tester.add("set").set("value", 1.5);
   auto compare = tester.add("compare");
 
-  set.connect("value", compare, "value");
+  set.connect(compare);
   compare.connect_test("clear", "no");
 
   tester.test();
@@ -46,7 +46,7 @@ TEST(CompareTest, TestDefaultCompareClearsBelowRange)
   auto set = tester.add("set").set("value", -0.5);
   auto compare = tester.add("compare");
 
-  set.connect("value", compare, "value");
+  set.connect(compare);
   compare.connect_test("clear", "no");
 
   tester.test();
@@ -61,7 +61,7 @@ TEST(CompareTest, TestSpecifiedCompareTriggersInRange)
   auto set = tester.add("set").set("value", 3.5);
   auto compare = tester.add("compare").set("min", 3).set("max", 4);
 
-  set.connect("value", compare, "value");
+  set.connect(compare);
   compare.connect_test("trigger", "yes");
 
   tester.test();
@@ -76,7 +76,7 @@ TEST(CompareTest, TestSpecifiedCompareAbsoluteValueUpper)
   auto set = tester.add("set").set("value", 5.5);
   auto compare = tester.add("compare").set("min", 3).set("max", 4);
 
-  set.connect("value", compare, "value");
+  set.connect(compare);
   compare.connect_test("clear", "no");
 
   tester.test();
@@ -91,7 +91,7 @@ TEST(CompareTest, TestSpecifiedCompareAbsoluteValueLower)
   auto set = tester.add("set").set("value", 0);
   auto compare = tester.add("compare").set("min", 3).set("max", 4);
 
-  set.connect("value", compare, "value");
+  set.connect(compare);
   compare.connect_test("clear", "no");
 
   tester.test();

@@ -177,10 +177,10 @@ TEST(PolarVelocityTest, TestSetAngleAndVelocity)
   auto translate = tester.add("translate");
 
   figure.connect("default", translate, "default");
-  setx.connect("value", pv, "x");
-  sety.connect("value", pv, "y");
-  setv.connect("value", pv, "v");
-  seta.connect("value", pv, "angle");
+  setx.connect(pv, "x");
+  sety.connect(pv, "y");
+  setv.connect(pv, "v");
+  seta.connect(pv, "angle");
   pv.connect("x", translate, "x");
   pv.connect("y", translate, "y");
 

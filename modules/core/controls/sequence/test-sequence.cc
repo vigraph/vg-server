@@ -23,8 +23,8 @@ TEST(SequenceTest, TestSequenceSetIndex)
   json.add("four");
   auto seq = tester.add("sequence").set("values", json);
 
-  set.connect("value", seq, "index");
-  seq.connect_test("value", "value");
+  set.connect(seq, "index");
+  seq.connect_test();
 
   tester.test();
 
@@ -51,7 +51,7 @@ TEST(SequenceTest, TestSequenceTriggerNext)
 
   trigger1.connect("trigger", seq, "next");
   trigger2.connect("trigger", seq, "next");
-  seq.connect_test("value", "value");
+  seq.connect_test();
 
   tester.test();
 
@@ -79,7 +79,7 @@ TEST(SequenceTest, TestSequenceTriggerNextLoop)
 
   for(auto& trigger: triggers)
     trigger.connect("trigger", seq, "next");
-  seq.connect_test("value", "value");
+  seq.connect_test();
 
   tester.test();
 

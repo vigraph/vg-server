@@ -64,7 +64,7 @@ TEST(BeatTest, TestSetInterval)
   auto set = tester.add("set").set("value", 2);
   auto beat = tester.add("beat");
 
-  set.connect("value", beat, "interval");
+  set.connect(beat, "interval");
   beat.connect_test("trigger", "go");
 
   tester.test(10);
@@ -82,7 +82,7 @@ TEST(BeatTest, TestSetBPM)
   auto set = tester.add("set").set("value", 30);
   auto beat = tester.add("beat");
 
-  set.connect("value", beat, "bpm");
+  set.connect(beat, "bpm");
   beat.connect_test("trigger", "go");
 
   tester.test(10);
@@ -100,7 +100,7 @@ TEST(BeatTest, TestSetFreq)
   auto set = tester.add("set").set("value", 0.5);
   auto beat = tester.add("beat");
 
-  set.connect("value", beat, "freq");
+  set.connect(beat, "freq");
   beat.connect_test("trigger", "go");
 
   tester.test(10);

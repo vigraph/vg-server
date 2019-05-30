@@ -21,7 +21,7 @@ TEST(AmplitudeTest, TestNoWaveform)
   auto amp = tester.add("amplitude");
 
   vco.connect("default", amp, "default");
-  amp.connect_test("value", "value");
+  amp.connect_test();
 
   tester.test();
 
@@ -39,7 +39,7 @@ TEST(AmplitudeTest, TestSquareWave)
   auto amp = tester.add("amplitude");
 
   vco.connect("default", amp, "default");
-  amp.connect_test("value", "value");
+  amp.connect_test();
 
   tester.test(10);
 

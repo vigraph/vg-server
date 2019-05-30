@@ -117,7 +117,7 @@ void LFOControl::pre_tick(const TickData& td)
     v[i] = y;
   }
 
-  send("value", v);
+  send(v);
 }
 
 //--------------------------------------------------------------------------
@@ -149,7 +149,7 @@ Dataflow::Module module
     { "trigger", { "Trigger to start", Value::Type::trigger,
                    &LFOControl::trigger, true } }
   },
-  { { "value", { "Wave output", "value", Value::Type::number }}}
+  { { "output", { "Wave output", "value", Value::Type::number }}}
 };
 
 } // anon

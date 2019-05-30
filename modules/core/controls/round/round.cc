@@ -52,7 +52,7 @@ Dataflow::Module module
     { "n", { "Enumerator", Value::Type::number, &RoundControl::n , true } },
     { "d", { "Divisor", Value::Type::number, &RoundControl::d, true } },
   },
-  { { "value", { "Value output", "value", Value::Type::number }}}
+  { { "output", { "Value output", "value", Value::Type::number }}}
 };
 
 } // anon

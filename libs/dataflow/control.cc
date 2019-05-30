@@ -201,6 +201,21 @@ void ControlImpl::send(const Value& v)
 }
 
 //------------------------------------------------------------------------
+// Send a set of values to the target using only (first) property
+void ControlImpl::send(const vector<double>& v)
+{
+  for(const auto& it: targets)
+  {
+    const Target& target = it.second;
+    if (target.element && target.properties.size())
+    {
+      const auto& p = target.properties.begin();
+      target.element->set_property(p->second.name, v);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 // Send a named value to the target
 // name is our name for it
 void ControlImpl::send(const string& name, const Value& v)

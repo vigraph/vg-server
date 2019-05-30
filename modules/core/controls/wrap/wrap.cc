@@ -54,7 +54,7 @@ Dataflow::Module module
     { "max", { "Maximum value", Value::Type::number,
                &WrapControl::max, true } },
   },
-  { { "value", { "Value output", "value", Value::Type::number }}}
+  { { "output", { "Value output", "value", Value::Type::number }}}
 };
 
 } // anon

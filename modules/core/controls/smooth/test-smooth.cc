@@ -18,8 +18,8 @@ TEST(SmoothTest, TestZeroRCDoesNothing)
                               .set("period", 100);
   auto smo = tester.add("smooth").set("time", 0);
 
-  lfo.connect("value", smo, "value");
-  smo.connect_test("value", "value");
+  lfo.connect(smo);
+  smo.connect_test();
 
   tester.test();
 
@@ -38,8 +38,8 @@ TEST(SmoothTest, TestSingleRCPeriodIs63Percent)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 
-  lfo.connect("value", smo, "value");
-  smo.connect_test("value", "value");
+  lfo.connect(smo);
+  smo.connect_test();
 
   tester.test(10000);
 
@@ -58,8 +58,8 @@ TEST(SmoothTest, TestTwoRCPeriodsIs86Percent)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 
-  lfo.connect("value", smo, "value");
-  smo.connect_test("value", "value");
+  lfo.connect(smo);
+  smo.connect_test();
 
   tester.test(20000);
 
@@ -78,8 +78,8 @@ TEST(SmoothTest, TestThreeRCPeriodsIs95Percent)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 
-  lfo.connect("value", smo, "value");
-  smo.connect_test("value", "value");
+  lfo.connect(smo);
+  smo.connect_test();
 
   tester.test(30000);
 
@@ -98,8 +98,8 @@ TEST(SmoothTest, TestFourRCPeriodsIs98Percent)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 
-  lfo.connect("value", smo, "value");
-  smo.connect_test("value", "value");
+  lfo.connect(smo);
+  smo.connect_test();
 
   tester.test(40000);
 
@@ -118,8 +118,8 @@ TEST(SmoothTest, TestFiveRCPeriodsIs99Percent)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 
-  lfo.connect("value", smo, "value");
-  smo.connect_test("value", "value");
+  lfo.connect(smo);
+  smo.connect_test();
 
   tester.test(50000);
 

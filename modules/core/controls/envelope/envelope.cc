@@ -196,7 +196,7 @@ Dataflow::Module module
                    &EnvelopeControl::clear, true } }
   },
   {
-    { "value", { "Envelope value", "value", Value::Type::number }},
+    { "output", { "Envelope value", "value", Value::Type::number }},
     { "trigger", { "Envelope started", "trigger", Value::Type::trigger } },
     { "clear",   { "Envelope complete", "clear", Value::Type::trigger } }
   }

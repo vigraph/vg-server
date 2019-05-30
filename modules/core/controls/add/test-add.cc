@@ -16,8 +16,8 @@ TEST(AddTest, TestAddZeroDoesNothing)
   auto set = tester.add("set").set("value", 0.2);
   auto add = tester.add("add");
 
-  set.connect("value", add, "value");
-  add.connect_test("value", "x");
+  set.connect(add);
+  add.connect_test("x");
 
   tester.test();
 
@@ -34,8 +34,8 @@ TEST(AddTest, TestAddValue)
   auto set = tester.add("set").set("value", 0.2);
   auto add = tester.add("add").set("offset", 0.13);
 
-  set.connect("value", add, "value");
-  add.connect_test("value", "x");
+  set.connect(add);
+  add.connect_test("x");
 
   tester.test();
 
@@ -52,9 +52,9 @@ TEST(AddTest, TestModifyAddOffset)
   auto set2 = tester.add("set").set("value", 0.3);
   auto add = tester.add("add");
 
-  set1.connect("value", add, "value");
-  set2.connect("value", add, "offset");
-  add.connect_test("value", "x");
+  set1.connect(add);
+  set2.connect(add, "offset");
+  add.connect_test("x");
 
   tester.test();
 

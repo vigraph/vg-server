@@ -16,8 +16,8 @@ TEST(MultiplyTest, TestMultiplyDefaultDoesNothing)
   auto set = tester.add("set").set("value", 0.2);
   auto mul = tester.add("multiply");
 
-  set.connect("value", mul, "value");
-  mul.connect_test("value", "value");
+  set.connect(mul);
+  mul.connect_test();
 
   tester.test();
 
@@ -34,8 +34,8 @@ TEST(MultiplyTest, TestMultiplyBy2)
   auto set = tester.add("set").set("value", 1.5);
   auto mul = tester.add("multiply").set("factor", 2);
 
-  set.connect("value", mul, "value");
-  mul.connect_test("value", "value");
+  set.connect(mul);
+  mul.connect_test();
 
   tester.test();
 
@@ -53,9 +53,9 @@ TEST(MultiplyTest, TestMultiplyBySetFactor)
   auto setf = tester.add("set").set("value", 2);
   auto mul = tester.add("multiply").set("factor", 2);
 
-  setv.connect("value", mul, "value");
-  setf.connect("value", mul, "factor");
-  mul.connect_test("value", "value");
+  setv.connect(mul);
+  setf.connect(mul, "factor");
+  mul.connect_test();
 
   tester.test();
 

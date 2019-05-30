@@ -41,7 +41,7 @@ Dataflow::Module module
   "Get the number (1..N) of a clone",
   "core",
   { },
-  { { "value", { "Clone number", "value", Value::Type::number }}}
+  { { "output", { "Clone number", "value", Value::Type::number }}}
 };
 
 } // anon

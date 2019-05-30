@@ -16,8 +16,8 @@ TEST(LimitTest, TestLimitDoesNothingInRange)
   auto set = tester.add("set").set("value", 0.2);
   auto limit = tester.add("limit");
 
-  set.connect("value", limit, "value");
-  limit.connect_test("value", "value");
+  set.connect(limit);
+  limit.connect_test();
 
   tester.test();
 
@@ -34,8 +34,8 @@ TEST(LimitTest, TestDefaultLimitAbsoluteValueUpper)
   auto set = tester.add("set").set("value", 1.5);
   auto limit = tester.add("limit");
 
-  set.connect("value", limit, "value");
-  limit.connect_test("value", "value");
+  set.connect(limit);
+  limit.connect_test();
 
   tester.test();
 
@@ -52,8 +52,8 @@ TEST(LimitTest, TestDefaultLimitAbsoluteValueLower)
   auto set = tester.add("set").set("value", -0.5);
   auto limit = tester.add("limit");
 
-  set.connect("value", limit, "value");
-  limit.connect_test("value", "value");
+  set.connect(limit);
+  limit.connect_test();
 
   tester.test();
 
@@ -70,8 +70,8 @@ TEST(LimitTest, TestSpecifiedLimitAbsoluteValueUpper)
   auto set = tester.add("set").set("value", 5.5);
   auto limit = tester.add("limit").set("min", 3).set("max", 4);
 
-  set.connect("value", limit, "value");
-  limit.connect_test("value", "value");
+  set.connect(limit);
+  limit.connect_test();
 
   tester.test();
 
@@ -88,8 +88,8 @@ TEST(LimitTest, TestSpecifiedLimitAbsoluteValueLower)
   auto set = tester.add("set").set("value", -0.5);
   auto limit = tester.add("limit").set("min", 3).set("max", 4);
 
-  set.connect("value", limit, "value");
-  limit.connect_test("value", "value");
+  set.connect(limit);
+  limit.connect_test();
 
   tester.test();
 

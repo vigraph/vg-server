@@ -87,7 +87,7 @@ Dataflow::Module module
     { "trigger", { "Trigger to set value", Value::Type::trigger,
                    &SetControl::set_triggered, true } }
   },
-  { { "value", { "Value", "value", Value::Type::number }}}
+  { { "output", { "Value", "value", Value::Type::number }}}
 };
 
 } // anon

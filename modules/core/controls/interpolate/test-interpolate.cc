@@ -16,8 +16,8 @@ TEST(InterpolateTest, TestInterpolateWithNoPointsHasNoEffect)
   auto set = tester.add("set").set("value", 1);
   auto itp = tester.add("interpolate");
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
   ASSERT_FALSE(tester.target->got("foo"));
@@ -33,8 +33,8 @@ TEST(InterpolateTest, TestInterpolateWithOnePointHasEffect)
   json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 1);
   auto itp = tester.add("interpolate").set("curve", json);
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
 
@@ -55,8 +55,8 @@ TEST(InterpolateTest, TestInterpolateWithTwoPoints)
   json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 2);
   auto itp = tester.add("interpolate").set("curve", json);
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
 
@@ -78,8 +78,8 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsOnBoundary)
   json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 3);
   auto itp = tester.add("interpolate").set("curve", json);
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
 
@@ -101,8 +101,8 @@ TEST(InterpolateTest, TestInterpolateWithThreePoints)
   json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 3);
   auto itp = tester.add("interpolate").set("curve", json);
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
 
@@ -124,8 +124,8 @@ TEST(InterpolateTest, TestInterpolateWithThreePointsAtEnd)
   json.add(JSON::Value(JSON::Value::OBJECT)).set("value", 3);
   auto itp = tester.add("interpolate").set("curve", json);
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
 
@@ -146,8 +146,8 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedTAtTwoPoints)
   json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 0.4).set("value", 2);
   auto itp = tester.add("interpolate").set("curve", json);
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
 
@@ -168,8 +168,8 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsAfterLast)
   json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 0.4).set("value", 2);
   auto itp = tester.add("interpolate").set("curve", json);
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
 
@@ -190,8 +190,8 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtTwoPointsLargeAtValues)
   json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 1000).set("value", 2);
   auto itp = tester.add("interpolate").set("curve", json);
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
 
@@ -213,8 +213,8 @@ TEST(InterpolateTest, TestInterpolateWithSpecifiedAtThreePoints)
   json.add(JSON::Value(JSON::Value::OBJECT)).set("t", 3.0).set("value", 3);
   auto itp = tester.add("interpolate").set("curve", json);
 
-  set.connect("value", itp, "t");
-  itp.connect_test("value", "foo");
+  set.connect(itp, "t");
+  itp.connect_test("foo");
 
   tester.test();
 

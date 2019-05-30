@@ -57,7 +57,7 @@ void AmplitudeFilter::accept(FragmentPtr fragment)
 // Send latest reading
 void AmplitudeFilter::pre_tick(const TickData&)
 {
-  ControlImpl::send({amplitude * scale + offset});
+  ControlImpl::send(amplitude * scale + offset);
 }
 
 //--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ Dataflow::Module module
     { "offset", { "Offset to apply to amplitude",
                   Value::Type::number, &AmplitudeFilter::offset, true } }
   },
-  { { "value", { "Amplitude", "value", Value::Type::number }}},
+  { { "output", { "Amplitude", "value", Value::Type::number }}},
   { "Audio" }, // inputs
   { "Audio" }  // outputs
 };

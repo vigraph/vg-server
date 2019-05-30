@@ -614,6 +614,9 @@ class ControlImpl
   // Send a value to the target using only (first) property
   void send(const Value& v);
 
+  // Send a set of values to the target using only (first) property
+  void send(const vector<double>& v);
+
   // Send a named value to the target
   // name is our name for it
   void send(const string& name, const Value& v);

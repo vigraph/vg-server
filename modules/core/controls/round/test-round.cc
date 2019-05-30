@@ -16,8 +16,8 @@ TEST(RoundTest, TestZeroNDoesNothing)
   auto set = tester.add("set").set("value", 1);
   auto rnd = tester.add("round").set("n", 0);
 
-  set.connect("value", rnd, "value");
-  rnd.connect_test("value", "value");
+  set.connect(rnd);
+  rnd.connect_test();
 
   tester.test();
 
@@ -31,8 +31,8 @@ TEST(RoundTest, TestZeroDDoesNothing)
   auto set = tester.add("set").set("value", 1);
   auto rnd = tester.add("round").set("d", 0);
 
-  set.connect("value", rnd, "value");
-  rnd.connect_test("value", "value");
+  set.connect(rnd);
+  rnd.connect_test();
 
   tester.test();
 
@@ -46,8 +46,8 @@ TEST(RoundTest, TestNearestThree)
   auto set = tester.add("set").set("value", 1.5);
   auto rnd = tester.add("round").set("n", 3);
 
-  set.connect("value", rnd, "value");
-  rnd.connect_test("value", "value");
+  set.connect(rnd);
+  rnd.connect_test();
 
   tester.test();
 
@@ -64,8 +64,8 @@ TEST(RoundTest, TestNearestThird)
   auto set = tester.add("set").set("value", 0.4);
   auto rnd = tester.add("round").set("d", 3);
 
-  set.connect("value", rnd, "value");
-  rnd.connect_test("value", "value");
+  set.connect(rnd);
+  rnd.connect_test();
 
   tester.test();
 
@@ -82,8 +82,8 @@ TEST(RoundTest, TestNearestTwoThird)
   auto set = tester.add("set").set("value", 0.8);
   auto rnd = tester.add("round").set("n", 2).set("d", 3);
 
-  set.connect("value", rnd, "value");
-  rnd.connect_test("value", "value");
+  set.connect(rnd);
+  rnd.connect_test();
 
   tester.test();
 

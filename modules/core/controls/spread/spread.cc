@@ -121,7 +121,7 @@ Dataflow::Module module
     { "latch", { "Latch", Value::Type::boolean, &SpreadControl::latch, true } },
   },
   {
-    { "value", { "Value", "value", Value::Type::number } },
+    { "output", { "Value", "value", Value::Type::number } },
     { "trigger", { "Trigger value", "trigger", Value::Type::trigger } },
     { "clear", { "Clear value", "clear", Value::Type::trigger } },
   }

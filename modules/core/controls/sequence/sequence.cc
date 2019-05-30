@@ -119,7 +119,7 @@ Dataflow::Module module
     { "next", { "Trigger move to next entry", Value::Type::trigger,
                 &SequenceControl::next, true } },
   },
-  { { "value", { "Value output", "value", Value::Type::text }}}
+  { { "output", { "Value output", "value", Value::Type::text }}}
 };
 
 } // anon

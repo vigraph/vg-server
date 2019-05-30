@@ -33,7 +33,7 @@ void WindowControl::set_value(double value)
   if (value > max || value < min)
     return;
 
-  send({value});
+  send(value);
 }
 
 //--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ Dataflow::Module module
     { "max", { "Maximum value", Value::Type::number,
                &WindowControl::max, true } }
   },
-  { { "value", { "Value output", "value", Value::Type::number }}}
+  { { "output", { "Value output", "value", Value::Type::number }}}
 };
 
 } // anon

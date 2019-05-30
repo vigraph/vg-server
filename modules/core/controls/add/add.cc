@@ -45,7 +45,7 @@ Dataflow::Module module
     { "offset", { "Offset amount", Value::Type::number,
                   &AddControl::offset, true } },
   },
-  { { "value", { "Value output", "value", Value::Type::number }}}
+  { { "output", { "Value output", "value", Value::Type::number }}}
 };
 
 } // anon

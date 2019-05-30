@@ -58,7 +58,7 @@ Dataflow::Module module
     { "offset", { "Offset to apply to fraction", Value::Type::number,
                   &CloneFractionControl::offset, true } }
   },
-  { { "value", { "Clone fraction", "value", Value::Type::number }}}
+  { { "output", { "Clone fraction", "value", Value::Type::number }}}
 };
 
 } // anon

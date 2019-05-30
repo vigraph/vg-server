@@ -84,12 +84,12 @@ TEST(VelocityTest, TestSetVelocity)
   auto translate = tester.add("translate");
 
   figure.connect("default", translate, "default");
-  setx.connect("value", velocity, "x");
-  sety.connect("value", velocity, "y");
-  setz.connect("value", velocity, "z");
-  setdx.connect("value", velocity, "dx");
-  setdy.connect("value", velocity, "dy");
-  setdz.connect("value", velocity, "dz");
+  setx.connect(velocity, "x");
+  sety.connect(velocity, "y");
+  setz.connect(velocity, "z");
+  setdx.connect(velocity, "dx");
+  setdy.connect(velocity, "dy");
+  setdz.connect(velocity, "dz");
   velocity.connect("x", translate, "x");
   velocity.connect("y", translate, "y");
   velocity.connect("z", translate, "z");
@@ -121,10 +121,10 @@ TEST(VelocityTest, TestSetVelocityWithMax)
   auto translate = tester.add("translate");
 
   figure.connect("default", translate, "default");
-  setdx.connect("value", velocity, "dx");
-  setdy.connect("value", velocity, "dy");
-  setdz.connect("value", velocity, "dz");
-  setmax.connect("value", velocity, "max");
+  setdx.connect(velocity, "dx");
+  setdy.connect(velocity, "dy");
+  setdz.connect(velocity, "dz");
+  setmax.connect(velocity, "max");
   velocity.connect("x", translate, "x");
   velocity.connect("y", translate, "y");
   velocity.connect("z", translate, "z");

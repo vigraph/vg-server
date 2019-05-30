@@ -117,7 +117,7 @@ Dataflow::Module module
     { "disable", { "Disable the control", Value::Type::trigger,
                    &DMXChannelInControl::disable, true } },
   },
-  { { "value", { "Channel value", "value", Value::Type::number }}}
+  { { "output", { "Channel value", "value", Value::Type::number }}}
 };
 
 } // anon

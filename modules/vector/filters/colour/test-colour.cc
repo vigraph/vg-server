@@ -164,9 +164,9 @@ TEST(ColourTest, TestColourRGBPropertiesChanged)
     .set("g", 0.2)
     .set("b", 0.3);
 
-  setr.connect("value", colour, "r");
-  setg.connect("value", colour, "g");
-  setb.connect("value", colour, "b");
+  setr.connect(colour, "r");
+  setg.connect(colour, "g");
+  setb.connect(colour, "b");
   figure.connect("default", colour, "default");
 
   tester.run();
@@ -201,9 +201,9 @@ TEST(ColourTest, TestColourHSLPropertiesChanged)
     .set("l", 0);
 
   // Note order of sets - this tests separate HSL storage
-  seth.connect("value", colour, "h");
-  sets.connect("value", colour, "s");
-  setl.connect("value", colour, "l");
+  seth.connect(colour, "h");
+  sets.connect(colour, "s");
+  setl.connect(colour, "l");
   figure.connect("default", colour, "default");
 
   tester.run();

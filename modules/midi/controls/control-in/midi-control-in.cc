@@ -121,7 +121,7 @@ Dataflow::Module module
     { "disable", { "Disable the control", Value::Type::trigger,
                    &MIDIControlInControl::disable, true } },
   },
-  { { "value", { "Control value", "value", Value::Type::number }}}
+  { { "output", { "Control value", "value", Value::Type::number }}}
 };
 
 } // anon

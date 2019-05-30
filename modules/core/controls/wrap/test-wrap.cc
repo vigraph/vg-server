@@ -16,8 +16,8 @@ TEST(WrapTest, TestWrapDoesNothingInRange)
   auto set = tester.add("set").set("value", 0.2);
   auto wrp = tester.add("wrap");
 
-  set.connect("value", wrp, "value");
-  wrp.connect_test("value", "value");
+  set.connect(wrp);
+  wrp.connect_test();
 
   tester.test();
 
@@ -34,8 +34,8 @@ TEST(WrapTest, TestDefaultWrapAbsoluteValueUpper)
   auto set = tester.add("set").set("value", 1.3);
   auto wrp = tester.add("wrap");
 
-  set.connect("value", wrp, "value");
-  wrp.connect_test("value", "value");
+  set.connect(wrp);
+  wrp.connect_test();
 
   tester.test();
 
@@ -52,8 +52,8 @@ TEST(WrapTest, TestDefaultWrapAbsoluteValueLower)
   auto set = tester.add("set").set("value", -0.3);
   auto wrp = tester.add("wrap");
 
-  set.connect("value", wrp, "value");
-  wrp.connect_test("value", "value");
+  set.connect(wrp);
+  wrp.connect_test();
 
   tester.test();
 
@@ -70,8 +70,8 @@ TEST(WrapTest, TestSpecifiedWrapAbsoluteValueUpper)
   auto set = tester.add("set").set("value", 4.3);
   auto wrp = tester.add("wrap").set("min", 3).set("max", 4);
 
-  set.connect("value", wrp, "value");
-  wrp.connect_test("value", "value");
+  set.connect(wrp);
+  wrp.connect_test();
 
   tester.test();
 
@@ -88,8 +88,8 @@ TEST(WrapTest, TestSpecifiedWrapAbsoluteValueLower)
   auto set = tester.add("set").set("value", 2.7);
   auto wrp = tester.add("wrap").set("min", 3).set("max", 4);
 
-  set.connect("value", wrp, "value");
-  wrp.connect_test("value", "value");
+  set.connect(wrp);
+  wrp.connect_test();
 
   tester.test();
 

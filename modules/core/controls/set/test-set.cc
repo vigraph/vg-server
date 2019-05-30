@@ -15,7 +15,7 @@ TEST(SetTest, TestAbsoluteValueSet)
 
   auto set = tester.add("set").set("value", 42);
 
-  set.connect_test("value", "value");
+  set.connect_test("value");
 
   tester.test();
 
@@ -31,7 +31,7 @@ TEST(SetTest, TestSetWithWaitNotTriggeredHasNoEffect)
 
   auto set = tester.add("set").set("value", 1).set("wait", true);
 
-  set.connect_test("value", "value");
+  set.connect_test("value");
 
   tester.test();
 

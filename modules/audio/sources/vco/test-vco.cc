@@ -20,14 +20,13 @@ const auto three_quarter_waveform_size = 3 * waveform_size / 4;
 
 TEST(VCOTest, TestNoWaveform)
 {
-  const string& xml = R"(
-    <graph>
-      <vco/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  tester.add("vco");
+
+  tester.run();
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   ASSERT_EQ(1, fragment->waveforms.size());
@@ -41,14 +40,13 @@ TEST(VCOTest, TestNoWaveform)
 
 TEST(VCOTest, TestSquareWaveSingleCycle)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  tester.add("vco").set("wave", "square").set("freq", 1);
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   ASSERT_EQ(1, fragment->waveforms.size());
@@ -67,14 +65,13 @@ TEST(VCOTest, TestSquareWaveSingleCycle)
 
 TEST(VCOTest, TestSquareWaveMultiCycle)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="10"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  tester.add("vco").set("wave", "square").set("freq", 10);
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   ASSERT_EQ(1, fragment->waveforms.size());
@@ -93,14 +90,13 @@ TEST(VCOTest, TestSquareWaveMultiCycle)
 
 TEST(VCOTest, TestSawWaveSingleCycle)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="saw" freq="1"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  tester.add("vco").set("wave", "saw").set("freq", 1);
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   ASSERT_EQ(1, fragment->waveforms.size());
@@ -120,14 +116,13 @@ TEST(VCOTest, TestSawWaveSingleCycle)
 
 TEST(VCOTest, TestTriangleWaveSingleCycle)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="triangle" freq="1"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  tester.add("vco").set("wave", "triangle").set("freq", 1);
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   ASSERT_EQ(1, fragment->waveforms.size());
@@ -155,14 +150,13 @@ TEST(VCOTest, TestTriangleWaveSingleCycle)
 
 TEST(VCOTest, TestSinWaveSingleCycle)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="sin" freq="1"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  tester.add("vco").set("wave", "sin").set("freq", 1);
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   ASSERT_EQ(1, fragment->waveforms.size());
@@ -176,14 +170,13 @@ TEST(VCOTest, TestSinWaveSingleCycle)
 
 TEST(VCOTest, TestRandomSingleCycle)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="random" freq="1"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  tester.add("vco").set("wave", "random").set("freq", 1);
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   ASSERT_EQ(1, fragment->waveforms.size());
@@ -202,5 +195,6 @@ int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("./vg-module-audio-source-vco.so");
+  loader.add_default_section("audio");
   return RUN_ALL_TESTS();
 }

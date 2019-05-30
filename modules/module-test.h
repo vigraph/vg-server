@@ -93,6 +93,7 @@ class GraphTester
 {
   ModuleLoader& loader;
   int id_serial{0};
+  double sample_rate = 50;
 
  public:
   struct ElementProxy
@@ -157,7 +158,7 @@ class GraphTester
   void test(int nticks = 1)
   {
     graph.setup();
-    graph.set_sample_rate(50);
+    graph.set_sample_rate(sample_rate);
 
     for(auto i=0; i<nticks; i++)
     {
@@ -169,8 +170,10 @@ class GraphTester
   }
 
   GraphTester(ModuleLoader& _loader,
-              Value::Type prop_type = Value::Type::number):
-  loader(_loader), graph(loader.engine), target(new TestTarget(prop_type))
+              Value::Type prop_type = Value::Type::number,
+              double _sample_rate = 50):
+  loader(_loader), sample_rate(_sample_rate), graph(loader.engine),
+  target(new TestTarget(prop_type))
   {
     graph.add(target);
   }

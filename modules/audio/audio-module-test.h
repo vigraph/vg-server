@@ -32,7 +32,9 @@ class FragmentGraphTester: public GraphTester
   Catcher catcher;
 
 public:
-  FragmentGraphTester(ModuleLoader& _loader): GraphTester(_loader) {}
+  FragmentGraphTester(ModuleLoader& _loader):
+    GraphTester(_loader, Value::Type::number, 44100)
+  {}
 
   void run(int nticks=1)
   {

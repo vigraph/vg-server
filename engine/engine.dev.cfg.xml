@@ -23,11 +23,22 @@
        is no audio, to save control plane processing -->
   <sample rate="44100"/>
 
+  <!-- Built-in web server for UI -->
+  <file-server>
+
+    <!-- HTTP port -->
+    <http port="33380"/>
+
+    <!-- Root directory for files -->
+    <file path="../../ui/web/build"/>
+
+  </file-server>
+
   <!-- HTTP REST interface -->
   <rest>
 
     <!-- HTTP port -->
-    <http port="33380"/>
+    <http port="33381"/>
 
     <!-- URL prefix, including leading and trailing / -->
     <url prefix="/"/>
@@ -36,16 +47,5 @@
     <layout file="/var/tmp/vigraph-layout.json"/>
 
   </rest>
-
-  <!-- Built-in web server for UI -->
-  <file-server>
-
-    <!-- HTTP port -->
-    <http port="33381"/>
-
-    <!-- Root directory for files -->
-    <file path="../../ui/web/build"/>
-
-  </file-server>
 
 </engine>

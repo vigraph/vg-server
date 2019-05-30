@@ -45,26 +45,26 @@
        is no audio, to save control plane processing -->
   <sample rate="44100"/>
 
-  <!-- HTTP REST interface -->
-  <rest>
-
-    <!-- HTTP port -->
-    <http port="33380"/>
-
-    <!-- Layout file -->
-    <layout file="/var/lib/vigraph/layout.json"/>
-
-  </rest>
-
   <!-- Built-in web server for UI -->
   <file-server>
 
     <!-- HTTP port -->
-    <http port="33381"/>
+    <http port="33380"/>
 
     <!-- Root directory for files -->
     <file path="/usr/share/vigraph/web"/>
 
   </file-server>
+
+  <!-- HTTP REST interface -->
+  <rest>
+
+    <!-- HTTP port -->
+    <http port="33381"/>
+
+    <!-- Layout file -->
+    <layout file="/var/lib/vigraph/layout.json"/>
+
+  </rest>
 
 </engine>

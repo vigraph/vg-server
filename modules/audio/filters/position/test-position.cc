@@ -15,15 +15,16 @@ using namespace ViGraph::Geometry;
 
 TEST(PositionTest, TestNoWaveform)
 {
-  const string& xml = R"(
-    <graph>
-      <vco/>
-      <position/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco");
+  auto position = tester.add("position");
+
+  vco.connect("default", position, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   ASSERT_EQ(2, fragment->waveforms.size());
@@ -40,15 +41,16 @@ TEST(PositionTest, TestNoWaveform)
 
 TEST(PositionTest, TestSquareWaveCentered)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-      <position/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco").set("wave", "square").set("freq", 1);
+  auto position = tester.add("position");
+
+  vco.connect("default", position, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   ASSERT_EQ(2, fragment->waveforms.size());
@@ -67,15 +69,16 @@ TEST(PositionTest, TestSquareWaveCentered)
 
 TEST(PositionTest, TestSquareWaveFullRight)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-      <position x="0.5"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco").set("wave", "square").set("freq", 1);
+  auto position = tester.add("position").set("x", 0.5);
+
+  vco.connect("default", position, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto left = 0.0;
@@ -98,15 +101,16 @@ TEST(PositionTest, TestSquareWaveFullRight)
 
 TEST(PositionTest, TestSquareWaveFullLeft)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-      <position x="-0.5"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco").set("wave", "square").set("freq", 1);
+  auto position = tester.add("position").set("x", -0.5);
+
+  vco.connect("default", position, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto left = 1.0;
@@ -129,15 +133,16 @@ TEST(PositionTest, TestSquareWaveFullLeft)
 
 TEST(PositionTest, TestSquareWaveOutOfBoundsToTheRight)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-      <position x="0.501"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco").set("wave", "square").set("freq", 1);
+  auto position = tester.add("position").set("x", 0.501);
+
+  vco.connect("default", position, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto left = 0.0;
@@ -160,15 +165,16 @@ TEST(PositionTest, TestSquareWaveOutOfBoundsToTheRight)
 
 TEST(PositionTest, TestSquareWaveOutOfBoundsToTheLeft)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-      <position x="-0.501"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco").set("wave", "square").set("freq", 1);
+  auto position = tester.add("position").set("x", -0.501);
+
+  vco.connect("default", position, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto left = 1.0;
@@ -194,5 +200,6 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../sources/vco/vg-module-audio-source-vco.so");
   loader.load("./vg-module-audio-filter-position.so");
+  loader.add_default_section("audio");
   return RUN_ALL_TESTS();
 }

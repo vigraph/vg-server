@@ -14,14 +14,14 @@ using namespace ViGraph::Geometry;
 
 TEST(WavTest, TestNoFile)
 {
-  const string& xml = R"(
-    <graph>
-      <wav/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 1);
-  Fragment *fragment = gen.get_fragment();
+  tester.add("wav");
+
+  tester.run();
+
+  const auto fragment = tester.get_fragment();
+
   // Should produce nothing
   EXPECT_TRUE(!fragment);
 }
@@ -48,14 +48,14 @@ TEST(WavTest, TestFileDefaultFormat)
   };
   auto f = File::Path{"/tmp/test-float-44100-2.wav"};
   f.write_all(data);
-  const string& xml = R"(
-    <graph>
-      <wav file="/tmp/test-float-44100-2.wav"/>
-    </graph>
-  )";
 
-  FragmentGenerator gen(xml, loader, 1);
-  Fragment *fragment = gen.get_fragment();
+  FragmentGraphTester tester{loader};
+
+  tester.add("wav").set("file", f.str());
+
+  tester.run();
+
+  const auto fragment = tester.get_fragment();
   f.erase();
   ASSERT_FALSE(!fragment);
 
@@ -95,14 +95,14 @@ TEST(WavTest, TestFileFormatThatNeedsConversion)
   };
   auto f = File::Path{"/tmp/test-pcm-44100-2.wav"};
   f.write_all(data);
-  const string& xml = R"(
-    <graph>
-      <wav file="/tmp/test-pcm-44100-2.wav"/>
-    </graph>
-  )";
 
-  FragmentGenerator gen(xml, loader, 1);
-  Fragment *fragment = gen.get_fragment();
+  FragmentGraphTester tester{loader};
+
+  tester.add("wav").set("file", f.str());
+
+  tester.run();
+
+  const auto fragment = tester.get_fragment();
   f.erase();
   ASSERT_FALSE(!fragment);
 
@@ -142,14 +142,14 @@ TEST(WavTest, TestLoop)
   };
   auto f = File::Path{"/tmp/test-float-44100-2.wav"};
   f.write_all(data);
-  const string& xml = R"(
-    <graph>
-      <wav file="/tmp/test-float-44100-2.wav" loop="true"/>
-    </graph>
-  )";
 
-  FragmentGenerator gen(xml, loader, 1);
-  Fragment *fragment = gen.get_fragment();
+  FragmentGraphTester tester{loader};
+
+  tester.add("wav").set("file", f.str()).set("loop", true);
+
+  tester.run();
+
+  const auto fragment = tester.get_fragment();
   f.erase();
   ASSERT_FALSE(!fragment);
 
@@ -180,5 +180,6 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("./vg-module-audio-source-wav.so");
+  loader.add_default_section("audio");
   return RUN_ALL_TESTS();
 }

@@ -15,15 +15,16 @@ using namespace ViGraph::Geometry;
 
 TEST(CombineTest, TestNoWaveform)
 {
-  const string& xml = R"(
-    <graph>
-      <vco/>
-      <combine/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco");
+  auto combine = tester.add("combine");
+
+  vco.connect("default", combine, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto& waveform = fragment->waveforms[Speaker::front_center];
@@ -36,15 +37,16 @@ TEST(CombineTest, TestNoWaveform)
 
 TEST(CombineTest, TestSquareWave)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-      <combine/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco").set("wave", "square").set("freq", 1);
+  auto combine = tester.add("combine");
+
+  vco.connect("default", combine, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   // Should be 44100 samples at alternating -1, 1
@@ -57,16 +59,18 @@ TEST(CombineTest, TestSquareWave)
 
 TEST(CombineTest, TestTwoSquareWaves)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-      <vco wave="square" freq="1"/>
-      <combine/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco1 = tester.add("vco").set("wave", "square").set("freq", 1);
+  auto vco2 = tester.add("vco").set("wave", "square").set("freq", 1);
+  auto combine = tester.add("combine");
+
+  vco1.connect("default", combine, "default");
+  vco2.connect("default", combine, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto& waveform = fragment->waveforms[Speaker::front_center];
@@ -79,16 +83,18 @@ TEST(CombineTest, TestTwoSquareWaves)
 
 TEST(CombineTest, TestMultiplyTwoSineWaves)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="sin" freq="1"/>
-      <vco wave="sin" freq="1"/>
-      <combine mode="multiply"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco1 = tester.add("vco").set("wave", "sin").set("freq", 1);
+  auto vco2 = tester.add("vco").set("wave", "sin").set("freq", 1);
+  auto combine = tester.add("combine").set("mode", "multiply");
+
+  vco1.connect("default", combine, "default");
+  vco2.connect("default", combine, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto& waveform = fragment->waveforms[Speaker::front_center];
@@ -105,5 +111,6 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../sources/vco/vg-module-audio-source-vco.so");
   loader.load("./vg-module-audio-filter-combine.so");
+  loader.add_default_section("audio");
   return RUN_ALL_TESTS();
 }

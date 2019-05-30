@@ -15,15 +15,16 @@ using namespace ViGraph::Geometry;
 
 TEST(AttenuatorTest, TestNoWaveform)
 {
-  const string& xml = R"(
-    <graph>
-      <vco/>
-      <attenuator gain="0.2"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco");
+  auto attenuator = tester.add("attenuator").set("gain", 0.2);
+
+  vco.connect("default", attenuator, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto& waveform = fragment->waveforms[Speaker::front_center];
@@ -36,15 +37,16 @@ TEST(AttenuatorTest, TestNoWaveform)
 
 TEST(AttenuatorTest, TestSquareWaveReduced)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="square" freq="1"/>
-      <attenuator gain="0.2"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco").set("wave", "square").set("freq", 1);
+  auto attenuator = tester.add("attenuator").set("gain", 0.2);
+
+  vco.connect("default", attenuator, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto& waveform = fragment->waveforms[Speaker::front_center];
@@ -61,5 +63,6 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../sources/vco/vg-module-audio-source-vco.so");
   loader.load("./vg-module-audio-filter-attenuator.so");
+  loader.add_default_section("audio");
   return RUN_ALL_TESTS();
 }

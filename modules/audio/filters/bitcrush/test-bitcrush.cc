@@ -15,15 +15,16 @@ using namespace ViGraph::Geometry;
 
 TEST(BitCrushTest, TestNoWaveform)
 {
-  const string& xml = R"(
-    <graph>
-      <vco/>
-      <bitcrush/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco");
+  auto bitcrush = tester.add("bitcrush");
+
+  vco.connect("default", bitcrush, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto& waveform = fragment->waveforms[Speaker::front_center];
@@ -36,15 +37,16 @@ TEST(BitCrushTest, TestNoWaveform)
 
 TEST(BitCrushTest, Test2BitSinWave)
 {
-  const string& xml = R"(
-    <graph>
-      <vco wave="sin" freq="1"/>
-      <bitcrush bits="2"/>
-    </graph>
-  )";
+  FragmentGraphTester tester{loader};
 
-  FragmentGenerator gen(xml, loader, 2);  // 1 to start, 1 to generate (at 1.0)
-  Fragment *fragment = gen.get_fragment();
+  auto vco = tester.add("vco").set("wave", "sin").set("freq", 1);
+  auto bitcrush = tester.add("bitcrush").set("bits", 2);
+
+  vco.connect("default", bitcrush, "default");
+
+  tester.run(2);
+
+  const auto fragment = tester.get_fragment();
   ASSERT_FALSE(!fragment);
 
   const auto& waveform = fragment->waveforms[Speaker::front_center];
@@ -66,5 +68,6 @@ int main(int argc, char **argv)
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../sources/vco/vg-module-audio-source-vco.so");
   loader.load("./vg-module-audio-filter-bitcrush.so");
+  loader.add_default_section("audio");
   return RUN_ALL_TESTS();
 }

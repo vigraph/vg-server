@@ -1,6 +1,6 @@
 /usr/lib/gcc/x86_64-w64-mingw32/8.3-posix/libgcc_s_seh-1.dll
 /usr/lib/gcc/x86_64-w64-mingw32/8.3-posix/libstdc++-6.dll
 /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll
-/usr/local/share/source/openssl/libcrypto-3-x64.dll
-/usr/local/share/source/sdl/SDL2.dll
-/usr/local/share/source/soundtouch/SoundTouchDLL_x64.dll
+/home/shared/tools/windows/openssl/libcrypto-3-x64.dll
+/home/shared/tools/windows/sdl/SDL2.dll
+/home/shared/tools/windows/soundtouch/SoundTouchDLL_x64.dll

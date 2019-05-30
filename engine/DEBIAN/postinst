@@ -2,6 +2,13 @@
 set -e
 
 if [ $1 = "configure" -o $1 = "reconfigure" ]; then
+  if [ "$2" ]; then  # already installed, so just restart
+    /etc/init.d/vg-engine restart
+  else
+    adduser --system --quiet --group --no-create-home vigraph || true
+    chown vigraph:vigraph /var/lib/vigraph
+    chmod 755 /var/lib/vigraph
     update-rc.d vg-engine defaults
     /etc/init.d/vg-engine start
+  fi
 fi

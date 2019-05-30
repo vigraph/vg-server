@@ -110,7 +110,7 @@ FileServer::FileServer(const XML::Element& config,
     return;
   }
 
-  const auto dir = File::Directory{base_dir, dir_s}.realpath();
+  const auto dir = File::Directory{base_dir}.resolve(dir_s).realpath();
   log.summary << "File server: Starting HTTP server at port " << hport << endl;
   log.summary << "File server: Serving files from " << dir << endl;
   http_server.reset(new Web::SimpleHTTPServer(hport, server_ident));

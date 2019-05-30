@@ -665,6 +665,9 @@ void Graph::add_json(const string& path, const JSON::Value& value)
 
       Log::Detail log;
       log << "Created " << type << " '" << path << "'\n";
+
+      // Set it up
+      el->setup();
     }
   }
 }

@@ -19,147 +19,9 @@
   <!-- Tick frequency (Hz, 25) -->
   <tick frequency="25"/>
 
-  <!-- Default sections for element naming -->
-  <naming>
-    <default section="core"/>
-    <default section="vector"/>
-    <default section="midi"/>
-    <default section="ui"/>
-  </naming>
-
-  <!-- The dataflow graph -->
-  <graph>
-    <collision-detector/>
-    <midi-distributor/>
-    <key-distributor/>
-
-    <midi device="virtual"/>
-    <midi-key-in channel="1">
-      <target id="rebase-on" property-number="value"/>
-      <target id="rebase-off" property-number="value"/>
-      <target id="selector" property-clear="select"/>
-    </midi-key-in>
-    <add id="rebase-on" offset="-24"/>
-    <wrap max="12" target="selector"/>
-    <add id="rebase-off" offset="-24"/>
-    <wrap max="12" target="selector"/>
-    <websocket-control port="33382" target="selector" property="value"/>
-    <selector>
-      <graph id="beam">
-        <figure points="1">
-          <y pos="0.25"/>
-        </figure>
-      </graph>
-
-      <graph id="line">
-        <figure points="200">
-          <x wave="saw" freq="1"/>
-          <y pos="0.25"/>
-        </figure>
-      </graph>
-
-      <graph id="random">
-        <lfo property="x.scale" wave="random"/>
-        <figure points="100">
-          <x wave="saw" freq="1"/>
-          <y wave="random" freq="1"/>
-        </figure>
-
-      </graph>
-
-<!-- Broken - why?
-      <graph id="tunnel">
-        <ilda file="../libs/ilda/samples/tunnelride1.ild" frame-rate="10"/>
-      </graph>
--->
-      <graph id="earth">
-        <laser:ilda file="../libs/ilda/samples/earth.ild" frame-rate="50"/>
-        <scale all="0.5"/>
-        <translate z="0.3"/>
-        <lfo property="y" wave="saw" period="10"/>
-        <rotate/>
-        <perspective distance="0.5"/>
-        <depth-fade distance="0.5"/>
-      </graph>
-
-      <graph id="ilda">
-        <laser:ilda file="../libs/ilda/samples/ildatest.ild"/>
-      </graph>
-
-      <graph id="svg">
-        <svg precision = "0.1"
-             path="m 26.485685,223.23051 0.08785,-0.30489 q 0.651123,0.062 1.488281,0.062 0.589112,0 1.591635,-0.062 l -0.08785,0.30489 q -0.06718,0.0207 -0.191203,0.0413 -0.444418,0.0879 -0.61495,0.18087 -0.165364,0.0879 -0.253214,0.26355 -0.07751,0.1602 -0.108521,0.37724 -0.02584,0.21704 -0.113688,1.25573 -0.01034,0.15503 -0.06201,0.71314 -0.04651,0.55294 -0.08785,0.98702 -0.04134,0.43408 -0.08785,0.90434 -0.04134,0.46508 -0.05684,0.64078 l 0.02067,0.0207 q 0.19637,-0.26355 0.28422,-0.3824 0.09302,-0.11886 0.454753,-0.60462 0.366903,-0.49092 0.656291,-0.88366 0.72347,-0.98186 1.312581,-1.74667 1.038696,-1.35392 1.038696,-1.49345 0,-0.10852 -0.118856,-0.15502 -0.118855,-0.0517 -0.418579,-0.0982 -0.09818,0 -0.139526,-0.0207 l 0.07235,-0.30489 q 0.666626,0.062 1.291911,0.062 0.511596,0 1.100708,-0.062 l -0.08268,0.31522 q -0.320393,0.0724 -0.506429,0.13436 -0.180867,0.0568 -0.310058,0.1602 -0.07751,0.0724 -0.134359,0.12919 -0.05684,0.0568 -0.1757,0.20154 -0.118856,0.14469 -0.346232,0.42891 -0.227376,0.28422 -0.578776,0.73381 -0.521932,0.66663 -1.105875,1.41077 -0.583944,0.74414 -0.981853,1.26607 -0.397908,0.51676 -0.54777,0.71313 -0.149861,0.19637 -1.188558,1.57613 -0.03101,0.0465 -0.124023,0.1602 -0.08785,0.11886 -0.09819,0.13436 h -0.356568 q 0.03101,-0.33073 0.04651,-0.56327 0.02067,-0.23255 0.05684,-0.68213 0.04134,-0.44959 0.06718,-0.78032 0.03101,-0.33073 0.07235,-0.7493 l 0.180868,-2.19108 q 0.05168,-0.63046 0.07752,-1.06971 0.02584,-0.43925 0.02584,-0.50643 0,-0.1912 -0.134359,-0.26871 -0.134359,-0.0775 -0.671793,-0.19637 -0.139527,-0.0155 -0.24288,-0.0517 z
-                   M 34.268156,228.8374 l 0.201538,0.22221 q -0.470255,0.44959 -0.992187,0.81132 -0.521932,0.35657 -0.806153,0.35657 -0.113688,0 -0.201538,-0.0879 -0.08785,-0.0879 -0.08785,-0.22221 0,-0.20154 0.149862,-0.66663 l 0.382406,-1.0697 q 0.03617,-0.11885 0.320394,-0.98702 0.28422,-0.86816 0.28422,-0.90434 0,-0.12919 -0.108521,-0.12919 -0.07751,0 -0.258382,0.13436 -0.180867,0.12919 -0.310058,0.27905 l -0.139527,0.13953 -0.191203,-0.21187 q 0.552938,-0.56844 1.028361,-0.89917 0.475424,-0.33073 0.718303,-0.33073 0.211873,0 0.211873,0.20154 0,0.11885 -0.118856,0.51676 -0.118855,0.39274 -0.310058,0.96635 -0.186035,0.57361 -0.289388,0.8785 -0.134359,0.3514 -0.289388,0.83716 -0.155029,0.48576 -0.155029,0.58911 0,0.12919 0.103352,0.12919 0.196371,0 0.707967,-0.44442 0.02584,-0.0155 0.07751,-0.0517 0.05168,-0.0413 0.07235,-0.0568 z
-        m 0.423747,-5.77742 q 0.1757,0 0.304891,0.13436 0.129191,0.13435 0.129191,0.33073 0,0.26871 -0.180868,0.50126 -0.180867,0.23254 -0.413411,0.23254 -0.1757,0 -0.299723,-0.15503 -0.124024,-0.1602 -0.124024,-0.35657 0,-0.17053 0.07235,-0.32039 0.07751,-0.15503 0.211874,-0.25838 0.134358,-0.10852 0.299723,-0.10852 z"/>
-        <scale all="0.8"/>
-      </graph>
-
-      <graph id="circle">
-        <midi-control-in channel="1" number="1" property="value"/>
-        <multiply factor="0.1" target="f1" property="x.freq"/>
-        <lfo property="y.phase" period="3"/>
-        <figure id="f1" points="100" closed="yes">
-          <x wave="sin" freq="1"/>
-          <y wave="sin" freq="1" phase="0.25"/>
-        </figure>
-      </graph>
-
-      <graph id="triangles">
-        <lfo property="y.phase" wave="saw" period="3"/>
-        <figure points="100">
-          <x wave="saw"/>
-          <y wave="triangle" freq="5"/>
-        </figure>
-      </graph>
-
-      <graph id="snake">
-        <lfo target='c1' property="x.freq" period="87" scale="1.5"/>
-        <lfo target='c1' property="y.freq" period="101" scale="2"/>
-        <lfo target='c1' property="y.phase" period="217"/>
-        <figure id='c1' points="250" closed="no">
-          <x wave="sin" freq="1" scale="0.4"/>
-          <y wave="sin" freq="1" scale="0.4" phase="0.25"/>
-        </figure>
-
-        <lfo target='c2' property="x.freq" period="257" scale="2"/>
-        <lfo target='c2' property="y.freq" period="451" scale="1.5"/>
-        <figure id='c2' points="250" closed="no">
-          <x wave="sin" freq="6" scale="0.5" />
-          <y wave="sin" freq="6" scale="0.5" phase="0.25"/>
-        </figure>
-
-        <sum id="sum"/>
-
-        <lfo property="h" wave="saw" period="7"/>
-        <colour h="0" l="0.8"/>
-      </graph>
-    </selector>
-    <join/>
-
-    <clip>
-      <!--
-          <min x="-0.25" y="-0.25"/>
-          <max x="0.25" y="0.25"/>
-      -->
-    </clip>
-
-    <websocket-display port="33381"/>
-
-<!--
-    <lfo property="span" type="integer" wave="square"
-         period="0.5" scale="3" offset="0"/>
-    <beamify span="5" multiple="5"/>
--->
-
-    <laser:idn-transmit>
-      <packet size="1472"/>
-      <configuration interval="0.1"/>
-      <intensity enabled="true"/>
-      <source address="0.0.0.0"/>
-      <host address="10.0.0.100" port="7255"/>
-    </laser:idn-transmit>
-
-  </graph>
+  <!-- Sample rate - note this can be reduced to the tick frequency if there
+       is no audio, to save control plane processing -->
+  <sample rate="44100"/>
 
   <!-- HTTP REST interface -->
   <rest>
@@ -170,6 +32,20 @@
     <!-- URL prefix, including leading and trailing / -->
     <url prefix="/"/>
 
+    <!-- Layout file -->
+    <layout file="/var/tmp/vigraph-layout.json"/>
+
   </rest>
+
+  <!-- Built-in web server for UI -->
+  <file-server>
+
+    <!-- HTTP port -->
+    <http port="33381"/>
+
+    <!-- Root directory for files -->
+    <file path="../../ui/web/build"/>
+
+  </file-server>
 
 </engine>

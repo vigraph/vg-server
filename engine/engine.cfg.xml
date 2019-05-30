@@ -1,7 +1,8 @@
 <!--
   Configuration file for ViGraph dataflow engine server (vg-engine)
+  Release version
 
-  Copyright (c) Paul Clark 2017-2018.
+  Copyright (c) Paul Clark 2017-2019.
   All rights reserved.
 -->
 
@@ -28,6 +29,9 @@
   <log level="2" file="/var/log/vigraph/engine.log"
        timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
 
+  <!-- Drop to ordinary user priviledge, special user -->
+  <security user="vigraph" group="vigraph"/>
+
   <!-- Loadable modules -->
   <modules>
     <!-- Search paths, recursive for all .so -->
@@ -37,44 +41,9 @@
   <!-- Tick frequency (Hz, 25) -->
   <tick frequency="25"/>
 
-  <!-- Default sections for element naming -->
-  <naming>
-    <default section="core"/>
-    <default section="vector"/>
-  </naming>
-
-  <!-- The dataflow graph -->
-  <graph>
-    <lfo target='c1' property="x.freq" period="87" scale="1.5"/>
-    <lfo target='c1' property="y.freq" period="101" scale="2"/>
-    <lfo target='c1' property="y.phase" period="217"/>
-    <figure id='c1' points="250" closed="no">
-      <x wave="sin" freq="1" scale="0.4"/>
-      <y wave="sin" freq="1" scale="0.4" phase="0.25"/>
-    </figure>
-
-    <lfo target='c2' property="x.freq" period="257" scale="2"/>
-    <lfo target='c2' property="y.freq" period="451" scale="1.5"/>
-    <figure id='c2' points="250" closed="no">
-      <x wave="sin" freq="6" scale="0.5" />
-      <y wave="sin" freq="6" scale="0.5" phase="0.25"/>
-    </figure>
-
-    <sum id="sum"/>
-
-    <lfo property="h" wave="saw" period="7"/>
-    <colour h="0" l="0.8"/>
-
-    <websocket-display port="33381"/>
-    <laser:idn-transmit>
-      <packet size="65280"/>
-      <configuration interval="0.5"/>
-      <intensity enabled="true"/>
-      <source address="0.0.0.0"/>
-      <host address="localhost" port="7255"/>
-    </laser:idn-transmit>
-
-  </graph>
+  <!-- Sample rate - note this can be reduced to the tick frequency if there
+       is no audio, to save control plane processing -->
+  <sample rate="44100"/>
 
   <!-- HTTP REST interface -->
   <rest>
@@ -83,8 +52,19 @@
     <http port="33380"/>
 
     <!-- Layout file -->
-    <layout file="layout.json"/>
+    <layout file="/var/lib/vigraph/layout.json"/>
 
   </rest>
+
+  <!-- Built-in web server for UI -->
+  <file-server>
+
+    <!-- HTTP port -->
+    <http port="33381"/>
+
+    <!-- Root directory for files -->
+    <file path="/usr/share/vigraph/web"/>
+
+  </file-server>
 
 </engine>

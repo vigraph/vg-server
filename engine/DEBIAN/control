@@ -1,5 +1,5 @@
 Source: vg-engine
-Section: Video
+Section: Audio
 Priority: optional
 Maintainer:  ViGraph Support <support@vigraph.com>
 Build-Depends: debhelper (>= 9)
@@ -10,4 +10,4 @@ Package: vg-engine
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: ViGraph dataflow engine
- Realtime module dataflow engine.
+ Realtime modular dataflow engine for audio and graphics.

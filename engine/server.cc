@@ -194,23 +194,21 @@ void Server::reconfigure()
   }
 
   // Load graph from config <graph>
+  // !!! Remove with XML
   const XML::Element& graph_e = config_xml.get_child("graph");
-  if (!graph_e)
+  if (!!graph_e)
   {
-    log.error << "No <graph> element in config\n";
-    return;
-  }
-
-  // Configure the graph engine using XML
-  try
-  {
-    // Based relative to our config filename
-    engine.configure(config_file.dirname(), graph_e);
-    log.summary << "Dataflow engine loaded OK\n";
-  }
-  catch (runtime_error& e)
-  {
-    log.error << "Can't create graph: " << e.what() << endl;
+    // Configure the graph engine using XML
+    try
+    {
+      // Based relative to our config filename
+      engine.configure(config_file.dirname(), graph_e);
+      log.summary << "Configured graph loaded OK\n";
+    }
+    catch (runtime_error& e)
+    {
+      log.error << "Can't create graph: " << e.what() << endl;
+    }
   }
 
   // (re-)create the REST interface

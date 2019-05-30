@@ -1,2 +1,4 @@
 var/log/vigraph
 etc/vigraph
+var/lib/vigraph
+usr/share/vigraph/web

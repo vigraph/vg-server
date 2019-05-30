@@ -17,6 +17,7 @@ namespace ViGraph { namespace Engine {
 namespace
 {
   const int default_http_port{33382};
+  const string default_index_filename{"index.html"};
   const string server_ident{"ViGraph Engine Server file server"};
 }
 
@@ -27,14 +28,15 @@ namespace
 class FileURLHandler: public Web::URLHandler
 {
   File::Directory dir;
+  string index_filename;
   bool handle_get(const Web::HTTPMessage& request, Web::HTTPMessage& response);
   bool handle_request(const Web::HTTPMessage& request,
                       Web::HTTPMessage& response,
                       const SSL::ClientDetails& client);
 
 public:
-  FileURLHandler(const File::Directory& _dir):
-    URLHandler("/*"), dir(_dir)
+  FileURLHandler(const File::Directory& _dir, const string& _index_filename):
+    URLHandler("/*"), dir(_dir), index_filename(_index_filename)
   {}
 };
 
@@ -47,16 +49,27 @@ bool FileURLHandler::handle_get(const Web::HTTPMessage& request,
   Log::Streams log;
   log.detail << "File server: GET request for " << request.url << endl;
 
-  auto path = File::Path{dir, request.url.str()}.realpath();
+  auto upath = request.url.get_path();
+  if (upath == "/") upath = index_filename;
+
+  auto path = File::Path{dir, upath}.realpath();
+  log.detail << "Reading file '" << path << "'\n";
   auto dir_s = dir.str();
   auto path_s = path.str();
   if (path_s.substr(0, dir_s.size()) != dir_s)
   {
     Log::Error log;
-    log << "File server received request for file outside of dir " << path
-        << ": " << response.body << endl;
+    log << "File server received request for file outside directory "
+        << path << endl;
     response.code = 404;
     response.reason = "Not found";
+  }
+  else if (path.is_dir())
+  {
+    Log::Error log;
+    log << "File server trying to read directory " << path << endl;
+    response.code = 403;
+    response.reason = "Forbidden";
   }
   else if (!path.read_all(response.body))
   {
@@ -110,12 +123,13 @@ FileServer::FileServer(const XML::Element& config,
     return;
   }
 
-  const auto dir = File::Directory{base_dir, dir_s}.realpath();
+  const auto dir = File::Directory{base_dir}.resolve(dir_s).realpath();
   log.summary << "File server: Starting HTTP server at port " << hport << endl;
   log.summary << "File server: Serving files from " << dir << endl;
   http_server.reset(new Web::SimpleHTTPServer(hport, server_ident));
 
-  http_server->add(new FileURLHandler(dir));
+  const auto ifn = xpath.get_value("index/@file", default_index_filename);
+  http_server->add(new FileURLHandler(dir, ifn));
 
   // Allow cross-origin fetch from anywhere
   http_server->set_cors_origin();

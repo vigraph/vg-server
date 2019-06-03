@@ -15,7 +15,7 @@ TEST(TriggerTest, TestTriggerTriggers)
 
   auto trg = tester.add("trigger");
 
-  trg.connect_test("trigger", "trigger");
+  trg.connect_test("trigger");
 
   tester.test();
 
@@ -30,7 +30,7 @@ TEST(TriggerTest, TestTriggerWithWaitNotTriggeredHasNoEffect)
 
   auto trg = tester.add("trigger").set("wait", true);
 
-  trg.connect_test("trigger", "trigger");
+  trg.connect_test("trigger");
 
   tester.test();
 
@@ -43,7 +43,7 @@ TEST(TriggerTest, TestTriggerWithAutoWaitNotTriggeredHasNoEffect)
 
   auto trg = tester.add("trigger").set("wait", true);
 
-  trg.connect_test("trigger", "trigger");
+  trg.connect_test("trigger");
 
   tester.test(2);
 
@@ -57,8 +57,8 @@ TEST(TriggerTest, TestTriggerWithWaitTriggeredHasEffect)
   auto trg = tester.add("trigger");
   auto trg2 = tester.add("trigger").set("wait", true);
 
-  trg.connect("trigger", trg2, "trigger");
-  trg2.connect_test("trigger", "trigger");
+  trg.connect(trg2, "trigger");
+  trg2.connect_test("trigger");
 
   tester.test(2);
 

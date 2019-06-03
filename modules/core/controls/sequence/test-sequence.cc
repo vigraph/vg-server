@@ -49,8 +49,8 @@ TEST(SequenceTest, TestSequenceTriggerNext)
   json.add("four");
   auto seq = tester.add("sequence").set("values", json);
 
-  trigger1.connect("trigger", seq, "next");
-  trigger2.connect("trigger", seq, "next");
+  trigger1.connect(seq, "next");
+  trigger2.connect(seq, "next");
   seq.connect_test();
 
   tester.test();
@@ -78,7 +78,7 @@ TEST(SequenceTest, TestSequenceTriggerNextLoop)
   auto seq = tester.add("sequence").set("values", json);
 
   for(auto& trigger: triggers)
-    trigger.connect("trigger", seq, "next");
+    trigger.connect(seq, "next");
   seq.connect_test();
 
   tester.test();

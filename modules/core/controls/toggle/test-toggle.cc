@@ -16,7 +16,7 @@ TEST(ToggleTest, TestOneTrigger)
   auto trg = tester.add("trigger");
   auto tog = tester.add("toggle");
 
-  trg.connect("trigger", tog, "trigger");
+  trg.connect(tog, "toggle");
   tog.connect_test("trigger", "trigger");
 
   tester.test();
@@ -32,8 +32,8 @@ TEST(ToggleTest, TestTwoTriggers)
   auto trg2 = tester.add("trigger");
   auto tog = tester.add("toggle");
 
-  trg1.connect("trigger", tog, "trigger");
-  trg2.connect("trigger", tog, "trigger");
+  trg1.connect(tog, "toggle");
+  trg2.connect(tog, "toggle");
   tog.connect_test("clear", "clear");
 
   tester.test();

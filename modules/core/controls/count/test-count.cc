@@ -59,7 +59,7 @@ TEST(CountTest, TestCountWithAutoWaitNotTriggeredHasNoEffect)
   auto trigger = tester.add("trigger").set("wait", true);
   auto count = tester.add("count");
 
-  trigger.connect("trigger", count, "trigger");
+  trigger.connect(count, "trigger");
   count.connect_test();
 
   tester.test();
@@ -74,7 +74,7 @@ TEST(CountTest, TestCountWithWaitTriggeredHasEffect)
   auto trigger = tester.add("trigger");
   auto count = tester.add("count");
 
-  trigger.connect("trigger", count, "trigger");
+  trigger.connect(count, "trigger");
   count.connect_test();
 
   tester.test();

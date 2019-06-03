@@ -121,7 +121,7 @@ Dataflow::Module module
     { "stop",  { "Trigger to stop",  Value::Type::trigger,
                  &BeatControl::trigger_stop, true } }
   },
-  { { "trigger", { "Trigger output", "trigger", Value::Type::trigger }}}
+  { { "output", { "Trigger output", "trigger", Value::Type::trigger }}}
 };
 
 } // anon

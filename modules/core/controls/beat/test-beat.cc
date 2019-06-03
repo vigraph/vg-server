@@ -15,7 +15,7 @@ TEST(BeatTest, TestInterval)
 
   tester.add("beat")
     .set("interval", 2)
-    .connect_test("trigger", "go");
+    .connect_test("go");
 
   tester.test(10);
 
@@ -31,7 +31,7 @@ TEST(BeatTest, TestBPM)
 
   tester.add("beat")
     .set("bpm", 30)
-    .connect_test("trigger", "go");
+    .connect_test("go");
 
   tester.test(10);
 
@@ -47,7 +47,7 @@ TEST(BeatTest, TestFreq)
 
   tester.add("beat")
     .set("freq", 0.5)
-    .connect_test("trigger", "go");
+    .connect_test("go");
 
   tester.test(10);
 
@@ -65,7 +65,7 @@ TEST(BeatTest, TestSetInterval)
   auto beat = tester.add("beat");
 
   set.connect(beat, "interval");
-  beat.connect_test("trigger", "go");
+  beat.connect_test("go");
 
   tester.test(10);
 
@@ -83,7 +83,7 @@ TEST(BeatTest, TestSetBPM)
   auto beat = tester.add("beat");
 
   set.connect(beat, "bpm");
-  beat.connect_test("trigger", "go");
+  beat.connect_test("go");
 
   tester.test(10);
 
@@ -101,7 +101,7 @@ TEST(BeatTest, TestSetFreq)
   auto beat = tester.add("beat");
 
   set.connect(beat, "freq");
-  beat.connect_test("trigger", "go");
+  beat.connect_test("go");
 
   tester.test(10);
 
@@ -118,8 +118,8 @@ TEST(BeatTest, TestIntervalWithTriggerDoesntAutoRun)
   auto trigger = tester.add("trigger").set("wait", true);
   auto beat = tester.add("beat").set("interval", 2);
 
-  trigger.connect("trigger", beat, "start");
-  beat.connect_test("trigger", "go");
+  trigger.connect(beat, "start");
+  beat.connect_test("go");
 
   tester.test(10);
 
@@ -133,8 +133,8 @@ TEST(BeatTest, TestIntervalWithTriggeredStartRuns)
   auto trigger = tester.add("trigger");
   auto beat = tester.add("beat").set("interval", 2);
 
-  trigger.connect("trigger", beat, "start");
-  beat.connect_test("trigger", "go");
+  trigger.connect(beat, "start");
+  beat.connect_test("go");
 
   tester.test(10);
 
@@ -152,9 +152,9 @@ TEST(BeatTest, TestIntervalWithTriggeredStartAndStopRunsAndStops)
   auto beat1 = tester.add("beat").set("interval", 5);
   auto beat2 = tester.add("beat").set("interval", 2);
 
-  trigger.connect("trigger", beat2, "start");
-  beat1.connect("trigger", beat2, "stop");
-  beat2.connect_test("trigger", "go");
+  trigger.connect(beat2, "start");
+  beat1.connect(beat2, "stop");
+  beat2.connect_test("go");
 
   tester.test(10);
 

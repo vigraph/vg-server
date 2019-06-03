@@ -16,8 +16,8 @@ TEST(WaitTest, TestZeroDelayDoesNotTriggerSameTick)
   auto trg = tester.add("trigger");
   auto wat = tester.add("wait");
 
-  trg.connect("trigger", wat, "trigger");
-  wat.connect_test("trigger", "trigger");
+  trg.connect(wat, "trigger");
+  wat.connect_test("trigger");
 
   tester.test();
 
@@ -31,8 +31,8 @@ TEST(WaitTest, TestZeroDelayTriggersNextTick)
   auto trg = tester.add("trigger");
   auto wat = tester.add("wait");
 
-  trg.connect("trigger", wat, "trigger");
-  wat.connect_test("trigger", "trigger");
+  trg.connect(wat, "trigger");
+  wat.connect_test("trigger");
 
   tester.test(2);
 
@@ -46,8 +46,8 @@ TEST(WaitTest, TestWaitDelayDoesntTriggerEarly)
   auto trg = tester.add("trigger");
   auto wat = tester.add("wait").set("for", 2);
 
-  trg.connect("trigger", wat, "trigger");
-  wat.connect_test("trigger", "trigger");
+  trg.connect(wat, "trigger");
+  wat.connect_test("trigger");
 
   tester.test(2);
 
@@ -61,12 +61,15 @@ TEST(WaitTest, TestWaitDelayTriggers)
   auto trg = tester.add("trigger");
   auto wat = tester.add("wait").set("for", 2);
 
-  trg.connect("trigger", wat, "trigger");
-  wat.connect_test("trigger", "trigger");
+  trg.connect(wat, "trigger");
+  wat.connect_test("trigger");
 
-  tester.test(3);
+  tester.test(5);
 
   EXPECT_TRUE(tester.target->got("trigger"));
+
+  // Only called once
+  EXPECT_EQ(1, tester.target->sets_called);
 }
 
 int main(int argc, char **argv)

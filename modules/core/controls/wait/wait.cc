@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: controls/set/set.cc
+// ViGraph dataflow module: controls/wait/wait.cc
 //
-// Control to set / alter properties on other elements
+// Control to pass on a trigger after a delay
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -12,7 +12,7 @@
 namespace {
 
 //==========================================================================
-// Set control
+// Wait control
 class WaitControl: public Control
 {
 public:
@@ -55,7 +55,7 @@ void WaitControl::pre_tick(const TickData& td)
     return;
   }
 
-  if (delayed_until > td.t)
+  if (delayed_until < 0 || delayed_until > td.t)
     return;
   delayed_until = -1.0;
 
@@ -77,7 +77,7 @@ Dataflow::Module module
     { "trigger", { "Trigger", Value::Type::trigger,
                    &WaitControl::set_triggered, true } }
   },
-  { { "trigger", { "Trigger", "trigger", Value::Type::trigger }}}
+  { { "output", { "Trigger", "trigger", Value::Type::trigger }}}
 };
 
 } // anon

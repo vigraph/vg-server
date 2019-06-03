@@ -170,7 +170,7 @@ void EnvelopeControl::pre_tick(const TickData& td)
   }
 
   if (!values.empty())
-    send("value", values);
+    send("output", values);
 }
 
 //--------------------------------------------------------------------------

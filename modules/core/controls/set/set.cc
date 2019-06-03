@@ -40,7 +40,7 @@ public:
 // Automatically set wait flag if we are the trigger target of something
 void SetControl::notify_target_of(const string& property)
 {
-  if (property == "value")
+  if (property == "trigger")
     wait = true;
 }
 

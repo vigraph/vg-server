@@ -69,7 +69,7 @@ TEST(RandomTest, TestRandomWithAutoWaitNotTriggeredHasNoEffect)
   auto trg = tester.add("trigger").set("wait", true);
   auto rnd = tester.add("random");
 
-  trg.connect("trigger", rnd, "trigger");
+  trg.connect(rnd, "trigger");
   rnd.connect_test("value");
 
   tester.test(2);
@@ -84,7 +84,7 @@ TEST(RandomTest, TestRandomWithWaitTriggeredHasEffect)
   auto trg = tester.add("trigger");
   auto rnd = tester.add("random");
 
-  trg.connect("trigger", rnd, "trigger");
+  trg.connect(rnd, "trigger");
   rnd.connect_test("value");
 
   tester.test(2);

@@ -68,7 +68,7 @@ Dataflow::Module module
   {
     { "value", { "Set value to toggle on", Value::Type::number,
                  &ToggleControl::value, true }},
-    { "trigger", { "Trigger toggle", Value::Type::trigger,
+    { "toggle", { "Trigger toggle", Value::Type::trigger,
                    &ToggleControl::toggle, true }},
   },
   {

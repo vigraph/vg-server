@@ -30,7 +30,8 @@ private:
 
   // Add control JSON
   JSON::Value get_json(const string& path) const override
-  { JSON::Value json=Element::get_json(path); add_to_json(json); return json; }
+  { JSON::Value json=FrameFilter::get_json(path);
+    add_to_json(json); return json; }
 
   // CollisionObserver virtual
   void collided() override;

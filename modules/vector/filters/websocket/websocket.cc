@@ -140,6 +140,7 @@ void WebSocketFilter::setup()
     server.reset(new WebSocketDisplayServer(port,
                            "ViGraph laserd WebSocket display server"));
     server_thread.reset(new Net::TCPServerThread(*server));
+    frame_seen = false;
   }
 }
 

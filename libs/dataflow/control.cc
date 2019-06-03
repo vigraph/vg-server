@@ -268,7 +268,11 @@ void ControlImpl::add_to_json(JSON::Value& json) const
 {
   if (!targets.empty())
   {
-    JSON::Value& oj = json.put("outputs", JSON::Value(JSON::Value::OBJECT));
+    // May be adding to existing, where something is both a Generator and
+    // a control
+    if (!json["outputs"])
+      json.put("outputs", JSON::Value(JSON::Value::OBJECT));
+    JSON::Value& oj = json["outputs"];
     for(const auto& tit: targets)
     {
       const auto& target = tit.second;

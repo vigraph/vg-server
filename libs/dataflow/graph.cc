@@ -596,7 +596,7 @@ void Graph::add_json(const string& path, const JSON::Value& value)
   if (path.empty())
   {
     // Top-level replacement - destroy any existing, then recreate
-    shutdown();
+    if (!parent) shutdown();
 
     if (value.type != JSON::Value::ARRAY)
       throw runtime_error("Whole graph setting needs a JSON array");
@@ -621,10 +621,14 @@ void Graph::add_json(const string& path, const JSON::Value& value)
 
       // Do final setup and topology
       setup();
+
+      // Enable if top level (this is recursive, so
+      // otherwise we would do it multiple times)
+      if (!parent) enable();
     }
     catch (const runtime_error& e)
     {
-      shutdown();
+      if (!parent) shutdown();
       throw e;
     }
   }

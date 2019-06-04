@@ -1018,6 +1018,10 @@ class MultiGraph
                       const XML::Element& graph_config);
 
   //------------------------------------------------------------------------
+  // Add a pre-constructed sub-graph
+  void add_subgraph(const string& id, Graph *sub);
+
+  //------------------------------------------------------------------------
   // Attach a pure Acceptor to the end of all subgraphs
   void attach_to_all(Acceptor *a);
 

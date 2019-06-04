@@ -52,6 +52,19 @@ Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
 }
 
 //------------------------------------------------------------------------
+// Add a pre-constructed sub-graph
+void MultiGraph::add_subgraph(const string& id, Graph *sub)
+{
+  // Lock for write
+  MT::RWWriteLock lock(mutex);
+  subgraphs.push_back(shared_ptr<Graph>(sub));
+  subgraphs_by_id[id] = sub;
+  if (threaded)
+    threads.emplace(piecewise_construct,
+                    forward_as_tuple(sub), forward_as_tuple(subgraphs.back()));
+}
+
+//------------------------------------------------------------------------
 // Calculate topology (see Element::calculate_topology)
 void MultiGraph::calculate_topology(Element::Topology& topo, Element *owner)
 {

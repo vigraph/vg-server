@@ -14,7 +14,8 @@ namespace {
 
 #include "test-elements.h"
 
-TEST(MultiGraphTest, TestGraphConstructionWithExplicitAndImplicitIDs)
+// This goes when XML does !!!
+TEST_F(GraphTest, TestGraphConstructionWithExplicitAndImplicitIDs)
 {
   const string& xml = R"(
     <container>
@@ -51,60 +52,57 @@ TEST(MultiGraphTest, TestGraphConstructionWithExplicitAndImplicitIDs)
   EXPECT_EQ(555, source->value);
 }
 
-TEST(MultiGraphTest, TestTickAll)
+TEST_F(GraphTest, TestTickAll)
 {
-  const string& xml = R"(
-    <container>
-      <graph id='one'>
-        <test-source/>
-        <test-sink/>
-      </graph>
-      <graph>
-        <test-source/>
-        <test-filter value='2'/>
-        <test-sink/>
-      </graph>
-    </container>
-  )";
+  auto graph1 = new TestGraph(engine);
+  auto source1 = graph1->add("test-source");
+  auto sink1 = graph1->add("test-sink", "SINK1");
+  source1.connect("default", sink1, "default");
+  graph1->setup();
+
+  auto graph2 = new TestGraph(engine);
+  auto source2 = graph2->add("test-source");
+  auto filter2 = graph2->add("test-filter").set("value", 2);
+  auto sink2 = graph2->add("test-sink", "SINK2");
+  source2.connect("default", filter2, "default");
+  filter2.connect("default", sink2, "default");
+  graph2->setup();
 
   MultiGraph mg(engine);
-  construct_multigraph(xml, mg);
+  mg.add_subgraph("G1", graph1);
+  mg.add_subgraph("G2", graph2);
+  ASSERT_EQ(graph1, mg.get_subgraph("G1"));
+  ASSERT_EQ(graph2, mg.get_subgraph("G2"));
 
   // Tick it
   mg.tick_all({1, 0, Time::Duration{1}, 1});
 
-  Graph *g = mg.get_subgraph("one");
-  ASSERT_FALSE(!g) << "Explicit subgraph IDs broken";
+  auto s1 = graph1->get<TestSink>("SINK1");
+  ASSERT_FALSE(!s1);
+  EXPECT_EQ(1, s1->received_data);
 
-  Element *el = g->get_element("test-sink");
-  ASSERT_FALSE(!el);
-  TestSink *sink = dynamic_cast<TestSink *>(el);
-  ASSERT_FALSE(!sink);
-  EXPECT_EQ(1, sink->received_data);
-
-  g = mg.get_subgraph("graph-1");
-  ASSERT_FALSE(!g) << "Implicit subgraph IDs broken";
-
-  el = g->get_element("test-sink");
-  ASSERT_FALSE(!el);
-  sink = dynamic_cast<TestSink *>(el);
-  ASSERT_FALSE(!sink);
-  EXPECT_EQ(2, sink->received_data);
+  auto s2 = graph2->get<TestSink>("SINK2");
+  ASSERT_FALSE(!s2);
+  EXPECT_EQ(2, s2->received_data);
 }
 
-TEST(MultiGraphTest, TestAttachAll)
+TEST_F(GraphTest, TestAttachAll)
 {
-  const string& xml = R"(
-    <container>
-      <graph id='one'>
-        <test-source/>
-      </graph>
-      <graph>
-        <test-source/>
-        <test-filter value='2'/>
-      </graph>
-    </container>
-  )";
+  auto graph1 = new TestGraph(engine);
+  graph1->add("test-source");
+  graph1->setup();
+
+  auto graph2 = new TestGraph(engine);
+  auto source2 = graph2->add("test-source");
+  auto filter2 = graph2->add("test-filter").set("value", 2);
+  source2.connect("default", filter2, "default");
+  graph2->setup();
+
+  MultiGraph mg(engine);
+  mg.add_subgraph("G1", graph1);
+  mg.add_subgraph("G2", graph2);
+  ASSERT_EQ(graph1, mg.get_subgraph("G1"));
+  ASSERT_EQ(graph2, mg.get_subgraph("G2"));
 
   struct Catcher: public Acceptor
   {
@@ -119,9 +117,6 @@ TEST(MultiGraphTest, TestAttachAll)
 
   unique_ptr<Catcher> catcher{new Catcher};
 
-  MultiGraph mg(engine);
-  construct_multigraph(xml, mg);
-
   // Attach catcher to end of all subgraphs
   mg.attach_to_all(catcher.get());
 
@@ -132,34 +127,26 @@ TEST(MultiGraphTest, TestAttachAll)
   ASSERT_EQ(3, catcher->received_data);
 }
 
-TEST(MultiGraphTest, TestShutdown)
+TEST_F(GraphTest, TestShutdown)
 {
-  const string& xml = R"(
-    <container>
-      <graph>
-        <test-source/>
-      </graph>
-      <graph>
-        <test-source/>
-      </graph>
-    </container>
-  )";
+  auto graph1 = new TestGraph(engine);
+  graph1->add("test-source", "S");
+  graph1->setup();
+
+  auto graph2 = new TestGraph(engine);
+  graph2->add("test-source", "S");
+  graph2->setup();
 
   MultiGraph mg(engine);
-  construct_multigraph(xml, mg);
+  mg.add_subgraph("G1", graph1);
+  mg.add_subgraph("G2", graph2);
+  ASSERT_EQ(graph1, mg.get_subgraph("G1"));
+  ASSERT_EQ(graph2, mg.get_subgraph("G2"));
 
-  Graph *g = mg.get_subgraph("graph-1");
-  ASSERT_FALSE(!g);
-  Element *el = g->get_element("test-source");
-  ASSERT_FALSE(!el);
-  TestSource *source1 = dynamic_cast<TestSource *>(el);
+  TestSource *source1 = graph1->get<TestSource>("S");
   ASSERT_FALSE(!source1);
 
-  g = mg.get_subgraph("graph-2");
-  ASSERT_FALSE(!g);
-  el = g->get_element("test-source");
-  ASSERT_FALSE(!el);
-  TestSource *source2 = dynamic_cast<TestSource *>(el);
+  TestSource *source2 = graph2->get<TestSource>("S");
   ASSERT_FALSE(!source2);
 
   ASSERT_FALSE(source1->shutdown_called);

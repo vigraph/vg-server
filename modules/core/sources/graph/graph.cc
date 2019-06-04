@@ -37,14 +37,13 @@ class GraphSource: public Dataflow::Source
 
     File::Path source_file;
     Time::Duration check_interval;
-    Acceptor *acceptor;
 
     void run() override
     {
       try
       {
         subgraph.reset(new Dataflow::Graph(engine));
-        subgraph->configure(source_file, check_interval, acceptor);
+        subgraph->configure(source_file, check_interval);
         status = UpdateStatus::updated;
       }
       catch (...)
@@ -58,12 +57,10 @@ class GraphSource: public Dataflow::Source
                  atomic<UpdateStatus>& update_status,
                  Engine& _engine,
                  const File::Path& _source_file,
-                 const Time::Duration& _check_interval,
-                 Acceptor *_acceptor):
+                 const Time::Duration& _check_interval):
       subgraph{updated_subgraph}, status{update_status},
       engine{_engine},
-      source_file{_source_file}, check_interval{_check_interval},
-      acceptor{_acceptor}
+      source_file{_source_file}, check_interval{_check_interval}
     {
       start();
     }
@@ -77,7 +74,6 @@ class GraphSource: public Dataflow::Source
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
   void post_tick(const TickData& td) override;
-  void setup() override;
   void enable() override;
   void disable() override;
   void shutdown() override;
@@ -90,7 +86,8 @@ public:
   double sample_rate = 0;
 
   GraphSource(const Module *module, const XML::Element& config):
-    Source(module, config) {}
+    Source(module, config)
+  {}
 };
 
 //--------------------------------------------------------------------------
@@ -104,6 +101,9 @@ void GraphSource::configure(const File::Directory& base_dir,
   Source::configure(base_dir, config);
   subgraph.reset(new Dataflow::Graph(graph->get_engine(), graph));
   subgraph->configure(base_dir, config);
+
+  // Pass upgoing data straight on as if we were the source
+  subgraph->set_send_up_function([this](DataPtr data) { send(data); });
 }
 
 //--------------------------------------------------------------------------
@@ -111,15 +111,6 @@ void GraphSource::configure(const File::Directory& base_dir,
 void GraphSource::calculate_topology(Element::Topology& topo)
 {
   subgraph->calculate_topology(topo, this);  // Use us as proxy
-}
-
-//--------------------------------------------------------------------------
-// Setup after configuration
-void GraphSource::setup()
-{
-  // Connect our acceptor(s) to the subgraph
-  for(const auto& it: acceptors)
-    subgraph->attach_external(it.second);
 }
 
 //--------------------------------------------------------------------------
@@ -146,14 +137,12 @@ void GraphSource::pre_tick(const TickData& td)
       {
         auto source_file = File::Path{};
         auto check_interval = Time::Duration{};
-        auto acceptor = static_cast<Acceptor *>(nullptr);
-        if (subgraph->requires_update(source_file, check_interval, acceptor))
+        if (subgraph->requires_update(source_file, check_interval))
         {
           update_status = UpdateStatus::updating;
           update_thread.reset(new UpdateThread{updated_subgraph, update_status,
                                                graph->get_engine(),
-                                               source_file, check_interval,
-                                               acceptor});
+                                               source_file, check_interval});
         }
       }
       break;

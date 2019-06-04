@@ -16,16 +16,29 @@ namespace ViGraph { namespace Dataflow {
 void MultiGraph::configure(const File::Directory& base_dir,
                            const XML::Element& config)
 {
-  // Set the optional thread pool
-  if (config.get_attr_bool("thread"))
-  {
-    threaded = true;
-    thread_serialiser.reset(new ThreadSerialiser{});
-  }
+  threaded = config.get_attr_bool("thread");
 
   // Load all <graph> elements in config
   for(const auto& p: config.get_children("graph"))
     add_subgraph(base_dir, *p);
+}
+
+//------------------------------------------------------------------------
+// Set send-up function
+void MultiGraph::set_send_up_function(Graph::SendUpFunction f)
+{
+  // Set send-up function to pass on sub-graph's output, either serialising
+  // for threaded, or pass straight through
+  if (threaded)
+    send_up_function = [this, f](DataPtr data)
+      { MT::Lock lock(send_up_serialisation_mutex); f(data); };
+  else
+    send_up_function = f;
+
+  // Set on any existing graphs
+  MT::RWReadLock lock(mutex);
+  for(const auto it: subgraphs)
+    it->set_send_up_function(send_up_function);
 }
 
 //------------------------------------------------------------------------
@@ -40,6 +53,7 @@ Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
 
   Graph *sub = new Graph(engine, parent);
   sub->configure(base_dir, graph_config);
+  sub->set_send_up_function(send_up_function);
 
   // Lock for write
   MT::RWWriteLock lock(mutex);
@@ -71,24 +85,6 @@ void MultiGraph::calculate_topology(Element::Topology& topo, Element *owner)
   MT::RWReadLock lock(mutex);
   for(const auto it: subgraphs)
     it->calculate_topology(topo, owner);
-}
-
-//------------------------------------------------------------------------
-// Attach an Acceptor to the end of all subgraphs
-void MultiGraph::attach_to_all(Acceptor *a)
-{
-  MT::RWReadLock lock(mutex);
-  if (thread_serialiser)
-  {
-    thread_serialiser->attach(a);
-    for(const auto it: subgraphs)
-      it->attach_external(thread_serialiser.get());
-  }
-  else
-  {
-    for(const auto it: subgraphs)
-      it->attach_external(a);
-  }
 }
 
 //------------------------------------------------------------------------

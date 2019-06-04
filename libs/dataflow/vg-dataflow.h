@@ -670,11 +670,17 @@ class Control: public Element, public ControlImpl
 // Dataflow graph structure
 class Graph
 {
+ public:
+  // Sending data up callback - used to pass data up from unconnected children
+  using SendUpFunction = function<void(DataPtr)>;
+
+ private:
   Engine& engine;
   mutable MT::RWMutex mutex;
   map<string, shared_ptr<Element> > elements;   // By ID
   Graph *parent{nullptr};
   double sample_rate = 0;
+  SendUpFunction send_up_function{nullptr};
 
   // Source
   File::Path source_file;  // empty if inline
@@ -687,7 +693,6 @@ class Graph
   list<Element *> disconnected_acceptors;
   list<Generator *> unbound_generators;
   Element *last_element{nullptr};
-  Acceptor *external_acceptor{nullptr};
 
   // Topological ordering - ensure a precursor is ticked before its
   // dependents - either for base data flow or control flow
@@ -712,6 +717,10 @@ class Graph
     engine(_engine), parent(_parent) {}
 
   //------------------------------------------------------------------------
+  // Set send-up function
+  void set_send_up_function(SendUpFunction f) { send_up_function = f; }
+
+  //------------------------------------------------------------------------
   // Get engine
   Engine& get_engine() const
   { return engine; }
@@ -729,8 +738,7 @@ class Graph
   //------------------------------------------------------------------------
   // Configure from source file, with given update check interval
   void configure(const File::Path& source_file,
-                 const Time::Duration& check_interval,
-                 Acceptor *external_acceptor);
+                 const Time::Duration& check_interval);
 
   //------------------------------------------------------------------------
   // Set an element property
@@ -750,12 +758,6 @@ class Graph
   //   Controls are connected to the last non-control Element
   // Throws runtime_error if it can't connect properly
   void connect(Element *el);
-
-  //------------------------------------------------------------------------
-  // Attach a pure Acceptor to all unbound generators remaining in the graph
-  // Returns whether any were attached
-  // Note, doesn't add to graph ordering and remembers this for reload
-  bool attach_external(Acceptor *a);
 
   //------------------------------------------------------------------------
   // Attach an Acceptor Element to all unbound generators remaining in the graph
@@ -823,6 +825,10 @@ class Graph
                                           const string& type);
 
   //------------------------------------------------------------------------
+  // Send data up to be sent on by owning element in the level above
+  void send_up(DataPtr data);
+
+  //------------------------------------------------------------------------
   // Get type-checked nearest service element (can be nullptr if doesn't
   // exist or wrong type)
   template <class T> shared_ptr<T> find_service(const string& section,
@@ -859,8 +865,7 @@ class Graph
 
   //------------------------------------------------------------------------
   // Does this require an update? (i.e. there is a new config)
-  bool requires_update(File::Path &file, Time::Duration& check_interval,
-                       Acceptor *& external_acceptor);
+  bool requires_update(File::Path &file, Time::Duration& check_interval);
 
   //------------------------------------------------------------------------
   // Shutdown all elements
@@ -893,6 +898,7 @@ class MultiGraph
   map<string, Graph *> subgraphs_by_id;          // Not owning
   int id_serial{0};
   Graph *parent{nullptr};
+  Graph::SendUpFunction send_up_function{nullptr};
 
   // Thread
   class Thread
@@ -956,41 +962,8 @@ class MultiGraph
     ~Thread();
   };
 
-  // Serialiser for accepts when using thread pool
-  class ThreadSerialiser: public Acceptor
-  {
-  private:
-    MT::Mutex mutex;
-    Acceptor *external_acceptor = nullptr;
-
-  public:
-    //----------------------------------------------------------------------
-    // Accept data
-    void accept(DataPtr data)
-    {
-      MT::Lock lock{mutex};
-      if (external_acceptor)
-        external_acceptor->accept(data);
-    }
-
-    //----------------------------------------------------------------------
-    // Attach a pure Acceptor (for testing only)
-    void attach(Acceptor *a)
-    {
-      external_acceptor = a;
-    }
-
-    //----------------------------------------------------------------------
-    // Attach an Acceptor Element
-    void attach(Element *el)
-    {
-      external_acceptor = dynamic_cast<Acceptor *>(el);
-    }
-  };
-
   bool threaded = false;
-
-  unique_ptr<ThreadSerialiser> thread_serialiser;
+  MT::Mutex send_up_serialisation_mutex;
   map<Graph *, Thread> threads;
 
  public:
@@ -998,6 +971,10 @@ class MultiGraph
   // Constructor
   MultiGraph(Engine& _engine, Graph *_parent=nullptr):
     engine(_engine), parent(_parent) {}
+
+  //------------------------------------------------------------------------
+  // Set send-up function
+  void set_send_up_function(Graph::SendUpFunction f);
 
   //------------------------------------------------------------------------
   // Configure with XML
@@ -1020,10 +997,6 @@ class MultiGraph
   //------------------------------------------------------------------------
   // Add a pre-constructed sub-graph
   void add_subgraph(const string& id, Graph *sub);
-
-  //------------------------------------------------------------------------
-  // Attach a pure Acceptor to the end of all subgraphs
-  void attach_to_all(Acceptor *a);
 
   //------------------------------------------------------------------------
   // Enable all subgraphs

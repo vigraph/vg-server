@@ -361,6 +361,62 @@ TEST_F(GraphTest, TestGraphTickOrderingWithPeerSubgraphSenderAndReceiver)
   EXPECT_EQ("G2G1", tick_order);
 }
 
+TEST_F(GraphTest, TestSubgraphExternalConnection)
+{
+  TestGraph graph(engine);
+  auto graph_e = graph.add("test-subgraph", "G");
+  auto sink_e = graph.add("test-sink", "SINK");
+
+  TestGraph *subgraph = new TestGraph(engine);
+  subgraph->add("test-source");
+  subgraph->setup();
+
+  auto sg = graph.get<TestSubgraph>("G");
+  ASSERT_FALSE(!sg);
+  sg->set_subgraph(subgraph);
+
+  graph_e.connect("default", sink_e, "default");
+  graph.setup();
+
+  auto sink = graph.get<TestSink>("SINK");
+  ASSERT_NE(nullptr, sink);
+
+  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}, 1}));
+  EXPECT_EQ(1, sink->received_data);
+}
+
+TEST_F(GraphTest, TestSubgraphExternalConnectionIsRestoredAfterDeleteOfTail)
+{
+  TestGraph graph(engine);
+  auto graph_e = graph.add("test-subgraph", "G");
+  auto sink_e = graph.add("test-sink", "SINK");
+
+  TestGraph *subgraph = new TestGraph(engine);
+  auto source_e = subgraph->add("test-source");
+  auto filter_e = subgraph->add("test-filter", "F").set("value", 2);
+  source_e.connect("default", filter_e, "default");
+  subgraph->setup();
+
+  auto sg = graph.get<TestSubgraph>("G");
+  ASSERT_FALSE(!sg);
+  sg->set_subgraph(subgraph);
+
+  graph_e.connect("default", sink_e, "default");
+  graph.setup();
+
+  // Delete the filter
+  subgraph->delete_item("F");
+
+  // Run without it - output should come direct from source as in previous
+  // test
+  auto sink = graph.get<TestSink>("SINK");
+  ASSERT_NE(nullptr, sink);
+
+  EXPECT_EQ(0, sink->received_data);
+  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}, 1}));
+  EXPECT_EQ(1, sink->received_data);
+}
+
 TEST_F(GraphTest, TestGraphConstructionFromAndOutputToJSON)
 {
   const string& json = R"(

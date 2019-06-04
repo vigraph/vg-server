@@ -44,7 +44,6 @@ private:
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
   void post_tick(const TickData& td) override;
-  void setup() override;
   void enable() override;
   void disable() override;
   JSON::Value get_json(const string& path) const override;
@@ -79,15 +78,9 @@ void SelectorSource::configure(const File::Directory& base_dir,
   retrigger = config.get_attr_bool("retrigger");
   multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
   multigraph->configure(base_dir, config);
-}
 
-//--------------------------------------------------------------------------
-// Setup after configuration
-void SelectorSource::setup()
-{
-  // Connect our acceptor(s) to the subgraph
-  for(const auto& it: acceptors)
-    multigraph->attach_to_all(it.second);
+  // Pass upgoing data straight on as if we were the source
+  multigraph->set_send_up_function([this](DataPtr data) { send(data); });
 }
 
 //--------------------------------------------------------------------------

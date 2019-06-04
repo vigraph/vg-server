@@ -30,14 +30,22 @@ Generator::Generator(const Module *_module, const XML::Element& config):
 // Send data to all acceptors
 void Generator::send(DataPtr data)
 {
-  bool first = true;
-  for(const auto& it: acceptors)
+  if (acceptors.empty())
   {
-    if (first)
-      it.second->accept(data);  // Send original
-    else
-      it.second->accept(clone(data));  // Send a copy
-    first = false;
+    // Try to send data up to level above
+    graph->send_up(data);
+  }
+  else
+  {
+    bool first = true;
+    for(const auto& it: acceptors)
+    {
+      if (first)
+        it.second->accept(data);  // Send original
+      else
+        it.second->accept(clone(data));  // Send a copy
+      first = false;
+    }
   }
 }
 

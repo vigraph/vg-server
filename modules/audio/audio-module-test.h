@@ -38,8 +38,8 @@ public:
 
   void run(int nticks=1)
   {
-    graph.setup();
-    graph.attach_external(&catcher);
+    graph.set_send_up_function([this](DataPtr data)
+                               { catcher.accept(data); });
     test(nticks);
   }
 

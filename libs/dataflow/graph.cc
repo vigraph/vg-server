@@ -29,29 +29,6 @@ void Graph::add(Element *el)
 }
 
 //------------------------------------------------------------------------
-// Attach a pure Acceptor to all unbound generators remaining in the graph
-// Returns whether any were attached
-// Note, doesn't add to graph ordering and remembers this for reload
-bool Graph::attach_external(Acceptor *a)
-{
-  // Find all generators which currently have no acceptors and add this
-  // to them
-  bool done = false;
-  for(const auto& it: elements)
-  {
-    Generator *g = dynamic_cast<Generator *>(it.second.get());
-    if (g && g->acceptors.empty())
-    {
-      g->attach("", a);
-      done = true;
-    }
-  }
-
-  external_acceptor = a;  // Remove once XML gone !!!
-  return done;
-}
-
-//------------------------------------------------------------------------
 // Attach an Acceptor Element to all unbound generators remaining in the graph
 // Returns whether it is an Acceptor and any were attached
 bool Graph::attach(Element *el)
@@ -237,12 +214,10 @@ void Graph::configure(const File::Directory& base_dir,
 //--------------------------------------------------------------------------
 // Configure from source file, with given update check interval
 void Graph::configure(const File::Path& file,
-                      const Time::Duration& check_interval,
-                      Acceptor *acceptor)
+                      const Time::Duration& check_interval)
 {
   source_file = file;
   file_update_check_interval = check_interval;
-  external_acceptor = acceptor;
   configure_from_source_file();
 }
 
@@ -303,9 +278,6 @@ void Graph::configure_internal(const File::Directory& base_dir,
 
   // Final setup and topology calculation
   setup();
-
-  // Add back any external acceptor that was given in a previous incarnation
-  if (external_acceptor) attach_external(external_acceptor);
 }
 
 //------------------------------------------------------------------------
@@ -538,6 +510,13 @@ shared_ptr<Element> Graph::get_nearest_element(const string& section,
 }
 
 //------------------------------------------------------------------------
+// Send data up to be sent on by owning element in the level above
+void Graph::send_up(DataPtr data)
+{
+  if (send_up_function) send_up_function(data);
+}
+
+//------------------------------------------------------------------------
 // Get state as JSON array of elements
 // Path is an XPath-like list of subgraph IDs and leaf element, or empty
 // for entire graph
@@ -713,8 +692,7 @@ void Graph::delete_item(const string& path)
 
 //--------------------------------------------------------------------------
 // Does this require an update? (i.e. there is a new config)
-bool Graph::requires_update(File::Path& file, Time::Duration& check_interval,
-                            Acceptor *& acceptor)
+bool Graph::requires_update(File::Path& file, Time::Duration& check_interval)
 {
   if (source_file.str().empty())
     return false;
@@ -738,7 +716,6 @@ bool Graph::requires_update(File::Path& file, Time::Duration& check_interval,
   source_file_mtime = source_file.last_modified();
   file = source_file;
   check_interval = file_update_check_interval;
-  acceptor = external_acceptor;
   last_file_update_check = now;
   return true;
 }

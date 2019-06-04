@@ -86,7 +86,7 @@ TEST_F(GraphTest, TestTickAll)
   EXPECT_EQ(2, s2->received_data);
 }
 
-TEST_F(GraphTest, TestAttachAll)
+TEST_F(GraphTest, TestDataSendUp)
 {
   auto graph1 = new TestGraph(engine);
   graph1->add("test-source");
@@ -115,10 +115,11 @@ TEST_F(GraphTest, TestAttachAll)
     }
   };
 
-  unique_ptr<Catcher> catcher{new Catcher};
+  shared_ptr<Catcher> catcher{new Catcher};
 
   // Attach catcher to end of all subgraphs
-  mg.attach_to_all(catcher.get());
+  mg.set_send_up_function([catcher](DataPtr data)
+                          { catcher->accept(data); });
 
   // Tick all subgraphs
   mg.tick_all({1, 0, Time::Duration{1}, 1});

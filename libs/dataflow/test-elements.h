@@ -101,8 +101,7 @@ class TestSubgraph: public Source
   // Construct
   TestSubgraph(const Module *module, const XML::Element& config):
     Source(module, config)
-  {
-  }
+  {}
 
   // Configure
   void configure(const File::Directory& base_dir,
@@ -110,19 +109,26 @@ class TestSubgraph: public Source
   {
     subgraph.reset(new Graph(graph->get_engine()));
     subgraph->configure(base_dir, config);
+
+    // Pass upgoing data straight on as if we were the source
+    subgraph->set_send_up_function([this](DataPtr data) { send(data); });
   }
 
-  void set_subgraph(Graph *g) { subgraph.reset(g); }
+  void set_subgraph(Graph *g)
+  {
+    subgraph.reset(g);
+    subgraph->set_send_up_function([this](DataPtr data) { send(data); });
+  }
 
   void calculate_topology(Element::Topology& topo) override
   {
     subgraph->calculate_topology(topo, this);
   }
 
-  void attach(const string&, Dataflow::Acceptor *acceptor) override
-  {
-    subgraph->attach_external(acceptor);
-  }
+  //  void attach(const string&, Dataflow::Acceptor *acceptor) override
+  //{
+    //!!!    subgraph->attach_external(acceptor);
+  //}
 
   void pre_tick(const TickData&) override
   {

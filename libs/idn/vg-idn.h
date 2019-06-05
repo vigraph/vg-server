@@ -183,6 +183,8 @@ struct Message
   void add_data16(uint16_t word)
   { data.push_back(word >> 8); data.push_back(word & 0xff); }
 
+  // Dump to given stream
+  void dump(ostream& out);
 };
 
 //==========================================================================
@@ -209,6 +211,9 @@ struct HelloHeader
 
   // Get length
   size_t length() { return 4; }
+
+  // Dump to given stream
+  void dump(ostream& out);
 };
 
 //==========================================================================

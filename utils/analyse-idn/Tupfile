@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for ViGraph IDN analyser
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-analyse-idn
+TYPE      = exe
+DEPENDS   = vg-idn ot-text ot-net ot-misc
+PLATFORMS = linux
+
+include_rules

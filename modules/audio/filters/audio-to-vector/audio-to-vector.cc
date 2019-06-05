@@ -114,7 +114,7 @@ void AudioToVectorFilter::set_slope(const string& m)
 // Process some data
 void AudioToVectorFilter::accept(FragmentPtr fragment)
 {
-  FramePtr frame{new Frame{0}};
+  FramePtr frame{new Frame{fragment->timestamp}};
   auto c = 0u;
   auto s = 0u;
   const auto channels = fragment->waveforms.size();

@@ -1,0 +1,24 @@
+id ICON "vigraph.ico"
+1 VERSIONINFO
+FILEVERSION     0,5,0,1
+PRODUCTVERSION  0,5,0,1
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", "Packet Ship Technologies Ltd."
+      VALUE "FileDescription", "ViGraph Create Pro"
+      VALUE "FileVersion", "0.5"
+      VALUE "InternalName", "vg-engine"
+      VALUE "LegalCopyright", "Packet Ship Technologies Ltd."
+      VALUE "OriginalFilename", "vg-engine.exe"
+      VALUE "ProductName", "ViGraph Create Pro"
+      VALUE "ProductVersion", "0.5"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END

@@ -11,6 +11,9 @@ DEPENDS  = ot-daemon ot-soap ot-g2d ot-json \
            ot-lib \
            ext-pkg-sdl2
 
+WINDOWS-LFLAGS  = -mwindows
+WINDOWS-DEPENDS = ext-ole32 ext-comctl32 ext-oleaut32 ext-uuid
+
 PACKAGE  = $(NAME)
 VERSION  = 0.5.0
 REVISION = 1~dev1

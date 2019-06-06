@@ -44,6 +44,25 @@ using namespace ViGraph::Engine;
 //--------------------------------------------------------------------------
 // Main
 #if defined(PLATFORM_WINDOWS)
+void webview_callback(struct webview *wv, const char *message)
+{
+  try
+  {
+    auto iss = istringstream{message};
+    auto parser = JSON::Parser(iss);
+    auto value = parser.read_value();
+    if (value["fullscreen"].is_true())
+      webview_set_fullscreen(wv, true);
+    else
+      webview_set_fullscreen(wv, false);
+  }
+  catch (const runtime_error& e)
+  {
+    Log::Error log;
+    log << "Callback from webview failed: " << e.what() << endl;
+  }
+}
+
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
   winsock_initialise();
@@ -55,7 +74,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
   Server server(licence_file);
   auto on_run = []()
     {
-      webview(application_name, application_url, 800, 600, 1);
+      struct webview wv{};
+      wv.title = application_name;
+      wv.url = application_url;
+      wv.width = 800;
+      wv.height = 600;
+      wv.resizable = true;
+      wv.external_invoke_cb = webview_callback;
+      webview_init(&wv);
+      webview_set_fullscreen(&wv, true);
+      while (!webview_loop(&wv, true))
+      {}
     };
   Daemon::WindowsShell shell(server, server_name, server_version, on_run,
                              config_file, config_file_root,

@@ -1,4 +1,6 @@
 vg-engine.exe
+WINDOWS/engine.cfg.xml
+WINDOWS/licence.xml
 ../modules/core/sources/selector/vg-module-core-source-selector.dll modules
 ../modules/core/sources/clone/vg-module-core-source-clone.dll modules
 ../modules/core/sources/graph/vg-module-core-source-graph.dll modules

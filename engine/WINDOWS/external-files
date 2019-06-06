@@ -4,3 +4,14 @@
 /home/shared/tools/windows/openssl/libcrypto-3-x64.dll
 /home/shared/tools/windows/sdl/SDL2.dll
 /home/shared/tools/windows/soundtouch/SoundTouchDLL_x64.dll
+
+../../../ui/web/build/asset-manifest.json web
+../../../ui/web/build/favicon.ico web
+../../../ui/web/build/index.html web
+../../../ui/web/build/manifest.json web
+../../../ui/web/build/service-worker.js web
+../../../ui/web/build/static/css/main.bcb70006.chunk.css web\\static\\css
+../../../ui/web/build/static/js/2.78ad8b93.chunk.js web\\static\\js
+../../../ui/web/build/static/js/main.6c7f44be.chunk.js web\\static\\js
+../../../ui/web/build/static/js/runtime~main.a8a9905a.js web\\static\\js
+

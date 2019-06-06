@@ -79,6 +79,16 @@ bool FileURLHandler::handle_get(const Web::HTTPMessage& request,
     response.code = 404;
     response.reason = "Not found";
   }
+
+  // Set Content-Type according to file suffix (for IE)
+  auto ext = path.extension();
+  if (ext == "js")
+    response.headers.put("Content-Type", "application/js");
+  else if (ext == "html")
+    response.headers.put("Content-Type", "text/html");
+  else if (ext == "css")
+    response.headers.put("Content-Type", "text/css");
+
   return true;
 }
 

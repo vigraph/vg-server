@@ -1,0 +1,68 @@
+<!--
+  Configuration file for ViGraph dataflow engine server (vg-engine)
+  Release version
+
+  Copyright (c) Paul Clark 2017-2019.
+  All rights reserved.
+-->
+
+<engine>
+  <!-- Logging configuration
+
+       'level' is one of:
+
+         0 - Silence
+         1 - Errors only
+         2 - Session start/stop
+         3 - Details & intermediate changes
+         4 - Debug
+         5 - Everything imaginable
+
+       Production builds are only capable of outputting to level 3
+
+       'file' (default /var/log/vigraph/engine.log) gives log file
+
+       'timestamp' gives strftime(3) format for timestamp prefix.
+       with extensions: %*S = seconds+milliseconds, %*L = log level
+       Plain text can also be added.  If empty, nothing is added
+  -->
+  <background daemon="yes" />
+  <log level="2" file="log/engine.log"
+       timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
+
+  <!-- Loadable modules -->
+  <modules>
+    <!-- Search paths, recursive for all .so -->
+    <directory path="modules"/>
+  </modules>
+
+  <!-- Tick frequency (Hz, 25) -->
+  <tick frequency="25"/>
+
+  <!-- Sample rate - note this can be reduced to the tick frequency if there
+       is no audio, to save control plane processing -->
+  <sample rate="44100"/>
+
+  <!-- Built-in web server for UI -->
+  <file-server>
+
+    <!-- HTTP port -->
+    <http port="33380"/>
+
+    <!-- Root directory for files -->
+    <file path="web"/>
+
+  </file-server>
+
+  <!-- HTTP REST interface -->
+  <rest>
+
+    <!-- HTTP port -->
+    <http port="33381"/>
+
+    <!-- Layout file -->
+    <layout file="layout.json"/>
+
+  </rest>
+
+</engine>

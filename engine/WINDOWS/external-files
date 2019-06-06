@@ -10,8 +10,5 @@
 ../../../ui/web/build/index.html web
 ../../../ui/web/build/manifest.json web
 ../../../ui/web/build/service-worker.js web
-../../../ui/web/build/static/css/main.bcb70006.chunk.css web\\static\\css
-../../../ui/web/build/static/js/2.78ad8b93.chunk.js web\\static\\js
-../../../ui/web/build/static/js/main.6c7f44be.chunk.js web\\static\\js
-../../../ui/web/build/static/js/runtime~main.a8a9905a.js web\\static\\js
-
+../../../ui/web/build/static/css/*.css web\\static\\css
+../../../ui/web/build/static/js/*.js web\\static\\js

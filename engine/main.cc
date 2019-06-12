@@ -74,7 +74,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int)
   Server server(licence_file);
   auto on_run = [instance]()
     {
-      cout << "onrun" << endl;
       struct webview wv{};
       wv.title = application_name;
       wv.url = application_url;
@@ -86,7 +85,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int)
       auto icon = LoadIcon(instance, MAKEINTRESOURCE(1));
       if (icon)
       {
-        cout << "Got an icon" << icon << endl;
         SendMessage(wv.priv.hwnd, WM_SETICON, ICON_BIG,
                     reinterpret_cast<LPARAM>(icon));
         SendMessage(wv.priv.hwnd, WM_SETICON, ICON_SMALL,

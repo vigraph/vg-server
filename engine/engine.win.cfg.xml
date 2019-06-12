@@ -27,7 +27,7 @@
        Plain text can also be added.  If empty, nothing is added
   -->
   <background daemon="yes" />
-  <log level="2" file="log/engine.log"
+  <log level="2" file="%LOCALAPPDATA%\ViGraph Create Pro\log\engine.log"
        timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
 
   <!-- Loadable modules -->

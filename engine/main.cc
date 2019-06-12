@@ -65,6 +65,12 @@ void webview_callback(struct webview *wv, const char *message)
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int)
 {
+  auto mh = CreateMutex(nullptr, true, server_name);
+  if (GetLastError() == ERROR_ALREADY_EXISTS)
+  {
+    cerr << "An instance is already running" << endl;
+    return 1;
+  }
   winsock_initialise();
   wchar_t p[MAX_PATH];
   GetModuleFileNameW(nullptr, p, MAX_PATH);
@@ -99,7 +105,10 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int)
   Daemon::WindowsShell shell(server, server_name, server_version, on_run,
                              config_file, config_file_root,
                              default_log_file, pid_file);
-  return shell.start(__argc, __argv);
+  auto result = shell.start(__argc, __argv);
+  ReleaseMutex(mh);
+  CloseHandle(mh);
+  return result;
 }
 #else
 int main(int argc, char **argv)

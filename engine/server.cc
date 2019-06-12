@@ -126,7 +126,8 @@ bool Server::configure()
                 << static_cast<int>(linked.minor) << "."
                 << static_cast<int>(linked.patch) << endl;
   }
-  SDL_Init(SDL_INIT_EVERYTHING);
+  if (SDL_Init(SDL_INIT_EVERYTHING))
+    log.error << "Failed to initialise SDL: " << SDL_GetError() << endl;
 
   XML::XPathProcessor config(config_xml);
 

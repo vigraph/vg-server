@@ -171,7 +171,9 @@ void Server::reconfigure()
   const XML::Element& modules_e = config_xml.get_child("modules");
   for(const auto dir_e: modules_e.get_children("directory"))
   {
-    File::Directory dir(config_file.resolve((*dir_e)["path"]));
+    const auto d = File::Directory{(*dir_e)["path"]};
+    const auto d_exp = d.expand();
+    const auto dir = File::Directory{config_file.resolve(d_exp)};
     if (dir.is_dir())
     {
       log.summary << "Searching directory " << dir << " for modules\n";

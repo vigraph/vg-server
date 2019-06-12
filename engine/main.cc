@@ -63,7 +63,7 @@ void webview_callback(struct webview *wv, const char *message)
   }
 }
 
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int)
 {
   winsock_initialise();
   wchar_t p[MAX_PATH];
@@ -72,8 +72,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
   const auto licence_file = path.dirname() + "\\" + default_licence_file_name;
   const auto config_file = path.dirname() + "\\" + default_config_file_name;
   Server server(licence_file);
-  auto on_run = []()
+  auto on_run = [instance]()
     {
+      cout << "onrun" << endl;
       struct webview wv{};
       wv.title = application_name;
       wv.url = application_url;
@@ -82,6 +83,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
       wv.resizable = true;
       wv.external_invoke_cb = webview_callback;
       webview_init(&wv);
+      auto icon = LoadIcon(instance, MAKEINTRESOURCE(1));
+      if (icon)
+      {
+        cout << "Got an icon" << icon << endl;
+        SendMessage(wv.priv.hwnd, WM_SETICON, ICON_BIG,
+                    reinterpret_cast<LPARAM>(icon));
+        SendMessage(wv.priv.hwnd, WM_SETICON, ICON_SMALL,
+                    reinterpret_cast<LPARAM>(icon));
+        DestroyIcon(icon);
+      }
+      webview_set_color(&wv, 0, 0, 0, 0);
       webview_set_fullscreen(&wv, true);
       while (!webview_loop(&wv, true))
       {}

@@ -112,7 +112,7 @@ void WebSocketDisplayServer::handle_websocket(
 class WebSocketFilter: public FrameSink
 {
 public:
-  int port = 0;
+  int port = 33382;  // !!! Temporary until we can configure from GUI
 
 private:
   unique_ptr<WebSocketDisplayServer> server;
@@ -157,7 +157,7 @@ void WebSocketFilter::accept(FramePtr frame)
 void WebSocketFilter::post_tick(const TickData& td)
 {
   // Send an empty frame to clear screen if none seen since last tick
-  if (!frame_seen)
+  if (!frame_seen && !!server)
   {
     FramePtr frame(new Frame(td.t));
     server->queue(frame);

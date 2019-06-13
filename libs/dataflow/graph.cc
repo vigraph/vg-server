@@ -588,7 +588,7 @@ void Graph::add_json(const string& path, const JSON::Value& value)
       {
         const auto& id = v["id"].as_str();
         if (id.empty()) throw runtime_error("Graph element requires an 'id'");
-        add_json(id, v);
+        add_element_from_json(id, v); // Note no setup(), we do it after config
       }
 
       // Then configure and connect them
@@ -624,32 +624,44 @@ void Graph::add_json(const string& path, const JSON::Value& value)
     }
     else
     {
-      // Check it doesn't already exist
-      if (elements.find(path) != elements.end())
-        throw runtime_error("Element '"+path+"' already exists");
-
-      // Get type
-      if (value.type != JSON::Value::OBJECT)
-        throw runtime_error("Element creation needs a JSON object with 'type'");
-      const auto& type = value["type"].as_str();
-      if (type.empty())
-        throw runtime_error("Element creation needs a 'type'");
-
-      // Create an element here
-      XML::Element config;  // Empty
-      File::Directory base_dir("."); // !!! What should this be?
-      auto el = create_element(type, config, base_dir);
-      el->id = path; // Override default ID
-      elements[path].reset(el);
-
-      // Add to end of topological order for now, it will be updated once
-      // connected
-      topological_order.push_back(el);
-
-      Log::Detail log;
-      log << "Created " << type << " '" << path << "'\n";
+      // Add it and setup as default
+      add_element_from_json(path, value)->setup();
     }
   }
+}
+
+//------------------------------------------------------------------------
+// Add a new element with JSON config
+// Internal only - doesn't do setup()
+// Returns created element
+Element *Graph::add_element_from_json(const string& id,
+                                      const JSON::Value& value)
+{
+  // Check it doesn't already exist
+  if (elements.find(id) != elements.end())
+    throw runtime_error("Element '"+id+"' already exists");
+
+  // Get type
+  if (value.type != JSON::Value::OBJECT)
+    throw runtime_error("Element creation needs a JSON object with 'type'");
+  const auto& type = value["type"].as_str();
+  if (type.empty())
+    throw runtime_error("Element creation needs a 'type'");
+
+  // Create an element
+  XML::Element config;  // Empty
+  File::Directory base_dir("."); // !!! What should this be?
+  auto el = create_element(type, config, base_dir);
+  el->id = id; // Override default ID
+  elements[id].reset(el);
+
+  // Add to end of topological order for now, it will be updated once
+  // connected
+  topological_order.push_back(el);
+
+  Log::Detail log;
+  log << "Created " << type << " '" << id << "'\n";
+  return el;
 }
 
 //------------------------------------------------------------------------

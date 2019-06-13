@@ -709,6 +709,8 @@ class Graph
   void configure_internal(const File::Directory& base_dir,
                           const XML::Element& config);
   void toposort(Element *e, set<Element *>& visited);
+  Element *add_element_from_json(const string& id,
+                                 const JSON::Value& value);
 
  public:
   //------------------------------------------------------------------------

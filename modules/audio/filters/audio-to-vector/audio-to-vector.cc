@@ -211,7 +211,7 @@ Dataflow::Module module
     { "mode", { "Mode to run in", Value::Type::choice,
                 { &AudioToVectorFilter::get_mode,
                   &AudioToVectorFilter::set_mode },
-                { "multi", "combined", "first" }, false } },
+                { "multi", "combined", "first" }, true } },
     { "slope", { "Trigger slope", Value::Type::choice,
                 { &AudioToVectorFilter::get_slope,
                   &AudioToVectorFilter::set_slope },

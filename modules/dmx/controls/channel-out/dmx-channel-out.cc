@@ -102,7 +102,7 @@ Dataflow::Module module
   "dmx",
   {
     { "universe", { "DMX universe", Value::Type::number,
-                    &DMXChannelOutControl::universe, false } },
+                    &DMXChannelOutControl::universe, true } },
     { "channel", { "Control channel", Value::Type::number,
                    &DMXChannelOutControl::channel, true } },
     { "value", { "Channel value", Value::Type::number,

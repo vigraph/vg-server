@@ -16,6 +16,7 @@ using namespace ViGraph::Dataflow;
 
 const auto default_device{"default"};
 const auto default_channels = 2;
+const auto default_buffer_size = 2048;
 
 //==========================================================================
 // SDL sink
@@ -24,6 +25,7 @@ class SDLSink: public FragmentSink
 public:
   string device = default_device;
   int nchannels = default_channels;
+  int buffer_size = default_buffer_size;
 
 private:
   SDL_AudioDeviceID dev = 0;
@@ -108,7 +110,7 @@ void SDLSink::setup()
     want.freq = sample_rate;
     want.format = AUDIO_F32SYS;
     want.channels = nchannels;
-    want.samples = 4096;
+    want.samples = buffer_size;
     want.userdata = this;
     want.callback = ::callback;
 
@@ -185,6 +187,9 @@ Dataflow::Module module
                     &SDLSink::device, false } },
       { "channels", { "Number of channels", Value::Type::number,
                       &SDLSink::nchannels, false } },
+      { "buffer-size", { "Buffer size in samples (must be a power of 2)",
+                         Value::Type::number,
+                         &SDLSink::buffer_size, false } },
   },
   { "Audio" }, // inputs
   {}

@@ -6,6 +6,7 @@ filters/combine/vg-module-audio-filter-combine.so /usr/lib/vigraph/modules
 filters/delay/vg-module-audio-filter-delay.so /usr/lib/vigraph/modules
 filters/filter/vg-module-audio-filter-filter.so /usr/lib/vigraph/modules
 filters/position/vg-module-audio-filter-position.so /usr/lib/vigraph/modules
+filters/reverb/vg-module-audio-filter-reverb.so /usr/lib/vigraph/modules
 filters/shift/vg-module-audio-filter-shift.so /usr/lib/vigraph/modules
 filters/send/vg-module-audio-filter-send.so /usr/lib/vigraph/modules
 sources/linux-alsa-in/vg-module-audio-source-linux-alsa-in.so /usr/lib/vigraph/modules/

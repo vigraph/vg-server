@@ -14,6 +14,7 @@ DEPENDS  = vg-module-audio-filter-linux-alsa-out  \
            vg-module-audio-filter-delay           \
            vg-module-audio-filter-filter          \
            vg-module-audio-filter-position        \
+           vg-module-audio-filter-reverb          \
            vg-module-audio-filter-shift           \
            vg-module-audio-filter-send            \
            vg-module-audio-source-linux-alsa-in   \

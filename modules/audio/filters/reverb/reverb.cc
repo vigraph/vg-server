@@ -1,8 +1,8 @@
 //==========================================================================
 // ViGraph dataflow module:
-//    audio/filters/delay/delay.cc
+//    audio/filters/reverb/reverb.cc
 //
-// Audio delay filter
+// Audio reverb filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -14,11 +14,11 @@ namespace {
 using namespace ViGraph::Dataflow;
 
 //==========================================================================
-// Delay filter
-class DelayFilter: public FragmentFilter
+// Reverb filter
+class ReverbFilter: public FragmentFilter
 {
 private:
-  Time::Duration delay;
+  Time::Duration reverb;
   struct Buffer
   {
     unsigned pos = 0;
@@ -36,23 +36,25 @@ private:
   void notify_target_of(const string& property) override;
 
 public:
+  double feedback = 0.5;
+
   using FragmentFilter::FragmentFilter;
 
   // Getters/Setters
-  double get_time() const { return delay.seconds(); }
+  double get_time() const { return reverb.seconds(); }
   void set_time(double time);
   void on() { enabled = true; }
   void off() { enabled = false; }
 };
 
 //--------------------------------------------------------------------------
-// Set delay time
-void DelayFilter::set_time(double t)
+// Set reverb time
+void ReverbFilter::set_time(double t)
 {
-  delay = Time::Duration{max(t, 0.0)};
+  reverb = Time::Duration{max(t, 0.0)};
   if (!buffer.empty())
   {
-    const auto new_size = static_cast<uint64_t>(delay.seconds() * sample_rate);
+    const auto new_size = static_cast<uint64_t>(reverb.seconds() * sample_rate);
     for (auto& bit: buffer)
     {
       auto& b = bit.second;
@@ -78,9 +80,9 @@ void DelayFilter::set_time(double t)
 
 //--------------------------------------------------------------------------
 // Process some data
-void DelayFilter::accept(FragmentPtr fragment)
+void ReverbFilter::accept(FragmentPtr fragment)
 {
-  if (enabled && delay)
+  if (enabled && reverb)
   {
     for (auto& wit: fragment->waveforms)
     {
@@ -90,28 +92,30 @@ void DelayFilter::accept(FragmentPtr fragment)
       if (bit == buffer.end())
       {
         bit = buffer.emplace(c, Buffer{}).first;
-        bit->second.samples.resize(delay.seconds() * sample_rate);
+        bit->second.samples.resize(reverb.seconds() * sample_rate);
       }
       auto& buf = bit->second;
       for (auto i = 0u; i < w.size(); ++i)
       {
         auto& s = w[i];
         auto& b = buf.samples[buf.pos];
-        swap(b, s);
+        s += feedback * b;
+        b = s;
         if (++buf.pos >= buf.samples.size())
           buf.pos = 0;
       }
     }
     tick_sent = true;
   }
+
   send(fragment);
 }
 
 //--------------------------------------------------------------------------
 // If nothing received but have buffered stuff, send it
-void DelayFilter::post_tick(const TickData& td)
+void ReverbFilter::post_tick(const TickData& td)
 {
-  if (enabled && delay && !tick_sent)
+  if (enabled && reverb && !tick_sent)
   {
     const auto nsamples = td.samples();
 
@@ -127,7 +131,7 @@ void DelayFilter::post_tick(const TickData& td)
 
 //--------------------------------------------------------------------------
 // If recipient of triggers default to disabled
-void DelayFilter::notify_target_of(const string& property)
+void ReverbFilter::notify_target_of(const string& property)
 {
   if (property == "enable")
     enabled = false;
@@ -137,17 +141,19 @@ void DelayFilter::notify_target_of(const string& property)
 // Module definition
 Dataflow::Module module
 {
-  "delay",
-  "Audio delay",
-  "Audio delay",
+  "reverb",
+  "Audio reverb",
+  "Audio reverb",
   "audio",
   {
-    { "time", { "Time to delay for", Value::Type::number,
-                { &DelayFilter::get_time, &DelayFilter::set_time }, true } },
+    { "time", { "Time to reverb for", Value::Type::number,
+                { &ReverbFilter::get_time, &ReverbFilter::set_time }, true } },
+    { "feedback", { "Amount of feedback (0-?)", Value::Type::number,
+                    &ReverbFilter::feedback, true } },
     { "enable", { "Enable the filter", Value::Type::trigger,
-                  &DelayFilter::on, true } },
+                  &ReverbFilter::on, true } },
     { "disable", { "Disable the filter", Value::Type::trigger,
-                   &DelayFilter::off, true } },
+                   &ReverbFilter::off, true } },
   },
   { "Audio" }, // inputs
   { "Audio" }  // outputs
@@ -155,4 +161,4 @@ Dataflow::Module module
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(DelayFilter, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(ReverbFilter, module)

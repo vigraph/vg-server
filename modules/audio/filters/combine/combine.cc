@@ -140,8 +140,8 @@ Dataflow::Module module
                 { &CombineFilter::get_mode, &CombineFilter::set_mode },
                 { "add", "multiply" }, true } }
   },  // no properties
-  { "Audio" }, // inputs
-  { "Audio" }  // outputs
+  { { "Audio", true } }, // multiple inputs
+  { "Audio" }            // single output
 };
 
 } // anon

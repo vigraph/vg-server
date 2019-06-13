@@ -16,7 +16,7 @@ using namespace ViGraph::Dataflow;
 
 const auto default_device{"default"};
 const auto default_channels = 2;
-const auto default_buffer_size = 2048;
+const auto default_buffer_size = 4096;
 
 //==========================================================================
 // SDL sink
@@ -26,6 +26,7 @@ public:
   string device = default_device;
   int nchannels = default_channels;
   int buffer_size = default_buffer_size;
+  bool starved = false;
 
 private:
   SDL_AudioDeviceID dev = 0;
@@ -58,17 +59,28 @@ void SDLSink::callback(Uint8 *stream, int len)
 {
   if (!dev)
     return;
-  if (output_buffer.size() * sizeof(sample_t) >= static_cast<unsigned>(len))
+  if (output_buffer.size() * sizeof(sample_t) >=
+      (starved ? 1.5 : 1.0) * static_cast<unsigned>(len))
   {
+    starved = false;
     copy(&output_buffer[0], &output_buffer[len / sizeof(sample_t)],
          reinterpret_cast<sample_t *>(stream));
     output_buffer.erase(output_buffer.begin(),
                         output_buffer.begin() + len / sizeof(sample_t));
   }
-  else
+  else if (starved)
   {
     // We're on the edge so allow some slack to build up
     fill(&stream[0], &stream[len], 0.0);
+  }
+  else
+  {
+    copy(output_buffer.begin(), output_buffer.end(),
+         reinterpret_cast<sample_t *>(stream));
+    auto done = output_buffer.size() * sizeof(sample_t);
+    output_buffer.clear();
+    fill(&stream[done], &stream[len], 0.0);
+    starved = true;
   }
 }
 

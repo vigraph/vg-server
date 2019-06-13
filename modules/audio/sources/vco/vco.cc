@@ -18,7 +18,7 @@ using namespace ViGraph::Geometry;
 
 //==========================================================================
 // VCO source
-class VCOSource: public Source
+class VCOSource: public FragmentSource
 {
 public:
   // Configuration
@@ -40,7 +40,7 @@ private:
   void notify_target_of(const string& property) override;
 
 public:
-  using Source::Source;
+  using FragmentSource::FragmentSource;
 
   // Getters/Setters
   string get_note() const

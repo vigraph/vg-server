@@ -24,6 +24,12 @@ struct Frame: public Data
 
   Frame(timestamp_t t): timestamp(t) {}
   Frame(const Frame& o): points(o.points), timestamp(o.timestamp) {}
+
+  // Clone frame data
+  Data *clone() override
+  {
+    return new Frame(*this);
+  }
 };
 
 using FramePtr = shared_ptr<Frame>;
@@ -34,12 +40,6 @@ class FrameSource: public Source
 {
  public:
   using Source::Source;
-
-  // Clone frame data
-  DataPtr clone(DataPtr data) override
-  {
-    return DataPtr(new Frame(*data.check<Frame>()));
-  }
 };
 
 class FrameFilter: public Filter
@@ -55,12 +55,6 @@ class FrameFilter: public Filter
   {
     // Call down with type-checked data
     accept(data.check<Frame>());
-  }
-
-  // Clone frame data
-  DataPtr clone(DataPtr data) override
-  {
-    return DataPtr(new Frame(*data.check<Frame>()));
   }
 };
 

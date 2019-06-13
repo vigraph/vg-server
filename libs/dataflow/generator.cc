@@ -37,14 +37,16 @@ void Generator::send(DataPtr data)
   }
   else
   {
-    bool first = true;
-    for(const auto& it: acceptors)
+    // Send copies to all except the last one - preserves non-copy where
+    // there is only one, while keeping them isolated if there are more.
+    auto it = acceptors.begin();
+    while (it != acceptors.end())
     {
-      if (first)
-        it.second->accept(data);  // Send original
+      auto a = (it++)->second;
+      if (it == acceptors.end()) // Last one
+        a->accept(data);         // Send original
       else
-        it.second->accept(clone(data));  // Send a copy
-      first = false;
+        a->accept(DataPtr(data->clone()));  // Send a copy
     }
   }
 }

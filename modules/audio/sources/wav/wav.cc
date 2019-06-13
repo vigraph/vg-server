@@ -18,7 +18,7 @@ using namespace ViGraph::Module::Audio;
 
 //==========================================================================
 // Wav source
-class WavSource: public Source
+class WavSource: public FragmentSource
 {
 public:
   string file;
@@ -39,7 +39,7 @@ private:
   void tick(const TickData& td) override;
 
 public:
-  using Source::Source;
+  using FragmentSource::FragmentSource;
 };
 
 //--------------------------------------------------------------------------

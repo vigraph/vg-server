@@ -89,6 +89,13 @@ struct Fragment: public Data
 
   Fragment(timestamp_t t):
     timestamp(t) {}
+
+  // Clone fragment data
+  Data *clone() override
+  {
+    return new Fragment(*this);
+  }
+
 };
 
 using FragmentPtr = shared_ptr<Fragment>;
@@ -99,12 +106,6 @@ class FragmentSource: public Source
 {
  public:
   using Source::Source;
-
-  // Clone fragment data
-  DataPtr clone(DataPtr data) override
-  {
-    return DataPtr(new Fragment(*data.check<Fragment>()));
-  }
 };
 
 class FragmentFilter: public Filter
@@ -121,13 +122,6 @@ class FragmentFilter: public Filter
     // Call down with type-checked data
     accept(data.check<Fragment>());
   }
-
-  // Clone fragment data
-  DataPtr clone(DataPtr data) override
-  {
-    return DataPtr(new Fragment(*data.check<Fragment>()));
-  }
-
 };
 
 class FragmentSink: public Sink

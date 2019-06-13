@@ -96,7 +96,10 @@ struct TickData
 // Will be specialised to actually hold data in user's subclasses
 struct Data
 {
-  // Minimum to get a vtable
+  // Clone it
+  virtual Data *clone() = 0;
+
+  // Virtual destructor
   virtual ~Data() {}
 };
 
@@ -533,10 +536,6 @@ class Generator: public Element
 
   // Get state as JSON
   JSON::Value get_json(const string& path="") const override;
-
-  // Clone a data pointer - called by send() if it needs to send different
-  // copies to multiple outputs
-  virtual DataPtr clone(DataPtr p) { return p; }
 
   // Set acceptor from JSON
   void set_output_from_json(const string& output_id, const JSON::Value& json);

@@ -20,7 +20,7 @@ const auto default_channels = 1;
 
 //==========================================================================
 // SDL source
-class SDLSource: public Source
+class SDLSource: public FragmentSource
 {
 public:
   string device = default_device;
@@ -37,7 +37,7 @@ private:
   void shutdown() override;
 
 public:
-  using Source::Source;
+  using FragmentSource::FragmentSource;
 
   // Callback for SDL
   void callback(Uint8 *stream, int len);

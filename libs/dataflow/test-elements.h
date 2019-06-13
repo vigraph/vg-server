@@ -17,6 +17,11 @@ struct TestData: public Data
 {
   int n;
   TestData(int _n): n(_n) {}
+
+  Data *clone() override
+  {
+    return new TestData(*this);
+  }
 };
 
 //==========================================================================

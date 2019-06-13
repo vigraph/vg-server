@@ -14,7 +14,7 @@ using namespace ViGraph::Module;
 
 //==========================================================================
 // Figure source
-class ReceiveSource: public Dataflow::Source, public Router::Receiver
+class ReceiveSource: public FragmentSource, public Router::Receiver
 {
   // Source/Element virtuals
   void calculate_topology(Element::Topology& topo) override;
@@ -27,7 +27,7 @@ class ReceiveSource: public Dataflow::Source, public Router::Receiver
 public:
   string tag;
 
-  using Source::Source;
+  using FragmentSource::FragmentSource;
 };
 
 //--------------------------------------------------------------------------

@@ -21,7 +21,7 @@ const auto default_start_threshold = 1000;
 
 //==========================================================================
 // LinuxAudioIn filter
-class LinuxALSAInSource: public Source
+class LinuxALSAInSource: public FragmentSource
 {
 public:
   string device = default_device;
@@ -41,7 +41,7 @@ private:
   void shutdown() override;
 
 public:
-  using Source::Source;
+  using FragmentSource::FragmentSource;
 };
 
 //--------------------------------------------------------------------------

@@ -67,11 +67,8 @@ void SDLSink::callback(Uint8 *stream, int len)
   }
   else
   {
-    copy(output_buffer.begin(), output_buffer.end(),
-         reinterpret_cast<sample_t *>(stream));
-    auto done = output_buffer.size() * sizeof(sample_t);
-    output_buffer.clear();
-    fill(&stream[done], &stream[len], 0.0);
+    // We're on the edge so allow some slack to build up
+    fill(&stream[0], &stream[len], 0.0);
   }
 }
 

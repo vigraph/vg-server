@@ -34,6 +34,7 @@ class GraphSource: public Dataflow::Source
     atomic<UpdateStatus>& status;
 
     Engine& engine;
+    Graph *parent;
 
     File::Path source_file;
     Time::Duration check_interval;
@@ -42,7 +43,7 @@ class GraphSource: public Dataflow::Source
     {
       try
       {
-        subgraph.reset(new Dataflow::Graph(engine));
+        subgraph.reset(new Dataflow::Graph(engine, parent));
         subgraph->configure(source_file, check_interval);
         status = UpdateStatus::updated;
       }
@@ -55,11 +56,11 @@ class GraphSource: public Dataflow::Source
   public:
     UpdateThread(unique_ptr<Dataflow::Graph>& updated_subgraph,
                  atomic<UpdateStatus>& update_status,
-                 Engine& _engine,
+                 Engine& _engine, Graph *_parent,
                  const File::Path& _source_file,
                  const Time::Duration& _check_interval):
       subgraph{updated_subgraph}, status{update_status},
-      engine{_engine},
+      engine{_engine}, parent{_parent},
       source_file{_source_file}, check_interval{_check_interval}
     {
       start();
@@ -141,7 +142,7 @@ void GraphSource::pre_tick(const TickData& td)
         {
           update_status = UpdateStatus::updating;
           update_thread.reset(new UpdateThread{updated_subgraph, update_status,
-                                               graph->get_engine(),
+                                               graph->get_engine(), graph,
                                                source_file, check_interval});
         }
       }

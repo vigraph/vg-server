@@ -28,7 +28,7 @@ private:
 
 public:
   double phase{0};
-  int repeats{1};
+  double repeats{1.0};
 
   // Construct
   PatternFilter(const Dataflow::Module *module, const XML::Element& config);
@@ -114,8 +114,8 @@ void PatternFilter::accept(FramePtr frame)
         if (p.is_blanked()) continue;
 
         // Interpolate the colour map into the points, looping
-        double frac = i/np + phase;
-        double theta = frac*repeats;
+        double frac = i/np;
+        double theta = frac*repeats + phase;
         theta -= floor(theta);
 
         // Theta can become 1.0 due to rounding in the above

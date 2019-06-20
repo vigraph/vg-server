@@ -62,6 +62,11 @@ void MIDIKeyInControl::enable()
                                       ViGraph::MIDI::Event::Type::note_off,
                                       this);
   }
+  else
+  {
+    Log::Error elog;
+    elog << "No MIDI distributor available for " << id << endl;
+  }
 }
 
 //--------------------------------------------------------------------------

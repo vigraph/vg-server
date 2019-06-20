@@ -97,7 +97,7 @@ void MIDIInterface::setup()
   auto distributor = graph->find_service<Distributor>("midi", "distributor");
   if (distributor) distributor->register_event_observer(
                                 ViGraph::MIDI::Event::Direction::out,
-                                channel_offset, channel_offset + 15,
+                                channel_offset + 1, channel_offset + 16,
                                 ViGraph::MIDI::Event::Type::none, this);
 }
 

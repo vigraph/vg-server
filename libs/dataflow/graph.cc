@@ -188,11 +188,9 @@ Element *Graph::create_element(const string& type,
 void Graph::configure(const File::Directory& base_dir,
                       const XML::Element& config)
 {
-  // Get sample rate from local configuration, else fall back on parent's
-  // or engine's
-  const auto sr = config.get_attr_real("sample-rate", 0);
-  sample_rate = sr ? sr :
-                (parent ? parent->sample_rate : engine.get_sample_rate());
+  // Get sample rate from local configuration - if not set here will be
+  // inherited from parent in configure_internal
+  sample_rate = config.get_attr_real("sample-rate");
 
   // Check for load from file - if so, read it and recurse
   const auto& fn = config["file"];
@@ -251,6 +249,10 @@ void Graph::configure_internal(const File::Directory& base_dir,
   unbound_generators.clear();
   topological_order.clear();
   last_element = nullptr;
+
+  // Fix up sample rate if not explicitly set
+  if (!sample_rate)
+    sample_rate = parent ? parent->sample_rate : engine.get_sample_rate();
 
   // Three-phase create/connect to allow forward references
 

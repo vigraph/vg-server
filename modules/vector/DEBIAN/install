@@ -18,5 +18,6 @@ filters/send/vg-module-vector-filter-send.so /usr/lib/vigraph/modules/
 filters/sum/vg-module-vector-filter-sum.so /usr/lib/vigraph/modules/
 filters/combine/vg-module-vector-filter-combine.so /usr/lib/vigraph/modules/
 filters/translate/vg-module-vector-filter-translate.so /usr/lib/vigraph/modules/
+filters/vector-to-rgb/vg-module-vector-filter-vector-to-rgb.so /usr/lib/vigraph/modules/
 filters/websocket/vg-module-vector-filter-websocket.so /usr/lib/vigraph/modules/
 services/collision-detector/vg-module-vector-service-collision-detector.so /usr/lib/vigraph/modules/

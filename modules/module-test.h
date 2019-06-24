@@ -74,6 +74,8 @@ public:
   // Control/Element virtuals
   void set_property(const string& property, const Value& v) override
   { properties[property] = v; sets_called++; }
+  void set_property(const string& property, const vector<double>& v) override
+  { if (!v.empty()) properties[property] = v[0]; sets_called++; }
   Value::Type get_property_type(const string&) override
   { return prop_type; }
 

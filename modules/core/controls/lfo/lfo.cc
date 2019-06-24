@@ -88,16 +88,13 @@ void LFOControl::pre_tick(const TickData& td)
     if (!running) return;
   }
 
-  // Sanity check
-  if (!period) return;
-
   const auto nsamples = td.samples();
   const auto sample_rate = td.sample_rate;
   vector<double> v(nsamples);
 
   for (auto i = 0u; i < nsamples; ++i)
   {
-    theta += 1.0 / (period * sample_rate);
+    if (period) theta += 1.0 / (period * sample_rate);
     if (theta >= 1)
     {
       if (once)
@@ -105,8 +102,11 @@ void LFOControl::pre_tick(const TickData& td)
       theta -= floor(theta);
     }
 
+    auto theta_plus_phase = theta + phase;
+    if (theta_plus_phase >= 1) theta_plus_phase -= floor(theta_plus_phase);
+
     // Get waveform value (-1..1)
-    auto y = Waveform::get_value(waveform, pulse_width, theta);
+    auto y = Waveform::get_value(waveform, pulse_width, theta_plus_phase);
 
     // Get raw (0..1) value
     y = (y + 1) / 2;

@@ -14,7 +14,6 @@ TEST(SmoothTest, TestZeroRCDoesNothing)
   GraphTester tester{loader};
 
   auto lfo = tester.add("lfo").set("wave", "square")
-                              .set("phase", 0.5)
                               .set("period", 100);
   auto smo = tester.add("smooth").set("time", 0);
 
@@ -34,7 +33,6 @@ TEST(SmoothTest, TestSingleRCPeriodIs63Percent)
   GraphTester tester{loader};
 
   auto lfo = tester.add("lfo").set("wave", "square")
-                              .set("phase", 0.5)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 
@@ -54,7 +52,6 @@ TEST(SmoothTest, TestTwoRCPeriodsIs86Percent)
   GraphTester tester{loader};
 
   auto lfo = tester.add("lfo").set("wave", "square")
-                              .set("phase", 0.5)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 
@@ -74,7 +71,6 @@ TEST(SmoothTest, TestThreeRCPeriodsIs95Percent)
   GraphTester tester{loader};
 
   auto lfo = tester.add("lfo").set("wave", "square")
-                              .set("phase", 0.5)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 
@@ -94,7 +90,6 @@ TEST(SmoothTest, TestFourRCPeriodsIs98Percent)
   GraphTester tester{loader};
 
   auto lfo = tester.add("lfo").set("wave", "square")
-                              .set("phase", 0.5)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 
@@ -114,7 +109,6 @@ TEST(SmoothTest, TestFiveRCPeriodsIs99Percent)
   GraphTester tester{loader};
 
   auto lfo = tester.add("lfo").set("wave", "square")
-                              .set("phase", 0.5)
                               .set("period", 100000);
   auto smo = tester.add("smooth").set("time", 10000);
 

@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for Vigraph <trigger-sequence> core control module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-core-control-trigger-sequence
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry \
+          vg-module-core-control-beat
+
+include_rules

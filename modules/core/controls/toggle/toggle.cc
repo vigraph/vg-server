@@ -40,11 +40,13 @@ void ToggleControl::toggle()
   {
     auto& s = multistate[value];
     s = !s;
+    send("output", s);
     trigger(s ? "trigger" : "clear");
   }
   else
   {
     state = !state;
+    send("output", state);
     trigger(state ? "trigger" : "clear");
   }
 }
@@ -72,6 +74,7 @@ Dataflow::Module module
                    &ToggleControl::toggle, true }},
   },
   {
+    { "output", { "Value of toggle", "value", Value::Type::boolean }},
     { "trigger", { "Trigger on", "trigger", Value::Type::trigger }},
     { "clear", { "Clear", "clear", Value::Type::trigger }},
   }

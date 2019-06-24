@@ -264,6 +264,9 @@ struct Module
         get_b(static_cast<MemberGetBool>(_get)),
         set_b(static_cast<MemberSetBool>(_set)) {}
       template<typename T>
+      Member(void (T::*_set)(bool)):
+        set_b(static_cast<MemberSetBool>(_set)) {}
+      template<typename T>
       Member(int (T::*_get)() const, void (T::*_set)(int)):
         get_i(static_cast<MemberGetInt>(_get)),
         set_i(static_cast<MemberSetInt>(_set)) {}

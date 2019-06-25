@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: vector/filters/vector-to-rgb/vector-to-rgb.cc
+// ViGraph dataflow module: vector/sinks/extract-rgb/extract-rgb.cc
 //
-// Vector to RGB filter - extracts colour from first lit point, allowing
+// Vector to RGB sink - extracts colour from first lit point, allowing
 // use of vector colour operations with (e.g.) DMX
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
@@ -12,8 +12,8 @@
 namespace {
 
 //==========================================================================
-// VectorToRGB filter
-class VectorToRGBFilter: public FrameFilter, public Dataflow::ControlImpl
+// ExtractRGB sink
+class ExtractRGBSink: public FrameFilter, public Dataflow::ControlImpl
 {
 private:
   // Filter/Element virtuals
@@ -26,7 +26,7 @@ private:
 
 public:
   // Construct
-  VectorToRGBFilter(const Dataflow::Module *module,
+  ExtractRGBSink(const Dataflow::Module *module,
                         const XML::Element& config):
     FrameFilter(module, config),
     ControlImpl(module, config, true)
@@ -35,7 +35,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Process some data
-void VectorToRGBFilter::accept(FramePtr frame)
+void ExtractRGBSink::accept(FramePtr frame)
 {
   for(const auto& p: frame->points)
   {
@@ -58,8 +58,8 @@ void VectorToRGBFilter::accept(FramePtr frame)
 // Module definition
 Dataflow::Module module
 {
-  "vector-to-rgb",
-  "Vector to RGB",
+  "extract-rgb",
+  "Extract RGB colour",
   "Extracts colour of first point of a vector as separate R,G,B values",
   "vector",
   {  },
@@ -74,4 +74,4 @@ Dataflow::Module module
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(VectorToRGBFilter, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(ExtractRGBSink, module)

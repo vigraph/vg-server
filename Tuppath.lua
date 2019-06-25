@@ -32,6 +32,8 @@ function get_dependency_path(name)
     return 'modules/vector/filters/' .. string.sub(name, 25)
   elseif string.sub(name, 1, 25) == 'vg-module-vector-service-' then
     return 'modules/vector/services/' .. string.sub(name, 26)
+  elseif string.sub(name, 1, 22) == 'vg-module-vector-sink-' then
+    return 'modules/vector/sinks/' .. string.sub(name, 23)
 
   elseif string.sub(name, 1, 21) == 'vg-module-ui-control-' then
     return 'modules/ui/controls/' .. string.sub(name, 22)

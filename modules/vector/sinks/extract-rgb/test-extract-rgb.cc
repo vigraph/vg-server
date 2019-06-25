@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: vector/filters/test-vector-to-rgb.cc
+// ViGraph dataflow module: vector/sinks/test-extract-rgb.cc
 //
-// Tests for <vector-to-rgb> filter
+// Tests for <extract-rgb> sink
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -9,13 +9,13 @@
 #include "../../vector-module-test.h"
 ModuleLoader loader;
 
-TEST(CollisionDetectTest, TestWithBlankedGivesBlack)
+TEST(ExtractRGBTest, TestWithBlankedGivesBlack)
 {
   GraphTester tester{loader};
 
   auto svg = tester.add("svg").set("path", "M 0 0 L 1 0");
   auto colour = tester.add("colour");
-  auto v2rgb = tester.add("vector-to-rgb");
+  auto v2rgb = tester.add("extract-rgb");
 
   svg.connect("default", colour, "default");
   colour.connect("default", v2rgb, "default");
@@ -41,7 +41,7 @@ TEST(CollisionDetectTest, TestWithBlankedGivesBlack)
   EXPECT_EQ(0, b.d);
 }
 
-TEST(CollisionDetectTest, TestWithColourExtractsColour)
+TEST(ExtractRGBTest, TestWithColourExtractsColour)
 {
   GraphTester tester{loader};
 
@@ -50,7 +50,7 @@ TEST(CollisionDetectTest, TestWithColourExtractsColour)
     .set("r", 0.1)
     .set("g", 0.2)
     .set("b", 0.3);
-  auto v2rgb = tester.add("vector-to-rgb");
+  auto v2rgb = tester.add("extract-rgb");
 
   svg.connect("default", colour, "default");
   colour.connect("default", v2rgb, "default");
@@ -86,8 +86,8 @@ int main(int argc, char **argv)
 
   ::testing::InitGoogleTest(&argc, argv);
   loader.load("../../sources/svg/vg-module-vector-source-svg.so");
-  loader.load("../colour/vg-module-vector-filter-colour.so");
-  loader.load("./vg-module-vector-filter-vector-to-rgb.so");
+  loader.load("../../filters/colour/vg-module-vector-filter-colour.so");
+  loader.load("./vg-module-vector-sink-extract-rgb.so");
   loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

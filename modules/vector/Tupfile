@@ -26,9 +26,9 @@ DEPENDS  = vg-module-vector-source-test \
            vg-module-vector-filter-perspective \
            vg-module-vector-filter-websocket \
            vg-module-vector-filter-collision-detect \
-           vg-module-vector-filter-vector-to-rgb \
            vg-module-vector-filter-send \
-           vg-module-vector-service-collision-detector
+           vg-module-vector-service-collision-detector \
+           vg-module-vector-sink-extract-rgb
 
 
 PACKAGE  = $(NAME)

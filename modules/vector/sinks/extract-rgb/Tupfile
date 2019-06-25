@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph vector-to-rgb filter module
+# Tupfile for Vigraph extract-rgb filter module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-vector-filter-vector-to-rgb
+NAME    = vg-module-vector-sink-extract-rgb
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-lib \
           vg-module-vector-source-svg vg-module-vector-filter-colour

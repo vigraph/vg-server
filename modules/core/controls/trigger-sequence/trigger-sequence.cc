@@ -15,6 +15,7 @@ namespace {
 // Trigger Sequence control
 class TriggerSequenceControl: public Dataflow::Control
 {
+  vector<bool> original_values;
   vector<bool> values;
   unsigned index = 0;
 
@@ -35,6 +36,7 @@ public:
   void set_index(int index);
   void set_entry_value(bool value);
   void next();
+  void reset();
 };
 
 //--------------------------------------------------------------------------
@@ -56,6 +58,7 @@ TriggerSequenceControl::TriggerSequenceControl(const Module *module,
     for (const auto& el: els)
       values.push_back(Text::stob(el->content));
   }
+  original_values = values;
 }
 
 //--------------------------------------------------------------------------
@@ -87,6 +90,7 @@ void TriggerSequenceControl::set_values(const JSON::Value& json)
     else if (o.type == JSON::Value::FALSE_)
       values.push_back(false);
   }
+  original_values = values;
 }
 
 //--------------------------------------------------------------------------
@@ -135,6 +139,14 @@ void TriggerSequenceControl::next()
 }
 
 //--------------------------------------------------------------------------
+// Reset
+void TriggerSequenceControl::reset()
+{
+  values = original_values;
+  index = 0;
+}
+
+//--------------------------------------------------------------------------
 // Module definition
 Dataflow::Module module
 {
@@ -160,6 +172,8 @@ Dataflow::Module module
                 &TriggerSequenceControl::loop, true } },
     { "next", { "Trigger move to next entry", Value::Type::trigger,
                 &TriggerSequenceControl::next, true } },
+    { "reset", { "Reset to original sequence", Value::Type::trigger,
+                 &TriggerSequenceControl::reset, true } },
   },
   {
     { "output", { "Trigger output", "trigger", Value::Type::trigger }},

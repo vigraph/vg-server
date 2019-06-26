@@ -30,6 +30,7 @@ public:
   using Control::Control;
 
   void toggle();
+  void reset();
 };
 
 //--------------------------------------------------------------------------
@@ -48,6 +49,27 @@ void ToggleControl::toggle()
     state = !state;
     send("output", state);
     trigger(state ? "trigger" : "clear");
+  }
+}
+
+//--------------------------------------------------------------------------
+// Reset toggle
+void ToggleControl::reset()
+{
+  if (multi)
+  {
+    // Clearing the state is all we can do, since we don't have knowledge of
+    // how to set things up for each value
+    multistate.clear();
+  }
+  else
+  {
+    if (state)
+    {
+      state = false;
+      send("output", state);
+      trigger("clear");
+    }
   }
 }
 
@@ -72,6 +94,8 @@ Dataflow::Module module
                  &ToggleControl::value, true }},
     { "toggle", { "Trigger toggle", Value::Type::trigger,
                    &ToggleControl::toggle, true }},
+    { "reset", { "Reset toggle", Value::Type::trigger,
+                  &ToggleControl::reset, true }},
   },
   {
     { "output", { "Value of toggle", "value", Value::Type::boolean }},

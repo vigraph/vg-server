@@ -79,19 +79,36 @@ void MIDIInterface::setup()
 
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
 
-  auto status = snd_rawmidi_open(&midi_in, &midi_out, device.c_str(),
-                                 SND_RAWMIDI_SYNC | SND_RAWMIDI_NONBLOCK);
-  if (status)
+  auto in_status = snd_rawmidi_open(&midi_in, nullptr, device.c_str(),
+                                    SND_RAWMIDI_SYNC | SND_RAWMIDI_NONBLOCK);
+  auto out_status = snd_rawmidi_open(nullptr, &midi_out, device.c_str(),
+                                     SND_RAWMIDI_SYNC | SND_RAWMIDI_NONBLOCK);
+  if (in_status && out_status)
   {
-    log.error << "Can't open MIDI input: " << snd_strerror(status) << endl;
+    log.error << "Can't open MIDI device: in - " << snd_strerror(in_status)
+              << " out - " << snd_strerror(out_status)
+              << endl;
     return;
   }
+  else if (out_status && !in_status)
+  {
+    log.summary << "Opened for input only (out: " << snd_strerror(out_status)
+                << endl;
+  }
+  else if (in_status && !out_status)
+  {
+    log.summary << "Opened for output only (in: " << snd_strerror(in_status)
+                << endl;
+  }
 
-  // Clear anything buffered
-  snd_rawmidi_drop(midi_in);
+  if (midi_in)
+  {
+    // Clear anything buffered
+    snd_rawmidi_drop(midi_in);
 
-  thread.reset(new MIDIInThread(*this));
-  running = true;
+    thread.reset(new MIDIInThread(*this));
+    running = true;
+  }
 
   // Output
   auto distributor = graph->find_service<Distributor>("midi", "distributor");
@@ -157,12 +174,15 @@ void MIDIInterface::pre_tick(const TickData&)
 // Handle event
 void MIDIInterface::handle(const ViGraph::MIDI::Event& event)
 {
-  ViGraph::MIDI::Event e = event;
-  e.channel -= channel_offset;
-  vector<uint8_t> data;
-  auto writer = ViGraph::MIDI::Writer{data};
-  writer.write(event);
-  snd_rawmidi_write(midi_out, &data[0], data.size());
+  if (midi_out)
+  {
+    ViGraph::MIDI::Event e = event;
+    e.channel -= channel_offset;
+    vector<uint8_t> data;
+    auto writer = ViGraph::MIDI::Writer{data};
+    writer.write(event);
+    snd_rawmidi_write(midi_out, &data[0], data.size());
+  }
 }
 
 //--------------------------------------------------------------------------

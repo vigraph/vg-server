@@ -20,4 +20,4 @@ filters/combine/vg-module-vector-filter-combine.so /usr/lib/vigraph/modules/
 filters/translate/vg-module-vector-filter-translate.so /usr/lib/vigraph/modules/
 filters/websocket/vg-module-vector-filter-websocket.so /usr/lib/vigraph/modules/
 services/collision-detector/vg-module-vector-service-collision-detector.so /usr/lib/vigraph/modules/
-sinks/extract-rgb/vg-module-vector-sinks/extract-rgb.so /usr/lib/vigraph/modules/
+sinks/extract-rgb/vg-module-vector-sink-extract-rgb.so /usr/lib/vigraph/modules/

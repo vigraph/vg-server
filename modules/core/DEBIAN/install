@@ -15,7 +15,9 @@ controls/smooth/vg-module-core-control-smooth.so /usr/lib/vigraph/modules/
 controls/trigger/vg-module-core-control-trigger.so /usr/lib/vigraph/modules/
 controls/add/vg-module-core-control-add.so /usr/lib/vigraph/modules/
 controls/multiply/vg-module-core-control-multiply.so /usr/lib/vigraph/modules/
+controls/scale/vg-module-core-control-scale.so /usr/lib/vigraph/modules/
 controls/sequence/vg-module-core-control-sequence.so /usr/lib/vigraph/modules/
+controls/trigger-sequence/vg-module-core-control-trigger-sequence.so /usr/lib/vigraph/modules/
 controls/toggle/vg-module-core-control-toggle.so /usr/lib/vigraph/modules/
 controls/wait/vg-module-core-control-wait.so /usr/lib/vigraph/modules/
 controls/wrap/vg-module-core-control-wrap.so /usr/lib/vigraph/modules/

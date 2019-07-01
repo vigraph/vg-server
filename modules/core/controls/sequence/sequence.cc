@@ -30,6 +30,7 @@ public:
   int get_index() const { return index; }
   void set_index(int index);
   void next();
+  void prev();
 };
 
 //--------------------------------------------------------------------------
@@ -100,6 +101,21 @@ void SequenceControl::next()
 }
 
 //--------------------------------------------------------------------------
+// Move to previous entry
+void SequenceControl::prev()
+{
+  if (--index >= values.size())
+  {
+    if (loop)
+      index = values.size() - 1;
+    else
+      index = 0;
+  }
+
+  send({values[index]});
+}
+
+//--------------------------------------------------------------------------
 // Module definition
 Dataflow::Module module
 {
@@ -118,6 +134,8 @@ Dataflow::Module module
                 &SequenceControl::loop, true } },
     { "next", { "Trigger move to next entry", Value::Type::trigger,
                 &SequenceControl::next, true } },
+    { "prev", { "Trigger move to previous entry", Value::Type::trigger,
+                &SequenceControl::prev, true } },
   },
   { { "output", { "Value output", "value", Value::Type::text }}}
 };

@@ -26,8 +26,10 @@ DEPENDS  = vg-module-core-source-selector \
            vg-module-core-control-random \
            vg-module-core-control-beat \
            vg-module-core-control-round \
+           vg-module-core-control-scale \
            vg-module-core-control-smooth \
            vg-module-core-control-sequence \
+           vg-module-core-control-trigger-sequence \
            vg-module-core-control-toggle \
            vg-module-core-control-log \
            vg-module-core-control-window \

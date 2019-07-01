@@ -87,7 +87,8 @@ void MIDIControlInControl::handle(const ViGraph::MIDI::Event& event)
     Log::Detail log;
     log << "MIDI " << (int)event.channel << ": control " << (int)event.key
         << " -> " << event.value << endl;
-    send(Dataflow::Value(scale*event.value/127.0+offset));
+    send("output", Dataflow::Value(scale*event.value/127.0+offset));
+    trigger(event.value ? "trigger" : "clear");
   }
 }
 
@@ -121,7 +122,11 @@ Dataflow::Module module
     { "disable", { "Disable the control", Value::Type::trigger,
                    &MIDIControlInControl::disable, true } },
   },
-  { { "output", { "Control value", "value", Value::Type::number }}}
+  {
+    { "output", { "Control value", "value", Value::Type::number }},
+    { "trigger", { "Trigger", "trigger", Value::Type::trigger }},
+    { "clear", { "Clear", "clear", Value::Type::trigger }},
+  }
 };
 
 } // anon

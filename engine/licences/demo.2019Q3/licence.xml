@@ -1,0 +1,26 @@
+<licence xmlns="http://www.packetship.com/ns">
+  <description>
+    <issuer>ViGraph</issuer>
+    <licensee>Engine Demonstrator</licensee>
+    <purpose>Demonstration and evaluation, not for production use</purpose>
+  </description>
+  <window begin="20190701T000000" end="20190930T235959"/>
+  <computers>
+    <computer mac="any"/>
+  </computers>
+  <components>
+    <vg-engine/>
+  </components>
+  <signature>
+    hDPS973/2Sr0jnI6Dt27dmF4Sw6mnkAcsypUUEs5dTQxSLn7hzOhaupZBNSCmZzDeGK5uDq8
+    uuWf8Zh41xiv0Anm+uiY3axWZQl3vpfgiR+patK3XF1gGU9IJhGHR6UF9YytCsgghuTEahlw
+    mMaMTk5nUhRXVLKewiPnXLwfepFqSRG0XkZwK1Y4IgoXreZO3Tll/zaPYEuV0qcVXKu3Xt/V
+    VFQc2RoPW3vr22g43vLUUmuILMGCYipEYrHkw9avwomzP3LAd8+Q1ssPBW8u3lu9aPwHLMi+
+    S/Tivi7V6ZLj9c15jBVjV2Un4K/U1YD4i3ROVplLgs9pybmi+C4BGr10w6FzgeugzAQ/6a31
+    gtdWQJsKEo4lzfWQwuAPX27DuChdGR6WLIW4VI0vqR06Y1f2ObTfc9YziT0gUP1g4WHKYkwy
+    7803JkoHx+pw4LZs87BWJKOW1A5yXpthcy6WP88hng3xfdc5KqBuExlloMucrDAaD49ubKR5
+    p2lAhLr26HffeL9tBKq8TetVLey6FkUdIk8MeyPqAp/hoByiaxToK5MbEUEUDBqULA2e+84C
+    UujE3Z11+k337cMkv7uAWH7sgMERmmJ0n4btf8oAPm2lw9m2qAsomkV9c/1eZglq4U0KDESL
+    7NCY0AOQU40eRnp/trpqBiiISgO8LRq0k8U=
+  </signature>
+</licence>

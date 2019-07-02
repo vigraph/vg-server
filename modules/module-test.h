@@ -42,7 +42,7 @@ public:
     ASSERT_TRUE(libs.find(path) == libs.end())
       << "Library already loaded: " << path << endl;
     auto lib = make_unique<ObTools::Lib::Library>(path);
-    ASSERT_TRUE(*lib) << "Can't load " << path << endl;
+    ASSERT_FALSE(!*lib) << "Can't load " << path << endl;
     auto fn = lib->get_function<vg_init_fn_t *>("vg_init");
     ASSERT_TRUE(fn);
     ASSERT_TRUE(fn(Log::logger, engine));

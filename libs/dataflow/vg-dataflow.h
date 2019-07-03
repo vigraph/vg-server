@@ -713,6 +713,7 @@ class Graph
   void toposort(Element *e, set<Element *>& visited);
   Element *add_element_from_json(const string& id,
                                  const JSON::Value& value);
+  File::Directory get_dir() const;
 
  public:
   //------------------------------------------------------------------------

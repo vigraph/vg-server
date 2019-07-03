@@ -282,11 +282,23 @@ void Graph::configure_internal(const File::Directory& base_dir,
   setup();
 }
 
+//--------------------------------------------------------------------------
+// Get the directory we're in
+File::Directory Graph::get_dir() const
+{
+  if (!!source_file)
+    return source_file.dir();
+  else if (parent)
+    return parent->get_dir();
+  else
+    return {"."};
+}
+
 //------------------------------------------------------------------------
 // Final setup for elements and calculate topology
 void Graph::setup()
 {
-  File::Directory base_dir(".");  // !!! Remove once this dies!
+  auto base_dir = get_dir();  // !!! Remove once this dies!
   for(const auto& it: elements)
     it.second->setup(base_dir);
 

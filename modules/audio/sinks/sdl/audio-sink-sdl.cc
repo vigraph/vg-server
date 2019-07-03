@@ -30,11 +30,14 @@ public:
 
 private:
   SDL_AudioDeviceID dev = 0;
+  unsigned long tick_samples_required = 0;
   vector<sample_t> output_buffer;
 
   // Source/Element virtuals
   void setup() override;
+  void pre_tick(const TickData& td) override;
   void accept(FragmentPtr fragment) override;
+  void post_tick(const TickData& td) override;
   void shutdown() override;
 
 public:
@@ -59,6 +62,7 @@ void SDLSink::callback(Uint8 *stream, int len)
 {
   if (!dev)
     return;
+
   if (output_buffer.size() * sizeof(sample_t) >=
       (starved ? 1.5 : 1.0) * static_cast<unsigned>(len))
   {
@@ -75,11 +79,12 @@ void SDLSink::callback(Uint8 *stream, int len)
   }
   else
   {
+    auto have = output_buffer.size() * sizeof(sample_t);
+    auto hstart = len - have;
+    fill(&stream[0], &stream[hstart], 0);
     copy(output_buffer.begin(), output_buffer.end(),
-         reinterpret_cast<sample_t *>(stream));
-    auto done = output_buffer.size() * sizeof(sample_t);
+         reinterpret_cast<sample_t *>(stream + hstart));
     output_buffer.clear();
-    fill(&stream[done], &stream[len], 0.0);
     starved = true;
   }
 }
@@ -159,6 +164,7 @@ void SDLSink::accept(FragmentPtr fragment)
   auto num_samples = vector<sample_t>::size_type{};
   for (auto& waveform: waveforms)
     num_samples = max(waveform.second.size(), num_samples);
+  tick_samples_required -= num_samples;
 
   if (dev)
   {
@@ -181,6 +187,24 @@ void SDLSink::accept(FragmentPtr fragment)
     }
     SDL_UnlockAudioDevice(dev);
   }
+}
+
+//--------------------------------------------------------------------------
+// Record how many samples we need for tick
+void SDLSink::pre_tick(const TickData &td)
+{
+  tick_samples_required = td.samples();
+}
+
+//--------------------------------------------------------------------------
+// If tick has not been completely fulfilled, fill in with empty data to avoid
+// underruns
+void SDLSink::post_tick(const TickData &)
+{
+  if (tick_samples_required)
+    output_buffer.insert(output_buffer.end(),
+                         nchannels * tick_samples_required, 0);
+  tick_samples_required = 0;
 }
 
 //--------------------------------------------------------------------------

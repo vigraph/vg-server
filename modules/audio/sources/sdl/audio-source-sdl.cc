@@ -83,6 +83,13 @@ void SDLSource::setup()
                 << static_cast<int>(linked.patch) << endl;
   }
 
+  if (SDL_InitSubSystem(SDL_INIT_AUDIO))
+  {
+    log.error << "Failed to start SDL audio subsystem: "
+              << SDL_GetError() << endl;
+    return;
+  }
+
   try
   {
     log.summary << "Opening audio capture on SDL device '" << device << "'\n";
@@ -121,6 +128,7 @@ void SDLSource::setup()
   catch (const runtime_error& e)
   {
     log.error << "Can't open SDL audio capture: " << e.what() << endl;
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
   }
 }
 
@@ -158,6 +166,7 @@ void SDLSource::shutdown()
 {
   if (dev) SDL_CloseAudioDevice(dev);
   dev = 0;
+  SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 //--------------------------------------------------------------------------

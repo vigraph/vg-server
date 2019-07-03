@@ -107,6 +107,13 @@ void SDLSink::setup()
                 << static_cast<int>(linked.patch) << endl;
   }
 
+  if (SDL_InitSubSystem(SDL_INIT_AUDIO))
+  {
+    log.error << "Failed to start SDL audio subsystem: "
+              << SDL_GetError() << endl;
+    return;
+  }
+
   log.summary << "Opening audio output on SDL device '" << device << "'\n";
   log.detail << "SDL: " << nchannels << " channels\n";
 
@@ -138,6 +145,7 @@ void SDLSink::setup()
   catch (const runtime_error& e)
   {
     log.error << "Can't open SDL audio output: " << e.what() << endl;
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
   }
 }
 
@@ -181,6 +189,7 @@ void SDLSink::shutdown()
 {
   if (dev) SDL_CloseAudioDevice(dev);
   dev = 0;
+  SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 //--------------------------------------------------------------------------

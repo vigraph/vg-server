@@ -29,6 +29,12 @@ public:
 
 private:
   map<Speaker, vector<sample_t>> waveforms;
+  enum State
+  {
+    disabled,
+    enabled,
+    completing
+  } state = State::enabled;
 
   //------------------------------------------------------------------------
   // Load a WAV into waveforms
@@ -37,9 +43,22 @@ private:
   // Source/Element virtuals
   void setup(const File::Directory& base_dir) override;
   void tick(const TickData& td) override;
+  void notify_target_of(const string& property) override;
 
 public:
   using FragmentSource::FragmentSource;
+
+  void start()
+  {
+    if (state != State::enabled)
+    {
+      if (state != State::completing)
+        pos = 0.0;
+      state = State::enabled;
+    }
+    pos = 0;
+  }
+  void stop() { if (state == State::enabled) state = State::completing; }
 };
 
 //--------------------------------------------------------------------------
@@ -140,47 +159,67 @@ bool WavSource::load_wav(const File::Path& f, map<Speaker, vector<sample_t>>& w)
 }
 
 //--------------------------------------------------------------------------
+// If recipient of on/offs default to disabled
+void WavSource::notify_target_of(const string& property)
+{
+  if (property == "trigger")
+    state = State::disabled;
+}
+
+//--------------------------------------------------------------------------
 // Generate a fragment
 void WavSource::tick(const TickData& td)
 {
   if (waveforms.empty())
     return;
 
-  const auto step = frequency ? (frequency / base_frequency) : 1.0;
-  const auto spos = pos;
-
-  const auto nsamples = td.samples();
-  auto fragment = new Fragment(td.t);
-  for (auto& cit: waveforms)
+  if (state == State::enabled || state == State::completing)
   {
-    const auto& samples = cit.second;
-    auto& waveform = fragment->waveforms[cit.first];
-    waveform.reserve(nsamples);
+    const auto step = frequency ? (frequency / base_frequency) : 1.0;
+    const auto spos = pos;
 
-    pos = spos;
-    for (auto i = 0u; i < nsamples; ++i, pos += step)
+    const auto nsamples = td.samples();
+    auto fragment = new Fragment(td.t);
+    bool complete = false;
+    for (auto& cit: waveforms)
     {
-      auto p = pos;
-      if (loop && p >= samples.size())
-        p = fmod(p, samples.size());
+      const auto& samples = cit.second;
+      auto& waveform = fragment->waveforms[cit.first];
+      waveform.reserve(nsamples);
 
-      if (p >= samples.size())
+      pos = spos;
+      for (auto i = 0u; i < nsamples; ++i, pos += step)
       {
-        waveform.push_back(0.0); // Pad with nothing
-        continue;
+        auto p = pos;
+        if (p >= samples.size())
+        {
+          if (!loop || state == State::completing)
+          {
+            waveform.push_back(0.0); // Pad with nothing
+            complete = true;
+            continue;
+          }
+          p = fmod(p, samples.size());
+        }
+
+        auto fs = samples[p];
+        auto cs = p + 1 >= samples.size()
+                  ? (loop ? samples[0] : 0.0)
+                  : samples[p + 1];
+        auto is = fs + ((cs - fs) * fmod(p, 1));
+        waveform.push_back(is);
       }
-
-      auto fs = samples[p];
-      auto cs = p + 1 > samples.size()
-                ? (loop ? samples[0] : 0.0)
-                : samples[p + 1];
-      auto is = fs + ((cs - fs) * fmod(p, 1));
-      waveform.push_back(is);
     }
-  }
 
-  // Send to output
-  send(fragment);
+    if (complete)
+    {
+      state = State::disabled;
+      pos = 0;
+    }
+
+    // Send to output
+    send(fragment);
+  }
 }
 
 Dataflow::Module module
@@ -198,6 +237,10 @@ Dataflow::Module module
                      &WavSource::base_frequency, false } },
     { "freq",  { "Frequency to play at", Value::Type::number,
                  &WavSource::frequency, true } },
+    { "trigger", { "Trigger playing", Value::Type::trigger,
+                   &WavSource::start, true } },
+    { "clear", { "Stop playing at end of current loop", Value::Type::trigger,
+                   &WavSource::stop, true } },
   },
   {},  // no inputs
   { "Audio" }  // outputs

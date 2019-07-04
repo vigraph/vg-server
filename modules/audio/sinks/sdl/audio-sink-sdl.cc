@@ -202,8 +202,12 @@ void SDLSink::pre_tick(const TickData &td)
 void SDLSink::post_tick(const TickData &)
 {
   if (tick_samples_required)
+  {
+    SDL_LockAudioDevice(dev);
     output_buffer.insert(output_buffer.end(),
                          nchannels * tick_samples_required, 0);
+    SDL_UnlockAudioDevice(dev);
+  }
   tick_samples_required = 0;
 }
 

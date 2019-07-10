@@ -11,22 +11,6 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Constructor - get acceptors as well as Element stuff
-// Attribute acceptor or sub-elements <acceptor id>
-Generator::Generator(const Module *_module, const XML::Element& config):
-  Element(_module, config)
-{
-  const auto& id = config["acceptor"];
-  if (!id.empty()) attach(id);
-
-  for(const auto a_e: config.get_children("acceptor"))
-  {
-    const auto& id = (*a_e)["id"];
-    if (!id.empty()) attach(id);
-  }
-}
-
-//------------------------------------------------------------------------
 // Send data to all acceptors
 void Generator::send(DataPtr data)
 {

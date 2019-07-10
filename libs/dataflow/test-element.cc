@@ -22,7 +22,7 @@ extern Module test_module;
 class TestElement: public Element
 {
  public:
-  TestElement(const XML::Element& cfg): Element(&test_module, cfg) {}
+  TestElement(): Element(&test_module) {}
   double x{0.0};
 };
 
@@ -40,17 +40,9 @@ Module test_module
   { }
 };
 
-TEST(ElementTest, TestElementConstructionFromXML)
-{
-  XML::Element xml("element", "id", "foo");
-  TestElement e(xml);
-  ASSERT_EQ("foo", e.id);
-}
-
 TEST(ElementTest, TestElementControlUpdateDirectSetting)
 {
-  XML::Element xml("element", "id", "foo");
-  TestElement e(xml);
+  TestElement e;
   EXPECT_EQ(0.0, e.x);
 
   // Set directly
@@ -61,11 +53,10 @@ TEST(ElementTest, TestElementControlUpdateDirectSetting)
 
 TEST(ElementTest, TestElementGetJSON)
 {
-  XML::Element xml("element", "id", "foo");
-  TestElement e(xml);
+  TestElement e;
   JSON::Value value = e.get_json("");
   ASSERT_EQ(JSON::Value::Type::OBJECT, value.type);
-  ASSERT_EQ("foo", value["id"].as_str());
+  ASSERT_EQ("", value["id"].as_str());
 }
 
 } // anonymous namespace

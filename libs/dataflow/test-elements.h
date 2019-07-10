@@ -36,19 +36,7 @@ public:
   string receive_tag;
 
   // Construct
-  TestSource(const Module *module, const XML::Element& config):
-    Source(module, config)
-  {
-    send_tag = config["send"];
-    receive_tag = config["receive"];
-  }
-
-  // Configure
-  void configure(const File::Directory&,
-                 const XML::Element& config) override
-  {
-    value = config.get_attr_int("value");
-  }
+  using Source::Source;
 
   // Topo calc - pretend to be a sender or receiver
   void calculate_topology(Element::Topology& topo) override
@@ -104,20 +92,7 @@ class TestSubgraph: public Source
   string *tick_order{nullptr};
 
   // Construct
-  TestSubgraph(const Module *module, const XML::Element& config):
-    Source(module, config)
-  {}
-
-  // Configure
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override
-  {
-    subgraph.reset(new Graph(graph->get_engine()));
-    subgraph->configure(base_dir, config);
-
-    // Pass upgoing data straight on as if we were the source
-    subgraph->set_send_up_function([this](DataPtr data) { send(data); });
-  }
+  using Source::Source;
 
   void set_subgraph(Graph *g)
   {
@@ -178,17 +153,7 @@ public:
   string *tick_order{nullptr};
 
   // Construct
-  TestFilter(const Module *module, const XML::Element& config):
-    Filter(module, config)
-  {
-  }
-
-  // Configure
-  void configure(const File::Directory&,
-                 const XML::Element& config) override
-  {
-    value = config.get_attr_int("value");
-  }
+  using Filter::Filter;
 
   // Process some data
   void accept(DataPtr data) override
@@ -230,10 +195,7 @@ public:
   string *tick_order{nullptr};
 
   // Construct
-  TestSink(const Module *module, const XML::Element& config):
-    Sink(module, config)
-  {
-  }
+  using Sink::Sink;
 
   // Process some data
   void accept(DataPtr data) override
@@ -310,8 +272,7 @@ class TestGraph: public Graph
   // Add an element
   ElementProxy add(const string& name, const string& id = "")
   {
-    XML::Element config;  // !!! Until XML goes
-    Element *e = get_engine().create(name, config);
+    Element *e = get_engine().create(name);
     if (!e) throw runtime_error("Can't create element "+name);
     if (id.empty())
       e->id = name + Text::itos(++id_serial);
@@ -366,61 +327,3 @@ public:
     engine.element_registry.add(TestSinkModule, TestSinkFactory);
   }
 };
-
-// !!! Remove once XML goes
-// Try to construct a graph and capture any error
-inline void construct_graph(const string& xml, Dataflow::Graph& graph)
-{
-  XML::Configuration config;
-  ASSERT_TRUE(config.read_text(xml));
-
-  try
-  {
-    graph.configure(File::Directory("."), config.get_root());
-    graph.setup();
-  }
-  catch (runtime_error e)
-  {
-    FAIL() << "Can't create graph: " << e.what() << endl;
-    return;
-  }
-}
-
-// Ensure a graph construction fails
-inline void construct_graph_should_fail(const string& xml,
-                                        Dataflow::Graph& graph)
-{
-  XML::Configuration config;
-  ASSERT_TRUE(config.read_text(xml));
-
-  try
-  {
-    graph.configure(File::Directory("."), config.get_root());
-  }
-  catch (runtime_error e)
-  {
-    return;
-  }
-
-  FAIL() << "Graph contruction should have failed\n";
-}
-
-// Try to construct a multigraph and capture any error
-inline void construct_multigraph(const string& xml, Dataflow::MultiGraph& graph)
-{
-  XML::Configuration config;
-  ASSERT_TRUE(config.read_text(xml));
-
-  try
-  {
-    graph.configure(File::Directory("."), config.get_root());
-
-    Element::Topology topo;
-    graph.calculate_topology(topo);
-  }
-  catch (runtime_error e)
-  {
-    FAIL() << "Can't create multigraph: " << e.what() << endl;
-    return;
-  }
-}

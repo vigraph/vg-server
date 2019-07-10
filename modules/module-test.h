@@ -81,9 +81,11 @@ public:
 
 public:
   // Construct
- TestTarget(Value::Type _prop_type = Value::Type::number):
-  Element(&module_data, XML::Element("test", "id", "test")),
-    prop_type(_prop_type) {}
+  TestTarget(Value::Type _prop_type = Value::Type::number):
+    Element(&module_data), prop_type(_prop_type)
+  {
+    id = "test";
+  }
 
   // Test helpers
   bool got(const string& prop) { return properties.find(prop)!=properties.end(); }
@@ -156,8 +158,7 @@ class GraphTester
   // Add an element
   ElementProxy add(const string& name)
   {
-    XML::Element config;  // !!! Until XML goes
-    Element *e = loader.engine.create(name, config);
+    Element *e = loader.engine.create(name);
     if (!e) throw runtime_error("Can't create element "+name);
     if (e->id.empty()) e->id = name + Text::itos(++id_serial);
     graph.add(e);

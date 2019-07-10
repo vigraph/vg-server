@@ -11,19 +11,6 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Construct with XML
-// Throws a runtime_error if configuration fails
-void MultiGraph::configure(const File::Directory& base_dir,
-                           const XML::Element& config)
-{
-  threaded = config.get_attr_bool("thread");
-
-  // Load all <graph> elements in config
-  for(const auto& p: config.get_children("graph"))
-    add_subgraph(base_dir, *p);
-}
-
-//------------------------------------------------------------------------
 // Set send-up function
 void MultiGraph::set_send_up_function(Graph::SendUpFunction f)
 {
@@ -42,17 +29,13 @@ void MultiGraph::set_send_up_function(Graph::SendUpFunction f)
 }
 
 //------------------------------------------------------------------------
-// Add a graph from the given XML
-// Throws a runtime_error if configuration fails
+// Add a graph
 // Returns sub-Graph (owned by us)
-Graph *MultiGraph::add_subgraph(const File::Directory& base_dir,
-                                const XML::Element& graph_config)
+Graph *MultiGraph::add_subgraph()
 {
-  string id = graph_config["id"];
-  if (id.empty()) id = "graph-"+Text::itos(++id_serial);
+  const auto id = string{"graph-"} + Text::itos(++id_serial);
 
-  Graph *sub = new Graph(engine, parent);
-  sub->configure(base_dir, graph_config);
+  Graph *sub = new Graph{engine};
   sub->set_send_up_function(send_up_function);
 
   // Lock for write

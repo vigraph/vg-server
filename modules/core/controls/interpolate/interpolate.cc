@@ -19,7 +19,7 @@ class InterpolateControl: public Control
 
 public:
   // Construct
-  InterpolateControl(const Module *module, const XML::Element& config);
+  using Control::Control;
 
   // Getter/setters
   JSON::Value get_curve() const;
@@ -27,31 +27,6 @@ public:
   double get_t() const { return 0.0; }
   void set_t(double t);
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-// <interpolate property="...">
-//   <point t="0" value="0"/>
-//   <point t="1" value="0.5"/>
-// </interpolate>
-// Note both 't's are optional and assumed 0,1 in this simple case
-InterpolateControl::InterpolateControl(const Module *module,
-                                       const XML::Element& config):
-  Control(module, config)
-{
-  const auto& point_es = config.get_children("point");
-  const auto np = point_es.size();
-  double default_t = 0.0;
-  for(const auto& it: point_es)
-  {
-    const XML::Element& te = *it;
-    double t = te.get_attr_real("t", default_t);
-    if (np > 1) default_t += 1.0 / (np-1);
-
-    double value = te.get_attr_real("value");
-    curve[t] = value;
-  }
-}
 
 //--------------------------------------------------------------------------
 // Get curve as JSON value

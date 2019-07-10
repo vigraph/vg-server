@@ -41,7 +41,7 @@ private:
   bool load_wav(const File::Path& f, map<Speaker, vector<sample_t>>& w);
 
   // Source/Element virtuals
-  void setup(const File::Directory& base_dir) override;
+  void setup() override;
   void tick(const TickData& td) override;
   void notify_target_of(const string& property) override;
 
@@ -63,7 +63,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void WavSource::setup(const File::Directory& base_dir)
+void WavSource::setup()
 {
   if (frequency && !base_frequency)
   {
@@ -73,7 +73,7 @@ void WavSource::setup(const File::Directory& base_dir)
     return;
   }
 
-  if (!load_wav(base_dir.resolve(file), waveforms))
+  if (!load_wav(file, waveforms))
     return;
 
   Log::Detail dlog;

@@ -26,10 +26,9 @@ private:
 
 public:
   // Construct
-  ExtractRGBSink(const Dataflow::Module *module,
-                        const XML::Element& config):
-    FrameFilter(module, config),
-    ControlImpl(module, config, true)
+  ExtractRGBSink(const Dataflow::Module *module):
+    FrameFilter(module),
+    ControlImpl(module, true)
   {}
 };
 

@@ -12,35 +12,22 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Configure with <graph> XML
-// Throws a runtime_error if configuration fails
-void Engine::configure(const File::Directory& base_dir,
-                       const XML::Element& graph_config)
-{
-  // Configure graph from graph config
-  graph->configure(base_dir, graph_config);
-
-  // Enable it
-  graph->enable();
-}
-
-//------------------------------------------------------------------------
 // Create an element with the given name - may be section:id or just id,
 // which is looked up in default namespaces
-Element *Engine::create(const string& name, const XML::Element& config)
+Element *Engine::create(const string& name)
 {
   vector<string> bits = Text::split(name, ':');
   if (bits.size() > 1)
   {
     // Qualified - use the section given
-    return element_registry.create(bits[0], bits[1], config);
+    return element_registry.create(bits[0], bits[1]);
   }
   else
   {
     // Try default sections
     for(const auto& section: default_sections)
     {
-      Element *e = element_registry.create(section, name, config);
+      Element *e = element_registry.create(section, name);
       if (e) return e;
     }
 

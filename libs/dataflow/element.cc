@@ -175,52 +175,6 @@ Value::Type Element::get_property_type(const string& property)
 }
 
 //------------------------------------------------------------------------
-// Configure all properties from XML
-// Throws a runtime_error if configuration fails
-void Element::configure(const File::Directory&,
-                        const XML::Element& config)
-{
-  // Check all properties to see if attribute exists
-  for(const auto pit: module->properties)
-  {
-    const auto& name = pit.first;
-    if (name.empty())
-    {
-      // Value is the element content
-      if (!config.content.empty())
-        configure_property(name, pit.second, config.content);
-    }
-    else
-    {
-      // Can be either direct attribute ('points') or sub-element ('x.freq')
-      vector<string> bits = Text::split(name, '.');
-      string value;
-
-      switch (bits.size())
-      {
-        case 1:
-          if (!config.has_attr(bits[0])) continue;
-          value = config[bits[0]];
-          break;
-
-        case 2:
-        {
-          // Look down a level
-          const auto& sub = config.get_child(bits[0]);
-          if (!sub.has_attr(bits[1])) continue;
-          value = sub[bits[1]];
-          break;
-        }
-
-        default: throw runtime_error("Weird property name "+name);
-      }
-
-      configure_property(name, pit.second, value);
-    }
-  }
-}
-
-//------------------------------------------------------------------------
 // Configure with an property name and string value
 void Element::configure_property(const string& name,
                                  const Module::Property& prop,

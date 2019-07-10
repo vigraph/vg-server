@@ -22,7 +22,7 @@ public:
   bool loop = true;
 
   // Construct
-  SequenceControl(const Module *module, const XML::Element& config);
+  using Control::Control;
 
   // Getters/Setters
   JSON::Value get_values() const;
@@ -32,24 +32,6 @@ public:
   void next();
   void prev();
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//   <sequence property="x">
-//     <value>one</value>
-//     <value>two</value>
-//   </sequence>
-SequenceControl::SequenceControl(const Module *module, const XML::Element& config):
-  Control(module, config)
-{
-  values = Text::split_words(config["value-list"]);
-  if (values.empty())
-  {
-    const auto els = config.get_children("value");
-    for (const auto& el: els)
-      values.push_back(el->content);
-  }
-}
 
 //--------------------------------------------------------------------------
 // Get values as JSON value

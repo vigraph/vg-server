@@ -21,8 +21,6 @@ private:
   unique_ptr<Dataflow::MultiGraph> multigraph;
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
   void calculate_topology(Element::Topology& topo) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
@@ -37,31 +35,6 @@ private:
 public:
   using Source::Source;
 };
-
-//--------------------------------------------------------------------------
-// Configure from XML:
-//  <clone n="10">
-//    .. subgraph elements ..
-//  </clone>
-void CloneSource::configure(const File::Directory& base_dir,
-                            const XML::Element& config)
-{
-  Source::configure(base_dir, config);
-
-  multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
-  multigraph->configure(base_dir, config);
-
-  // Pass upgoing data straight on as if we were the source
-  multigraph->set_send_up_function([this](DataPtr data) { send(data); });
-
-  // Read our own children as sub-graphs, n times
-  for(auto i=0; i<n; i++)
-  {
-    Graph *sub = multigraph->add_subgraph(base_dir, config);
-    sub->set_variable("clone-number", Value{(double)(i+1)});
-    sub->set_variable("clone-fraction", Value{(double)i/n});
-  }
-}
 
 //--------------------------------------------------------------------------
 // Topology calculation
@@ -137,20 +110,16 @@ void CloneSource::set_json(const string& path, const JSON::Value& value)
     Element::set_json(path, value);
 
     // Create new multigraph
-    multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
+    multigraph.reset(new Dataflow::MultiGraph(*engine));
 
     // 'graph' contains the array of sub-elements - we can just pass
     // direct to the subgraphs
     const auto& elements = value["graph"];
 
-    // !!! Hopefully these disappear when XML config does
-    File::Directory base_dir(".");
-    XML::Element config;
-
     // Create children as sub-graphs, n times
     for(auto i=0; i<n; i++)
     {
-      Graph *sub = multigraph->add_subgraph(base_dir, config);
+      Graph *sub = multigraph->add_subgraph();
       sub->set_variable("clone-number", Value{(double)(i+1)});
       sub->set_variable("clone-fraction", Value{(double)i/n});
       sub->set_json(path, elements);

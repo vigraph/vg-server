@@ -55,10 +55,7 @@ class PoolDistributorImpl: public Dataflow::Service, public PoolDistributor
 
  public:
   // Construct
-  PoolDistributorImpl(const Dataflow::Module *module,
-                      const XML::Element& config):
-    Service(module, config)
-  {}
+  using Service::Service;
 };
 
 //--------------------------------------------------------------------------

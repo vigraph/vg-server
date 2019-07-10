@@ -12,63 +12,12 @@ namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
 // Construct with XML
-ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
-                         bool targets_are_optional):
-  control_id(_config["id"].empty()?_config.name:_config["id"]),
-  config(_config)
+ControlImpl::ControlImpl(const Module *_module, bool targets_are_optional)
 {
-  // Simple single target
-  const string& target_id = config["target"];
-  if (!target_id.empty())
-    targets[target_id] = Target();
-
-  for(const auto& it: config.get_children("target"))
-  {
-    XML::Element& te = *it;
-    const string& target_id = te["id"];
-    targets[target_id] = Target();
-  }
-
   // Create a modifiable list of properties from the module's config
   map<string, Property> properties;
   for(const auto pit: _module->controlled_properties)
     properties[pit.first] = Property(pit.second.name, pit.second.type);
-
-  // Check for simple single property value and fix up from default
-  const auto& prop = config["property"];
-  bool has_explicit = false;
-  if (!prop.empty() && !properties.empty())
-  {
-    properties.begin()->second.name = prop;
-    properties.begin()->second.is_explicit = true;
-    has_explicit = true;
-  }
-
-  // Check prefixed attributes
-  const auto& props = config.get_attrs_with_prefix("property-");
-  for(const auto& p: props)
-  {
-    const auto& it = properties.find(p.first);
-    if (it == properties.end())
-      throw runtime_error("Element "+control_id+" has no property "+p.first);
-    it->second.name = p.second;
-    it->second.is_explicit = true;
-    has_explicit = true;
-  }
-
-  // If any explicitly set, remove all the implicit ones
-  // (if you set any property names, you only get connections to the ones
-  // you set, none by default)
-  if (has_explicit)
-  {
-    for(auto it=properties.begin(); it!=properties.end();)
-    {
-      if (!it->second.is_explicit)
-        it = properties.erase(it);
-      else
-        ++it;
-    }
-  }
 
   // If no targets and not optional, and we have outputs, create a default one
   if (targets.empty() && !targets_are_optional
@@ -78,51 +27,6 @@ ControlImpl::ControlImpl(const Module *_module, const XML::Element& _config,
   // Set on all targets initially
   for(auto& it: targets)
     it.second.properties = properties;
-
-  // Now for each <target> element, override the property independently, if set
-  for(const auto& it: config.get_children("target"))
-  {
-    XML::Element& te = *it;
-    const string& target_id = te["id"];
-    Target& target = targets[target_id];
-    bool has_explicit = false;
-
-    // Check for single property attribute
-    const auto& prop = te["property"];
-    if (!prop.empty())
-    {
-      // Reset the first (default) one using the existing type
-      if (!properties.empty())
-      {
-        target.properties[properties.begin()->first] =
-          Property(prop, properties.begin()->second.type, true);
-        has_explicit = true;
-      }
-    }
-
-    // Check prefixed attributes
-    const auto& props = te.get_attrs_with_prefix("property-");
-    for(const auto& p: props)
-    {
-      const auto& it = properties.find(p.first);
-      if (it == properties.end())
-        throw runtime_error("Element "+control_id+" has no property "+p.first);
-      target.properties[p.first] = Property(p.second, it->second.type, true);
-      has_explicit = true;
-    }
-
-    // If any explicitly set, remove all the implicit ones
-    if (has_explicit)
-    {
-      for(auto it=target.properties.begin(); it!=target.properties.end();)
-      {
-        if (!it->second.is_explicit)
-          it = target.properties.erase(it);
-        else
-          ++it;
-      }
-    }
-  }
 }
 
 //------------------------------------------------------------------------

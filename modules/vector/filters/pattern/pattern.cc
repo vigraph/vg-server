@@ -31,7 +31,7 @@ public:
   double repeats{1.0};
 
   // Construct
-  PatternFilter(const Dataflow::Module *module, const XML::Element& config);
+  using FrameFilter::FrameFilter;
 
   // Getters/Setters
   JSON::Value get_colours() const;
@@ -41,34 +41,6 @@ public:
   void set_blend(const string& b)
   { blend_type = (b == "linear") ? BlendType::linear : BlendType::none; }
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//  <pattern phase="0" repeats="5" blend="linear">
-//    <colour>red</colour>
-//    <colour>black</colour>
-//  </pattern>
-PatternFilter::PatternFilter(const Dataflow::Module *module,
-                             const XML::Element& config):
-  FrameFilter(module, config)
-{
-  for(const auto& it: config.get_children("colour"))
-  {
-    const XML::Element& ce = *it;
-    Colour::RGB c;
-    if (!(*ce).empty())
-      c = Colour::RGB(*ce);
-    else if (ce.has_attr("h")) // assume HSL
-      c = Colour::RGB(Colour::HSL(ce.get_attr_real("h"),
-                                  ce.get_attr_real("s", 1.0),
-                                  ce.get_attr_real("l", 0.5)));
-    else
-      c = Colour::RGB(ce.get_attr_real("r"),
-                      ce.get_attr_real("g"),
-                      ce.get_attr_real("b"));
-    colours.push_back(c);
-  }
-}
 
 //--------------------------------------------------------------------------
 // Get colours as JSON value

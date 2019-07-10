@@ -26,7 +26,7 @@ private:
   vector<Point> points;
 
   // Source/Element virtuals
-  void setup(const File::Directory& base_dir) override;
+  void setup() override;
   void tick(const TickData& td) override;
 
 public:
@@ -35,7 +35,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void SVGSource::setup(const File::Directory& base_dir)
+void SVGSource::setup()
 {
   Log::Streams log;
 
@@ -54,7 +54,7 @@ void SVGSource::setup(const File::Directory& base_dir)
         return;
       }
 
-      File::Path fpath(base_dir, file);
+      File::Path fpath(file);
       XML::Configuration cfg(fpath.str(), log.error);
       if (!cfg.read())
       {

@@ -14,44 +14,6 @@ namespace {
 
 #include "test-elements.h"
 
-// This goes when XML does !!!
-TEST_F(GraphTest, TestGraphConstructionWithExplicitAndImplicitIDs)
-{
-  const string& xml = R"(
-    <container>
-      <graph id='one'>
-        <test-source value='42'/>
-      </graph>
-      <graph>
-        <test-source value='555'/>
-      </graph>
-    </container>
-  )";
-
-  MultiGraph mg(engine);
-  construct_multigraph(xml, mg);
-
-  Graph *g = mg.get_subgraph("one");
-  ASSERT_FALSE(!g) << "Explicit subgraph IDs broken";
-
-  // Implicitly created ID
-  Element *el = g->get_element("test-source");
-  ASSERT_FALSE(!el);
-  TestSource *source = dynamic_cast<TestSource *>(el);
-  ASSERT_FALSE(!source);
-  EXPECT_EQ(42, source->value);
-
-  g = mg.get_subgraph("graph-1");
-  ASSERT_FALSE(!g) << "Implicit subgraph IDs broken";
-
-  // Same implicitly created ID, different object
-  el = g->get_element("test-source");
-  ASSERT_FALSE(!el);
-  source = dynamic_cast<TestSource *>(el);
-  ASSERT_FALSE(!source);
-  EXPECT_EQ(555, source->value);
-}
-
 TEST_F(GraphTest, TestTickAll)
 {
   auto graph1 = new TestGraph(engine);

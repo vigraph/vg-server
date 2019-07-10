@@ -69,8 +69,6 @@ class GraphSource: public Dataflow::Source
   unique_ptr<UpdateThread> update_thread;
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
   void calculate_topology(Element::Topology& topo) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
@@ -86,26 +84,8 @@ class GraphSource: public Dataflow::Source
 public:
   double sample_rate = 0;
 
-  GraphSource(const Module *module, const XML::Element& config):
-    Source(module, config)
-  {}
+  using Source::Source;
 };
-
-//--------------------------------------------------------------------------
-// Configure from XML:
-//  <graph>
-//    .. subgraph elements ..
-//  </graph>
-void GraphSource::configure(const File::Directory& base_dir,
-                            const XML::Element& config)
-{
-  Source::configure(base_dir, config);
-  subgraph.reset(new Dataflow::Graph(graph->get_engine(), graph));
-  subgraph->configure(base_dir, config);
-
-  // Pass upgoing data straight on as if we were the source
-  subgraph->set_send_up_function([this](DataPtr data) { send(data); });
-}
 
 //--------------------------------------------------------------------------
 // Topology calculation

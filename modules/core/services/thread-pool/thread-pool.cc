@@ -30,15 +30,18 @@ class ThreadPoolImpl: public Dataflow::Service, public ThreadPool
     func_pool.run_and_wait(vf);
   }
 
- public:
+public:
   // Construct
-  ThreadPoolImpl(const Dataflow::Module *module, const XML::Element& config):
-    Service(module, config),
-    func_pool(config.get_attr_int("min-spares", 1),
-              config.get_attr_int("max-workers", 10))
-  {
+  using Service::Service;
 
-  }
+  void set_min_spares(int min_spares)
+  { func_pool.set_min_spares(min_spares); }
+  int get_min_spares() const
+  { return func_pool.get_min_spares(); }
+  void set_max_threads(int max_threads)
+  { func_pool.set_max_threads(max_threads); }
+  int get_max_threads() const
+  { return func_pool.get_max_threads(); }
 };
 
 //--------------------------------------------------------------------------
@@ -49,7 +52,14 @@ Dataflow::Module module
   "Thread Pool",
   "Thread Pool service, provides parallel processing",
   "core",
-  {} // no properties
+  {
+    { "min-spares", { "Minimum spare threads", Value::Type::number,
+                      { &ThreadPoolImpl::get_min_spares,
+                        &ThreadPoolImpl::set_min_spares }, true } },
+    { "max-threads", { "Maximum worker threads", Value::Type::number,
+                      { &ThreadPoolImpl::get_max_threads,
+                        &ThreadPoolImpl::set_max_threads }, true } },
+  }
 };
 
 } // anon

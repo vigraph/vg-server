@@ -95,8 +95,7 @@ private:
   void tick(const TickData& td) override;
 
 public:
-  FigureSource(const Dataflow::Module *module, const XML::Element& config):
-    Source(module, config) {}
+  using Source::Source;
 
   // Property getter/setters
   string get_waveform_x() const { return get_waveform_name(x_waveform); }

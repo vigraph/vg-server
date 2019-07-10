@@ -11,8 +11,6 @@
 
 namespace ViGraph { namespace Dataflow {
 
-const auto default_update_check_interval{"1"};
-
 //------------------------------------------------------------------------
 // Add an element to the graph
 void Graph::add(Element *el)
@@ -158,11 +156,9 @@ void Graph::connect(Element *el)
 
 //------------------------------------------------------------------------
 // Create an element
-Element *Graph::create_element(const string& type,
-                               const XML::Element& config,
-                               const File::Directory& base_dir)
+Element *Graph::create_element(const string& type)
 {
-  const auto el = engine.create(type, config);
+  const auto el = engine.create(type);
   if (!el) throw runtime_error("No such dataflow element " + type);
 
   // Point back to us (so we're available for configure())
@@ -175,132 +171,15 @@ Element *Graph::create_element(const string& type,
   if (elements.find(el->id) != elements.end())
     el->id += "-"+Text::itos(++id_serials[type]);
 
-  // Configure it
-  el->configure(base_dir, config);
-
   return el;
-}
-
-//------------------------------------------------------------------------
-// Configure with XML, with a base directory for files
-// Throws a runtime_error if configuration fails
-// Public version which allows source file
-void Graph::configure(const File::Directory& base_dir,
-                      const XML::Element& config)
-{
-  // Get sample rate from local configuration - if not set here will be
-  // inherited from parent in configure_internal
-  sample_rate = config.get_attr_real("sample-rate");
-
-  // Check for load from file - if so, read it and recurse
-  const auto& fn = config["file"];
-  if (fn.empty())
-  {
-    // Configure from direct XML
-    configure_internal(base_dir, config);
-  }
-  else
-  {
-    source_file = File::Path(base_dir, fn);
-    file_update_check_interval =
-      Time::Duration(config.get_attr("update-check-interval",
-                                     default_update_check_interval));
-    configure_from_source_file();
-  }
-}
-
-//--------------------------------------------------------------------------
-// Configure from source file, with given update check interval
-void Graph::configure(const File::Path& file,
-                      const Time::Duration& check_interval)
-{
-  source_file = file;
-  file_update_check_interval = check_interval;
-  configure_from_source_file();
-}
-
-//------------------------------------------------------------------------
-// (re)configure from source_file
-// Throws a runtime_error if configuration fails
-void Graph::configure_from_source_file()
-{
-  Log::Streams log;
-  log.summary << "Reading graph from " << source_file << endl;
-  XML::Configuration fconfig(source_file.str(), log.error);
-  if (!fconfig.read("graph"))
-    throw(runtime_error("Can't read graph file "+source_file.str()));
-
-  source_file_mtime = source_file.last_modified();
-  const auto& root = fconfig.get_root();
-  configure_internal(File::Directory(source_file.dirname()), root);
-}
-
-//------------------------------------------------------------------------
-// Configure with XML, with a base directory for files
-// Throws a runtime_error if configuration fails
-// Internal version, doesn't allow source file redirect
-void Graph::configure_internal(const File::Directory& base_dir,
-                               const XML::Element& config)
-{
-  MT::RWWriteLock lock(mutex);
-  elements.clear();
-  id_serials.clear();
-  disconnected_acceptors.clear();
-  unbound_generators.clear();
-  topological_order.clear();
-  last_element = nullptr;
-
-  // Fix up sample rate if not explicitly set
-  if (!sample_rate)
-    sample_rate = parent ? parent->sample_rate : engine.get_sample_rate();
-
-  // Three-phase create/connect to allow forward references
-
-  // Create all children, but don't connect yet
-  list<Element *> ordered_elements;
-  for (const auto& p: config.children)
-  {
-    const auto& e = *p;
-    if (e.name.empty()) continue;
-
-    const auto el = create_element(e.name, e, base_dir);
-
-    // Add it
-    add(el);
-    ordered_elements.push_back(el);
-  }
-
-  // Connect all elements - note original ordering is required for shortcuts
-  for(auto el: ordered_elements)
-    connect(el);
-
-  // Check for acceptors that never received any input
-  for(auto& el: disconnected_acceptors)
-    throw runtime_error("Element "+el->id+" has no inputs");
-
-  // Final setup and topology calculation
-  setup();
-}
-
-//--------------------------------------------------------------------------
-// Get the directory we're in
-File::Directory Graph::get_dir() const
-{
-  if (!!source_file)
-    return source_file.dir();
-  else if (parent)
-    return parent->get_dir();
-  else
-    return {"."};
 }
 
 //------------------------------------------------------------------------
 // Final setup for elements and calculate topology
 void Graph::setup()
 {
-  auto base_dir = get_dir();  // !!! Remove once this dies!
   for(const auto& it: elements)
-    it.second->setup(base_dir);
+    it.second->setup();
 
   Element::Topology topo;
   calculate_topology(topo);
@@ -663,9 +542,7 @@ Element *Graph::add_element_from_json(const string& id,
     throw runtime_error("Element creation needs a 'type'");
 
   // Create an element
-  XML::Element config;  // Empty
-  File::Directory base_dir("."); // !!! What should this be?
-  auto el = create_element(type, config, base_dir);
+  auto el = create_element(type);
   el->id = id; // Override default ID
   elements[id].reset(el);
 

@@ -408,20 +408,13 @@ public:
   Element *next_element{nullptr};
   list<Element *> downstreams; // All data and control connections, for toposort
 
-  // Basic construction with XML - just sets ID
+  // Basic construction
   // Extend this to read basic config which doesn't take much time or
   // require registry - i.e. just reading basic config attributes
-  Element(const Module *_module, const XML::Element& config):
-    module(_module), id(config["id"]) {}
-
-  // Configure with XML config
-  // Throws a runtime_error if configuration fails
-  // !!! Should be able to make this final once all automated
-  virtual void configure(const File::Directory& base_dir,
-                         const XML::Element& config);
+  Element(const Module *_module):
+    module(_module) {}
 
   // Setup after automatic configuration
-  virtual void setup(const File::Directory& /*base_dir*/) { setup(); }
   virtual void setup() {}
 
   // Connect to other elements in the graph, for cases where the normal
@@ -525,8 +518,8 @@ class Generator: public Element
   map<string, Acceptor *> acceptors;  // Element ID to Acceptor
                                       // "" => auto-created uplink to parent
 
-  // Constructor - get acceptor_id as well as Element stuff
-  Generator(const Module *_module, const XML::Element& config);
+  // Constructor
+  using Element::Element;
 
   // Add an acceptor - can be null for initial intent to connect
   virtual void attach(const string &aid, Acceptor *acceptor=nullptr)
@@ -598,13 +591,11 @@ class ControlImpl
   };
 
  protected:
-  XML::Element config;
   map<string, Target> targets;  // By element ID
 
  public:
-  // Construct with XML
-  ControlImpl(const Module *_module, const XML::Element& _config,
-              bool targets_are_optional = false);
+  // Construct
+  ControlImpl(const Module *_module, bool targets_are_optional = false);
 
   // Get targets
   const map<string, Target>& get_targets() { return targets; }
@@ -648,10 +639,9 @@ class ControlImpl
 class Control: public Element, public ControlImpl
 {
  public:
-  Control(const Module *_module, const XML::Element& _config,
-          bool targets_are_optional = false):
-    Element(_module, _config),
-    ControlImpl(_module, _config, targets_are_optional)
+  Control(const Module *_module, bool targets_are_optional = false):
+    Element(_module),
+    ControlImpl(_module, targets_are_optional)
   {}
 
  private:
@@ -705,11 +695,7 @@ class Graph
   map<string, Value> variables;
 
   // Internals
-  Element *create_element(const string& type, const XML::Element& config,
-                          const File::Directory& base_dir);
-  void configure_from_source_file();
-  void configure_internal(const File::Directory& base_dir,
-                          const XML::Element& config);
+  Element *create_element(const string& type);
   void toposort(Element *e, set<Element *>& visited);
   Element *add_element_from_json(const string& id,
                                  const JSON::Value& value);
@@ -734,11 +720,6 @@ class Graph
   // Get all elements (for inspection)
   const map<string, shared_ptr<Element> >& get_elements() const
   { return elements; }
-
-  //------------------------------------------------------------------------
-  // Configure with XML, with a base directory for files
-  // Throws a runtime_error if configuration fails
-  void configure(const File::Directory& base_dir, const XML::Element& config);
 
   //------------------------------------------------------------------------
   // Configure from source file, with given update check interval
@@ -902,7 +883,6 @@ class MultiGraph
   vector<shared_ptr<Graph> > subgraphs;          // Owning
   map<string, Graph *> subgraphs_by_id;          // Not owning
   int id_serial{0};
-  Graph *parent{nullptr};
   Graph::SendUpFunction send_up_function{nullptr};
 
   // Thread
@@ -974,30 +954,20 @@ class MultiGraph
  public:
   //------------------------------------------------------------------------
   // Constructor
-  MultiGraph(Engine& _engine, Graph *_parent=nullptr):
-    engine(_engine), parent(_parent) {}
+  MultiGraph(Engine& _engine): engine(_engine) {}
 
   //------------------------------------------------------------------------
   // Set send-up function
   void set_send_up_function(Graph::SendUpFunction f);
 
   //------------------------------------------------------------------------
-  // Configure with XML
-  // Reads <graph> child elements of config
-  // Throws a runtime_error if configuration fails
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config);
-
-  //------------------------------------------------------------------------
   // Calculate topology in hierarchy (see Element::calculate_topology)
   void calculate_topology(Element::Topology& topo, Element *owner = nullptr);
 
   //------------------------------------------------------------------------
-  // Add a graph from the given XML
-  // Throws a runtime_error if configuration fails
+  // Add a graph
   // Returns sub-Graph (owned by us)
-  Graph *add_subgraph(const File::Directory& base_dir,
-                      const XML::Element& graph_config);
+  Graph *add_subgraph();
 
   //------------------------------------------------------------------------
   // Add a pre-constructed sub-graph
@@ -1056,8 +1026,7 @@ public:
   // Abstract interface for Element-creating factories
   struct Factory
   {
-    virtual Element *create(const Module *module,
-                            const XML::Element& config) const = 0;
+    virtual Element *create(const Module *module) const = 0;
     virtual ~Factory() {}
   };
 
@@ -1065,8 +1034,8 @@ public:
   template<class E> struct NewFactory: public Factory
   {
   public:
-    Element *create(const Module *module, const XML::Element& config) const
-    { return new E(module, config); }
+    Element *create(const Module *module) const
+    { return new E(module); }
   };
 
   struct ModuleInfo
@@ -1097,8 +1066,7 @@ public:
   //------------------------------------------------------------------------
   // Create an object by module and config
   // Returns the object, or 0 if no factories available or create fails
-  Element *create(const string& section, const string& id,
-                  const XML::Element& config)
+  Element *create(const string& section, const string& id)
   {
     const auto sp = sections.find(section);
     if (sp == sections.end()) return 0;
@@ -1107,7 +1075,7 @@ public:
     if (mp == sp->second.modules.end()) return 0;
 
     const auto& mi = mp->second;
-    return mi.factory->create(mi.module, config);
+    return mi.factory->create(mi.module);
   }
 };
 
@@ -1188,15 +1156,9 @@ class Engine
   Dataflow::Graph& get_graph() { return *graph; }
 
   //------------------------------------------------------------------------
-  // Configure with <graph> XML
-  // Throws a runtime_error if configuration fails
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& graph_config);
-
-  //------------------------------------------------------------------------
   // Create an element with the given name - may be section:id or just id,
   // which is looked up in default namespaces
-  Element *create(const string& name, const XML::Element& config);
+  Element *create(const string& name);
 
   //------------------------------------------------------------------------
   // Get state as a JSON value (see Graph::get_json())

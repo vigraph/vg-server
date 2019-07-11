@@ -411,11 +411,6 @@ public:
   // Setup after automatic configuration
   virtual void setup() {}
 
-  // Connect to other elements in the graph, for cases where the normal
-  // graph connection isn't sufficient.  Called when the graph is already
-  // loaded and all elements configured, and after normal connection
-  virtual void connect() {}
-
   // Notify that this element is the control target of another element,
   // with the given property name
   virtual void notify_target_of(const string& /*prop*/) {}
@@ -703,22 +698,10 @@ class Graph
   { return elements; }
 
   //------------------------------------------------------------------------
-  // Configure from source file, with given update check interval
-  void configure(const File::Path& source_file,
-                 const Time::Duration& check_interval);
-
-  //------------------------------------------------------------------------
-  // Set an element property
-  // element_path is a path/to/leaf
-  // Can throw runtime_error if it fails
-  void set_property(const string& element_path, const string& property,
-                    const Value& value);
-
-  //------------------------------------------------------------------------
-  // Add an element to the graph
+  // Add an element to the graph (testing)
   void add(Element *el);
 
- //------------------------------------------------------------------------
+  //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
   void setup();
 
@@ -816,10 +799,6 @@ class Graph
   // Delete an item (from REST)
   // path is a path/to/leaf
   void delete_item(const string& path);
-
-  //------------------------------------------------------------------------
-  // Does this require an update? (i.e. there is a new config)
-  bool requires_update(File::Path &file, Time::Duration& check_interval);
 
   //------------------------------------------------------------------------
   // Shutdown all elements

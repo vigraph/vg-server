@@ -12,7 +12,7 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Add an element to the graph
+// Add an element to the graph (testing)
 void Graph::add(Element *el)
 {
   elements[el->id].reset(el);

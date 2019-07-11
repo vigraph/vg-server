@@ -14,7 +14,6 @@
 #include <string>
 #include <functional>
 #include <cmath>
-#include "ot-xml.h"
 #include "ot-mt.h"
 #include "ot-init.h"
 #include "ot-text.h"
@@ -389,10 +388,6 @@ struct Module
 class Element
 {
 private:
-  void configure_from_element(const XML::Element& config,
-                              const string& prefix);
-  void configure_property(const string& name, const Module::Property& prop,
-                          const string& value);
   void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
   void set_property(const string& prop_name, const Module::Property& prop,
@@ -405,7 +400,6 @@ public:
   string id;
   Graph *graph{nullptr};
   Engine *engine{nullptr};
-  Element *next_element{nullptr};
   list<Element *> downstreams; // All data and control connections, for toposort
 
   // Basic construction
@@ -674,18 +668,6 @@ class Graph
   double sample_rate = 0;
   SendUpFunction send_up_function{nullptr};
 
-  // Source
-  File::Path source_file;  // empty if inline
-  time_t source_file_mtime;
-  Time::Duration file_update_check_interval;
-  Time::Stamp last_file_update_check;
-
-  // Construction state
-  map<string, int> id_serials;  // ID serial number for each type
-  list<Element *> disconnected_acceptors;
-  list<Generator *> unbound_generators;
-  Element *last_element{nullptr};
-
   // Topological ordering - ensure a precursor is ticked before its
   // dependents - either for base data flow or control flow
   list<Element *> topological_order;
@@ -695,11 +677,10 @@ class Graph
   map<string, Value> variables;
 
   // Internals
-  Element *create_element(const string& type);
+  Element *create_element(const string& type, const string& id);
   void toposort(Element *e, set<Element *>& visited);
   Element *add_element_from_json(const string& id,
                                  const JSON::Value& value);
-  File::Directory get_dir() const;
 
  public:
   //------------------------------------------------------------------------
@@ -737,20 +718,7 @@ class Graph
   // Add an element to the graph
   void add(Element *el);
 
-  //------------------------------------------------------------------------
-  // Connect an element in the graph
-  // Uses internal state to work out how to connect it:
-  //   Acceptors are connected to all previous unconnected Generators
-  //   Controls are connected to the last non-control Element
-  // Throws runtime_error if it can't connect properly
-  void connect(Element *el);
-
-  //------------------------------------------------------------------------
-  // Attach an Acceptor Element to all unbound generators remaining in the graph
-  // Returns whether it is an Acceptor and any were attached
-  bool attach(Element *el);
-
-  //------------------------------------------------------------------------
+ //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
   void setup();
 

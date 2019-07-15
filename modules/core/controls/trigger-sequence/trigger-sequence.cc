@@ -143,7 +143,6 @@ void TriggerSequenceControl::next()
 void TriggerSequenceControl::reset()
 {
   values = original_values;
-  index = 0;
 }
 
 //--------------------------------------------------------------------------

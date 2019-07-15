@@ -17,6 +17,8 @@ using namespace ViGraph::Dataflow;
 const auto default_device{"default"};
 const auto default_channels = 2;
 const auto default_buffer_size = 4096;
+const auto default_max_delay = 4000;
+const auto default_max_recovery = 1;
 
 //==========================================================================
 // SDL sink
@@ -26,6 +28,8 @@ public:
   string device = default_device;
   int nchannels = default_channels;
   int buffer_size = default_buffer_size;
+  int max_delay = default_max_delay;
+  int max_recovery = default_max_recovery;
   bool starved = false;
 
 private:
@@ -158,12 +162,18 @@ void SDLSink::setup()
 // Process some data
 void SDLSink::accept(FragmentPtr fragment)
 {
+  if (!tick_samples_required) return;  // e.g. if dumping data for max_delay
+
   auto& waveforms = fragment->waveforms;
 
   // Find max samples per waveform
   auto num_samples = vector<sample_t>::size_type{};
   for (auto& waveform: waveforms)
     num_samples = max(waveform.second.size(), num_samples);
+
+  // Cap samples at tick requirement
+  num_samples = min(num_samples, tick_samples_required);
+
   tick_samples_required -= num_samples;
 
   if (dev)
@@ -194,6 +204,27 @@ void SDLSink::accept(FragmentPtr fragment)
 void SDLSink::pre_tick(const TickData &td)
 {
   tick_samples_required = td.samples();
+
+  // Check current delay against max and reduce amount sent if over
+  if (max_delay)
+  {
+    // Because SDL pulls on a callback, we are doing the buffering...
+    SDL_LockAudioDevice(dev);
+    int delay = output_buffer.size() / nchannels;
+    SDL_UnlockAudioDevice(dev);
+    if (delay > max_delay)
+    {
+      unsigned long recovery = min(delay - max_delay, max_recovery);
+      Log::Error log;
+      log << "SDL delay of " << delay
+          << ": dropping " << recovery << " samples\n";
+
+      if (recovery < tick_samples_required)
+        tick_samples_required -= recovery;
+      else
+        tick_samples_required = 0;
+    }
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -236,6 +267,14 @@ Dataflow::Module module
       { "buffer-size", { "Buffer size in samples (must be a power of 2)",
                          Value::Type::number,
                          &SDLSink::buffer_size, false } },
+      { "max-delay",
+        { "Maximum delay (in samples) before dropping data",
+          Value::Type::number,
+          &SDLSink::max_delay, false } },
+      { "max-recovery",
+        { "Maximum samples to drop to recover delay",
+          Value::Type::number,
+          &SDLSink::max_recovery, false } }
   },
   { "Audio" }, // inputs
   {}

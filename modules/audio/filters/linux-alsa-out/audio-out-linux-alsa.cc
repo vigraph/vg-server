@@ -17,6 +17,8 @@ using namespace ViGraph::Dataflow;
 const auto default_device{"default"};
 const auto default_channels = 2;
 const auto default_start_threshold = 2000;
+const auto default_max_delay = 4000;
+const auto default_max_recovery = 1;
 
 //==========================================================================
 // LinuxAudioOut filter
@@ -26,6 +28,8 @@ public:
   string device = default_device;
   int nchannels = default_channels;
   int start_threshold = default_start_threshold;
+  int max_delay = default_max_delay;
+  int max_recovery = default_max_recovery;
 
 private:
   snd_pcm_t *pcm{nullptr};
@@ -156,6 +160,8 @@ bool LinuxALSAOutSink::write_samples(const vector<sample_t>& samples)
 // Process some data
 void LinuxALSAOutSink::accept(FragmentPtr fragment)
 {
+  if (!tick_samples_required) return;  // e.g. if dumping data for max_delay
+
   auto& waveforms = fragment->waveforms;
 
   // Find max samples per waveform
@@ -197,6 +203,25 @@ void LinuxALSAOutSink::accept(FragmentPtr fragment)
 void LinuxALSAOutSink::pre_tick(const TickData &td)
 {
   tick_samples_required = td.samples();
+
+  // Check current delay against max and reduce amount sent if over
+  if (max_delay)
+  {
+    snd_pcm_sframes_t delay;
+    snd_pcm_delay(pcm, &delay);
+    if (delay > max_delay)
+    {
+      unsigned long recovery = min(delay - max_delay, (long)max_recovery);
+      Log::Error log;
+      log << "ALSA delay of " << delay
+          << ": dropping " << recovery << " samples\n";
+
+      if (recovery < tick_samples_required)
+        tick_samples_required -= recovery;
+      else
+        tick_samples_required = 0;
+    }
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -243,6 +268,14 @@ Dataflow::Module module
         { "Number of samples to buffer before playback will start",
           Value::Type::number,
           &LinuxALSAOutSink::start_threshold, false } },
+      { "max-delay",
+        { "Maximum delay (in samples) before dropping data",
+          Value::Type::number,
+          &LinuxALSAOutSink::max_delay, false } },
+      { "max-recovery",
+        { "Maximum samples to drop to recover delay",
+          Value::Type::number,
+          &LinuxALSAOutSink::max_recovery, false } }
   },
   { "Audio" }, // inputs
   {}

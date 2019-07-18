@@ -298,14 +298,22 @@ void SelectorSource::set_json(const string& path, const JSON::Value& value)
   }
   else
   {
-    // Select specific subgraph and pass it the rest of the path
+    // If 'graph/xxx', pass down to specific subgraph
     vector<string> bits = Text::split(path, '/', false, 2);
-    const auto& subgraphs = multigraph->get_subgraphs();
-    const auto it = subgraphs.find(bits[0]);
-    if (it == subgraphs.end())
-      throw runtime_error("No such sub-graph "+bits[0]+" in selector");
-
-    it->second->set_json(bits.size()>1 ? bits[1] : "", value);
+    if (bits[0] == "graph")
+    {
+      // Select specific subgraph and pass it the rest of the path
+      const auto& subgraphs = multigraph->get_subgraphs();
+      const auto it = subgraphs.find(bits[0]);
+      if (it == subgraphs.end())
+        throw runtime_error("No such sub-graph "+bits[0]+" in selector");
+      it->second->set_json(bits.size()>1 ? bits[1] : "", value);
+    }
+    else
+    {
+      // Set our own property
+      Element::set_json(path, value);
+    }
   }
 }
 

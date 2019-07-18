@@ -34,12 +34,15 @@ private:
     falling
   } slope = Slope::free;
 
+  Fragment displayed_fragment{0};
+
   // Filter/Element virtuals
   void accept(FragmentPtr fragment) override;
 
 public:
   double level{0};
   int points{0};  // If 0, whatever is in the waveform
+  double hold_time{0};
 
   using FragmentFilter::FragmentFilter;
 
@@ -115,10 +118,15 @@ void AudioToVectorFilter::set_slope(const string& m)
 void AudioToVectorFilter::accept(FragmentPtr fragment)
 {
   FramePtr frame{new Frame{fragment->timestamp}};
+
+  if (!displayed_fragment.timestamp
+   || fragment->timestamp - displayed_fragment.timestamp >= hold_time)
+    displayed_fragment = *fragment;
+
   auto c = 0u;
   auto s = 0u;
-  const auto channels = fragment->waveforms.size();
-  for (const auto& wit: fragment->waveforms)
+  const auto channels = displayed_fragment.waveforms.size();
+  for (const auto& wit: displayed_fragment.waveforms)
   {
     const auto& w = wit.second;
     auto npoints = w.size();
@@ -219,7 +227,9 @@ Dataflow::Module module
     { "level", { "Trigger level (0-1)", Value::Type::number,
                  &AudioToVectorFilter::level, true } },
     { "points", { "Maximum points (0 = unlimited)", Value::Type::number,
-                 &AudioToVectorFilter::points, true } }
+                 &AudioToVectorFilter::points, true } },
+    { "hold-time", { "Time to sample and hold a waveform", Value::Type::number,
+                 &AudioToVectorFilter::hold_time, true } }
   },
   { "Audio" }, // inputs
   { "VectorFrame" }  // outputs

@@ -175,38 +175,6 @@ Value::Type Element::get_property_type(const string& property)
 }
 
 //------------------------------------------------------------------------
-// Configure with an property name and string value
-void Element::configure_property(const string& name,
-                                 const Module::Property& prop,
-                                 const string& value)
-{
-  Value v(Value::Type::invalid);
-  switch (prop.type)
-  {
-    case Value::Type::number:
-      v = Value(Text::stof(value));
-      break;
-
-    case Value::Type::text:
-    case Value::Type::choice:
-    case Value::Type::file:
-    case Value::Type::other:
-      v = Value(value);
-      break;
-
-    case Value::Type::boolean:
-      v = Value(Text::stob(value)?1.0:0.0);
-      break;
-
-      // Triggers, invalid, any are ignored
-    default:;
-  }
-
-  if (v.type != Value::Type::invalid)
-    set_property(name, prop, v);
-}
-
-//------------------------------------------------------------------------
 // Set a property (internal, with property already looked up)
 void Element::set_property(const string& prop_name,
                            const Module::Property& prop,

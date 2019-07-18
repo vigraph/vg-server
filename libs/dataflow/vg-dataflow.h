@@ -14,7 +14,6 @@
 #include <string>
 #include <functional>
 #include <cmath>
-#include "ot-xml.h"
 #include "ot-mt.h"
 #include "ot-init.h"
 #include "ot-text.h"
@@ -389,10 +388,6 @@ struct Module
 class Element
 {
 private:
-  void configure_from_element(const XML::Element& config,
-                              const string& prefix);
-  void configure_property(const string& name, const Module::Property& prop,
-                          const string& value);
   void set_property(const string& prop_name, const Module::Property& prop,
                     const Value& v);
   void set_property(const string& prop_name, const Module::Property& prop,
@@ -405,7 +400,6 @@ public:
   string id;
   Graph *graph{nullptr};
   Engine *engine{nullptr};
-  Element *next_element{nullptr};
   list<Element *> downstreams; // All data and control connections, for toposort
 
   // Basic construction
@@ -416,11 +410,6 @@ public:
 
   // Setup after automatic configuration
   virtual void setup() {}
-
-  // Connect to other elements in the graph, for cases where the normal
-  // graph connection isn't sufficient.  Called when the graph is already
-  // loaded and all elements configured, and after normal connection
-  virtual void connect() {}
 
   // Notify that this element is the control target of another element,
   // with the given property name
@@ -674,18 +663,6 @@ class Graph
   double sample_rate = 0;
   SendUpFunction send_up_function{nullptr};
 
-  // Source
-  File::Path source_file;  // empty if inline
-  time_t source_file_mtime;
-  Time::Duration file_update_check_interval;
-  Time::Stamp last_file_update_check;
-
-  // Construction state
-  map<string, int> id_serials;  // ID serial number for each type
-  list<Element *> disconnected_acceptors;
-  list<Generator *> unbound_generators;
-  Element *last_element{nullptr};
-
   // Topological ordering - ensure a precursor is ticked before its
   // dependents - either for base data flow or control flow
   list<Element *> topological_order;
@@ -695,11 +672,10 @@ class Graph
   map<string, Value> variables;
 
   // Internals
-  Element *create_element(const string& type);
+  Element *create_element(const string& type, const string& id);
   void toposort(Element *e, set<Element *>& visited);
   Element *add_element_from_json(const string& id,
                                  const JSON::Value& value);
-  File::Directory get_dir() const;
 
  public:
   //------------------------------------------------------------------------
@@ -722,33 +698,8 @@ class Graph
   { return elements; }
 
   //------------------------------------------------------------------------
-  // Configure from source file, with given update check interval
-  void configure(const File::Path& source_file,
-                 const Time::Duration& check_interval);
-
-  //------------------------------------------------------------------------
-  // Set an element property
-  // element_path is a path/to/leaf
-  // Can throw runtime_error if it fails
-  void set_property(const string& element_path, const string& property,
-                    const Value& value);
-
-  //------------------------------------------------------------------------
-  // Add an element to the graph
+  // Add an element to the graph (testing)
   void add(Element *el);
-
-  //------------------------------------------------------------------------
-  // Connect an element in the graph
-  // Uses internal state to work out how to connect it:
-  //   Acceptors are connected to all previous unconnected Generators
-  //   Controls are connected to the last non-control Element
-  // Throws runtime_error if it can't connect properly
-  void connect(Element *el);
-
-  //------------------------------------------------------------------------
-  // Attach an Acceptor Element to all unbound generators remaining in the graph
-  // Returns whether it is an Acceptor and any were attached
-  bool attach(Element *el);
 
   //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
@@ -848,10 +799,6 @@ class Graph
   // Delete an item (from REST)
   // path is a path/to/leaf
   void delete_item(const string& path);
-
-  //------------------------------------------------------------------------
-  // Does this require an update? (i.e. there is a new config)
-  bool requires_update(File::Path &file, Time::Duration& check_interval);
 
   //------------------------------------------------------------------------
   // Shutdown all elements

@@ -12,164 +12,22 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Add an element to the graph
+// Add an element to the graph (testing)
 void Graph::add(Element *el)
 {
   elements[el->id].reset(el);
-
-  // If an acceptor assume it's disconnected until proved otherwise
-  if (dynamic_cast<Acceptor *>(el))
-    disconnected_acceptors.push_back(el);
-
-  // Connect to previous element for default control targets
-  if (last_element) last_element->next_element = el;
-  last_element = el;
-}
-
-//------------------------------------------------------------------------
-// Attach an Acceptor Element to all unbound generators remaining in the graph
-// Returns whether it is an Acceptor and any were attached
-bool Graph::attach(Element *el)
-{
-  Acceptor *acceptor = dynamic_cast<Acceptor *>(el);
-  if (!acceptor || unbound_generators.empty()) return false;
-
-  for(auto p=unbound_generators.begin(); p!=unbound_generators.end();)
-  {
-    Generator *g = *p;
-
-    // Check type
-    bool found = false;
-    for(const auto& i: el->module->inputs)
-      for(const auto& o: g->module->outputs)
-        if (i.type == o.type || i.type == "any" || o.type == "any")
-          found = true;
-
-    if (found)
-    {
-      g->attach(el->id, acceptor);
-      g->downstreams.push_back(el);
-      p = unbound_generators.erase(p);
-    }
-    else ++p;
-  }
-  return true;
-}
-
-//------------------------------------------------------------------------
-// Connect an element in the graph
-// Uses internal state to work out how to connect it:
-//   Acceptors are connected to all previous unconnected Generators
-//   Controls are connected to the last non-control Element
-// Throws runtime_error if it can't connect properly
-void Graph::connect(Element *el)
-{
-  // If this is an acceptor, attach any unbound generators to it
-  if (attach(el))
-    disconnected_acceptors.remove(el);
-
-  // If it's a generator, look for explicit output,
-  // or add to unbound generators list
-  Generator *g = dynamic_cast<Generator *>(el);
-  if (g)
-  {
-    if (g->acceptors.empty())
-    {
-      // Add to unbound generators to connect to next acceptor
-      unbound_generators.push_back(g);
-    }
-    else
-    {
-      for(auto& it: g->acceptors)
-      {
-        Element *ae = get_element(it.first);
-        if (ae)
-        {
-          Acceptor *acceptor = dynamic_cast<Acceptor *>(ae);
-          if (acceptor)
-          {
-            // Check type
-            bool found = false;
-            for(const auto& i: ae->module->inputs)
-              for(const auto& o: g->module->outputs)
-                if (i.type == o.type || i.type == "any" || o.type == "any")
-                  found = true;
-
-            if (!found)
-              throw runtime_error("Graph element " + it.first
-                                  + " pointed to by " + el->id
-                                  + " has the wrong input type");
-
-            it.second = acceptor;
-            disconnected_acceptors.remove(ae);
-            el->downstreams.push_back(ae);
-          }
-          else
-            throw runtime_error("Graph element " + it.first
-                                + " pointed to by " + el->id
-                                + " is not an acceptor");
-        }
-        else throw runtime_error("No such element " + it.first
-                                 + " pointed to by " + el->id);
-      }
-    }
-  }
-
-  // If it's a control, connect it to its targets
-  ControlImpl *c = dynamic_cast<ControlImpl *>(el);
-  if (c)
-  {
-    const auto& targets = c->get_targets();
-    for(const auto& it: targets)
-    {
-      const ControlImpl::Target& target = it.second;
-      // Check properties exist and are the right type
-      if (target.properties.empty())
-        throw runtime_error("Control "+el->id+" has no properties\n");
-
-      Element *target_element;
-      if (it.first.empty())
-      {
-        // Default - connect to next one
-        if (!el->next_element)
-          throw runtime_error("No element to connect to control " + el->id);
-        target_element = el->next_element;
-      }
-      else
-      {
-        const auto eit = elements.find(it.first);
-        if (eit == elements.end())
-          throw runtime_error("No such target element "+it.first
-                              +" to connect to control " + el->id);
-        target_element = eit->second.get();
-      }
-
-      // Attach it
-      c->attach_target(it.first, target_element);
-      el->downstreams.push_back(target_element);
-    }
-  }
-
-  // Let it do any additional connection
-  el->connect();
 }
 
 //------------------------------------------------------------------------
 // Create an element
-Element *Graph::create_element(const string& type)
+Element *Graph::create_element(const string& type, const string& id)
 {
   const auto el = engine.create(type);
   if (!el) throw runtime_error("No such dataflow element " + type);
+  el->id = id;
 
-  // Point back to us (so we're available for configure())
+  // Point back to us
   el->graph = this;
-
-  // Invent an ID if not explicitly set
-  if (el->id.empty()) el->id = type;
-
-  // See if it already exists - if so, add a serial number
-  if (elements.find(el->id) != elements.end())
-    el->id += "-"+Text::itos(++id_serials[type]);
 
   return el;
 }
@@ -542,8 +400,7 @@ Element *Graph::add_element_from_json(const string& id,
     throw runtime_error("Element creation needs a 'type'");
 
   // Create an element
-  auto el = create_element(type);
-  el->id = id; // Override default ID
+  auto el = create_element(type, id);
   elements[id].reset(el);
 
   // Add to end of topological order for now, it will be updated once
@@ -591,36 +448,6 @@ void Graph::delete_item(const string& path)
 
   // Recalculate topological order
   generate_topological_order();
-}
-
-//--------------------------------------------------------------------------
-// Does this require an update? (i.e. there is a new config)
-bool Graph::requires_update(File::Path& file, Time::Duration& check_interval)
-{
-  if (source_file.str().empty())
-    return false;
-
-  const auto now = Time::Stamp::now();
-  const auto throttle = now - last_file_update_check
-                        < file_update_check_interval;
-  if (throttle)
-    return false;
-
-  const auto mtime = source_file.last_modified();
-  if (!mtime)
-    return false;
-
-  if (mtime == source_file_mtime)
-    return false;
-
-  if (!source_file.length())
-    return false;
-
-  source_file_mtime = source_file.last_modified();
-  file = source_file;
-  check_interval = file_update_check_interval;
-  last_file_update_check = now;
-  return true;
 }
 
 //------------------------------------------------------------------------

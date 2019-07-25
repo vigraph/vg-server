@@ -246,19 +246,19 @@ Dataflow::Module module
   "laser",
   {
     { "packet.size", { "UDP packet size in bytes", Value::Type::number,
-                       &IDNTransmitFilter::packet_size, true } },
+                       &IDNTransmitFilter::packet_size } },
     { "config.interval", { "Interval between configuration packets in sec",
                            Value::Type::number,
-                           &IDNTransmitFilter::config_interval, true } },
+                           &IDNTransmitFilter::config_interval } },
     { "intensity.enabled", { "Whether to send overall intensity values",
                              Value::Type::boolean,
-                             &IDNTransmitFilter::intensity_enabled, true } },
+                             &IDNTransmitFilter::intensity_enabled } },
     { "host.address", { "Destination host (IP or hostname)", Value::Type::text,
-                        &IDNTransmitFilter::host_address, false } },
+                        &IDNTransmitFilter::host_address } },
     { "host.port", { "Destination port", Value::Type::number,
-                     &IDNTransmitFilter::host_port, false } },
+                     &IDNTransmitFilter::host_port } },
     { "source.address", { "Source address to bind to", Value::Type::text,
-                          &IDNTransmitFilter::source_address, false } }
+                          &IDNTransmitFilter::source_address } }
   },
   { "VectorFrame" }, // inputs
   { }  // outputs

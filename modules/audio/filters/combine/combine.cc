@@ -138,7 +138,7 @@ Dataflow::Module module
   {
     { "mode", { "How the inputs are combined", Value::Type::choice,
                 { &CombineFilter::get_mode, &CombineFilter::set_mode },
-                { "add", "multiply" }, true } }
+                { "add", "multiply" } } }
   },  // no properties
   { { "Audio", true } }, // multiple inputs
   { "Audio" }            // single output

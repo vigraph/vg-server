@@ -69,7 +69,7 @@ void CombineFilter::post_tick(const TickData& td)
 Dataflow::Module module
 {
   "combine",
-  "Combine",
+  "Vector combine",
   "Combine multiple frame inputs into one",
   "vector",
   {}, // no properties

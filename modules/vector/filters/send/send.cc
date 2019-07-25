@@ -61,9 +61,9 @@ Dataflow::Module module
   "vector",
   {
     { "to", { "Router tag to send to", Value::Type::text,
-              &SendFilter::tag, false } },
+              &SendFilter::tag } },
     { "copy", { "Whether to send a copy in normal flow", Value::Type::boolean,
-                &SendFilter::copy, true } }
+                &SendFilter::copy } }
   },
   { "VectorFrame" }, // inputs
   { "VectorFrame" }  // outputs

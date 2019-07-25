@@ -138,7 +138,7 @@ Dataflow::Module module
               true }},
     { "curve", { "Interpolation curve", "curve",
                  { &InterpolateControl::get_curve,
-                   &InterpolateControl::set_curve }, true } }
+                   &InterpolateControl::set_curve }, false } }
   },
   { { "output", { "Value output", "value", Value::Type::number }}}
 };

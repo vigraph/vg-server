@@ -1004,6 +1004,10 @@ class MultiGraph
   void add_subgraph(const string& id, Graph *sub);
 
   //------------------------------------------------------------------------
+  // Delete a subgraph
+  void delete_subgraph(const string& id);
+
+  //------------------------------------------------------------------------
   // Enable all subgraphs
   void enable_all();
 

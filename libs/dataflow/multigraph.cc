@@ -7,6 +7,7 @@
 //==========================================================================
 
 #include "vg-dataflow.h"
+#include <algorithm>
 
 namespace ViGraph { namespace Dataflow {
 
@@ -73,9 +74,31 @@ void MultiGraph::add_subgraph(const string& id, Graph *sub)
   MT::RWWriteLock lock(mutex);
   subgraphs.push_back(shared_ptr<Graph>(sub));
   subgraphs_by_id[id] = sub;
+  sub->set_send_up_function(send_up_function);
   if (threaded)
     threads.emplace(piecewise_construct,
                     forward_as_tuple(sub), forward_as_tuple(subgraphs.back()));
+}
+
+//------------------------------------------------------------------------
+// Delete a subgraph
+void MultiGraph::delete_subgraph(const string& id)
+{
+  // Lock for write
+  MT::RWWriteLock lock(mutex);
+  const auto it = subgraphs_by_id.find(id);
+  if (it == subgraphs_by_id.end()) return;
+
+  auto graph = it->second;
+  graph->shutdown();
+  if (threaded) threads.erase(graph); // !!! Review - safe?!
+
+  subgraphs_by_id.erase(it);
+
+  // !!! Review - there must be an easier way to do it!
+  shared_ptr<Graph> graph_p(graph);
+  subgraphs.erase(remove(subgraphs.begin(), subgraphs.end(), graph_p),
+                  subgraphs.end());
 }
 
 //------------------------------------------------------------------------

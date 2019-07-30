@@ -318,21 +318,41 @@ void SelectorSource::set_json(const string& path, const JSON::Value& value)
   // Whole selector?
   if (path.empty())
   {
-    // !!!
-    throw runtime_error("Setting entire selector contents not implemented!");
+    // Set our properties
+    Element::set_json(path, value);
+
+    // Create new multigraph
+    multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
+
+    // 'graphs' contains the array of sub-graphs
+    const auto& graphs = value["graphs"];
+
+    if (value.type != JSON::Value::OBJECT)
+      throw runtime_error("Whole selector setting needs a 'graphs' JSON object");
+
+    // Add each one as a new subgraph
+    for(const auto& it: graphs.o)
+    {
+      const auto& id = it.first;
+      const auto& elements = it.second;
+
+      Graph *sub = new Dataflow::Graph(graph->get_engine(), graph);
+      multigraph->add_subgraph(id, sub);
+      sub->set_json(path, elements);
+    }
   }
   else
   {
-    // If 'graph/xxx', pass down to specific subgraph
-    vector<string> bits = Text::split(path, '/', false, 2);
+    // If 'graph/xxx/yyy', pass down to specific subgraph
+    vector<string> bits = Text::split(path, '/', false, 3);
     if (bits[0] == "graph")
     {
       // Select specific subgraph and pass it the rest of the path
       const auto& subgraphs = multigraph->get_subgraphs();
-      const auto it = subgraphs.find(bits[0]);
+      const auto it = subgraphs.find(bits[1]);
       if (it == subgraphs.end())
-        throw runtime_error("No such sub-graph "+bits[0]+" in selector");
-      it->second->set_json(bits.size()>1 ? bits[1] : "", value);
+        throw runtime_error("No such sub-graph "+bits[1]+" in selector");
+      it->second->set_json(bits.size()>2 ? bits[2] : "", value);
     }
     else
     {
@@ -349,19 +369,29 @@ void SelectorSource::add_json(const string& path, const JSON::Value& value)
   // Whole selector?
   if (path.empty())
   {
-    // !!! Add an option?
     throw runtime_error("Can't add to entire selector contents");
   }
   else
   {
     // Select specific subgraph and pass it the rest of the path
-    vector<string> bits = Text::split(path, '/', false, 2);
-    const auto& subgraphs = multigraph->get_subgraphs();
-    const auto it = subgraphs.find(bits[0]);
-    if (it == subgraphs.end())
-      throw runtime_error("No such sub-graph "+bits[0]+" in selector");
-
-    it->second->add_json(bits.size()>1 ? bits[1] : "", value);
+    vector<string> bits = Text::split(path, '/', false, 3);
+    if (bits[0] == "graph")
+    {
+      const auto& subgraphs = multigraph->get_subgraphs();
+      const auto it = subgraphs.find(bits[1]);
+      if (it == subgraphs.end())
+      {
+        // We need to create it
+        Graph *sub = new Dataflow::Graph(graph->get_engine(), graph);
+        multigraph->add_subgraph(bits[1], sub);
+        sub->add_json(bits.size()>2 ? bits[2] : "", value);
+      }
+      else
+      {
+        it->second->add_json(bits.size()>2 ? bits[2] : "", value);
+      }
+    }
+    else throw runtime_error("Can't add to a selector property");
   }
 }
 
@@ -372,19 +402,29 @@ void SelectorSource::delete_item(const string& path)
   // Whole selector?
   if (path.empty())
   {
-    // !!! Delete an option?
     throw runtime_error("Can't delete entire selector contents");
   }
   else
   {
     // Select specific subgraph and pass it the rest of the path
-    vector<string> bits = Text::split(path, '/', false, 2);
-    const auto& subgraphs = multigraph->get_subgraphs();
-    const auto it = subgraphs.find(bits[0]);
-    if (it == subgraphs.end())
-      throw runtime_error("No such sub-graph "+bits[0]+" in selector");
+    vector<string> bits = Text::split(path, '/', false, 3);
+    if (bits[0] == "graph")
+    {
+      const auto& subgraphs = multigraph->get_subgraphs();
+      const auto it = subgraphs.find(bits[1]);
+      if (it == subgraphs.end())
+        throw runtime_error("No such sub-graph "+bits[1]+" in selector");
 
-    it->second->delete_item(bits.size()>1 ? bits[1] : "");
+      // If no sub-path, we are deleting the entire thing
+      if (bits.size() > 2)
+        it->second->delete_item(bits[2]);
+      else
+      {
+        // Delete a subgraph
+        multigraph->delete_subgraph(bits[1]);
+      }
+    }
+    else throw runtime_error("Can't delete a selector property");
   }
 }
 

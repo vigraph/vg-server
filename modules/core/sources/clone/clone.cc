@@ -121,8 +121,18 @@ JSON::Value CloneSource::get_json(const string& path) const
   }
   else
   {
-    // Just the undecorated object the graph returns
-    return subgraph->get_json(path);
+    // If 'graph/xxx', pass down to cloned subgraphs
+    vector<string> bits = Text::split(path, '/', false, 2);
+    if (bits[0] == "graph")
+    {
+      // Just the undecorated object the graph returns
+      return subgraph->get_json(bits[1]);
+    }
+    else
+    {
+      // Our own property
+      return Source::get_json(path);
+    }
   }
 }
 

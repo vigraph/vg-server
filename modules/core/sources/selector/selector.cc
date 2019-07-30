@@ -301,13 +301,22 @@ JSON::Value SelectorSource::get_json(const string& path) const
   else
   {
     // Select specific subgraph and pass it the rest of the path
-    vector<string> bits = Text::split(path, '/', false, 2);
-    const auto it = subgraphs.find(bits[0]);
-    if (it == subgraphs.end())
-      throw runtime_error("No such sub-graph "+bits[0]+" in selector");
+    vector<string> bits = Text::split(path, '/', false, 3);
+    if (bits[0] == "graph")
+    {
+      // Select specific subgraph and pass it the rest of the path
+      const auto it = subgraphs.find(bits[1]);
+      if (it == subgraphs.end())
+        throw runtime_error("No such sub-graph "+bits[1]+" in selector");
 
-    // Return bare value (or INVALID) up, undecorated
-    return it->second->get_json(bits.size()>1 ? bits[1] : "");
+      // Return bare value (or INVALID) up, undecorated
+      return it->second->get_json(bits.size()>2 ? bits[2] : "");
+    }
+    else
+    {
+      // Our own property
+      return Source::get_json(path);
+    }
   }
 }
 

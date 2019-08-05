@@ -103,6 +103,9 @@ class GraphTester
     Element *e;
     ElementProxy(Element *_e): e(_e) {}
 
+    // Arrow for direct use of 'e'
+    Element *operator->() { return e; }
+
     // All methods return *this, for chaining
     // Set a property direct with Dataflow::Value
     // Template to avoid ambiguity with JSON version

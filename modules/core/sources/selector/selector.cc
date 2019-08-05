@@ -41,6 +41,7 @@ private:
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
   void calculate_topology(Element::Topology& topo) override;
+  void setup() override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
   void post_tick(const TickData& td) override;
@@ -90,6 +91,13 @@ void SelectorSource::calculate_topology(Element::Topology& topo)
   // Note we include all subs in the topology, whether or not activated,
   // to avoid having to recalculate the topology dynamically
   multigraph->calculate_topology(topo, this);
+}
+
+//--------------------------------------------------------------------------
+// Setup after creation
+void SelectorSource::setup()
+{
+  multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
 }
 
 //--------------------------------------------------------------------------
@@ -336,18 +344,16 @@ void SelectorSource::set_json(const string& path, const JSON::Value& value)
     // 'graphs' contains the array of sub-graphs
     const auto& graphs = value["graphs"];
 
-    if (value.type != JSON::Value::OBJECT)
-      throw runtime_error("Whole selector setting needs a 'graphs' JSON object");
+    if (graphs.type != JSON::Value::ARRAY)
+      throw runtime_error("Whole selector setting needs a 'graphs' JSON array");
 
     // Add each one as a new subgraph
-    for(const auto& it: graphs.o)
+    for(const auto& sg: graphs.a)
     {
-      const auto& id = it.first;
-      const auto& elements = it.second;
-
+      const auto& id = sg["id"].as_str();
       Graph *sub = new Dataflow::Graph(graph->get_engine(), graph);
       multigraph->add_subgraph(id, sub);
-      sub->set_json(path, elements);
+      sub->set_json(path, sg["elements"]);
     }
   }
   else

@@ -97,7 +97,9 @@ void SelectorSource::calculate_topology(Element::Topology& topo)
 // Setup after creation
 void SelectorSource::setup()
 {
-  multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
+  // Create empty multigraph if not already set from JSON or XML
+  if (!multigraph)
+    multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
 }
 
 //--------------------------------------------------------------------------

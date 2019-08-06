@@ -62,6 +62,33 @@ TEST(SelectorTest, TestSetFromJSON)
   EXPECT_EQ(JSON::Value::ARRAY, sg["elements"].type);
 }
 
+TEST(SelectorTest, TestDeleteSubGraph)
+{
+  GraphTester tester(loader);
+
+  auto selector = tester.add("selector");
+  tester.test();
+
+  // Create with one subgraph
+  JSON::Value sjson(JSON::Value::OBJECT);
+  auto& sgraphs = sjson.put("graphs", JSON::Value::ARRAY);
+
+  JSON::Value graph1(JSON::Value::OBJECT);
+  graph1.put("id", "graph1");
+  graph1.put("elements", JSON::Value::ARRAY);
+  sgraphs.a.push_back(graph1);
+
+  selector->set_json("", sjson);
+
+  // Delete graph1
+  selector->delete_item("graph/graph1");
+
+  // Read back, should be empty
+  auto json = selector->get_json();
+  ASSERT_EQ("selector1", json["id"].as_str());
+  ASSERT_EQ("core:selector", json["type"].as_str());
+}
+
 int main(int argc, char **argv)
 {
   if (argc > 1 && string(argv[1]) == "-v")

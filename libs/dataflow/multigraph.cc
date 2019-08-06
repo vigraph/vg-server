@@ -96,9 +96,15 @@ void MultiGraph::delete_subgraph(const string& id)
   subgraphs_by_id.erase(it);
 
   // !!! Review - there must be an easier way to do it!
-  shared_ptr<Graph> graph_p(graph);
-  subgraphs.erase(remove(subgraphs.begin(), subgraphs.end(), graph_p),
-                  subgraphs.end());
+  // Note remove/erase doesn't work because we have to create a shared_ptr
+  // to compare, which then double-frees the graph!
+  for(auto it = subgraphs.begin(); it != subgraphs.end();)
+  {
+    if (it->get() == graph)
+      it = subgraphs.erase(it);
+    else
+      ++it;
+  }
 }
 
 //------------------------------------------------------------------------

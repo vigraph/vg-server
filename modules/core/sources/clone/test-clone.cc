@@ -50,6 +50,25 @@ TEST(CloneTest, TestSetEmptySubgraphFromJSON)
   EXPECT_TRUE(graph.a.empty());
 }
 
+TEST(CloneTest, TestGetSubgraphFromJSON)
+{
+  GraphTester tester(loader);
+
+  auto clone = tester.add("clone")
+    .set("n", 10);
+  tester.test();
+
+  // Create with subgraph
+  JSON::Value sjson(JSON::Value::OBJECT);
+  sjson.put("graph", JSON::Value::ARRAY);
+  clone->set_json("", sjson);
+
+  // Read back
+  auto graph = clone->get_json("graph");
+  ASSERT_EQ(JSON::Value::ARRAY, graph.type);
+  EXPECT_TRUE(graph.a.empty());
+}
+
 
 
 int main(int argc, char **argv)

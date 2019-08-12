@@ -136,7 +136,7 @@ JSON::Value CloneSource::get_json(const string& path) const
     if (bits[0] == "graph")
     {
       // Just the undecorated object the graph returns
-      return subgraph->get_json(bits[1]);
+      return subgraph->get_json((bits.size()>1) ? bits[1] : "");
     }
     else
     {

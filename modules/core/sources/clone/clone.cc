@@ -23,6 +23,7 @@ private:
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
+  void setup() override;
   void calculate_topology(Element::Topology& topo) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
@@ -61,6 +62,15 @@ void CloneSource::configure(const File::Directory& base_dir,
     sub->set_variable("clone-number", Value{(double)(i+1)});
     sub->set_variable("clone-fraction", Value{(double)i/n});
   }
+}
+
+//--------------------------------------------------------------------------
+// Setup after creation
+void CloneSource::setup()
+{
+  // Create empty multigraph if not already set from JSON or XML
+  if (!multigraph)
+    multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
 }
 
 //--------------------------------------------------------------------------

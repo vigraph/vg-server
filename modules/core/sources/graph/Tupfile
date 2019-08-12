@@ -6,6 +6,6 @@
 
 NAME    = vg-module-core-source-graph
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry
+DEPENDS = vg-dataflow vg-geometry ot-lib
 
 include_rules

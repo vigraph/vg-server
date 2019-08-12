@@ -71,6 +71,7 @@ class GraphSource: public Dataflow::Source
   // Source/Element virtuals
   void configure(const File::Directory& base_dir,
                  const XML::Element& config) override;
+  void setup() override;
   void calculate_topology(Element::Topology& topo) override;
   void pre_tick(const TickData& td) override;
   void tick(const TickData& td) override;
@@ -105,6 +106,15 @@ void GraphSource::configure(const File::Directory& base_dir,
 
   // Pass upgoing data straight on as if we were the source
   subgraph->set_send_up_function([this](DataPtr data) { send(data); });
+}
+
+//--------------------------------------------------------------------------
+// Setup after creation
+void GraphSource::setup()
+{
+  // Create empty subgraph if not already set from JSON or XML
+  if (!subgraph)
+    subgraph.reset(new Dataflow::Graph(graph->get_engine(), graph));
 }
 
 //--------------------------------------------------------------------------
@@ -205,6 +215,11 @@ JSON::Value GraphSource::get_json(const string& path) const
     JSON::Value json = Source::get_json();
     json.set("elements", subgraph->get_json());
     return json;
+  }
+  else if (path == "elements")
+  {
+    // Just the sub-elements
+    return subgraph->get_json();
   }
   else
   {

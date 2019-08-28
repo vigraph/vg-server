@@ -78,7 +78,7 @@ struct RGB
 // RGB+alpha colour
 struct RGBA: public RGB
 {
-  intens_t a{1.0};
+  intens_t a{0.0};  // Transparent
 
   // Constructors
   RGBA() {}

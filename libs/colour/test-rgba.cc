@@ -20,7 +20,7 @@ TEST(ColourTest, TestRGBADefaultConstruction)
   EXPECT_EQ(0.0, c.r);
   EXPECT_EQ(0.0, c.g);
   EXPECT_EQ(0.0, c.b);
-  EXPECT_EQ(1.0, c.a);
+  EXPECT_EQ(0.0, c.a);
 }
 
 TEST(ColourTest, TestRGBAExplicitConstruction)

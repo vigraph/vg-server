@@ -75,6 +75,47 @@ struct RGB
 };
 
 //==========================================================================
+// RGB+alpha colour
+struct RGBA: public RGB
+{
+  intens_t a{1.0};
+
+  // Constructors
+  RGBA() {}
+  RGBA(const RGB& _rgb, intens_t _a): RGB(_rgb), a(_a) {}
+  RGBA(intens_t _r, intens_t _g, intens_t _b, intens_t _a):
+    RGB(_r, _g, _b), a(_a) {}
+  RGBA(intens_t _i, intens_t _a): RGB(_i), a(_a) {}
+  // General from string as RGB, but with alpha added
+  RGBA(const string& s, intens_t _a): RGB(s), a(_a) {}
+  // Specific, #rrggbbaa and #rgba only
+  RGBA(const string& s);
+
+  // Tests
+  bool is_opaque() { return a == 1.0; }
+  bool is_transparent() { return a == 0.0; }
+
+  // Equality
+  bool operator==(const RGBA& o) const
+  { return RGB::operator==(o) && a==o.a; }
+
+  bool operator!=(const RGBA& o) const
+  { return RGB::operator!=(o) || a!=o.a; }
+
+  // Blend between this and another colour
+  RGB blend_with(const RGB& o)
+  {
+    double oa = 1-a;
+    return RGB(r*a + o.r*oa,
+               g*a + o.g*oa,
+               b*a + o.b*oa);
+  }
+
+  // Get as a string
+  string str() const;
+};
+
+//==========================================================================
 // HSL colour
 struct HSL
 {

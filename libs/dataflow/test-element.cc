@@ -23,19 +23,17 @@ class TestElement: public Element
 {
  public:
   TestElement(): Element(&test_module) {}
-  double x{0.0};
+  Input<double> x;
 };
 
 Module test_module
 {
   "test",
   "Test",
-  "Test element",
   "test",
+  {},
   {
-    { "x", { "Test property", Value::Type::number,
-             static_cast<double Element::*>(&TestElement::x),
-             true } }
+    { "x", &TestElement::x }
   },
   { }
 };
@@ -43,20 +41,11 @@ Module test_module
 TEST(ElementTest, TestElementControlUpdateDirectSetting)
 {
   TestElement e;
-  EXPECT_EQ(0.0, e.x);
+  EXPECT_EQ(0.0, e.x.get());
 
   // Set directly
-  Value v(1.0);
-  e.set_property("x", v);
-  EXPECT_EQ(1.0, e.x);
-}
-
-TEST(ElementTest, TestElementGetJSON)
-{
-  TestElement e;
-  JSON::Value value = e.get_json("");
-  ASSERT_EQ(JSON::Value::Type::OBJECT, value.type);
-  ASSERT_EQ("", value["id"].as_str());
+  e.set("x", 1.0);
+  EXPECT_EQ(1.0, e.x.get());
 }
 
 } // anonymous namespace

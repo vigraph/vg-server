@@ -19,8 +19,8 @@
 #include "ot-text.h"
 #include "ot-time.h"
 #include "ot-file.h"
-#include "ot-json.h"
 #include "ot-log.h"
+#include "ot-json.h"
 
 namespace ViGraph { namespace Dataflow {
 
@@ -40,347 +40,554 @@ typedef double timestamp_t; // Relative timestamp
 // Tick data - data that is passed for each tick
 struct TickData
 {
-  timestamp_t t = 0.0;        // Relative timestamp
-  uint64_t n = 0;             // Relative tick number
-  Time::Duration interval;    // Interval of the tick
-  timestamp_t global_t = 0.0; // Absolute timestamp
-  uint64_t global_n = 0;      // Absolute tick number
-  double sample_rate = default_sample_rate;
+  Time::Stamp timestamp;
+  double sample_rate = 0;
+  unsigned long nsamples = 0;
 
-  // Constructors
-  TickData() {}
-  TickData(timestamp_t _t, uint64_t _n, const Time::Duration& _interval,
-           double _sample_rate):
-    t{_t}, n{_n}, interval{_interval}, global_t{_t}, global_n{_n},
-    sample_rate{_sample_rate}
+  TickData(const Time::Stamp& _timestamp, double _sample_rate,
+           unsigned long _nsamples):
+    timestamp{_timestamp}, sample_rate{_sample_rate}, nsamples{_nsamples}
   {}
-  TickData(timestamp_t _t, uint64_t _n, const Time::Duration& _interval,
-           double _sample_rate, timestamp_t _global_t, uint64_t _global_n):
-    t{_t}, n{_n}, interval{_interval}, global_t{_global_t}, global_n{_global_n},
-    sample_rate{_sample_rate}
-  {}
-
-  //------------------------------------------------------------------------
-  // Get number of samples required for this tick
-  size_t samples() const
-  {
-    const auto last_tick_total = static_cast<size_t>(
-      floor(interval.seconds() * (global_n) * sample_rate));
-    const auto tick_total = static_cast<size_t>(
-      floor(interval.seconds() * (global_n + 1) * sample_rate));
-    return tick_total - last_tick_total;
-  }
-
-  //------------------------------------------------------------------------
-  // Sample duratin
-  timestamp_t sample_duration() const
-  {
-    return 1.0 / sample_rate;
-  }
-
-  //------------------------------------------------------------------------
-  // Get the start time of the first sample in this tick
-  timestamp_t first_sample_start() const
-  {
-    const auto x = fmod(global_t, sample_duration());
-    if (x)
-      return t - x + sample_duration();
-    else
-      return t;
-  }
 };
 
-//==========================================================================
-// Graph data block - carrier for arbitrary data
-// Will be specialised to actually hold data in user's subclasses
-struct Data
-{
-  // Clone it
-  virtual Data *clone() = 0;
-
-  // Virtual destructor
-  virtual ~Data() {}
-};
-
-class DataPtr: public shared_ptr<Data>
-{
- public:
-  using shared_ptr<Data>::shared_ptr;
-
-  // Template to check for a given subtype
-  // Throws a runtime_error if wrong
-  template <class T> shared_ptr<T> check()
-  {
-    auto t = dynamic_pointer_cast<T>(*this);
-    if (!t) throw runtime_error("Bad data type");
-    return t;
-  }
-};
-
-//==========================================================================
-// Graph control value
-struct Value
-{
-  enum class Type
-  {
-    invalid,      // Unset
-
-    // Types for dynamic properties
-    trigger,      // No data, just a trigger pulse
-    number,       // Real number (also used for integer and boolean >= 0.5)
-    text,         // Text string
-
-    // Types only used for static configuration properties
-    boolean,       // True / False
-    choice,        // Fixed choice set
-    file,          // Filename
-    other,         // Special type defined separately
-    any,           // Set at run time
-  };
-
-  // If only enum classes could have members ;-)
-  // Get a string representation of a value type
-  static string type_str(Value::Type t);
-
-  Type type{Type::invalid};
-
-  // One of the following - can't be in a union because of string
-  double d{0.0};
-  string s;
-  JSON::Value j;
-
-  // Constructors
-  Value(): type(Type::trigger) {}
-  Value(Type _type): type(_type) {}
-  Value(double _d): type(Type::number), d(_d) {}
-  Value(const string& _s): type(Type::text), s(_s) {}
-  Value(const char *_s): type(Type::text), s(_s) {}
-
-  // Construct from a JSON value
-  Value(const JSON::Value& json);
-
-  // Comparison operators
-  bool operator<(const Value& b) const
-  {
-    return type < b.type || d < b.d || s < b.s;
-  }
-  bool operator==(const Value& b) const
-  {
-    return type == b.type && d == b.d && s == b.s;
-  }
-};
-
-class Graph;  // forward
+// forward declarations
 class Engine;
+class Graph;
 class Element;
 
 //==========================================================================
+// Visitor class
+class Visitor
+{
+public:
+  virtual void visit(Engine& engine) = 0;
+  virtual unique_ptr<Visitor> getSubGraphVisitor() = 0;
+  virtual void visit(Graph& graph) = 0;
+  virtual unique_ptr<Visitor> getSubElementVisitor(const string& id) = 0;
+  virtual void visit(Element& element) = 0;
+  virtual ~Visitor() {}
+};
+
+//==========================================================================
+// Element setting interface
+class ElementSetting
+{
+public:
+  virtual ~ElementSetting() {}
+};
+
+//==========================================================================
+// Element setting template
+template<typename T>
+class Setting: public ElementSetting
+{
+private:
+  T value;
+
+public:
+  Setting(const T& _value = T{}): value{_value} {}
+
+  void set(const T& _value) { value = _value; }
+  T get() const { return value; }
+
+  void accept(Visitor& visitor)
+  {
+    visitor.visit(*this);
+  }
+};
+
+//==========================================================================
+// Element input interface
+class ElementInput: public ElementSetting
+{
+public:
+  virtual bool ready() const = 0;
+  virtual void reset() = 0;
+};
+
+//==========================================================================
+// Element output interface
+class ElementOutput
+{
+public:
+  struct Connection
+  {
+    Element *element = nullptr;
+    ElementInput *input = nullptr;
+    Connection() {}
+    Connection(Element *_element, ElementInput *_input):
+      element{_element}, input{_input}
+    {}
+  };
+  virtual bool connect(const Connection&) = 0;
+  virtual vector<Connection> get_connections() const = 0;
+};
+
+template<typename T> class Output;
+
+//--------------------------------------------------------------------------
+// Combine output data for input
+
+
+//==========================================================================
+// Element input template
+template<typename T>
+class Input: public Setting<T>, public virtual ElementInput
+{
+private:
+  friend class Output<T>;
+  struct Data
+  {
+    vector<T> data;
+    bool ready = false;
+  };
+  map<Output<T> *, Data> input_data;
+  bool combined = false;
+
+
+  // Combine for types which addition is valid for
+  template<typename U = T, class = decltype(declval<U>() + declval<U>())>
+  void combine(decltype(input_data.begin()) it)
+  {
+    for (auto i = input_data.begin(); i != input_data.end(); ++i)
+    {
+      if (i == it)
+        continue;
+      auto c = it->second.data.begin();
+      for (const auto& b: i->second.data)
+      {
+        *c += b;
+        if (++c == it->second.data.end())
+          break;
+      }
+    }
+    combined = true;
+  }
+
+  // Combine for types which can't be added
+  void combine(decltype(input_data.begin()))
+  {
+    // Just use the first connection
+    combined = true;
+  }
+
+public:
+  using Setting<T>::Setting;
+
+  bool ready() const override
+  {
+    for (const auto& i: input_data)
+    {
+      if (!i.second.ready)
+        return false;
+    }
+    return true;
+  }
+
+  bool connected() const
+  {
+    return !input_data.empty();
+  }
+
+  const vector<T>& get_buffer()
+  {
+    static auto empty = vector<T>{};
+    if (input_data.empty())
+      return empty;
+
+    auto it = input_data.begin();
+    if (!combined && input_data.size() > 1)
+      combine(it);
+
+    return it->second.data;
+  }
+
+  void reset() override
+  {
+    if (!input_data.empty())
+    {
+      auto it = input_data.begin();
+
+      // Ensure combined
+      if (!combined && input_data.size() > 1)
+        combine(it);
+
+      // Store last value
+      this->set(it->second.data.back());
+    }
+
+    for (auto& i: input_data)
+    {
+      i.second.data.clear();
+      i.second.ready = false;
+    }
+  }
+
+  ~Input()
+  {
+    while (!input_data.empty())
+      input_data.begin()->first->disconnect(*this);
+  }
+};
+
+//--------------------------------------------------------------------------
+// ostream output for settings
+template<typename T>
+ostream& operator<<(ostream& os, const Setting<T>& s)
+{
+  os << s.get();
+  return os;
+}
+
+//==========================================================================
+// Element output template
+template<typename T>
+class Output: public ElementOutput
+{
+private:
+  struct OutputData
+  {
+    Element *element = nullptr;
+    typename Input<T>::Data *input = nullptr;
+    OutputData() {}
+    OutputData(Element *_element, typename Input<T>::Data *_input):
+      element{_element}, input{_input}
+    {}
+  };
+  map<Input<T> *, OutputData> output_data;
+  Input<T> *primary_data = nullptr;
+
+public:
+  void connect(Element *element, Input<T>& to)
+  {
+    output_data[&to] = {element, &to.input_data[this]};
+    if (!primary_data)
+      primary_data = &to;
+  }
+
+  bool connect(const Connection& connection) override
+  {
+    auto ito = dynamic_cast<Input<T> *>(connection.input);
+    if (!ito)
+      return false;
+    connect(connection.element, *ito);
+    return true;
+  }
+
+  void disconnect(Input<T>& to)
+  {
+    to.input_data.erase(this);
+    output_data.erase(&to);
+    if (primary_data == &to)
+    {
+      if (output_data.empty())
+        primary_data = nullptr;
+      else
+        primary_data = output_data.begin()->first;
+    }
+  }
+
+  bool connected() const
+  {
+    return primary_data;
+  }
+
+  struct Buffer
+  {
+    Output<T> *out = nullptr;
+    vector<T>& data;
+    Buffer(Output<T> * _out, vector<T>& _data): out{_out}, data{_data} {}
+    ~Buffer() { if(out) out->complete(); }
+  };
+  Buffer get_buffer()
+  {
+    static auto empty = vector<T>{};
+    static auto empty_buffer = Buffer{nullptr, empty};
+    if (!primary_data)
+      return empty_buffer;
+    return Buffer{this, output_data[primary_data].input->data};
+  }
+
+  vector<Connection> get_connections() const override
+  {
+    auto result = vector<Connection>{};
+    for (const auto& od: output_data)
+      result.emplace_back(od.second.element, od.first);
+    return result;
+  }
+
+  void complete()
+  {
+    if (!output_data.empty())
+    {
+      const auto& b = output_data[primary_data];
+
+      for (auto& o: output_data)
+      {
+        if (o.first != primary_data)
+          o.second.input->data = b.input->data;
+        o.second.input->ready = true;
+      }
+    }
+  }
+
+  ~Output()
+  {
+    for (auto& od: output_data)
+      od.first->input_data.erase(this);
+  }
+};
+
+//==========================================================================
 // Module metadata
+
+template<typename T> inline string get_module_type();
+template<typename T>
+inline void set_from_json(T& value, const JSON::Value& json);
+template<typename T>
+inline JSON::Value get_as_json(const T& value);
+
+
+template<>
+inline string get_module_type<double>() { return "number"; }
+
+template<>
+inline void set_from_json(double& value, const JSON::Value& json)
+{
+  if (json.type == JSON::Value::NUMBER)
+    value = json.f;
+  else
+    value = json.n;
+}
+
+template<>
+inline JSON::Value get_as_json(const double& value)
+{
+  return {value};
+}
+
+template<>
+inline string get_module_type<string>() { return "text"; }
+
+template<>
+inline void set_from_json(string& value, const JSON::Value& json)
+{
+  value = json.s;
+}
+
+template<>
+inline JSON::Value get_as_json(const string& value)
+{
+  return {value};
+}
+
 struct Module
 {
-  string id;                   // Short ID (for config)
-  string name;                 // Human name
-  string description;          // Long description
-  string section;              // Section name
+  string id;
+  string name;
+  string section;
 
-  struct Property
+  string type() const
   {
-    string description;
-    Value::Type type;
-    string other_type;  // If type == other
+    return section + ":" + id;
+  }
 
-    // Member accessor data
-    struct Member
+  // settings
+  class Setting
+  {
+  private:
+    class MemberFunctor
     {
-      typedef double Element::*MemberDouble;
-      typedef double (Element::*MemberGetDouble)() const;
-      typedef void (Element::*MemberSetDouble)(double);
-      typedef void (Element::*MemberSetMultiDouble)(const vector<double>&);
-      typedef string Element::*MemberString;
-      typedef string (Element::*MemberGetString)() const;
-      typedef void (Element::*MemberSetString)(const string&);
-      typedef bool Element::*MemberBool;
-      typedef bool (Element::*MemberGetBool)() const;
-      typedef void (Element::*MemberSetBool)(bool);
-      typedef int Element::*MemberInt;
-      typedef int (Element::*MemberGetInt)() const;
-      typedef void (Element::*MemberSetInt)(int);
-      typedef JSON::Value (Element::*MemberGetJSON)() const;
-      typedef void (Element::*MemberSetJSON)(const JSON::Value&);
-      typedef void (Element::*MemberTrigger)();
+    public:
+      virtual ElementSetting& get(Element& b) const = 0;
+      virtual JSON::Value get_json(Element& b) const = 0;
+      virtual void set_json(Element& b, const JSON::Value& json) const = 0;
+      virtual ~MemberFunctor() {}
+    };
+    template<typename T>
+    class MemberFunctorImpl: public MemberFunctor
+    {
+    private:
+      Dataflow::Setting<T> Element::* member_pointer = nullptr;
 
-      // Simple member pointers
-      MemberDouble d_ptr{nullptr};
-      MemberString s_ptr{nullptr};
-      MemberBool b_ptr{nullptr};
-      MemberInt i_ptr{nullptr};
+    public:
+      template<typename C>
+      MemberFunctorImpl(Dataflow::Setting<T> C::* _member_pointer):
+        member_pointer{static_cast<Dataflow::Setting<T> Element::*>(
+                       _member_pointer)}
+      {}
 
-      // Getter/setter functions
-      MemberGetDouble get_d{nullptr};
-      MemberGetString get_s{nullptr};
-      MemberGetBool get_b{nullptr};
-      MemberGetInt get_i{nullptr};
-      MemberGetJSON get_json{nullptr};
+      ElementSetting& get(Element& b) const override
+      {
+        return b.*member_pointer;
+      }
 
-      MemberSetDouble set_d{nullptr};
-      MemberSetMultiDouble set_multi_d{nullptr};
-      MemberSetString set_s{nullptr};
-      MemberSetBool set_b{nullptr};
-      MemberSetInt set_i{nullptr};
-      MemberSetJSON set_json{nullptr};
+      JSON::Value get_json(Element& b) const override
+      {
+        return get_as_json((b.*member_pointer).get());
+      }
 
-      // Trigger function
-      MemberTrigger trigger{nullptr};
+      void set_json(Element& b, const JSON::Value& json) const override
+      {
+        auto v = T{};
+        set_from_json(v, json);
+        (b.*member_pointer).set(v);
+      }
+    };
+    shared_ptr<MemberFunctor> member_functor;
 
-      // Constructors to set each of the above
-      Member() {}
-      template<typename T>
-      Member(double T::*_p): d_ptr(static_cast<MemberDouble>(_p)) {}
-      template<typename T>
-      Member(string T::*_p): s_ptr(static_cast<MemberString>(_p)) {}
-      template<typename T>
-      Member(bool T::*_p): b_ptr(static_cast<MemberBool>(_p)) {}
-      template<typename T>
-      Member(int T::*_p): i_ptr(static_cast<MemberInt>(_p)) {}
+  public:
+    const string type;
 
-      template<typename T>
-      Member(double (T::*_get)() const, void (T::*_set)(double)):
-        get_d(static_cast<MemberGetDouble>(_get)),
-        set_d(static_cast<MemberSetDouble>(_set)) {}
-      template<typename T>
-      Member(void (T::*_set)(double)):
-        set_d(static_cast<MemberSetDouble>(_set)) {}
-      template<typename T>
-      Member(double (T::*_get)() const, void (T::*_set)(const vector<double>&)):
-        get_d(static_cast<MemberGetDouble>(_get)),
-        set_multi_d(static_cast<MemberSetMultiDouble>(_set)) {}
-      template<typename T>
-      Member(string (T::*_get)() const, void (T::*_set)(const string&)):
-        get_s(static_cast<MemberGetString>(_get)),
-        set_s(static_cast<MemberSetString>(_set)) {}
-      template<typename T>
-      Member(bool (T::*_get)() const, void (T::*_set)(bool)):
-        get_b(static_cast<MemberGetBool>(_get)),
-        set_b(static_cast<MemberSetBool>(_set)) {}
-      template<typename T>
-      Member(void (T::*_set)(bool)):
-        set_b(static_cast<MemberSetBool>(_set)) {}
-      template<typename T>
-      Member(int (T::*_get)() const, void (T::*_set)(int)):
-        get_i(static_cast<MemberGetInt>(_get)),
-        set_i(static_cast<MemberSetInt>(_set)) {}
-      template<typename T>
-      Member(JSON::Value (T::*_get)() const,
-             void (T::*_set)(const JSON::Value&)):
-        get_json(static_cast<MemberGetJSON>(_get)),
-        set_json(static_cast<MemberSetJSON>(_set)) {}
+    template<typename T, typename C>
+    Setting(Dataflow::Setting<T> C::* i):
+      member_functor{new MemberFunctorImpl<T>{i}}, type{get_module_type<T>()}
+    {}
 
-      template<typename T>
-      Member(void (T::*_f)()): trigger(static_cast<MemberTrigger>(_f)) {}
-    } member;
+    ElementSetting& get(Element& b) const
+    {
+      return member_functor->get(b);
+    }
 
-    set<string> options;       // Options for choice
-    bool settable{false};      // Can be connected to and changed dynamically
-    bool alias{false};         // Another way of representing an earlier value
-    // Constructors
-    Property(const string& _desc, Value::Type _type,
-             const Member& _member, bool _set=false, bool _alias=false):
-      description(_desc), type(_type), member(_member), settable(_set),
-      alias(_alias) {}
+    JSON::Value get_json(Element& b) const
+    {
+      return member_functor->get_json(b);
+    }
 
-    // choice value
-    Property(const string& _desc, Value::Type _type,
-             const Member& _member,
-             const set<string>& _options, bool _set=false):
-      description(_desc), type(_type), member(_member),
-        options(_options), settable(_set) {}
-
-    // complex value ('other')
-    Property(const string& _desc, const string& _type,
-             const Member& _member, bool _set=false):
-      description(_desc), type(Value::Type::other), other_type(_type),
-        member(_member), settable(_set) {}
+    void set_json(Element& b, const JSON::Value& json) const
+    {
+      member_functor->set_json(b, json);
+    }
   };
+  map<string, Setting> settings;
 
-  map<string, Property> properties;
-
-  // Properties controlled on targets
-  struct ControlledProperty
+  class Input
   {
-    string description;
-    string name;        // Default name to connect to
-    Value::Type type;
-    ControlledProperty(const string& _desc, const string& _name, Value::Type _type):
-      description(_desc), name(_name), type(_type) {}
+  private:
+    class MemberFunctor
+    {
+    public:
+      virtual ElementInput& get(Element& b) const = 0;
+      virtual JSON::Value get_json(Element& b) const = 0;
+      virtual void set_json(Element& b, const JSON::Value& json) const = 0;
+      virtual ~MemberFunctor() {}
+    };
+    template<typename T>
+    class MemberFunctorImpl: public MemberFunctor
+    {
+    private:
+      Dataflow::Input<T> Element::* member_pointer = nullptr;
+
+    public:
+      template<typename C>
+      MemberFunctorImpl(Dataflow::Input<T> C::* _member_pointer):
+        member_pointer{static_cast<Dataflow::Input<T> Element::*>(
+                      _member_pointer)}
+      {}
+
+      ElementInput& get(Element& b) const override
+      {
+        return b.*member_pointer;
+      }
+
+      JSON::Value get_json(Element& b) const override
+      {
+        return get_as_json((b.*member_pointer).get());
+      }
+
+      void set_json(Element& b, const JSON::Value& json) const override
+      {
+        auto v = T{};
+        set_from_json(v, json);
+        (b.*member_pointer).set(v);
+      }
+    };
+    shared_ptr<MemberFunctor> member_functor;
+
+  public:
+    const string type;
+
+    template<typename T, typename C>
+    Input(Dataflow::Input<T> C::* i):
+      member_functor{new MemberFunctorImpl<T>{i}}, type{get_module_type<T>()}
+    {}
+
+    ElementInput& get(Element& b) const
+    {
+      return member_functor->get(b);
+    }
+
+    JSON::Value get_json(Element& b) const
+    {
+      return member_functor->get_json(b);
+    }
+
+    void set_json(Element& b, const JSON::Value& json) const
+    {
+      member_functor->set_json(b, json);
+    }
   };
+  map<string, Input> inputs;
 
-  map<string, ControlledProperty> controlled_properties;  // by our name
-
-  // Data inputs
-  struct Input
+  class Output
   {
-    string type;
-    bool multiple{false};
-    Input(const string& _type, bool _m=false): type(_type), multiple(_m) {}
-    Input(const char *_type): type(_type) {}
+  private:
+    class MemberFunctor
+    {
+    public:
+      virtual ElementOutput& get(Element& b) const = 0;
+      virtual ~MemberFunctor() {}
+    };
+    template<typename T>
+    class MemberFunctorImpl: public MemberFunctor
+    {
+    private:
+      Dataflow::Output<T> Element::* member_pointer = nullptr;
+
+    public:
+      template<typename C>
+      MemberFunctorImpl(Dataflow::Output<T> C::* _member_pointer):
+        member_pointer{static_cast<Dataflow::Output<T> Element::*>(
+                      _member_pointer)}
+      {}
+
+      ElementOutput& get(Element& b) const override
+      {
+        return b.*member_pointer;
+      }
+    };
+    shared_ptr<MemberFunctor> member_functor;
+
+  public:
+    const string type;
+
+    template<typename T, typename C>
+    Output(Dataflow::Output<T> C::* o):
+      member_functor{new MemberFunctorImpl<T>{o}}, type{get_module_type<T>()}
+    {}
+
+    ElementOutput& get(Element& b) const
+    {
+      return member_functor->get(b);
+    }
   };
+  map<string, Output> outputs;
 
-  list<Input> inputs;
+  Module(const string& _id, const string& _name, const string& _section,
+         const map<string, Setting>& _settings,
+         const map<string, Input>& _inputs,
+         const map<string, Output>& _outputs):
+    id{_id}, name{_name}, section{_section}, settings{_settings},
+    inputs{_inputs}, outputs{_outputs}
+  {}
 
-  // Data outputs
-  struct Output
+  string get_input_id(Element& element, ElementInput& input) const
   {
-    string type;
-    bool multiple{false};
-    Output(const string& _type, bool _m=false): type(_type), multiple(_m) {}
-    Output(const char *_type): type(_type) {}
-  };
-
-  list<Output> outputs;
-
-  bool is_container{false};
-
-  // Constructors
-  // For controls, with controlled properties
-  Module(const string& _id, const string& _name, const string& _desc,
-         const string& _section,
-         const map<string, Property>& _props,
-         const map<string, ControlledProperty>& _cprops):
-    id(_id), name(_name), description(_desc), section(_section),
-    properties(_props), controlled_properties(_cprops) {}
-
-  // For filters etc. with inputs/outputs
-  Module(const string& _id, const string& _name, const string& _desc,
-         const string& _section,
-         const map<string, Property>& _props,
-         const list<Input>& _inputs,
-         const list<Output>& _outputs,
-         bool _is_container = false):
-    id(_id), name(_name), description(_desc), section(_section),
-    properties(_props),
-    inputs(_inputs), outputs(_outputs),
-    is_container(_is_container) {}
-
-  // For filter+controls with both
-  Module(const string& _id, const string& _name, const string& _desc,
-         const string& _section,
-         const map<string, Property>& _props,
-         const map<string, ControlledProperty>& _cprops,
-         const list<Input>& _inputs,
-         const list<Output>& _outputs,
-         bool _is_container = false):
-    id(_id), name(_name), description(_desc), section(_section),
-    properties(_props),
-    controlled_properties(_cprops),
-    inputs(_inputs), outputs(_outputs),
-    is_container(_is_container) {}
-
-  // For services, with neither
-  Module(const string& _id, const string& _name, const string& _desc,
-         const string& _section,
-         const map<string, Property>& _props):
-    id(_id), name(_name), description(_desc), section(_section),
-    properties(_props) {}
+    for (const auto& i: inputs)
+      if (&i.second.get(element) == &input)
+        return i.first;
+    return "[invalid]";
+  }
 };
 
 //==========================================================================
@@ -388,54 +595,59 @@ struct Module
 class Element
 {
 private:
-  void set_property(const string& prop_name, const Module::Property& prop,
-                    const Value& v);
-  void set_property(const string& prop_name, const Module::Property& prop,
-                    const vector<double>& v);
-  JSON::Value get_property_json(const Module::Property& prop) const;
-  static Value get_value(const JSON::Value& value);
+  set<ElementInput *> inputs;
+
+  template<typename... Ss, size_t... Sc, typename... Is, size_t... Ic,
+           typename... Os, size_t... Oc, typename F>
+  void sample_iterate_impl(unsigned int count,
+                           const tuple<Ss...>& ss, index_sequence<Sc...>,
+                           const tuple<Is...>& is, index_sequence<Ic...>,
+                           const tuple<Os...>& os, index_sequence<Oc...>,
+                           const F& f)
+  {
+    auto settings = make_tuple(get<Sc>(ss).get()...);
+    auto inputs = make_tuple(get<Ic>(is).get_buffer()...);
+    auto outputs = make_tuple(get<Oc>(os).get_buffer()...);
+    // Resize all outputs to wanted size
+    int dummy[] = {0, (void(get<Oc>(outputs).data.resize(count)), 0)...};
+    (void)dummy;
+    for (auto i = 0u; i < count; ++i)
+    {
+      f(get<Sc>(settings)...,
+        (get<Ic>(inputs).size() > i ? get<Ic>(inputs)[i]
+                                    : get<Ic>(is).get())...,
+        get<Oc>(outputs).data[i]...
+       );
+    }
+  }
+
+protected:
+  template<typename... Ss, typename... Is, typename... Os, typename F>
+  void sample_iterate(const unsigned count, const tuple<Ss...>& ss,
+                      const tuple<Is...>& is, const tuple<Os...>& os,
+                      const F& f)
+  {
+    sample_iterate_impl(count,
+                        ss, index_sequence_for<Ss...>{},
+                        is, index_sequence_for<Is...>{},
+                        os, index_sequence_for<Os...>{},
+                        f);
+  }
 
 public:
-  const Module *module{nullptr};
+  const Module& module;
   string id;
   Graph *graph{nullptr};
   Engine *engine{nullptr};
-  list<Element *> downstreams; // All data and control connections, for toposort
 
   // Basic construction
   // Extend this to read basic config which doesn't take much time or
   // require registry - i.e. just reading basic config attributes
-  Element(const Module *_module):
-    module(_module) {}
+  Element(const Module& _module):
+    module{_module} {}
 
   // Setup after automatic configuration
   virtual void setup() {}
-
-  // Notify that this element is the control target of another element,
-  // with the given property name
-  virtual void notify_target_of(const string& /*prop*/) {}
-
-  // Multi-phase topology calculation
-  struct Topology
-  {
-    map<string, list<Element *> > router_senders;    // Wormhole senders
-    map<string, list<Element *> > router_receivers;  // Wormhole receivers
-  };
-  virtual void calculate_topology(Topology&) {}
-
-  // Get state as JSON - path is XPath-like path to subelements - ignore
-  // in leaf elements (when it should be empty anyway)
-  virtual JSON::Value get_json(const string& path="") const;
-
-  // Set state from JSON
-  // path is a path/to/leaf/prop - can set any intermediate level too
-  virtual void set_json(const string& path, const JSON::Value& value);
-
-  // Add element from JSON
-  // path is a path/to/leaf
-  // Fails here, override in container elements
-  virtual void add_json(const string& path, const JSON::Value& /*value*/)
-  { throw runtime_error("Can't add subelement "+path+" to leaf element "+id); }
 
   // Delete item from JSON
   // path is a path/to/leaf
@@ -444,25 +656,35 @@ public:
   { throw runtime_error("Can't delete subelement "+path+
                         " in leaf element "+id); }
 
-  // Set a data or control output from JSON value (testing only)
-  void set_output_json(const string& path, const JSON::Value& value);
+  // Connect an element
+  bool connect(const string& out_name, Element& b, const string &in_name);
 
-  // Disconnect an element from outputs etc.
-  virtual void disconnect(Element *el)
-  { downstreams.remove(el); }
+  // Set a Setting/Input
+  template<typename T>
+  Element& set(const string& setting, const T& value)
+  {
+    auto sit = module.settings.find(setting);
+    if (sit != module.settings.end())
+    {
+      auto s = dynamic_cast<Setting<T> *>(&(sit->second.get(*this)));
+      if (s)
+        s->set(value);
+    }
+    else
+    {
+      auto iit = module.inputs.find(setting);
+      if (iit != module.inputs.end())
+      {
+        auto i = dynamic_cast<Input<T> *>(&(iit->second.get(*this)));
+        if (i)
+          i->set(value);
+      }
+    }
+    return *this;
+  }
 
-  // Set a control value
-  virtual void set_property(const string& property, const Value&);
-
-  // Set a control value with multiple values over time
-  virtual void set_property(const string& property, const vector<double>&);
-
-  // Update after setting a property
+  // Update after setting a setting
   virtual void update() {}
-
-  // Get type of a control property - uses module by default but overridable
-  // for testing
-  virtual Value::Type get_property_type(const string& property);
 
   // Notify of parent graph being enabled - register for keys etc.
   virtual void enable() {}
@@ -470,14 +692,17 @@ public:
   // Notify of parent graph being disabled - de-register for keys etc.
   virtual void disable() {}
 
-  // Notify of a new tick about to start
-  virtual void pre_tick(const TickData&) {}
+  // Is ready to process tick
+  bool ready() const;
 
   // Tick
-  virtual void tick(const TickData&) {}
+  virtual void tick(const TickData& /*tick data*/) {}
 
-  // Notify of a tick just ended
-  virtual void post_tick(const TickData&) {}
+  // Prepare for a tick
+  void reset();
+
+  // Accept a visitor
+  void accept(Visitor& visitor);
 
   // Clean shutdown
   virtual void shutdown() {}
@@ -489,208 +714,33 @@ public:
 class Generator;  // forward
 
 //==========================================================================
-// Acceptor interface (mixin)
-class Acceptor
-{
- public:
-  // Accept data
-  virtual void accept(DataPtr data) = 0;
-
-  virtual ~Acceptor() {}
-};
-
-//==========================================================================
-// Generator - something that generates data on a single output
-class Generator: public Element
-{
- public:
-  map<string, Acceptor *> acceptors;  // Element ID to Acceptor
-                                      // "" => auto-created uplink to parent
-
-  // Constructor
-  using Element::Element;
-
-  // Add an acceptor - can be null for initial intent to connect
-  virtual void attach(const string &aid, Acceptor *acceptor=nullptr)
-  { acceptors[aid] = acceptor; }
-
-  // Send data down
-  void send(DataPtr data);
-  // Sugar to allow direct send of 'new Data' in sources
-  void send(Data *data) { send(DataPtr(data)); }
-
-  // Get state as JSON
-  JSON::Value get_json(const string& path="") const override;
-
-  // Set acceptor from JSON
-  void set_output_from_json(const string& output_id, const JSON::Value& json);
-
-  // Disconnect from an element
-  void disconnect(Element *el) override;
-};
-
-//==========================================================================
-// Filter - takes in data and modifies it, passing on to a single output
-class Filter: public Generator, public Acceptor
-{
- public:
-  using Generator::Generator;
-};
-
-//==========================================================================
-// Initial source - Generator with a tick()
-class Source: public Generator
-{
-public:
-  using Generator::Generator;
-};
-
-//==========================================================================
-// Final sink - Element with Acceptor
-class Sink: public Element, public Acceptor
-{
- public:
-  using Element::Element;
-};
-
-//==========================================================================
-// ControlImpl - implementation mixin for Control
-class ControlImpl
-{
-  string control_id;
-
-  void delete_targets_from(const string& prop, Element *source_element);
-
- public:
-  struct Property
-  {
-    string name;  // Target property name
-    Value::Type type{Value::Type::invalid};
-    bool is_explicit;
-
-    Property() {}
-    Property(const string& _name, Value::Type _type, bool _is_explicit=false):
-      name(_name), type(_type), is_explicit(_is_explicit) {}
-  };
-
-  struct Target
-  {
-    map<string, Property> properties;  // Our name -> property name/type
-    Element *element{nullptr};
-  };
-
- protected:
-  map<string, Target> targets;  // By element ID
-
- public:
-  // Construct
-  ControlImpl(const Module *_module, bool targets_are_optional = false);
-
-  // Get targets
-  const map<string, Target>& get_targets() { return targets; }
-
-  // Attach to a target element
-  void attach_target(const string& target_id,
-                     Element *target_element);
-
-  // Send a value to the target using only (first) property
-  void send(const Value& v);
-
-  // Send a set of values to the target using only (first) property
-  void send(const vector<double>& v);
-
-  // Send a named value to the target
-  // name is our name for it
-  void send(const string& name, const Value& v);
-
-  // Send a set of values to the target
-  void send(const string& name, const vector<double>& v);
-
-  // Trigger first target property
-  void trigger() { send(Value{}); }
-
-  // Trigger named property
-  void trigger(const string& name) { send(name, Value{}); }
-
-  // Get state as JSON, adding to the given value
-  void add_to_json(JSON::Value& json) const;
-
-  // Set target from JSON
-  void set_target_from_json(const string& prop, const JSON::Value& value,
-                            Element *source_element);
-
-  // Disconnect from an element
-  void disconnect(Element *el);
-};
-
-//==========================================================================
-// Control - sets one or more properties on a target Element
-class Control: public Element, public ControlImpl
-{
- public:
-  Control(const Module *_module, bool targets_are_optional = false):
-    Element(_module),
-    ControlImpl(_module, targets_are_optional)
-  {}
-
- private:
-  // Hide these tick calls because Controls should do all their work in the
-  // pre-tick phase
-  void tick(const TickData&) final {}
-
-  // Add control JSON
-  JSON::Value get_json(const string &path="") const override
-  { JSON::Value json=Element::get_json(path); add_to_json(json); return json; }
-
-  // Disconnect from an element
-  void disconnect(Element *el) override
-  { Element::disconnect(el); ControlImpl::disconnect(el); }
-};
-
-//==========================================================================
 // Dataflow graph structure
 class Graph
 {
- public:
-  // Sending data up callback - used to pass data up from unconnected children
-  using SendUpFunction = function<void(DataPtr)>;
-
- private:
+private:
   Engine& engine;
   mutable MT::RWMutex mutex;
   map<string, shared_ptr<Element> > elements;   // By ID
   Graph *parent{nullptr};
   double sample_rate = 0;
-  SendUpFunction send_up_function{nullptr};
 
-  // Topological ordering - ensure a precursor is ticked before its
-  // dependents - either for base data flow or control flow
-  list<Element *> topological_order;
-
-  // Temporary state
-  bool is_enabled{false};
-  map<string, Value> variables;
-
-  // Internals
+  // Internal
   Element *create_element(const string& type, const string& id);
-  void toposort(Element *e, set<Element *>& visited);
-  Element *add_element_from_json(const string& id,
-                                 const JSON::Value& value);
 
- public:
+public:
   //------------------------------------------------------------------------
   // Constructor
   Graph(Engine& _engine, Graph *_parent=nullptr):
     engine(_engine), parent(_parent) {}
 
   //------------------------------------------------------------------------
-  // Set send-up function
-  void set_send_up_function(SendUpFunction f) { send_up_function = f; }
-
-  //------------------------------------------------------------------------
   // Get engine
   Engine& get_engine() const
   { return engine; }
+
+  //------------------------------------------------------------------------
+  // Add an element to the graph
+  void add_element(const string& type, const string& id);
 
   //------------------------------------------------------------------------
   // Get all elements (for inspection)
@@ -706,50 +756,12 @@ class Graph
   void setup();
 
   //------------------------------------------------------------------------
-  // Calculate topology in hierarchy (see Element::calculate_topology)
-  void calculate_topology(Element::Topology& topo, Element *owner = nullptr);
-
-  //------------------------------------------------------------------------
-  // Generate topological order - ordered list of elements which ensures
-  // a precursor (upstream) element is ticked before its dependents
-  // (downstreams)
-  // (called automatically by calculate_topology() - use only for testing)
-  void generate_topological_order();
-
-  //------------------------------------------------------------------------
   // Set sample rate
   void set_sample_rate(double sr) { sample_rate = sr; }
 
   //------------------------------------------------------------------------
-  // Set a variable
-  void set_variable(const string& var, const Value& value)
-  { variables[var] = value; }
-
-  //------------------------------------------------------------------------
-  // Get a variable
-  Value get_variable(const string& var)
-  { const auto it = variables.find(var);
-    return (it == variables.end())?Value(Value::Type::invalid):it->second; }
-
-  //------------------------------------------------------------------------
-  // Enable all elements
-  void enable();
-
-  //------------------------------------------------------------------------
-  // Disable all elements
-  void disable();
-
-  //------------------------------------------------------------------------
-  // Pre-tick all elements
-  void pre_tick(const TickData& td);
-
-  //------------------------------------------------------------------------
   // Tick all elements
   void tick(const TickData& td);
-
-  //------------------------------------------------------------------------
-  // Post-tick all elements
-  void post_tick(const TickData& td);
 
   //------------------------------------------------------------------------
   // Get a particular element by ID
@@ -760,10 +772,6 @@ class Graph
   // in ancestors
   shared_ptr<Element> get_nearest_element(const string& section,
                                           const string& type);
-
-  //------------------------------------------------------------------------
-  // Send data up to be sent on by owning element in the level above
-  void send_up(DataPtr data);
 
   //------------------------------------------------------------------------
   // Get type-checked nearest service element (can be nullptr if doesn't
@@ -779,26 +787,20 @@ class Graph
   }
 
   //------------------------------------------------------------------------
-  // Get state as a JSON value - array for top-level graph, single
-  // value for sub-element property
-  // Path is an XPath-like list of subgraph IDs and leaf element, or empty
-  // for entire graph
-  JSON::Value get_json(const string& path="") const;
-
-  //------------------------------------------------------------------------
-  // Set state from JSON
-  // path is a path/to/leaf/prop - can set any intermediate level too
-  void set_json(const string& path, const JSON::Value& value);
-
-  //------------------------------------------------------------------------
-  // Add a new element from JSON
-  // path is a path/to/leaf
-  void add_json(const string& path, const JSON::Value& value);
-
-  //------------------------------------------------------------------------
   // Delete an item (from REST)
   // path is a path/to/leaf
   void delete_item(const string& path);
+
+  //------------------------------------------------------------------------
+  // Clear all elements
+  void clear_elements()
+  {
+    elements.clear();
+  }
+
+  //------------------------------------------------------------------------
+  // Accept a visitor
+  void accept(Visitor& visitor);
 
   //------------------------------------------------------------------------
   // Shutdown all elements
@@ -821,143 +823,6 @@ public:
 };
 
 //==========================================================================
-// MultiGraph - generic container for multiple sub-graphs
-// Used for (e.g.) sub-graph selectors
-class MultiGraph
-{
-  Engine& engine;
-  MT::RWMutex mutex;
-  vector<shared_ptr<Graph> > subgraphs;          // Owning
-  map<string, Graph *> subgraphs_by_id;          // Not owning
-  int id_serial{0};
-  Graph::SendUpFunction send_up_function{nullptr};
-
-  // Thread
-  class Thread
-  {
-  private:
-    shared_ptr<Graph> graph;
-    TickData td;
-    enum class Task
-    {
-      pre_tick,
-      tick,
-      post_tick,
-      exit,
-    } task = Task::exit;
-    MT::Condition start_c;
-    MT::Condition done_c;
-    thread t; // This must be after the conditions
-
-    //----------------------------------------------------------------------
-    // Run a task
-    void run(const TickData& _td, Task _task);
-
-    //----------------------------------------------------------------------
-    // Main thread loop
-    void loop();
-
-  public:
-    //----------------------------------------------------------------------
-    // Constructor
-    Thread(shared_ptr<Graph> _graph):
-      graph{_graph}, t{&Thread::loop, this}
-    {}
-
-    //----------------------------------------------------------------------
-    // Run pre-tick
-    void pre_tick(const TickData& _td)
-    {
-      run(_td, Task::pre_tick);
-    }
-
-    //----------------------------------------------------------------------
-    // Run tick
-    void tick(const TickData& _td)
-    {
-      run(_td, Task::tick);
-    }
-
-    //----------------------------------------------------------------------
-    // Run post-tick
-    void post_tick(const TickData& _td)
-    {
-      run(_td, Task::post_tick);
-    }
-
-    //----------------------------------------------------------------------
-    // Wait for run to finish
-    void wait();
-
-    //----------------------------------------------------------------------
-    // Destructor
-    ~Thread();
-  };
-
-  bool threaded = false;
-  MT::Mutex send_up_serialisation_mutex;
-  map<Graph *, Thread> threads;
-
- public:
-  //------------------------------------------------------------------------
-  // Constructor
-  MultiGraph(Engine& _engine): engine(_engine) {}
-
-  //------------------------------------------------------------------------
-  // Set send-up function
-  void set_send_up_function(Graph::SendUpFunction f);
-
-  //------------------------------------------------------------------------
-  // Calculate topology in hierarchy (see Element::calculate_topology)
-  void calculate_topology(Element::Topology& topo, Element *owner = nullptr);
-
-  //------------------------------------------------------------------------
-  // Add a graph
-  // Returns sub-Graph (owned by us)
-  Graph *add_subgraph();
-
-  //------------------------------------------------------------------------
-  // Add a pre-constructed sub-graph
-  void add_subgraph(const string& id, Graph *sub);
-
-  //------------------------------------------------------------------------
-  // Enable all subgraphs
-  void enable_all();
-
-  //------------------------------------------------------------------------
-  // Disable all subgraphs
-  void disable_all();
-
-  //------------------------------------------------------------------------
-  // Pre-tick all subgraphs
-  void pre_tick_all(const TickData& td);
-
-  //------------------------------------------------------------------------
-  // Tick all subgraphs
-  void tick_all(const TickData& td);
-
-  //------------------------------------------------------------------------
-  // Post-tick all subgraphs
-  void post_tick_all(const TickData& td);
-
-  //------------------------------------------------------------------------
-  // Get a particular graph by ID
-  Graph *get_subgraph(const string& id);
-
-  //------------------------------------------------------------------------
-  // Get a particular graph by index
-  Graph *get_subgraph(size_t index);
-
-  //------------------------------------------------------------------------
-  // Get all subgraphs
-  const map<string, Graph *>& get_subgraphs() { return subgraphs_by_id; }
-
-  //------------------------------------------------------------------------
-  // Shutdown all subgraphs
-  void shutdown();
-};
-
-//==========================================================================
 // Generic singleton service - no inputs or outputs
 class Service: public Element
 {
@@ -973,7 +838,7 @@ public:
   // Abstract interface for Element-creating factories
   struct Factory
   {
-    virtual Element *create(const Module *module) const = 0;
+    virtual Element *create(const Module& module) const = 0;
     virtual ~Factory() {}
   };
 
@@ -981,7 +846,7 @@ public:
   template<class E> struct NewFactory: public Factory
   {
   public:
-    Element *create(const Module *module) const
+    Element *create(const Module& module) const
     { return new E(module); }
   };
 
@@ -990,8 +855,8 @@ public:
     const Module *module = nullptr;
     const Factory *factory = nullptr;
     ModuleInfo() {}
-    ModuleInfo(const Module *_module, const Factory *_factory):
-      module(_module), factory(_factory) {}
+    ModuleInfo(const Module& _module, const Factory& _factory):
+      module(&_module), factory(&_factory) {}
   };
 
   struct Section
@@ -1008,7 +873,7 @@ public:
   //------------------------------------------------------------------------
   // Register a module with its factory
   void add(const Module& m, const Factory& f)
-  { sections[m.section].modules[m.id] = ModuleInfo(&m, &f); }
+  { sections[m.section].modules[m.id] = ModuleInfo(m, f); }
 
   //------------------------------------------------------------------------
   // Create an object by module and config
@@ -1022,43 +887,8 @@ public:
     if (mp == sp->second.modules.end()) return 0;
 
     const auto& mi = mp->second;
-    return mi.factory->create(mi.module);
+    return mi.factory->create(*mi.module);
   }
-};
-
-//==========================================================================
-// Router - provides 'wormhole' routing
-class Router
-{
- public:
-  struct Receiver
-  {
-    virtual void receive(DataPtr data) = 0;
-  };
-
- private:
-  map<string, list<Receiver *>> receivers;
-
- public:
-  //------------------------------------------------------------------------
-  // Construct
-  Router() {}
-
-  //------------------------------------------------------------------------
-  // Register for frame data on the given tag
-  void register_receiver(const string& tag, Receiver *receiver);
-
-  //------------------------------------------------------------------------
-  // Deregister a receiver for all tags
-  void deregister_receiver(Receiver *receiver);
-
-  //------------------------------------------------------------------------
-  // Get a list of elements subscribed to the given tag
-  list<Element *> get_receivers(const string& tag);
-
-  //------------------------------------------------------------------------
-  // Send frame data on the given tag
-  void send(const string& tag, DataPtr data);
 };
 
 //==========================================================================
@@ -1076,7 +906,6 @@ class Engine
 
  public:
   Registry element_registry;
-  Router router;
 
   //------------------------------------------------------------------------
   // Constructor
@@ -1108,20 +937,6 @@ class Engine
   Element *create(const string& name);
 
   //------------------------------------------------------------------------
-  // Get state as a JSON value (see Graph::get_json())
-  JSON::Value get_json(const string& path) const;
-
-  //------------------------------------------------------------------------
-  // Set state from JSON
-  // path is a path/to/leaf/prop - can set any intermediate level too
-  void set_json(const string& path, const JSON::Value& value);
-
-  //------------------------------------------------------------------------
-  // Add a new element from JSON
-  // path is a path/to/leaf
-  void add_json(const string& path, const JSON::Value& value);
-
-  //------------------------------------------------------------------------
   // Delete an item (from REST)
   // path is a path/to/leaf
   void delete_item(const string& path);
@@ -1131,10 +946,13 @@ class Engine
   void tick(Time::Stamp t);
 
   //------------------------------------------------------------------------
+  // Accept a visitor
+  void accept(Visitor& visitor, bool write);
+
+  //------------------------------------------------------------------------
   // Shut down the graph
   void shutdown();
 };
-
 
 //==========================================================================
 }} //namespaces

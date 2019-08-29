@@ -22,30 +22,33 @@ const auto default_max_recovery = 1;
 
 //==========================================================================
 // SDL sink
-class SDLSink: public FragmentSink
+class SDLSink: public Element
 {
-public:
-  string device = default_device;
-  int nchannels = default_channels;
-  int buffer_size = default_buffer_size;
-  int max_delay = default_max_delay;
-  int max_recovery = default_max_recovery;
-  bool starved = false;
-
 private:
   SDL_AudioDeviceID dev = 0;
-  unsigned long tick_samples_required = 0;
   vector<sample_t> output_buffer;
+  bool starved = false;
 
   // Source/Element virtuals
   void setup() override;
-  void pre_tick(const TickData& td) override;
-  void accept(FragmentPtr fragment) override;
-  void post_tick(const TickData& td) override;
+  void tick(const TickData& td) override;
   void shutdown() override;
 
 public:
-  using FragmentSink::FragmentSink;
+  using Element::Element;
+
+  Setting<string> device{default_device};
+  Setting<double> nchannels{default_channels};
+  Setting<double> buffer_size{default_buffer_size};
+  Setting<double> max_delay{default_max_delay};
+  Setting<double> max_recovery{default_max_recovery};
+
+  Input<double> channel1;
+  Input<double> channel2;
+  Input<double> channel3;
+  Input<double> channel4;
+  Input<double> channel5;
+  Input<double> channel6;
 
   // Callback for SDL
   void callback(Uint8 *stream, int len);
@@ -134,14 +137,14 @@ void SDLSink::setup()
     SDL_memset(&want, 0, sizeof(want));
     want.freq = sample_rate;
     want.format = AUDIO_F32SYS;
-    want.channels = nchannels;
-    want.samples = buffer_size;
+    want.channels = nchannels.get();
+    want.samples = buffer_size.get();
     want.userdata = this;
     want.callback = ::callback;
 
     // Open audio device
-    dev = SDL_OpenAudioDevice(device == default_device
-                              ? nullptr : device.c_str(),
+    dev = SDL_OpenAudioDevice(device.get() == default_device
+                              ? nullptr : device.get().c_str(),
                               0, &want, &have, 0);
     if (!dev)
       throw runtime_error(string("open: ") + SDL_GetError());
@@ -160,86 +163,34 @@ void SDLSink::setup()
 
 //--------------------------------------------------------------------------
 // Process some data
-void SDLSink::accept(FragmentPtr fragment)
+void SDLSink::tick(const TickData& td)
 {
-  if (!tick_samples_required) return;  // e.g. if dumping data for max_delay
-
-  auto& waveforms = fragment->waveforms;
-
-  // Find max samples per waveform
-  auto num_samples = vector<sample_t>::size_type{};
-  for (auto& waveform: waveforms)
-    num_samples = max(waveform.second.size(), num_samples);
-
-  // Cap samples at tick requirement
-  num_samples = min(num_samples, tick_samples_required);
-
-  tick_samples_required -= num_samples;
-
   if (dev)
   {
     SDL_LockAudioDevice(dev);
-    // Build an interleaved output buffer
-    auto bstart = output_buffer.size();
-    output_buffer.resize(bstart + num_samples * nchannels);
-    auto wit = waveforms.begin();
-    for (auto i = 0; i < nchannels; ++i)
+    auto bpos = output_buffer.size();
+    const auto channels = nchannels.get();
+    output_buffer.resize(bpos + td.nsamples * channels);
+    sample_iterate(td.nsamples, {},
+                   tie(channel1, channel2, channel3,
+                       channel4, channel5, channel6), {},
+                   [&](double c1, double c2, double c3,
+                       double c4, double c5, double c6)
     {
-      if (wit == waveforms.end())
-        break;
-      for (auto s = 0ul; s < num_samples; ++s)
-      {
-        if (s >= wit->second.size())
-          break;
-        output_buffer[bstart + s * nchannels + i] = wit->second[s];
-      }
-      ++wit;
-    }
+      output_buffer[bpos++] = c1;
+      if (channels >= 2)
+        output_buffer[bpos++] = c2;
+      if (channels >= 3)
+        output_buffer[bpos++] = c3;
+      if (channels >= 4)
+        output_buffer[bpos++] = c4;
+      if (channels >= 5)
+        output_buffer[bpos++] = c5;
+      if (channels >= 6)
+        output_buffer[bpos++] = c6;
+    });
     SDL_UnlockAudioDevice(dev);
   }
-}
-
-//--------------------------------------------------------------------------
-// Record how many samples we need for tick
-void SDLSink::pre_tick(const TickData &td)
-{
-  tick_samples_required = td.samples();
-
-  // Check current delay against max and reduce amount sent if over
-  if (max_delay)
-  {
-    // Because SDL pulls on a callback, we are doing the buffering...
-    SDL_LockAudioDevice(dev);
-    int delay = output_buffer.size() / nchannels;
-    SDL_UnlockAudioDevice(dev);
-    if (delay > max_delay)
-    {
-      unsigned long recovery = min(delay - max_delay, max_recovery);
-      Log::Error log;
-      log << "SDL delay of " << delay
-          << ": dropping " << recovery << " samples\n";
-
-      if (recovery < tick_samples_required)
-        tick_samples_required -= recovery;
-      else
-        tick_samples_required = 0;
-    }
-  }
-}
-
-//--------------------------------------------------------------------------
-// If tick has not been completely fulfilled, fill in with empty data to avoid
-// underruns
-void SDLSink::post_tick(const TickData &)
-{
-  if (tick_samples_required)
-  {
-    SDL_LockAudioDevice(dev);
-    output_buffer.insert(output_buffer.end(),
-                         nchannels * tick_samples_required, 0);
-    SDL_UnlockAudioDevice(dev);
-  }
-  tick_samples_required = 0;
 }
 
 //--------------------------------------------------------------------------
@@ -257,26 +208,22 @@ Dataflow::Module module
 {
   "sdl-out",
   "SDL Audio output",
-  "Audio output for SDL",
   "audio",
   {
-      { "device", { "Device output to", Value::Type::text,
-                    &SDLSink::device, false } },
-      { "channels", { "Number of channels", Value::Type::number,
-                      &SDLSink::nchannels, false } },
-      { "buffer-size", { "Buffer size in samples (must be a power of 2)",
-                         Value::Type::number,
-                         &SDLSink::buffer_size, false } },
-      { "max-delay",
-        { "Maximum delay (in samples) before dropping data",
-          Value::Type::number,
-          &SDLSink::max_delay, false } },
-      { "max-recovery",
-        { "Maximum samples to drop to recover delay",
-          Value::Type::number,
-          &SDLSink::max_recovery, false } }
+    { "device", &SDLSink::device },
+    { "channels", &SDLSink::nchannels },
+    { "buffer-size", &SDLSink::buffer_size },
+    { "max-delay", &SDLSink::max_delay },
+    { "max-recovery", &SDLSink::max_recovery },
   },
-  { "Audio" }, // inputs
+  {
+    { "channel1", &SDLSink::channel1 },
+    { "channel2", &SDLSink::channel2 },
+    { "channel3", &SDLSink::channel3 },
+    { "channel4", &SDLSink::channel4 },
+    { "channel5", &SDLSink::channel5 },
+    { "channel6", &SDLSink::channel6 },
+  },
   {}
 };
 

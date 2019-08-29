@@ -11,7 +11,7 @@
 
 namespace ViGraph { namespace Dataflow {
 
-//------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // Create an element with the given name - may be section:id or just id,
 // which is looked up in default namespaces
 Element *Engine::create(const string& name)
@@ -35,33 +35,7 @@ Element *Engine::create(const string& name)
   }
 }
 
-//------------------------------------------------------------------------
-// Get state as a JSON value (see Graph::get_json())
-JSON::Value Engine::get_json(const string& path) const
-{
-  MT::RWReadLock lock(graph_mutex);
-  return graph->get_json(path);
-}
-
-//------------------------------------------------------------------------
-// Set state from JSON
-// path is a path/to/leaf/prop - can set any intermediate level too
-void Engine::set_json(const string& path, const JSON::Value& value)
-{
-  MT::RWWriteLock lock(graph_mutex);
-  graph->set_json(path, value);
-}
-
-//------------------------------------------------------------------------
-// Set a new element from JSON
-// path is a path/to/leaf
-void Engine::add_json(const string& path, const JSON::Value& value)
-{
-  MT::RWWriteLock lock(graph_mutex);
-  graph->add_json(path, value);
-}
-
-//------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // Delete an item (from REST)
 // path is a path/to/leaf
 void Engine::delete_item(const string& path)
@@ -70,7 +44,7 @@ void Engine::delete_item(const string& path)
   graph->delete_item(path);
 }
 
-//------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // Tick the engine
 void Engine::tick(Time::Stamp t)
 {
@@ -78,18 +52,20 @@ void Engine::tick(Time::Stamp t)
 
   while (t >= start_time + tick_interval * tick_number)
   {
-    timestamp_t timestamp = tick_interval.seconds() * tick_number;
+    const auto timestamp = tick_interval.seconds() * tick_number;
 
     try
     {
-      const auto td = TickData{timestamp, tick_number, tick_interval,
-                               get_sample_rate()};
+      const auto sample_rate = get_sample_rate();
+      const auto last_tick_total = static_cast<size_t>(
+        floor(tick_interval.seconds() * tick_number * sample_rate));
+      const auto tick_total = static_cast<size_t>(
+        floor(tick_interval.seconds() * (tick_number + 1) * sample_rate));
+      const auto nsamples = tick_total - last_tick_total;
 
       // Tick the graph
       MT::RWReadLock lock(graph_mutex);
-      graph->pre_tick(td);
-      graph->tick(td);
-      graph->post_tick(td);
+      graph->tick({timestamp, sample_rate, nsamples});
     }
     catch (const runtime_error& e)
     {
@@ -101,7 +77,22 @@ void Engine::tick(Time::Stamp t)
   }
 }
 
-//------------------------------------------------------------------------
+//--------------------------------------------------------------------------
+// Accept a visitor
+void Engine::accept(Visitor& visitor, bool write)
+{
+  auto lock = shared_ptr<void>{};
+  if (write)
+    lock.reset(new MT::RWWriteLock(graph_mutex));
+  else
+    lock.reset(new MT::RWReadLock(graph_mutex));
+  visitor.visit(*this);
+  auto sv = visitor.getSubGraphVisitor();
+  if (sv)
+    graph->accept(*sv);
+}
+
+//--------------------------------------------------------------------------
 // Shut down the graph
 void Engine::shutdown()
 {

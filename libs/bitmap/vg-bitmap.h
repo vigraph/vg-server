@@ -18,17 +18,18 @@ namespace ViGraph { namespace Bitmap {
 using namespace std;
 
 //==========================================================================
-// Bitmap structure
-class Bitmap
+// Bitmap rectangle
+class Rectangle
 {
 private:
-  int width{1};  // Safe default
-  vector<Colour::RGBA> pixels;
+  int width{1};                 // Safe default
+  vector<Colour::RGBA> pixels;  // In raster order
 
 public:
   // Constructors
-  Bitmap() {}
-  Bitmap(int _width, int _height): width(_width), pixels(_width*_height) {}
+  Rectangle() {}
+  Rectangle(int _width, int _height): width(_width), pixels(_width*_height) {}
+  Rectangle(const string& ppm) { read_from_ppm(ppm); }
 
   // Accessors
   int get_width() const  { return width; }
@@ -42,6 +43,14 @@ public:
 
   void set(int x, int y, const Colour::RGBA& c)
   { pixels[y*width+x] = c; }
+
+  // Fill to a colour
+  void fill(const Colour::RGBA& c)
+  { for(auto& p: pixels) p=c; }
+
+  // To/from PPM (P3 ASCII form)
+  string to_ppm();
+  void read_from_ppm(const string& ppm);
 };
 
 

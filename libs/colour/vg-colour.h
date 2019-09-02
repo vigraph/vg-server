@@ -82,6 +82,7 @@ struct RGBA: public RGB
 
   // Constructors
   RGBA() {}
+  RGBA(const RGB& _rgb): RGB(_rgb), a(1.0) {}  // opaque
   RGBA(const RGB& _rgb, intens_t _a): RGB(_rgb), a(_a) {}
   RGBA(intens_t _r, intens_t _g, intens_t _b, intens_t _a):
     RGB(_r, _g, _b), a(_a) {}

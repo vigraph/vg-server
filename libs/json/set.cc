@@ -48,19 +48,16 @@ void SetVisitor::visit(Dataflow::Graph& graph)
     if (type.empty())
       throw runtime_error("Graph element requires a 'type'");
     graph.add_element(type, id);
+    sub_element_json[id] = &elementj;
   }
 }
 
 unique_ptr<Dataflow::Visitor> SetVisitor::getSubElementVisitor(const string& id)
 {
-  auto it = json.o.find("elements");
-  if (it == json.o.end())
+  auto it = sub_element_json.find(id);
+  if (it == sub_element_json.end())
     return {};
-  auto& elementsj = it->second;
-  for (const auto& ej: elementsj.a)
-    if (ej["id"].as_str() == id)
-      return make_unique<SetVisitor>(ej, scope_graph);
-  return {};
+  return make_unique<SetVisitor>(*it->second, scope_graph);
 }
 
 void SetVisitor::visit(Dataflow::Element& element)

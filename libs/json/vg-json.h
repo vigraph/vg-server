@@ -47,6 +47,7 @@ class SetVisitor: public Dataflow::Visitor
 private:
   const Value& json;
   Dataflow::Graph *scope_graph = nullptr;
+  map<string, const Value *> sub_element_json;
 
 public:
   SetVisitor(const Value& _json, Dataflow::Graph *_scope_graph = nullptr):

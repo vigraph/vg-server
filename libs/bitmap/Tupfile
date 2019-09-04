@@ -6,6 +6,6 @@
 
 NAME    = vg-bitmap
 TYPE    = lib
-DEPENDS = vg-colour
+DEPENDS = vg-colour vg-geometry
 
 include_rules

@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include "vg-colour.h"
+#include "vg-geometry.h"
 
 namespace ViGraph { namespace Bitmap {
 
@@ -48,9 +49,16 @@ public:
   void fill(const Colour::RGBA& c)
   { for(auto& p: pixels) p=c; }
 
+  // Fill a set of polygons
+  // Closes polygons demarcated by blanked points, colour from final point
+  void fill_polygons(vector<Geometry::Point>& points);
+
   // To/from PPM (P3 ASCII form)
   string to_ppm();
   void read_from_ppm(const string& ppm);
+
+  // Convert to simple ASCII form, for testing
+  string to_ascii();
 };
 
 

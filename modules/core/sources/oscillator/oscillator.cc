@@ -71,7 +71,7 @@ void OscillatorSource::tick(const TickData& td)
   });
 }
 
-Dataflow::Module module
+Dataflow::SimpleModule module
 {
   "oscillator",
   "Oscillator",

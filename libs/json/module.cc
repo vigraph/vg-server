@@ -13,50 +13,47 @@ namespace ViGraph { namespace JSON {
 Value get_module_metadata(const Dataflow::Module& module)
 {
   auto json = Value{Value::OBJECT};
-  json.set("id", module.id);
-  json.set("name", module.name);
-  json.set("section", module.section);
+  json.set("id", module.get_id());
+  json.set("name", module.get_name());
+  json.set("section", module.get_section());
 
   // Settings
-  if (!module.settings.empty())
+  if (module.has_settings())
   {
     auto& settingsj = json.put("settings", Value{Value::ARRAY});
-    for(const auto sit: module.settings)
+    module.for_each_setting([&settingsj](const string& id,
+                               const Dataflow::Module::SettingMember& setting)
     {
-      const auto& id = sit.first;
-      const auto& setting = sit.second;
       auto& sj = settingsj.add(Value{Value::OBJECT});
       sj.set("id", id);
-      sj.set("type", setting.type);
-    }
+      sj.set("type", setting.get_type());
+    });
   }
 
   // Inputs
-  if (!module.inputs.empty())
+  if (module.has_inputs())
   {
     auto& inputsj = json.put("inputs", Value{Value::ARRAY});
-    for(const auto iit: module.inputs)
+    module.for_each_input([&inputsj](const string& id,
+                               const Dataflow::Module::InputMember& input)
     {
-      const auto& id = iit.first;
-      const auto& input = iit.second;
       auto& ij = inputsj.add(Value{Value::OBJECT});
       ij.set("id", id);
-      ij.set("type", input.type);
-    }
+      ij.set("type", input.get_type());
+    });
   }
 
   // Outputs
-  if (!module.outputs.empty())
+  if (module.has_outputs())
   {
-    auto& outputsj = json.put("inputs", Value{Value::ARRAY});
-    for(const auto oit: module.outputs)
+    auto& outputsj = json.put("outputs", Value{Value::ARRAY});
+    module.for_each_output([&outputsj](const string& id,
+                               const Dataflow::Module::OutputMember& output)
     {
-      const auto& id = oit.first;
-      const auto& output = oit.second;
       auto& oj = outputsj.add(Value{Value::OBJECT});
       oj.set("id", id);
-      oj.set("type", output.type);
-    }
+      oj.set("type", output.get_type());
+    });
   }
 
   return json;

@@ -39,38 +39,39 @@ unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string&)
 void GetVisitor::visit(Dataflow::Element& element)
 {
   json.put("id", element.id);
-  json.put("type", element.module.type());
-  if (!element.module.settings.empty())
+  json.put("type", element.module.get_full_type());
+
+  if (element.module.has_settings())
   {
     auto& settingsj = json.put("settings", Value::Type::OBJECT);
-    for (const auto& sit: element.module.settings)
+    element.module.for_each_setting([&element, &settingsj](const string& id,
+                             const Dataflow::Module::SettingMember& setting)
     {
-      const auto& name = sit.first;
-      const auto& setting = sit.second;
-      settingsj.put(name, setting.get_json(element));
-    }
+      settingsj.put(id, setting.get_json(element));
+    });
   }
-  if (!element.module.inputs.empty())
+
+  if (element.module.has_inputs())
   {
     auto& inputsj = json.put("inputs", Value::Type::OBJECT);
-    for (const auto& iit: element.module.inputs)
+    element.module.for_each_input([&element, &inputsj](const string& id,
+                             const Dataflow::Module::InputMember& input)
     {
-      const auto& name = iit.first;
-      const auto& input = iit.second;
-      inputsj.put(name, input.get_json(element));
-    }
+      inputsj.put(id, input.get_json(element));
+    });
   }
-  if (!element.module.outputs.empty())
+
+  if (element.module.has_outputs())
   {
     auto& outputsj = json.put("outputs", Value::Type::OBJECT);
-    for (const auto& oit: element.module.outputs)
+    element.module.for_each_output([&element, &outputsj](const string& id,
+                             const Dataflow::Module::OutputMember& output)
     {
-      const auto& name = oit.first;
-      const auto& output = oit.second.get(element);
-      const auto& conns = output.get_connections();
+      const auto& op = output.get(element);
+      const auto& conns = op.get_connections();
       if (conns.empty())
-        continue;
-      auto& outputj = outputsj.put(name, Value::Type::ARRAY);
+        return;
+      auto& outputj = outputsj.put(id, Value::Type::ARRAY);
       for (const auto& conn: conns)
       {
         auto& connj = outputj.add(Value::Type::OBJECT);
@@ -78,7 +79,7 @@ void GetVisitor::visit(Dataflow::Element& element)
         connj.put("input", conn.element->module.get_input_id(*conn.element,
                                                              *conn.input));
       }
-    }
+    });
   }
 }
 

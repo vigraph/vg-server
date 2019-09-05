@@ -95,7 +95,8 @@ shared_ptr<Element> Graph::get_nearest_element(const string& section,
   MT::RWReadLock lock(mutex);
   // !!! Linear search!
   for(const auto& it: elements)
-    if (it.second->module.section == section && it.second->module.id == type)
+    if (it.second->module.get_section() == section &&
+        it.second->module.get_id() == type)
       return it.second;
 
   if (parent)

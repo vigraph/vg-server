@@ -125,10 +125,6 @@ public:
 
 template<typename T> class Output;
 
-//--------------------------------------------------------------------------
-// Combine output data for input
-
-
 //==========================================================================
 // Element input template
 template<typename T>
@@ -341,6 +337,77 @@ public:
 //==========================================================================
 // Module metadata
 
+// Interface
+class Module
+{
+public:
+  virtual string get_id() const = 0;
+  virtual string get_name() const = 0;
+  virtual string get_section() const = 0;
+  virtual string get_full_type() const { return get_section() + ":" +
+                                                get_id(); }
+  template<typename T>
+  class Member
+  {
+  public:
+    virtual string get_type() const = 0;
+    virtual T& get(Element& b) const = 0;
+    virtual JSON::Value get_json(Element& b) const = 0;
+    virtual void set_json(Element& b, const JSON::Value& json) const = 0;
+    virtual ~Member() {}
+  };
+  using SettingMember = Member<ElementSetting>;
+  using InputMember = Member<ElementInput>;
+  class OutputMember
+  {
+  public:
+    virtual string get_type() const = 0;
+    virtual ElementOutput& get(Element& b) const = 0;
+    virtual ~OutputMember() {}
+  };
+
+  ElementSetting *get_setting(Element& element, const string& name) const
+  {
+    auto s = get_setting(name);
+    if (!s)
+      return nullptr;
+    return &s->get(element);
+  }
+  ElementInput *get_input(Element& element, const string& name) const
+  {
+    auto i = get_input(name);
+    if (!i)
+      return nullptr;
+    return &i->get(element);
+  }
+  ElementOutput *get_output(Element& element, const string& name) const
+  {
+    auto o = get_output(name);
+    if (!o)
+      return nullptr;
+    return &o->get(element);
+  }
+  virtual const SettingMember *get_setting(const string& name) const = 0;
+  virtual const InputMember *get_input(const string& name) const = 0;
+  virtual const OutputMember *get_output(const string& name) const = 0;
+
+  virtual bool has_settings() const = 0;
+  virtual void for_each_setting(const function<void(const string&,
+                                      const SettingMember&)>& func) const = 0;
+
+  virtual bool has_inputs() const = 0;
+  virtual void for_each_input(const function<void(const string&,
+                                      const InputMember&)>& func) const = 0;
+
+  virtual bool has_outputs() const = 0;
+  virtual void for_each_output(const function<void(const string&,
+                                         const OutputMember&)>& func) const = 0;
+
+  virtual string get_input_id(Element& element, ElementInput& input) const = 0;
+
+  virtual ~Module() {}
+};
+
 template<typename T> inline string get_module_type();
 template<typename T>
 inline void set_from_json(T& value, const JSON::Value& json);
@@ -381,41 +448,34 @@ inline JSON::Value get_as_json(const string& value)
   return {value};
 }
 
-struct Module
+class SimpleModule: public Module
 {
+private:
   string id;
   string name;
   string section;
 
-  string type() const
-  {
-    return section + ":" + id;
-  }
-
   // settings
-  class Setting
+  class Setting: public Module::SettingMember
   {
   private:
-    class MemberFunctor
-    {
-    public:
-      virtual ElementSetting& get(Element& b) const = 0;
-      virtual JSON::Value get_json(Element& b) const = 0;
-      virtual void set_json(Element& b, const JSON::Value& json) const = 0;
-      virtual ~MemberFunctor() {}
-    };
     template<typename T>
-    class MemberFunctorImpl: public MemberFunctor
+    class TypedMember: public Module::SettingMember
     {
     private:
       Dataflow::Setting<T> Element::* member_pointer = nullptr;
 
     public:
       template<typename C>
-      MemberFunctorImpl(Dataflow::Setting<T> C::* _member_pointer):
+      TypedMember(Dataflow::Setting<T> C::* _member_pointer):
         member_pointer{static_cast<Dataflow::Setting<T> Element::*>(
                        _member_pointer)}
       {}
+
+      string get_type() const override
+      {
+        return get_module_type<T>();
+      }
 
       ElementSetting& get(Element& b) const override
       {
@@ -434,56 +494,56 @@ struct Module
         (b.*member_pointer).set(v);
       }
     };
-    shared_ptr<MemberFunctor> member_functor;
+    shared_ptr<Module::SettingMember> typed_member;
 
   public:
-    const string type;
-
     template<typename T, typename C>
     Setting(Dataflow::Setting<T> C::* i):
-      member_functor{new MemberFunctorImpl<T>{i}}, type{get_module_type<T>()}
+      typed_member{new TypedMember<T>{i}}
     {}
 
-    ElementSetting& get(Element& b) const
+    string get_type() const override
     {
-      return member_functor->get(b);
+      return typed_member->get_type();
     }
 
-    JSON::Value get_json(Element& b) const
+    ElementSetting& get(Element& b) const override
     {
-      return member_functor->get_json(b);
+      return typed_member->get(b);
     }
 
-    void set_json(Element& b, const JSON::Value& json) const
+    JSON::Value get_json(Element& b) const override
     {
-      member_functor->set_json(b, json);
+      return typed_member->get_json(b);
+    }
+
+    void set_json(Element& b, const JSON::Value& json) const override
+    {
+      typed_member->set_json(b, json);
     }
   };
   map<string, Setting> settings;
 
-  class Input
+  class Input: public Module::InputMember
   {
   private:
-    class MemberFunctor
-    {
-    public:
-      virtual ElementInput& get(Element& b) const = 0;
-      virtual JSON::Value get_json(Element& b) const = 0;
-      virtual void set_json(Element& b, const JSON::Value& json) const = 0;
-      virtual ~MemberFunctor() {}
-    };
     template<typename T>
-    class MemberFunctorImpl: public MemberFunctor
+    class TypedMember: public Module::InputMember
     {
     private:
       Dataflow::Input<T> Element::* member_pointer = nullptr;
 
     public:
       template<typename C>
-      MemberFunctorImpl(Dataflow::Input<T> C::* _member_pointer):
+      TypedMember(Dataflow::Input<T> C::* _member_pointer):
         member_pointer{static_cast<Dataflow::Input<T> Element::*>(
                       _member_pointer)}
       {}
+
+      string get_type() const override
+      {
+        return get_module_type<T>();
+      }
 
       ElementInput& get(Element& b) const override
       {
@@ -502,86 +562,144 @@ struct Module
         (b.*member_pointer).set(v);
       }
     };
-    shared_ptr<MemberFunctor> member_functor;
+    shared_ptr<Module::InputMember> typed_member;
 
   public:
-    const string type;
-
     template<typename T, typename C>
     Input(Dataflow::Input<T> C::* i):
-      member_functor{new MemberFunctorImpl<T>{i}}, type{get_module_type<T>()}
+      typed_member{new TypedMember<T>{i}}
     {}
 
-    ElementInput& get(Element& b) const
+    string get_type() const override
     {
-      return member_functor->get(b);
+      return typed_member->get_type();
     }
 
-    JSON::Value get_json(Element& b) const
+    ElementInput& get(Element& b) const override
     {
-      return member_functor->get_json(b);
+      return typed_member->get(b);
     }
 
-    void set_json(Element& b, const JSON::Value& json) const
+    JSON::Value get_json(Element& b) const override
     {
-      member_functor->set_json(b, json);
+      return typed_member->get_json(b);
+    }
+
+    void set_json(Element& b, const JSON::Value& json) const override
+    {
+      typed_member->set_json(b, json);
     }
   };
   map<string, Input> inputs;
 
-  class Output
+  class Output: public Module::OutputMember
   {
   private:
-    class MemberFunctor
-    {
-    public:
-      virtual ElementOutput& get(Element& b) const = 0;
-      virtual ~MemberFunctor() {}
-    };
     template<typename T>
-    class MemberFunctorImpl: public MemberFunctor
+    class TypedMember: public Module::OutputMember
     {
     private:
       Dataflow::Output<T> Element::* member_pointer = nullptr;
 
     public:
       template<typename C>
-      MemberFunctorImpl(Dataflow::Output<T> C::* _member_pointer):
+      TypedMember(Dataflow::Output<T> C::* _member_pointer):
         member_pointer{static_cast<Dataflow::Output<T> Element::*>(
                       _member_pointer)}
       {}
+
+      string get_type() const override
+      {
+        return get_module_type<T>();
+      }
 
       ElementOutput& get(Element& b) const override
       {
         return b.*member_pointer;
       }
     };
-    shared_ptr<MemberFunctor> member_functor;
+    shared_ptr<Module::OutputMember> typed_member;
 
   public:
-    const string type;
-
     template<typename T, typename C>
     Output(Dataflow::Output<T> C::* o):
-      member_functor{new MemberFunctorImpl<T>{o}}, type{get_module_type<T>()}
+      typed_member{new TypedMember<T>{o}}
     {}
 
-    ElementOutput& get(Element& b) const
+    string get_type() const override
     {
-      return member_functor->get(b);
+      return typed_member->get_type();
+    }
+
+    ElementOutput& get(Element& b) const override
+    {
+      return typed_member->get(b);
     }
   };
   map<string, Output> outputs;
 
-  Module(const string& _id, const string& _name, const string& _section,
-         const map<string, Setting>& _settings,
-         const map<string, Input>& _inputs,
-         const map<string, Output>& _outputs):
+public:
+  SimpleModule(const string& _id, const string& _name, const string& _section,
+               const map<string, Setting>& _settings,
+               const map<string, Input>& _inputs,
+               const map<string, Output>& _outputs):
     id{_id}, name{_name}, section{_section}, settings{_settings},
     inputs{_inputs}, outputs{_outputs}
   {}
 
-  string get_input_id(Element& element, ElementInput& input) const
+  string get_id() const override { return id; }
+  string get_name() const override { return name; }
+  string get_section() const override { return section; }
+
+  const SettingMember *get_setting( const string& name) const override
+  {
+    auto sit = settings.find(name);
+    if (sit == settings.end())
+      return nullptr;
+    return &sit->second;
+  }
+
+  const InputMember *get_input(const string& name) const override
+  {
+    auto iit = inputs.find(name);
+    if (iit == inputs.end())
+      return nullptr;
+    return &iit->second;
+  }
+
+  const OutputMember *get_output(const string& name) const override
+  {
+    auto oit = outputs.find(name);
+    if (oit == outputs.end())
+      return nullptr;
+    return &oit->second;
+  }
+
+  bool has_settings() const override { return !settings.empty(); }
+  void for_each_setting(const function<void(const string&,
+                                  const SettingMember&)>& func) const override
+  {
+    for (const auto& sit: settings)
+      func(sit.first, sit.second);
+  }
+
+  bool has_inputs() const override { return !inputs.empty(); }
+  void for_each_input(const function<void(const string&,
+                                    const InputMember&)>& func) const override
+  {
+    for (const auto& iit: inputs)
+      func(iit.first, iit.second);
+  }
+
+  bool has_outputs() const override { return !outputs.empty(); }
+  void for_each_output(const function<void(const string&,
+                                   const OutputMember&)>& func) const override
+  {
+    for (const auto& oit: outputs)
+      func(oit.first, oit.second);
+  }
+
+  string get_input_id(Element& element, ElementInput& input) const override
   {
     for (const auto& i: inputs)
       if (&i.second.get(element) == &input)
@@ -663,22 +781,16 @@ public:
   template<typename T>
   Element& set(const string& setting, const T& value)
   {
-    auto sit = module.settings.find(setting);
-    if (sit != module.settings.end())
+    auto s = dynamic_cast<Setting<T> *>(module.get_setting(*this, setting));
+    if (s)
     {
-      auto s = dynamic_cast<Setting<T> *>(&(sit->second.get(*this)));
-      if (s)
-        s->set(value);
+      s->set(value);
     }
     else
     {
-      auto iit = module.inputs.find(setting);
-      if (iit != module.inputs.end())
-      {
-        auto i = dynamic_cast<Input<T> *>(&(iit->second.get(*this)));
-        if (i)
-          i->set(value);
-      }
+      auto i = dynamic_cast<Input<T> *>(module.get_input(*this, setting));
+      if (i)
+        i->set(value);
     }
     return *this;
   }
@@ -873,7 +985,7 @@ public:
   //------------------------------------------------------------------------
   // Register a module with its factory
   void add(const Module& m, const Factory& f)
-  { sections[m.section].modules[m.id] = ModuleInfo(m, f); }
+  { sections[m.get_section()].modules[m.get_id()] = ModuleInfo(m, f); }
 
   //------------------------------------------------------------------------
   // Create an object by module and config

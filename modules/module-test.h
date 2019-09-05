@@ -55,7 +55,7 @@ template<typename T>
 class TestTarget: public Element
 {
 private:
-  struct Module module_data =
+  SimpleModule module_data =
   {
     "test",
     "Test",

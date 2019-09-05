@@ -204,7 +204,7 @@ void SDLSink::shutdown()
 
 //--------------------------------------------------------------------------
 // Module definition
-Dataflow::Module module
+Dataflow::SimpleModule module
 {
   "sdl-out",
   "SDL Audio output",

@@ -70,8 +70,8 @@ void SetVisitor::visit(Dataflow::Element& element)
       const auto& name = sit.first;
       const auto& value = sit.second;
 
-      auto msit = element.module.settings.find(name);
-      if (msit == element.module.settings.end())
+      auto setting = element.module.get_setting(name);
+      if (!setting)
       {
         Log::Error log;
         log << "Unknown setting '" << name << "' on element "
@@ -79,7 +79,7 @@ void SetVisitor::visit(Dataflow::Element& element)
         continue;
       }
 
-      msit->second.set_json(element, value);
+      setting->set_json(element, value);
     }
   }
 
@@ -93,8 +93,8 @@ void SetVisitor::visit(Dataflow::Element& element)
       const auto& name = iit.first;
       const auto& value = iit.second;
 
-      auto miit = element.module.inputs.find(name);
-      if (miit == element.module.inputs.end())
+      auto input = element.module.get_input(name);
+      if (!input)
       {
         Log::Error log;
         log << "Unknown input '" << name << "' on element "
@@ -102,7 +102,7 @@ void SetVisitor::visit(Dataflow::Element& element)
         continue;
       }
 
-      miit->second.set_json(element, value);
+      input->set_json(element, value);
     }
   }
   if (scope_graph)

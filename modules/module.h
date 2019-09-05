@@ -24,7 +24,7 @@ extern "C" bool vg_init(Log::Channel& logger, Dataflow::Engine& engine)       \
 {                                                                             \
   Log::logger.connect(new Log::ReferencedChannel{logger});                    \
   Log::Streams log;                                                           \
-  log.summary << "  Module: " << _module.id << endl;                          \
+  log.summary << "  Module: " << _module.get_full_type() << endl;             \
   engine.element_registry.add(_module, _new_factory);                         \
   return true;                                                                \
 }

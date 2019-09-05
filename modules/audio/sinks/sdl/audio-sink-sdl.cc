@@ -22,7 +22,7 @@ const auto default_max_recovery = 1;
 
 //==========================================================================
 // SDL sink
-class SDLSink: public Element
+class SDLSink: public DynamicElement
 {
 private:
   SDL_AudioDeviceID dev = 0;
@@ -35,7 +35,7 @@ private:
   void shutdown() override;
 
 public:
-  using Element::Element;
+  using DynamicElement::DynamicElement;
 
   Setting<string> device{default_device};
   Setting<double> nchannels{default_channels};
@@ -152,6 +152,20 @@ void SDLSink::setup()
     // Start playback
     SDL_PauseAudioDevice(dev, 0);
 
+    // Update module information
+    module.clear_inputs();
+    module.add_input("channel1", &SDLSink::channel1);
+    if (have.channels >= 2)
+      module.add_input("channel2", &SDLSink::channel2);
+    if (have.channels >= 3)
+      module.add_input("channel3", &SDLSink::channel3);
+    if (have.channels >= 4)
+      module.add_input("channel4", &SDLSink::channel4);
+    if (have.channels >= 5)
+      module.add_input("channel5", &SDLSink::channel5);
+    if (have.channels >= 6)
+      module.add_input("channel6", &SDLSink::channel6);
+
     log.detail << "Created SDL audio out\n";
   }
   catch (const runtime_error& e)
@@ -204,7 +218,7 @@ void SDLSink::shutdown()
 
 //--------------------------------------------------------------------------
 // Module definition
-Dataflow::SimpleModule module
+Dataflow::DynamicModule module
 {
   "sdl-out",
   "SDL Audio output",
@@ -217,12 +231,7 @@ Dataflow::SimpleModule module
     { "max-recovery", &SDLSink::max_recovery },
   },
   {
-    { "channel1", &SDLSink::channel1 },
-    { "channel2", &SDLSink::channel2 },
-    { "channel3", &SDLSink::channel3 },
-    { "channel4", &SDLSink::channel4 },
-    { "channel5", &SDLSink::channel5 },
-    { "channel6", &SDLSink::channel6 },
+    // dynamic input channels
   },
   {}
 };

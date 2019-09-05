@@ -15,7 +15,7 @@ using namespace ViGraph::Geometry;
 
 //==========================================================================
 // Oscillator source
-class OscillatorSource: public Element
+class OscillatorSource: public SimpleElement
 {
 private:
   double theta = 0.0;
@@ -30,7 +30,7 @@ private:
   void tick(const TickData& td) override;
 
 public:
-  using Element::Element;
+  using SimpleElement::SimpleElement;
 
   // Configuration
   Input<Waveform::Type> waveform;
@@ -92,4 +92,3 @@ Dataflow::SimpleModule module
 } // anon
 
 VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(OscillatorSource, module)
-

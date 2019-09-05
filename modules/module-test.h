@@ -52,7 +52,7 @@ public:
 
 // Test control - accepts any property and remembers it
 template<typename T>
-class TestTarget: public Element
+class TestTarget: public SimpleElement
 {
 private:
   SimpleModule module_data =
@@ -73,7 +73,7 @@ public:
 
   // Construct
   TestTarget():
-    Element(module_data)
+    SimpleElement(module_data)
   {
     id = "test";
   }

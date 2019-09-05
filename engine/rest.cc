@@ -279,7 +279,7 @@ bool MetaURLHandler::handle_get(const string& path,
       JSON::Value json(JSON::Value::ARRAY);
       for(const auto& sit: registry.sections)
         for(const auto& mit: sit.second.modules)
-          json.add(JSON::get_module_metadata(*mit.second.module));
+          json.add(JSON::get_module_metadata(*mit.second->get_module()));
       response.body = json.str(true);
     }
     else
@@ -314,7 +314,8 @@ bool MetaURLHandler::handle_get(const string& path,
         }
         else
         {
-          const auto json = JSON::get_module_metadata(*mit->second.module);
+          const auto json = JSON::get_module_metadata(
+                                                *mit->second->get_module());
           response.body = json.str(true);
         }
       }

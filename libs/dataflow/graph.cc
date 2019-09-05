@@ -34,11 +34,12 @@ Element *Graph::create_element(const string& type, const string& id)
 
 //------------------------------------------------------------------------
 // Add an element
-void Graph::add_element(const string& type, const string& id)
+Element *Graph::add_element(const string& type, const string& id)
 {
   auto el = create_element(type, id);
   if (el)
     add(el);
+  return el;
 }
 
 //------------------------------------------------------------------------
@@ -82,25 +83,6 @@ Element *Graph::get_element(const string& id)
   MT::RWReadLock lock(mutex);
   if (elements.find(id) != elements.end())
     return elements[id].get();
-  else
-    return nullptr;
-}
-
-//------------------------------------------------------------------------
-// Get the nearest particular element by section and type, looking upwards
-// in ancestors
-shared_ptr<Element> Graph::get_nearest_element(const string& section,
-                                               const string& type)
-{
-  MT::RWReadLock lock(mutex);
-  // !!! Linear search!
-  for(const auto& it: elements)
-    if (it.second->module.get_section() == section &&
-        it.second->module.get_id() == type)
-      return it.second;
-
-  if (parent)
-    return parent->get_nearest_element(section, type);
   else
     return nullptr;
 }

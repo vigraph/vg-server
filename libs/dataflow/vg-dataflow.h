@@ -450,7 +450,7 @@ inline JSON::Value get_as_json(const string& value)
 
 class SimpleModule: public Module
 {
-private:
+protected:
   string id;
   string name;
   string section;
@@ -709,6 +709,46 @@ public:
 };
 
 //==========================================================================
+// Dyanmic module information
+class DynamicModule: public SimpleModule
+{
+public:
+  using SimpleModule::SimpleModule;
+
+  void clear_inputs()
+  {
+    inputs.clear();
+  }
+
+  template<typename T, typename C>
+  void add_input(const string& name, Dataflow::Input<T> C::* i)
+  {
+    inputs.emplace(name, i);
+  }
+
+  void erase_input(const string& name)
+  {
+    inputs.erase(name);
+  }
+
+  void clear_outputs()
+  {
+    outputs.clear();
+  }
+
+  template<typename T, typename C>
+  void add_output(const string& name, Dataflow::Output<T> C::* o)
+  {
+    outputs.emplace(name, o);
+  }
+
+  void erase_output(const string& name)
+  {
+    outputs.erase(name);
+  }
+};
+
+//==========================================================================
 // Graph element - just has an ID and a parent graph
 class Element
 {
@@ -753,16 +793,11 @@ protected:
   }
 
 public:
-  const Module& module;
   string id;
   Graph *graph{nullptr};
   Engine *engine{nullptr};
 
-  // Basic construction
-  // Extend this to read basic config which doesn't take much time or
-  // require registry - i.e. just reading basic config attributes
-  Element(const Module& _module):
-    module{_module} {}
+  virtual const Module& get_module() const = 0;
 
   // Setup after automatic configuration
   virtual void setup() {}
@@ -781,6 +816,7 @@ public:
   template<typename T>
   Element& set(const string& setting, const T& value)
   {
+    auto& module = get_module();
     auto s = dynamic_cast<Setting<T> *>(module.get_setting(*this, setting));
     if (s)
     {
@@ -823,6 +859,46 @@ public:
   virtual ~Element() {}
 };
 
+//==========================================================================
+// Element that has static module information
+class SimpleElement: public Element
+{
+private:
+  const SimpleModule& module;
+
+public:
+  //------------------------------------------------------------------------
+  // Constructor
+  SimpleElement(const SimpleModule& _module):
+    module{_module}
+  {}
+
+  const Module& get_module() const override
+  {
+    return module;
+  }
+};
+
+//==========================================================================
+// Element whose module information can change depending on settings
+class DynamicElement: public Element
+{
+protected:
+  DynamicModule module;
+
+public:
+  //------------------------------------------------------------------------
+  // Constructor
+  DynamicElement(const DynamicModule& _module):
+    module{_module}
+  {}
+
+  const Module& get_module() const override
+  {
+    return module;
+  }
+};
+
 class Generator;  // forward
 
 //==========================================================================
@@ -833,7 +909,6 @@ private:
   Engine& engine;
   mutable MT::RWMutex mutex;
   map<string, shared_ptr<Element> > elements;   // By ID
-  Graph *parent{nullptr};
   double sample_rate = 0;
 
   // Internal
@@ -842,8 +917,8 @@ private:
 public:
   //------------------------------------------------------------------------
   // Constructor
-  Graph(Engine& _engine, Graph *_parent=nullptr):
-    engine(_engine), parent(_parent) {}
+  Graph(Engine& _engine):
+    engine(_engine) {}
 
   //------------------------------------------------------------------------
   // Get engine
@@ -852,7 +927,7 @@ public:
 
   //------------------------------------------------------------------------
   // Add an element to the graph
-  void add_element(const string& type, const string& id);
+  Element *add_element(const string& type, const string& id);
 
   //------------------------------------------------------------------------
   // Get all elements (for inspection)
@@ -878,25 +953,6 @@ public:
   //------------------------------------------------------------------------
   // Get a particular element by ID
   Element *get_element(const string& id);
-
-  //------------------------------------------------------------------------
-  // Get the nearest particular element by section and type, looking upwards
-  // in ancestors
-  shared_ptr<Element> get_nearest_element(const string& section,
-                                          const string& type);
-
-  //------------------------------------------------------------------------
-  // Get type-checked nearest service element (can be nullptr if doesn't
-  // exist or wrong type)
-  template <class T> shared_ptr<T> find_service(const string& section,
-                                                const string& type)
-  {
-    auto el = get_nearest_element(section, type);
-    if (!el) return {};
-    auto t = dynamic_pointer_cast<T>(el);
-    if (!t) return {};
-    return t;
-  }
 
   //------------------------------------------------------------------------
   // Delete an item (from REST)
@@ -950,30 +1006,29 @@ public:
   // Abstract interface for Element-creating factories
   struct Factory
   {
-    virtual Element *create(const Module& module) const = 0;
+    virtual Element *create() const = 0;
+    virtual const Module *get_module() const = 0;
     virtual ~Factory() {}
   };
 
   // Template for factories creating with { new Type }
-  template<class E> struct NewFactory: public Factory
+  template<class E, typename M> class NewFactory: public Factory
   {
+  private:
+    const M& module;
   public:
-    Element *create(const Module& module) const
-    { return new E(module); }
-  };
-
-  struct ModuleInfo
-  {
-    const Module *module = nullptr;
-    const Factory *factory = nullptr;
-    ModuleInfo() {}
-    ModuleInfo(const Module& _module, const Factory& _factory):
-      module(&_module), factory(&_factory) {}
+    NewFactory(const M& _module):
+      module{_module}
+    {}
+    Element *create() const override
+    { return new E{module}; }
+    const Module *get_module() const override
+    { return &module; }
   };
 
   struct Section
   {
-    map<string, ModuleInfo> modules;
+    map<string, const Factory *> modules;
   };
 
   map<string, Section> sections;
@@ -984,8 +1039,8 @@ public:
 
   //------------------------------------------------------------------------
   // Register a module with its factory
-  void add(const Module& m, const Factory& f)
-  { sections[m.get_section()].modules[m.get_id()] = ModuleInfo(m, f); }
+  void add(const string& section, const string& id, const Factory& f)
+  { sections[section].modules[id] = &f; }
 
   //------------------------------------------------------------------------
   // Create an object by module and config
@@ -998,8 +1053,8 @@ public:
     const auto mp = sp->second.modules.find(id);
     if (mp == sp->second.modules.end()) return 0;
 
-    const auto& mi = mp->second;
-    return mi.factory->create(*mi.module);
+    const auto& factory = mp->second;
+    return factory->create();
   }
 };
 

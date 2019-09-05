@@ -38,34 +38,35 @@ unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string&)
 
 void GetVisitor::visit(Dataflow::Element& element)
 {
+  auto& module = element.get_module();
   json.put("id", element.id);
-  json.put("type", element.module.get_full_type());
+  json.put("type", module.get_full_type());
 
-  if (element.module.has_settings())
+  if (module.has_settings())
   {
     auto& settingsj = json.put("settings", Value::Type::OBJECT);
-    element.module.for_each_setting([&element, &settingsj](const string& id,
+    module.for_each_setting([&element, &settingsj](const string& id,
                              const Dataflow::Module::SettingMember& setting)
     {
       settingsj.put(id, setting.get_json(element));
     });
   }
 
-  if (element.module.has_inputs())
+  if (module.has_inputs())
   {
     auto& inputsj = json.put("inputs", Value::Type::OBJECT);
-    element.module.for_each_input([&element, &inputsj](const string& id,
-                             const Dataflow::Module::InputMember& input)
+    module.for_each_input([&element, &inputsj](const string& id,
+                                 const Dataflow::Module::InputMember& input)
     {
       inputsj.put(id, input.get_json(element));
     });
   }
 
-  if (element.module.has_outputs())
+  if (module.has_outputs())
   {
     auto& outputsj = json.put("outputs", Value::Type::OBJECT);
-    element.module.for_each_output([&element, &outputsj](const string& id,
-                             const Dataflow::Module::OutputMember& output)
+    module.for_each_output([&element, &outputsj](const string& id,
+                               const Dataflow::Module::OutputMember& output)
     {
       const auto& op = output.get(element);
       const auto& conns = op.get_connections();
@@ -76,8 +77,8 @@ void GetVisitor::visit(Dataflow::Element& element)
       {
         auto& connj = outputj.add(Value::Type::OBJECT);
         connj.put("element", conn.element->id);
-        connj.put("input", conn.element->module.get_input_id(*conn.element,
-                                                             *conn.input));
+        auto& imodule = conn.element->get_module();
+        connj.put("input", imodule.get_input_id(*conn.element, *conn.input));
       }
     });
   }

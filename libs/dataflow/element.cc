@@ -15,10 +15,12 @@ namespace ViGraph { namespace Dataflow {
 bool Element::connect(const string& out_name,
                       Element& b, const string &in_name)
 {
+  auto& module = get_module();
   auto o = module.get_output(*this, out_name);
   if (!o)
     return false;
-  auto i = b.module.get_input(b, in_name);
+  auto& bmodule = b.get_module();
+  auto i = bmodule.get_input(b, in_name);
   if (!i)
     return false;
   o->connect({&b, i});

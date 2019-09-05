@@ -47,8 +47,39 @@ void SetVisitor::visit(Dataflow::Graph& graph)
     const auto& type = typeit->second.as_str();
     if (type.empty())
       throw runtime_error("Graph element requires a 'type'");
-    graph.add_element(type, id);
-    sub_element_json[id] = &elementj;
+
+    auto element = graph.add_element(type, id);
+
+    if (element)
+    {
+      // Setup element
+      auto& module = element->get_module();
+      auto it = elementj.o.find("settings");
+      if (it != elementj.o.end() && it->second.type == Value::Type::OBJECT)
+      {
+        for (const auto sit: it->second.o)
+        {
+          const auto& name = sit.first;
+          const auto& value = sit.second;
+
+          auto setting = module.get_setting(name);
+          if (!setting)
+          {
+            Log::Error log;
+            log << "Unknown setting '" << name << "' on element "
+                << element->id << endl;
+            continue;
+          }
+
+          setting->set_json(*element, value);
+        }
+      }
+
+      element->setup();
+
+      // Add to our element cache for later visiting
+      sub_element_json[id] = &elementj;
+    }
   }
 }
 
@@ -62,30 +93,8 @@ unique_ptr<Dataflow::Visitor> SetVisitor::getSubElementVisitor(const string& id)
 
 void SetVisitor::visit(Dataflow::Element& element)
 {
-  auto it = json.o.find("settings");
-  if (it != json.o.end() && it->second.type == Value::Type::OBJECT)
-  {
-    for (const auto sit: it->second.o)
-    {
-      const auto& name = sit.first;
-      const auto& value = sit.second;
-
-      auto setting = element.module.get_setting(name);
-      if (!setting)
-      {
-        Log::Error log;
-        log << "Unknown setting '" << name << "' on element "
-            << element.id << endl;
-        continue;
-      }
-
-      setting->set_json(element, value);
-    }
-  }
-
-  element.setup();
-
-  it = json.o.find("inputs");
+  auto& module = element.get_module();
+  auto it = json.o.find("inputs");
   if (it != json.o.end() && it->second.type == Value::Type::OBJECT)
   {
     for (const auto iit: it->second.o)
@@ -93,7 +102,7 @@ void SetVisitor::visit(Dataflow::Element& element)
       const auto& name = iit.first;
       const auto& value = iit.second;
 
-      auto input = element.module.get_input(name);
+      auto input = module.get_input(name);
       if (!input)
       {
         Log::Error log;
@@ -112,7 +121,7 @@ void SetVisitor::visit(Dataflow::Element& element)
     {
       for (const auto oit: it->second.o)
       {
-          const auto& name = oit.first;
+        const auto& name = oit.first;
         for (const auto& connection: oit.second.a)
         {
           const auto& iname = connection["element"].as_str();

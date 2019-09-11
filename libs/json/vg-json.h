@@ -45,13 +45,15 @@ public:
 class SetVisitor: public Dataflow::Visitor
 {
 private:
+  const Dataflow::Engine& engine;
   const Value& json;
   Dataflow::Graph *scope_graph = nullptr;
   map<string, const Value *> sub_element_json;
 
 public:
-  SetVisitor(const Value& _json, Dataflow::Graph *_scope_graph = nullptr):
-    json{_json}, scope_graph{_scope_graph}
+  SetVisitor(const Dataflow::Engine& _engine, const Value& _json,
+             Dataflow::Graph *_scope_graph = nullptr):
+    engine{_engine}, json{_json}, scope_graph{_scope_graph}
   {}
   void visit(Dataflow::Engine& engine) override;
   unique_ptr<Visitor> getSubGraphVisitor() override;

@@ -93,41 +93,43 @@ class GraphTester
   double sample_rate = 50;
 
  public:
-  Graph graph;
   TestTarget<T> *target = nullptr;
 
   // Add an element
-  Element& add(const string& name)
+  GraphElement& add(const string& name)
   {
-    Element *e = loader.engine.create(name);
+    const auto id = name + Text::itos(++id_serial);
+    auto e = loader.engine.create(name, id);
     if (!e) throw runtime_error("Can't create element "+name);
-    if (e->id.empty()) e->id = name + Text::itos(++id_serial);
-    graph.add(e);
-    e->graph = &graph;
+    loader.engine.get_graph().add(e);
     return *e;
   }
 
   // Run test
   void run(int nticks = 1)
   {
+    auto& graph = loader.engine.get_graph();
     graph.setup();
-    graph.set_sample_rate(sample_rate);
+    loader.engine.set_tick_interval(Time::Duration{1});
+    loader.engine.set_sample_rate(sample_rate);
+    loader.engine.reset();
+    loader.engine.update_elements();
 
     for(auto i=0; i<nticks; i++)
     {
-      graph.tick(TickData(i, sample_rate, sample_rate));
+      loader.engine.tick(i);
     }
   }
 
   GraphTester(ModuleLoader& _loader,
               double _sample_rate = 50):
-  loader(_loader), sample_rate(_sample_rate), graph(loader.engine)
+  loader(_loader), sample_rate(_sample_rate)
   {
     target = new TestTarget<T>{};
-    graph.add(target);
+    loader.engine.get_graph().add(target);
   }
 
-  bool capture_from(Element& element, const string& output)
+  bool capture_from(GraphElement& element, const string& output)
   {
     return element.connect(output, *target, "input");
   }

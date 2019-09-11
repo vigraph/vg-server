@@ -23,8 +23,11 @@ unique_ptr<Dataflow::Visitor> GetVisitor::getSubGraphVisitor()
   return make_unique<GetVisitor>(graphs.add(Value::Type::OBJECT));
 }
 
-void GetVisitor::visit(Dataflow::Graph&)
+void GetVisitor::visit(Dataflow::Graph& graph)
 {
+  auto& module = graph.get_module();
+  json.put("id", graph.id);
+  json.put("type", module.get_full_type());
 }
 
 unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string&)

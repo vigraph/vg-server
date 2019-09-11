@@ -45,7 +45,7 @@ TEST(OscillatorTest, TestSquareWaveSingleCycle)
                     .set("freq", 1.0);
   tester.capture_from(osc, "output");
 
-  tester.run(2);
+  tester.run();
 
   const auto waveform = tester.get_output();
 
@@ -69,7 +69,7 @@ TEST(OscillatorTest, TestSquareWaveMultiCycle)
                     .set("freq", 10.0);
   tester.capture_from(osc, "output");
 
-  tester.run(2);
+  tester.run();
 
   const auto waveform = tester.get_output();
 
@@ -118,7 +118,7 @@ TEST(OscillatorTest, TestTriangleWaveSingleCycle)
                     .set("freq", 1.0);
   tester.capture_from(osc, "output");
 
-  tester.run(2);
+  tester.run();
 
   const auto waveform = tester.get_output();
 
@@ -151,7 +151,7 @@ TEST(OscillatorTest, TestSinWaveSingleCycle)
                     .set("freq", 1.0);
   tester.capture_from(osc, "output");
 
-  tester.run(2);
+  tester.run();
 
   const auto waveform = tester.get_output();
 
@@ -170,7 +170,7 @@ TEST(OscillatorTest, TestRandomSingleCycle)
                     .set("freq", 1.0);
   tester.capture_from(osc, "output");
 
-  tester.run(2);
+  tester.run();
 
   const auto waveform = tester.get_output();
 

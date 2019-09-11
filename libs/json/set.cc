@@ -22,7 +22,7 @@ unique_ptr<Dataflow::Visitor> SetVisitor::getSubGraphVisitor()
   const auto& graphsj = it->second;
   if (graphsj.a.empty())
     return {};
-  return make_unique<SetVisitor>(graphsj.a.front(), scope_graph);
+  return make_unique<SetVisitor>(engine, graphsj.a.front(), scope_graph);
 }
 
 void SetVisitor::visit(Dataflow::Graph& graph)
@@ -48,10 +48,10 @@ void SetVisitor::visit(Dataflow::Graph& graph)
     if (type.empty())
       throw runtime_error("Graph element requires a 'type'");
 
-    auto element = graph.add_element(type, id);
-
+    auto element = engine.create(type, id);
     if (element)
     {
+      graph.add(element);
       // Setup element
       auto& module = element->get_module();
       auto it = elementj.o.find("settings");
@@ -88,7 +88,7 @@ unique_ptr<Dataflow::Visitor> SetVisitor::getSubElementVisitor(const string& id)
   auto it = sub_element_json.find(id);
   if (it == sub_element_json.end())
     return {};
-  return make_unique<SetVisitor>(*it->second, scope_graph);
+  return make_unique<SetVisitor>(engine, *it->second, scope_graph);
 }
 
 void SetVisitor::visit(Dataflow::Element& element)

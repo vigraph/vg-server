@@ -13,33 +13,18 @@ namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
 // Add an element to the graph (testing)
-void Graph::add(Element *el)
+void Graph::add(GraphElement *el)
 {
   elements[el->id].reset(el);
 }
 
-//------------------------------------------------------------------------
-// Create an element
-Element *Graph::create_element(const string& type, const string& id)
+//--------------------------------------------------------------------------
+// Connect an element
+bool Graph::connect(const string& /*out_name*/,
+                    GraphElement& /*b*/, const string &/*in_name*/)
 {
-  const auto el = engine.create(type);
-  if (!el) throw runtime_error("No such dataflow element " + type);
-  el->id = id;
-
-  // Point back to us
-  el->graph = this;
-
-  return el;
-}
-
-//------------------------------------------------------------------------
-// Add an element
-Element *Graph::add_element(const string& type, const string& id)
-{
-  auto el = create_element(type, id);
-  if (el)
-    add(el);
-  return el;
+  throw(runtime_error("Unimplemented"));
+  return true;
 }
 
 //------------------------------------------------------------------------
@@ -51,65 +36,14 @@ void Graph::setup()
 }
 
 //------------------------------------------------------------------------
-// Tick all elements in topological order
-void Graph::tick(const TickData& td)
-{
-  MT::RWReadLock lock(mutex);
-  auto to_tick = list<Element *>{};
-  for (auto& el: elements)
-    to_tick.push_back(el.second.get());
-  while (!to_tick.empty())
-  {
-    for (auto it = to_tick.begin(); it != to_tick.end();)
-    {
-      if ((*it)->ready())
-      {
-        (*it)->tick(td);
-        (*it)->reset();
-        it = to_tick.erase(it);
-      }
-      else
-      {
-        ++it;
-      }
-    }
-  }
-}
-
-//------------------------------------------------------------------------
 // Get a particular element by ID
-Element *Graph::get_element(const string& id)
+GraphElement *Graph::get_element(const string& id)
 {
   MT::RWReadLock lock(mutex);
   if (elements.find(id) != elements.end())
     return elements[id].get();
   else
     return nullptr;
-}
-
-//------------------------------------------------------------------------
-// Delete an item (from REST)
-// path is a path/to/leaf
-void Graph::delete_item(const string& path)
-{
-  if (path.empty())
-    throw runtime_error("Can't delete in whole graph");
-
-  vector<string> bits = Text::split(path, '/', false, 2);
-  const auto& it = elements.find(bits[0]);
-  if (it == elements.end())
-    throw runtime_error("No such element "+bits[0]+" in graph");
-  auto el = it->second.get();
-
-  if (bits.size() > 1)
-  {
-    // Pass down to subgraph/element
-    el->delete_item(bits[1]);
-  }
-  else
-  {
-    elements.erase(it);
-  }
 }
 
 //--------------------------------------------------------------------------
@@ -137,6 +71,41 @@ void Graph::shutdown()
   elements.clear();
 }
 
+//==========================================================================
+// Module bits
+ElementSetting& GraphModule::GraphSettingMember::get(GraphElement& ) const
+{
+  throw(runtime_error("unimplemented"));
+}
 
+JSON::Value GraphModule::GraphSettingMember::get_json(GraphElement& ) const
+{
+  return {};
+}
+
+void GraphModule::GraphSettingMember::set_json(GraphElement& ,
+                                               const JSON::Value&) const
+{
+}
+
+ElementInput& GraphModule::GraphInputMember::get(GraphElement& ) const
+{
+  throw(runtime_error("unimplemented"));
+}
+
+JSON::Value GraphModule::GraphInputMember::get_json(GraphElement& ) const
+{
+  return {};
+}
+
+void GraphModule::GraphInputMember::set_json(GraphElement& ,
+                                             const JSON::Value&) const
+{
+}
+
+ElementOutput& GraphModule::GraphOutputMember::get(GraphElement& ) const
+{
+  throw(runtime_error("unimplemented"));
+}
 
 }} // namespaces

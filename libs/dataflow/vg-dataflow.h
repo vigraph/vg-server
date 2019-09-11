@@ -54,6 +54,7 @@ struct TickData
 class Engine;
 class Graph;
 class Element;
+class GraphElement;
 
 //==========================================================================
 // Visitor class
@@ -112,10 +113,10 @@ class ElementOutput
 public:
   struct Connection
   {
-    Element *element = nullptr;
+    GraphElement *element = nullptr;
     ElementInput *input = nullptr;
     Connection() {}
-    Connection(Element *_element, ElementInput *_input):
+    Connection(GraphElement *_element, ElementInput *_input):
       element{_element}, input{_input}
     {}
   };
@@ -243,10 +244,10 @@ class Output: public ElementOutput
 private:
   struct OutputData
   {
-    Element *element = nullptr;
+    GraphElement *element = nullptr;
     typename Input<T>::Data *input = nullptr;
     OutputData() {}
-    OutputData(Element *_element, typename Input<T>::Data *_input):
+    OutputData(GraphElement *_element, typename Input<T>::Data *_input):
       element{_element}, input{_input}
     {}
   };
@@ -254,7 +255,7 @@ private:
   Input<T> *primary_data = nullptr;
 
 public:
-  void connect(Element *element, Input<T>& to)
+  void connect(GraphElement *element, Input<T>& to)
   {
     output_data[&to] = {element, &to.input_data[this]};
     if (!primary_data)
@@ -351,9 +352,9 @@ public:
   {
   public:
     virtual string get_type() const = 0;
-    virtual T& get(Element& b) const = 0;
-    virtual JSON::Value get_json(Element& b) const = 0;
-    virtual void set_json(Element& b, const JSON::Value& json) const = 0;
+    virtual T& get(GraphElement& b) const = 0;
+    virtual JSON::Value get_json(GraphElement& b) const = 0;
+    virtual void set_json(GraphElement& b, const JSON::Value& json) const = 0;
     virtual ~Member() {}
   };
   using SettingMember = Member<ElementSetting>;
@@ -362,25 +363,25 @@ public:
   {
   public:
     virtual string get_type() const = 0;
-    virtual ElementOutput& get(Element& b) const = 0;
+    virtual ElementOutput& get(GraphElement& b) const = 0;
     virtual ~OutputMember() {}
   };
 
-  ElementSetting *get_setting(Element& element, const string& name) const
+  ElementSetting *get_setting(GraphElement& element, const string& name) const
   {
     auto s = get_setting(name);
     if (!s)
       return nullptr;
     return &s->get(element);
   }
-  ElementInput *get_input(Element& element, const string& name) const
+  ElementInput *get_input(GraphElement& element, const string& name) const
   {
     auto i = get_input(name);
     if (!i)
       return nullptr;
     return &i->get(element);
   }
-  ElementOutput *get_output(Element& element, const string& name) const
+  ElementOutput *get_output(GraphElement& element, const string& name) const
   {
     auto o = get_output(name);
     if (!o)
@@ -403,7 +404,8 @@ public:
   virtual void for_each_output(const function<void(const string&,
                                          const OutputMember&)>& func) const = 0;
 
-  virtual string get_input_id(Element& element, ElementInput& input) const = 0;
+  virtual string get_input_id(GraphElement& element,
+                              ElementInput& input) const = 0;
 
   virtual ~Module() {}
 };
@@ -463,12 +465,12 @@ protected:
     class TypedMember: public Module::SettingMember
     {
     private:
-      Dataflow::Setting<T> Element::* member_pointer = nullptr;
+      Dataflow::Setting<T> GraphElement::* member_pointer = nullptr;
 
     public:
       template<typename C>
       TypedMember(Dataflow::Setting<T> C::* _member_pointer):
-        member_pointer{static_cast<Dataflow::Setting<T> Element::*>(
+        member_pointer{static_cast<Dataflow::Setting<T> GraphElement::*>(
                        _member_pointer)}
       {}
 
@@ -477,17 +479,17 @@ protected:
         return get_module_type<T>();
       }
 
-      ElementSetting& get(Element& b) const override
+      ElementSetting& get(GraphElement& b) const override
       {
         return b.*member_pointer;
       }
 
-      JSON::Value get_json(Element& b) const override
+      JSON::Value get_json(GraphElement& b) const override
       {
         return get_as_json((b.*member_pointer).get());
       }
 
-      void set_json(Element& b, const JSON::Value& json) const override
+      void set_json(GraphElement& b, const JSON::Value& json) const override
       {
         auto v = T{};
         set_from_json(v, json);
@@ -507,17 +509,17 @@ protected:
       return typed_member->get_type();
     }
 
-    ElementSetting& get(Element& b) const override
+    ElementSetting& get(GraphElement& b) const override
     {
       return typed_member->get(b);
     }
 
-    JSON::Value get_json(Element& b) const override
+    JSON::Value get_json(GraphElement& b) const override
     {
       return typed_member->get_json(b);
     }
 
-    void set_json(Element& b, const JSON::Value& json) const override
+    void set_json(GraphElement& b, const JSON::Value& json) const override
     {
       typed_member->set_json(b, json);
     }
@@ -531,12 +533,12 @@ protected:
     class TypedMember: public Module::InputMember
     {
     private:
-      Dataflow::Input<T> Element::* member_pointer = nullptr;
+      Dataflow::Input<T> GraphElement::* member_pointer = nullptr;
 
     public:
       template<typename C>
       TypedMember(Dataflow::Input<T> C::* _member_pointer):
-        member_pointer{static_cast<Dataflow::Input<T> Element::*>(
+        member_pointer{static_cast<Dataflow::Input<T> GraphElement::*>(
                       _member_pointer)}
       {}
 
@@ -545,17 +547,17 @@ protected:
         return get_module_type<T>();
       }
 
-      ElementInput& get(Element& b) const override
+      ElementInput& get(GraphElement& b) const override
       {
         return b.*member_pointer;
       }
 
-      JSON::Value get_json(Element& b) const override
+      JSON::Value get_json(GraphElement& b) const override
       {
         return get_as_json((b.*member_pointer).get());
       }
 
-      void set_json(Element& b, const JSON::Value& json) const override
+      void set_json(GraphElement& b, const JSON::Value& json) const override
       {
         auto v = T{};
         set_from_json(v, json);
@@ -575,17 +577,17 @@ protected:
       return typed_member->get_type();
     }
 
-    ElementInput& get(Element& b) const override
+    ElementInput& get(GraphElement& b) const override
     {
       return typed_member->get(b);
     }
 
-    JSON::Value get_json(Element& b) const override
+    JSON::Value get_json(GraphElement& b) const override
     {
       return typed_member->get_json(b);
     }
 
-    void set_json(Element& b, const JSON::Value& json) const override
+    void set_json(GraphElement& b, const JSON::Value& json) const override
     {
       typed_member->set_json(b, json);
     }
@@ -599,12 +601,12 @@ protected:
     class TypedMember: public Module::OutputMember
     {
     private:
-      Dataflow::Output<T> Element::* member_pointer = nullptr;
+      Dataflow::Output<T> GraphElement::* member_pointer = nullptr;
 
     public:
       template<typename C>
       TypedMember(Dataflow::Output<T> C::* _member_pointer):
-        member_pointer{static_cast<Dataflow::Output<T> Element::*>(
+        member_pointer{static_cast<Dataflow::Output<T> GraphElement::*>(
                       _member_pointer)}
       {}
 
@@ -613,7 +615,7 @@ protected:
         return get_module_type<T>();
       }
 
-      ElementOutput& get(Element& b) const override
+      ElementOutput& get(GraphElement& b) const override
       {
         return b.*member_pointer;
       }
@@ -631,7 +633,7 @@ protected:
       return typed_member->get_type();
     }
 
-    ElementOutput& get(Element& b) const override
+    ElementOutput& get(GraphElement& b) const override
     {
       return typed_member->get(b);
     }
@@ -651,7 +653,7 @@ public:
   string get_name() const override { return name; }
   string get_section() const override { return section; }
 
-  const SettingMember *get_setting( const string& name) const override
+  const SettingMember *get_setting(const string& name) const override
   {
     auto sit = settings.find(name);
     if (sit == settings.end())
@@ -699,7 +701,8 @@ public:
       func(oit.first, oit.second);
   }
 
-  string get_input_id(Element& element, ElementInput& input) const override
+  string get_input_id(GraphElement& element,
+                      ElementInput& input) const override
   {
     for (const auto& i: inputs)
       if (&i.second.get(element) == &input)
@@ -749,11 +752,174 @@ public:
 };
 
 //==========================================================================
-// Graph element - just has an ID and a parent graph
-class Element
+// Graph module information
+class GraphModule: public Module
 {
 private:
-  set<ElementInput *> inputs;
+  class GraphSettingMember: public SettingMember
+  {
+  private:
+    string type;
+  public:
+    string get_type() const override { return type; }
+    ElementSetting& get(GraphElement& b) const override;
+    JSON::Value get_json(GraphElement& b) const override;
+    void set_json(GraphElement& b, const JSON::Value& json) const override;
+  };
+  class GraphInputMember: public InputMember
+  {
+  private:
+    string type;
+  public:
+    string get_type() const override { return type; }
+    ElementInput& get(GraphElement& b) const override;
+    JSON::Value get_json(GraphElement& b) const override;
+    void set_json(GraphElement& b, const JSON::Value& json) const override;
+  };
+  class GraphOutputMember: public OutputMember
+  {
+  private:
+    string type;
+  public:
+    string get_type() const override { return type; }
+    ElementOutput& get(GraphElement& b) const override;
+  };
+  map<string, GraphSettingMember> settings;
+  map<string, GraphInputMember> inputs;
+  map<string, GraphOutputMember> outputs;
+
+public:
+  string get_id() const override { return "graph"; }
+  string get_name() const override { return "Graph"; }
+  string get_section() const override { return "core"; }
+
+  const SettingMember *get_setting( const string& name) const override
+  {
+    auto sit = settings.find(name);
+    if (sit == settings.end())
+      return nullptr;
+    return &sit->second;
+  }
+
+  const InputMember *get_input(const string& name) const override
+  {
+    auto iit = inputs.find(name);
+    if (iit == inputs.end())
+      return nullptr;
+    return &iit->second;
+  }
+
+  const OutputMember *get_output(const string& name) const override
+  {
+    auto oit = outputs.find(name);
+    if (oit == outputs.end())
+      return nullptr;
+    return &oit->second;
+  }
+
+  bool has_settings() const override { return !settings.empty(); }
+  void for_each_setting(const function<void(const string&,
+                                  const SettingMember&)>& func) const override
+  {
+    for (const auto& sit: settings)
+      func(sit.first, sit.second);
+  }
+
+  bool has_inputs() const override { return !inputs.empty(); }
+  void for_each_input(const function<void(const string&,
+                                    const InputMember&)>& func) const override
+  {
+    for (const auto& iit: inputs)
+      func(iit.first, iit.second);
+  }
+
+  bool has_outputs() const override { return !outputs.empty(); }
+  void for_each_output(const function<void(const string&,
+                                   const OutputMember&)>& func) const override
+  {
+    for (const auto& oit: outputs)
+      func(oit.first, oit.second);
+  }
+
+  string get_input_id(GraphElement& element,
+                      ElementInput& input) const override
+  {
+    for (const auto& i: inputs)
+      if (&i.second.get(element) == &input)
+        return i.first;
+    return "[invalid]";
+  }
+};
+
+//==========================================================================
+// Graph element - just has an ID and a parent graph
+class GraphElement
+{
+public:
+  string id;
+
+  virtual const Module& get_module() const = 0;
+
+  // Setup after automatic configuration
+  virtual void setup() {}
+
+  // Connect an element
+  virtual bool connect(const string& out_name,
+                       GraphElement& b, const string &in_name) = 0;
+
+  // Set a Setting/Input
+  template<typename T>
+  GraphElement& set(const string& setting, const T& value)
+  {
+    auto& module = get_module();
+    auto s = dynamic_cast<Setting<T> *>(module.get_setting(*this, setting));
+    if (s)
+    {
+      s->set(value);
+    }
+    else
+    {
+      auto i = dynamic_cast<Input<T> *>(module.get_input(*this, setting));
+      if (i)
+        i->set(value);
+    }
+    return *this;
+  }
+
+  // Add a dependency on an input
+  virtual void add_input_dependency(ElementInput *) {}
+
+  // Update after setting a setting
+  virtual void update() {}
+
+  // Notify of parent graph being enabled - register for keys etc.
+  virtual void enable() {}
+
+  // Notify of parent graph being disabled - de-register for keys etc.
+  virtual void disable() {}
+
+  // Prepare for a tick
+  virtual void reset() = 0;
+
+  // Collect list of all elements
+  virtual void collect_elements(list<Element *>& elements) = 0;
+
+  // Accept a visitor
+  virtual void accept(Visitor&) = 0;
+
+  // Clean shutdown
+  virtual void shutdown() {}
+
+  // Virtual destructor
+  virtual ~GraphElement() {}
+};
+
+//==========================================================================
+// Graph element - just has an ID and a parent graph
+class Element: public GraphElement
+{
+private:
+  std::set<ElementInput *> inputs;
 
   template<typename... Ss, size_t... Sc, typename... Is, size_t... Ic,
            typename... Os, size_t... Oc, typename F>
@@ -779,6 +945,11 @@ private:
     }
   }
 
+  void add_input_dependency(ElementInput *input) override
+  {
+    inputs.insert(input);
+  }
+
 protected:
   template<typename... Ss, typename... Is, typename... Os, typename F>
   void sample_iterate(const unsigned count, const tuple<Ss...>& ss,
@@ -793,52 +964,9 @@ protected:
   }
 
 public:
-  string id;
-  Graph *graph{nullptr};
-  Engine *engine{nullptr};
-
-  virtual const Module& get_module() const = 0;
-
-  // Setup after automatic configuration
-  virtual void setup() {}
-
-  // Delete item from JSON
-  // path is a path/to/leaf
-  // Fails here, override in container elements
-  virtual void delete_item(const string& path)
-  { throw runtime_error("Can't delete subelement "+path+
-                        " in leaf element "+id); }
-
   // Connect an element
-  bool connect(const string& out_name, Element& b, const string &in_name);
-
-  // Set a Setting/Input
-  template<typename T>
-  Element& set(const string& setting, const T& value)
-  {
-    auto& module = get_module();
-    auto s = dynamic_cast<Setting<T> *>(module.get_setting(*this, setting));
-    if (s)
-    {
-      s->set(value);
-    }
-    else
-    {
-      auto i = dynamic_cast<Input<T> *>(module.get_input(*this, setting));
-      if (i)
-        i->set(value);
-    }
-    return *this;
-  }
-
-  // Update after setting a setting
-  virtual void update() {}
-
-  // Notify of parent graph being enabled - register for keys etc.
-  virtual void enable() {}
-
-  // Notify of parent graph being disabled - de-register for keys etc.
-  virtual void disable() {}
+  bool connect(const string& out_name,
+               GraphElement& b, const string &in_name) override;
 
   // Is ready to process tick
   bool ready() const;
@@ -847,16 +975,16 @@ public:
   virtual void tick(const TickData& /*tick data*/) {}
 
   // Prepare for a tick
-  void reset();
+  void reset() override;
+
+  // Collect list of all elements
+  void collect_elements(list<Element *>& elements) override
+  {
+    elements.push_back(this);
+  }
 
   // Accept a visitor
-  void accept(Visitor& visitor);
-
-  // Clean shutdown
-  virtual void shutdown() {}
-
-  // Virtual destructor
-  virtual ~Element() {}
+  void accept(Visitor& visitor) override;
 };
 
 //==========================================================================
@@ -903,61 +1031,50 @@ class Generator;  // forward
 
 //==========================================================================
 // Dataflow graph structure
-class Graph
+class Graph: public GraphElement
 {
 private:
-  Engine& engine;
   mutable MT::RWMutex mutex;
-  map<string, shared_ptr<Element> > elements;   // By ID
+  map<string, shared_ptr<GraphElement> > elements;   // By ID
   double sample_rate = 0;
-
-  // Internal
-  Element *create_element(const string& type, const string& id);
+  GraphModule module;
 
 public:
   //------------------------------------------------------------------------
-  // Constructor
-  Graph(Engine& _engine):
-    engine(_engine) {}
+  // Constructors
+  Graph(const GraphModule& _module = {}):
+    module{_module}
+  {}
 
-  //------------------------------------------------------------------------
-  // Get engine
-  Engine& get_engine() const
-  { return engine; }
+  const Module& get_module() const override
+  {
+    return module;
+  }
 
-  //------------------------------------------------------------------------
-  // Add an element to the graph
-  Element *add_element(const string& type, const string& id);
+  // Connect an element
+  bool connect(const string& out_name,
+               GraphElement& b, const string &in_name) override;
 
   //------------------------------------------------------------------------
   // Get all elements (for inspection)
-  const map<string, shared_ptr<Element> >& get_elements() const
+  const map<string, shared_ptr<GraphElement> >& get_elements() const
   { return elements; }
 
   //------------------------------------------------------------------------
-  // Add an element to the graph (testing)
-  void add(Element *el);
+  // Add an element to the graph
+  void add(GraphElement *el);
 
   //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
-  void setup();
+  void setup() override;
 
   //------------------------------------------------------------------------
   // Set sample rate
   void set_sample_rate(double sr) { sample_rate = sr; }
 
   //------------------------------------------------------------------------
-  // Tick all elements
-  void tick(const TickData& td);
-
-  //------------------------------------------------------------------------
   // Get a particular element by ID
-  Element *get_element(const string& id);
-
-  //------------------------------------------------------------------------
-  // Delete an item (from REST)
-  // path is a path/to/leaf
-  void delete_item(const string& path);
+  GraphElement *get_element(const string& id);
 
   //------------------------------------------------------------------------
   // Clear all elements
@@ -967,12 +1084,27 @@ public:
   }
 
   //------------------------------------------------------------------------
+  // Prepare for a tick
+  void reset() override
+  {
+    for (auto it: elements)
+      it.second->reset();
+  }
+
+  // Collect list of all elements
+  void collect_elements(list<Element *>& els) override
+  {
+    for (auto it: elements)
+      it.second->collect_elements(els);
+  }
+
+  //------------------------------------------------------------------------
   // Accept a visitor
-  void accept(Visitor& visitor);
+  void accept(Visitor& visitor) override;
 
   //------------------------------------------------------------------------
   // Shutdown all elements
-  void shutdown();
+  void shutdown() override;
 };
 
 //==========================================================================
@@ -1006,7 +1138,7 @@ public:
   // Abstract interface for Element-creating factories
   struct Factory
   {
-    virtual Element *create() const = 0;
+    virtual GraphElement *create() const = 0;
     virtual const Module *get_module() const = 0;
     virtual ~Factory() {}
   };
@@ -1020,7 +1152,7 @@ public:
     NewFactory(const M& _module):
       module{_module}
     {}
-    Element *create() const override
+    GraphElement *create() const override
     { return new E{module}; }
     const Module *get_module() const override
     { return &module; }
@@ -1045,7 +1177,7 @@ public:
   //------------------------------------------------------------------------
   // Create an object by module and config
   // Returns the object, or 0 if no factories available or create fails
-  Element *create(const string& section, const string& id)
+  GraphElement *create(const string& section, const string& id) const
   {
     const auto sp = sections.find(section);
     if (sp == sections.end()) return 0;
@@ -1065,6 +1197,7 @@ class Engine
   // Graph structure
   mutable MT::RWMutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
+  list<Element *> tick_elements;
   Time::Duration tick_interval = default_tick_interval;
   double sample_rate = default_sample_rate;
   Time::Stamp start_time;
@@ -1076,7 +1209,7 @@ class Engine
 
   //------------------------------------------------------------------------
   // Constructor
-  Engine(): graph(new Graph(*this)) {}
+  Engine(): graph(new Graph{}) {}
 
   //------------------------------------------------------------------------
   // Add a default section - use to auto-prefix unqualified element names
@@ -1099,14 +1232,13 @@ class Engine
   Dataflow::Graph& get_graph() { return *graph; }
 
   //------------------------------------------------------------------------
-  // Create an element with the given name - may be section:id or just id,
+  // Create an element with the given type - may be section:id or just id,
   // which is looked up in default namespaces
-  Element *create(const string& name);
+  GraphElement *create(const string& type, const string& id) const;
 
   //------------------------------------------------------------------------
-  // Delete an item (from REST)
-  // path is a path/to/leaf
-  void delete_item(const string& path);
+  // Update element list
+  void update_elements();
 
   //------------------------------------------------------------------------
   // Tick the graph
@@ -1115,6 +1247,14 @@ class Engine
   //------------------------------------------------------------------------
   // Accept a visitor
   void accept(Visitor& visitor, bool write);
+
+  //------------------------------------------------------------------------
+  // Reset
+  void reset()
+  {
+    start_time = {};
+    tick_number = {};
+  }
 
   //------------------------------------------------------------------------
   // Shut down the graph

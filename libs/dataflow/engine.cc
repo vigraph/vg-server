@@ -12,23 +12,30 @@
 namespace ViGraph { namespace Dataflow {
 
 //--------------------------------------------------------------------------
-// Create an element with the given name - may be section:id or just id,
+// Create an element with the given type - may be section:id or just id,
 // which is looked up in default namespaces
-Element *Engine::create(const string& name)
+GraphElement *Engine::create(const string& type, const string& id) const
 {
-  vector<string> bits = Text::split(name, ':');
+  vector<string> bits = Text::split(type, ':');
   if (bits.size() > 1)
   {
     // Qualified - use the section given
-    return element_registry.create(bits[0], bits[1]);
+    auto e = element_registry.create(bits[0], bits[1]);
+    if (e)
+      e->id = id;
+    return e;
   }
   else
   {
     // Try default sections
-    for(const auto& section: default_sections)
+    for (const auto& section: default_sections)
     {
-      Element *e = element_registry.create(section, name);
-      if (e) return e;
+      auto e = element_registry.create(section, type);
+      if (e)
+      {
+        e->id = id;
+        return e;
+      }
     }
 
     return nullptr;
@@ -36,12 +43,12 @@ Element *Engine::create(const string& name)
 }
 
 //--------------------------------------------------------------------------
-// Delete an item (from REST)
-// path is a path/to/leaf
-void Engine::delete_item(const string& path)
+// Update element list
+void Engine::update_elements()
 {
-  MT::RWWriteLock lock(graph_mutex);
-  graph->delete_item(path);
+  MT::RWReadLock lock(graph_mutex);
+  tick_elements.clear();
+  graph->collect_elements(tick_elements);
 }
 
 //--------------------------------------------------------------------------
@@ -62,10 +69,29 @@ void Engine::tick(Time::Stamp t)
       const auto tick_total = static_cast<size_t>(
         floor(tick_interval.seconds() * (tick_number + 1) * sample_rate));
       const auto nsamples = tick_total - last_tick_total;
+      const auto td = TickData{timestamp, sample_rate, nsamples};
 
       // Tick the graph
       MT::RWReadLock lock(graph_mutex);
-      graph->tick({timestamp, sample_rate, nsamples});
+      auto ticked = list<Element *>{};
+      while (!tick_elements.empty())
+      {
+        for (auto it = tick_elements.begin(); it != tick_elements.end();)
+        {
+          if ((*it)->ready())
+          {
+            (*it)->tick(td);
+            (*it)->reset();
+            ticked.push_back(*it);
+            it = tick_elements.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
+        }
+      }
+      tick_elements = ticked;
     }
     catch (const runtime_error& e)
     {

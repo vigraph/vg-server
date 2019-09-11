@@ -110,8 +110,9 @@ bool GraphURLHandler::handle_put(const string& path,
 
   try
   {
-    auto visitor = JSON::SetVisitor{value};
+    auto visitor = JSON::SetVisitor{engine, value};
     engine.accept(visitor, true);
+    engine.update_elements();
   }
   catch (runtime_error& e)
   {
@@ -150,8 +151,9 @@ bool GraphURLHandler::handle_post(const string& path,
 
   try
   {
-    auto visitor = JSON::SetVisitor{value};
+    auto visitor = JSON::SetVisitor{engine, value};
     engine.accept(visitor, true);
+    engine.update_elements();
   }
   catch (runtime_error& e)
   {
@@ -176,7 +178,9 @@ bool GraphURLHandler::handle_delete(const string& path,
 
   try
   {
-    engine.delete_item(path);
+    // !!! TODO: Make a Delete visitor
+    //engine.delete_item(path);
+    engine.update_elements();
   }
   catch (runtime_error& e)
   {

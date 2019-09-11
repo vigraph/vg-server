@@ -13,7 +13,7 @@ namespace ViGraph { namespace Dataflow {
 //--------------------------------------------------------------------------
 // Connect an element
 bool Element::connect(const string& out_name,
-                      Element& b, const string &in_name)
+                      GraphElement& b, const string &in_name)
 {
   auto& module = get_module();
   auto o = module.get_output(*this, out_name);
@@ -24,7 +24,7 @@ bool Element::connect(const string& out_name,
   if (!i)
     return false;
   o->connect({&b, i});
-  b.inputs.insert(i);
+  b.add_input_dependency(i);
   return true;
 }
 

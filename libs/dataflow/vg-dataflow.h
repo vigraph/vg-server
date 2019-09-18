@@ -294,7 +294,7 @@ public:
     Output<T> *out = nullptr;
     vector<T>& data;
     Buffer(Output<T> * _out, vector<T>& _data): out{_out}, data{_data} {}
-    ~Buffer() { if(out) out->complete(); }
+    ~Buffer() { if (out) out->complete(); }
   };
   Buffer get_buffer()
   {
@@ -752,107 +752,7 @@ public:
 };
 
 //==========================================================================
-// Graph module information
-class GraphModule: public Module
-{
-private:
-  class GraphSettingMember: public SettingMember
-  {
-  private:
-    string type;
-  public:
-    string get_type() const override { return type; }
-    ElementSetting& get(GraphElement& b) const override;
-    JSON::Value get_json(GraphElement& b) const override;
-    void set_json(GraphElement& b, const JSON::Value& json) const override;
-  };
-  class GraphInputMember: public InputMember
-  {
-  private:
-    string type;
-  public:
-    string get_type() const override { return type; }
-    ElementInput& get(GraphElement& b) const override;
-    JSON::Value get_json(GraphElement& b) const override;
-    void set_json(GraphElement& b, const JSON::Value& json) const override;
-  };
-  class GraphOutputMember: public OutputMember
-  {
-  private:
-    string type;
-  public:
-    string get_type() const override { return type; }
-    ElementOutput& get(GraphElement& b) const override;
-  };
-  map<string, GraphSettingMember> settings;
-  map<string, GraphInputMember> inputs;
-  map<string, GraphOutputMember> outputs;
-
-public:
-  string get_id() const override { return "graph"; }
-  string get_name() const override { return "Graph"; }
-  string get_section() const override { return "core"; }
-
-  const SettingMember *get_setting( const string& name) const override
-  {
-    auto sit = settings.find(name);
-    if (sit == settings.end())
-      return nullptr;
-    return &sit->second;
-  }
-
-  const InputMember *get_input(const string& name) const override
-  {
-    auto iit = inputs.find(name);
-    if (iit == inputs.end())
-      return nullptr;
-    return &iit->second;
-  }
-
-  const OutputMember *get_output(const string& name) const override
-  {
-    auto oit = outputs.find(name);
-    if (oit == outputs.end())
-      return nullptr;
-    return &oit->second;
-  }
-
-  bool has_settings() const override { return !settings.empty(); }
-  void for_each_setting(const function<void(const string&,
-                                  const SettingMember&)>& func) const override
-  {
-    for (const auto& sit: settings)
-      func(sit.first, sit.second);
-  }
-
-  bool has_inputs() const override { return !inputs.empty(); }
-  void for_each_input(const function<void(const string&,
-                                    const InputMember&)>& func) const override
-  {
-    for (const auto& iit: inputs)
-      func(iit.first, iit.second);
-  }
-
-  bool has_outputs() const override { return !outputs.empty(); }
-  void for_each_output(const function<void(const string&,
-                                   const OutputMember&)>& func) const override
-  {
-    for (const auto& oit: outputs)
-      func(oit.first, oit.second);
-  }
-
-  string get_input_id(GraphElement& element,
-                      ElementInput& input) const override
-  {
-    for (const auto& i: inputs)
-      if (&i.second.get(element) == &input)
-        return i.first;
-    return "[invalid]";
-  }
-};
-
-//==========================================================================
-// Graph element - just has an ID and a parent graph
+// Graph element - just has an ID
 class GraphElement
 {
 public:
@@ -866,6 +766,10 @@ public:
   // Connect an element
   virtual bool connect(const string& out_name,
                        GraphElement& b, const string &in_name) = 0;
+
+  // Notify that connection has been made to input
+  virtual void notify_connection(const string& in_name,
+                                 GraphElement& a, const string& out_name) = 0;
 
   // Set a Setting/Input
   template<typename T>
@@ -885,9 +789,6 @@ public:
     }
     return *this;
   }
-
-  // Add a dependency on an input
-  virtual void add_input_dependency(ElementInput *) {}
 
   // Update after setting a setting
   virtual void update() {}
@@ -945,11 +846,6 @@ private:
     }
   }
 
-  void add_input_dependency(ElementInput *input) override
-  {
-    inputs.insert(input);
-  }
-
 protected:
   template<typename... Ss, typename... Is, typename... Os, typename F>
   void sample_iterate(const unsigned count, const tuple<Ss...>& ss,
@@ -967,6 +863,10 @@ public:
   // Connect an element
   bool connect(const string& out_name,
                GraphElement& b, const string &in_name) override;
+
+  // Notify that connection has been made to input
+  void notify_connection(const string& in_name,
+                         GraphElement& a, const string& out_name) override;
 
   // Is ready to process tick
   bool ready() const;
@@ -1030,14 +930,140 @@ public:
 class Generator;  // forward
 
 //==========================================================================
+// Graph module information
+class GraphModule: public Module
+{
+private:
+  class GraphInputMember: public InputMember
+  {
+  private:
+    GraphElement& pin;
+    const Module::InputMember& module;
+  public:
+    GraphInputMember(GraphElement& _pin):
+      pin{_pin}, module{[&_pin]() -> const Module::InputMember&
+      {
+        auto m = _pin.get_module().get_input("input");
+        if (!m)
+          throw(runtime_error{"Could not find pin input"});
+        return *m;
+      }()}
+    {}
+    string get_type() const override
+    {
+      return module.get_type();
+    }
+    ElementInput& get(GraphElement&) const override
+    {
+      return module.get(pin);
+    }
+    JSON::Value get_json(GraphElement&) const override
+    {
+      return module.get_json(pin);
+    }
+    void set_json(GraphElement&, const JSON::Value& json) const override
+    {
+      return module.set_json(pin, json);
+    }
+  };
+  class GraphOutputMember: public OutputMember
+  {
+  private:
+    GraphElement& pin;
+    const Module::OutputMember& module;
+  public:
+    GraphOutputMember(GraphElement& _pin):
+      pin{_pin}, module{[&_pin]() -> const Module::OutputMember&
+      {
+        auto m = _pin.get_module().get_output("output");
+        if (!m)
+          throw(runtime_error{"Could not find pin output"});
+        return *m;
+      }()}
+    {}
+    string get_type() const override
+    {
+      return module.get_type();
+    }
+    ElementOutput& get(GraphElement&) const override
+    {
+      return module.get(pin);
+    }
+  };
+  map<string, GraphInputMember> inputs;
+  map<string, GraphOutputMember> outputs;
+  friend class Graph;
+
+public:
+  string get_id() const override { return "graph"; }
+  string get_name() const override { return "Graph"; }
+  string get_section() const override { return "core"; }
+
+  const SettingMember *get_setting( const string&) const override
+  {
+    return nullptr;
+  }
+
+  const InputMember *get_input(const string& name) const override
+  {
+    auto iit = inputs.find(name);
+    if (iit == inputs.end())
+      return nullptr;
+    return &iit->second;
+  }
+
+  const OutputMember *get_output(const string& name) const override
+  {
+    auto oit = outputs.find(name);
+    if (oit == outputs.end())
+      return nullptr;
+    return &oit->second;
+  }
+
+  bool has_settings() const override { return false; }
+  void for_each_setting(const function<void(const string&,
+                                  const SettingMember&)>&) const override
+  {
+  }
+
+  bool has_inputs() const override { return !inputs.empty(); }
+  void for_each_input(const function<void(const string&,
+                                    const InputMember&)>& func) const override
+  {
+    for (const auto& iit: inputs)
+      func(iit.first, iit.second);
+  }
+
+  bool has_outputs() const override { return !outputs.empty(); }
+  void for_each_output(const function<void(const string&,
+                                   const OutputMember&)>& func) const override
+  {
+    for (const auto& oit: outputs)
+      func(oit.first, oit.second);
+  }
+
+  string get_input_id(GraphElement& element,
+                      ElementInput& input) const override
+  {
+    for (const auto& i: inputs)
+      if (&i.second.get(element) == &input)
+        return i.first;
+    return "[invalid]";
+  }
+};
+
+//==========================================================================
 // Dataflow graph structure
 class Graph: public GraphElement
 {
 private:
   mutable MT::RWMutex mutex;
-  map<string, shared_ptr<GraphElement> > elements;   // By ID
+  map<string, shared_ptr<GraphElement>> elements;   // By ID
   double sample_rate = 0;
   GraphModule module;
+
+  map<string, shared_ptr<GraphElement>> input_pins;
+  map<string, shared_ptr<GraphElement>> output_pins;
 
 public:
   //------------------------------------------------------------------------
@@ -1055,14 +1081,36 @@ public:
   bool connect(const string& out_name,
                GraphElement& b, const string &in_name) override;
 
+  // Notify that connection has been made to input
+  void notify_connection(const string& in_name,
+                         GraphElement& a, const string& out_name) override;
+
   //------------------------------------------------------------------------
   // Get all elements (for inspection)
   const map<string, shared_ptr<GraphElement> >& get_elements() const
   { return elements; }
 
   //------------------------------------------------------------------------
+  // Get input pins (for inspection)
+  const map<string, shared_ptr<GraphElement>>& get_input_pins() const
+  { return input_pins; }
+
+  //------------------------------------------------------------------------
+  // Get output pins (for inspection)
+  const map<string, shared_ptr<GraphElement>>& get_output_pins() const
+  { return output_pins; }
+
+  //------------------------------------------------------------------------
   // Add an element to the graph
   void add(GraphElement *el);
+
+  //------------------------------------------------------------------------
+  // Add input pin
+  void add_input_pin(const string& id, shared_ptr<GraphElement> pin);
+
+  //------------------------------------------------------------------------
+  // Add output pin
+  void add_output_pin(const string& id, shared_ptr<GraphElement> pin);
 
   //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
@@ -1094,7 +1142,11 @@ public:
   // Collect list of all elements
   void collect_elements(list<Element *>& els) override
   {
+    for (auto it: input_pins)
+      it.second->collect_elements(els);
     for (auto it: elements)
+      it.second->collect_elements(els);
+    for (auto it: output_pins)
       it.second->collect_elements(els);
   }
 
@@ -1120,6 +1172,22 @@ public:
 
   // Virtual destructor
   ~ThreadPool() {}
+};
+
+//==========================================================================
+// Pin class template
+template<typename T>
+class Pin: public SimpleElement
+{
+private:
+  void tick(const TickData&) override
+  {
+    output.get_buffer().data = input.get_buffer();
+  }
+public:
+  using SimpleElement::SimpleElement;
+  Input<T> input;
+  Output<T> output;
 };
 
 //==========================================================================

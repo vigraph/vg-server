@@ -28,6 +28,26 @@ void GetVisitor::visit(Dataflow::Graph& graph)
   auto& module = graph.get_module();
   json.put("id", graph.id);
   json.put("type", module.get_full_type());
+  const auto& input_pins = graph.get_input_pins();
+  if (!input_pins.empty())
+  {
+    auto& input_pinsj = json.put("input-pins", Value::Type::ARRAY);
+    for (const auto& it: input_pins)
+    {
+      auto visitor = GetVisitor{input_pinsj.add(Value::Type::OBJECT)};
+      it.second->accept(visitor);
+    }
+  }
+  const auto& output_pins = graph.get_output_pins();
+  if (!output_pins.empty())
+  {
+    auto& output_pinsj = json.put("output-pins", Value::Type::ARRAY);
+    for (const auto& it: output_pins)
+    {
+      auto visitor = GetVisitor{output_pinsj.add(Value::Type::OBJECT)};
+      it.second->accept(visitor);
+    }
+  }
 }
 
 unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string&)

@@ -20,11 +20,49 @@ void Graph::add(GraphElement *el)
 
 //--------------------------------------------------------------------------
 // Connect an element
-bool Graph::connect(const string& /*out_name*/,
-                    GraphElement& /*b*/, const string &/*in_name*/)
+bool Graph::connect(const string& out_name,
+                    GraphElement& b, const string& in_name)
+{
+  // Check if connecting an output pin
+  auto oit = output_pins.find(out_name);
+  if (oit != output_pins.end())
+  {
+    auto& output_pin = oit->second;
+    return output_pin->connect("output", b, in_name);
+  }
+  // Now check input pins (connecting to internal stuff)
+  auto iit = input_pins.find(out_name);
+  if (iit == input_pins.end())
+    return false;
+
+  auto& input_pin = iit->second;
+  return input_pin->connect("output", b, in_name);
+}
+
+//--------------------------------------------------------------------------
+// Notify of a connection
+void Graph::notify_connection(const string& /*in_name*/,
+                              GraphElement& /*a*/, const string& /*out_name*/)
 {
   throw(runtime_error("Unimplemented"));
-  return true;
+}
+
+//--------------------------------------------------------------------------
+// Add input pin
+void Graph::add_input_pin(const string& id, shared_ptr<GraphElement> pin)
+{
+  input_pins.emplace(id, pin);
+  module.inputs.emplace(id, *pin);
+  module.outputs.emplace(id, *pin);
+}
+
+//--------------------------------------------------------------------------
+// Add output pin
+void Graph::add_output_pin(const string& id, shared_ptr<GraphElement> pin)
+{
+  output_pins.emplace(id, pin);
+  module.inputs.emplace(id, *pin);
+  module.outputs.emplace(id, *pin);
 }
 
 //------------------------------------------------------------------------
@@ -69,43 +107,6 @@ void Graph::shutdown()
 
   // Remove all elements before modules unloaded
   elements.clear();
-}
-
-//==========================================================================
-// Module bits
-ElementSetting& GraphModule::GraphSettingMember::get(GraphElement& ) const
-{
-  throw(runtime_error("unimplemented"));
-}
-
-JSON::Value GraphModule::GraphSettingMember::get_json(GraphElement& ) const
-{
-  return {};
-}
-
-void GraphModule::GraphSettingMember::set_json(GraphElement& ,
-                                               const JSON::Value&) const
-{
-}
-
-ElementInput& GraphModule::GraphInputMember::get(GraphElement& ) const
-{
-  throw(runtime_error("unimplemented"));
-}
-
-JSON::Value GraphModule::GraphInputMember::get_json(GraphElement& ) const
-{
-  return {};
-}
-
-void GraphModule::GraphInputMember::set_json(GraphElement& ,
-                                             const JSON::Value&) const
-{
-}
-
-ElementOutput& GraphModule::GraphOutputMember::get(GraphElement& ) const
-{
-  throw(runtime_error("unimplemented"));
 }
 
 }} // namespaces

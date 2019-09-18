@@ -16,92 +16,27 @@ void SetVisitor::visit(Dataflow::Engine&)
 
 unique_ptr<Dataflow::Visitor> SetVisitor::getSubGraphVisitor()
 {
-  auto it = json.o.find("graphs");
-  if (it == json.o.end())
-    return {};
-  const auto& graphsj = it->second;
-  if (graphsj.a.empty())
-    return {};
-  return make_unique<SetVisitor>(engine, graphsj.a.front(), scope_graph);
+  return make_unique<SetVisitor>(engine, json, scope_graph);
 }
 
 void SetVisitor::visit(Dataflow::Graph& graph)
 {
   graph.shutdown();
 
-  // Output pins
-  auto it = json.o.find("output-pins");
-  if (it != json.o.end())
-  {
-    const auto& outputpinsj = it->second;
-    for (const auto& outputpinj: outputpinsj.a)
-    {
-      auto idit = outputpinj.o.find("id");
-      if (idit == outputpinj.o.end())
-        throw runtime_error("Graph output pin requires an 'id'");
-      const auto& id = idit->second.as_str();
-      if (id.empty())
-        throw runtime_error("Graph output pin requires an 'id'");
-      auto typeit = outputpinj.o.find("type");
-      if (typeit == outputpinj.o.end())
-        throw runtime_error("Graph output pin requires a 'type'");
-      const auto& type = typeit->second.as_str();
-      if (type.empty())
-        throw runtime_error("Graph output pin requires a 'type'");
-
-      auto pin = shared_ptr<Dataflow::GraphElement>(engine.create(type, id));
-      if (!pin)
-        throw runtime_error("Could not create pin of type '" + type + "'");
-
-      graph.add_output_pin(id, pin);
-
-      // Connections
-      auto oit = outputpinj.o.find("outputs");
-      if (oit != outputpinj.o.end())
-      {
-        const auto& outputsj = oit->second;
-        for (const auto& outputj: outputsj.a)
-        {
-          const auto& iname = outputj["element"].as_str();
-          const auto& iinput = outputj["input"].as_str();
-          auto ielement = scope_graph->get_element(iname);
-          if (!ielement)
-          {
-            Log::Error log;
-            log << "Unknown element '" << iname << "' for element "
-                << graph.id << " output connection on " << id << endl;
-            continue;
-          }
-
-          if (!graph.connect(id, *ielement, iinput))
-          {
-            Log::Error log;
-            log << "Could not connect " << graph.id << "." << id << " to "
-                << ielement->id << "." << iinput << endl;
-            continue;
-          }
-        }
-      }
-    }
-  }
-
   // Contained elements
-  it = json.o.find("elements");
-  if (it != json.o.end())
+  auto& elements = json.get("elements");
+  if (!!elements)
   {
-    const auto& elementsj = it->second;
-    for (const auto& elementj: elementsj.a)
+    for (const auto& it: elements.o)
     {
-      auto idit = elementj.o.find("id");
-      if (idit == elementj.o.end())
-        throw runtime_error("Graph element requires an 'id'");
-      const auto& id = idit->second.as_str();
+      const auto& id = it.first;
+      const auto& elementj = it.second;
       if (id.empty())
         throw runtime_error("Graph element requires an 'id'");
-      auto typeit = elementj.o.find("type");
-      if (typeit == elementj.o.end())
+      const auto &typej = elementj.get("type");
+      if (!typej)
         throw runtime_error("Graph element requires a 'type'");
-      const auto& type = typeit->second.as_str();
+      const auto& type = typej.as_str();
       if (type.empty())
         throw runtime_error("Graph element requires a 'type'");
 
@@ -140,54 +75,67 @@ void SetVisitor::visit(Dataflow::Graph& graph)
     }
   }
 
-  // Input pins
-  it = json.o.find("input-pins");
-  if (it != json.o.end())
+  // Inputs
+  auto& inputsj = json.get("inputs");
+  if (!!inputsj && inputsj.type == Value::Type::OBJECT)
   {
-    const auto& inputpinsj = it->second;
-    for (const auto& inputpinj: inputpinsj.a)
+    for (const auto& iit: inputsj.o)
     {
-      auto idit = inputpinj.o.find("id");
-      if (idit == inputpinj.o.end())
+      const auto& iid = iit.first;
+      const auto& inputj = iit.second;
+      if (iid.empty())
         throw runtime_error("Graph input pin requires an 'id'");
-      const auto& id = idit->second.as_str();
-      if (id.empty())
-        throw runtime_error("Graph input pin requires an 'id'");
-      auto typeit = inputpinj.o.find("type");
-      if (typeit == inputpinj.o.end())
+      const auto& typej = inputj.get("type");
+      if (!typej)
         throw runtime_error("Graph input pin requires a 'type'");
-      const auto& type = typeit->second.as_str();
+      const auto& type = typej.as_str();
       if (type.empty())
         throw runtime_error("Graph input pin requires a 'type'");
 
-      auto pin = shared_ptr<Dataflow::GraphElement>(engine.create(type, id));
-      if (!pin)
-        throw runtime_error("Could not create pin of type '" + type + "'");
+      graph.add_input_pin(iid, iid, "input");
+    }
+  }
 
-      graph.add_input_pin(id, pin);
+  // Outputs
+  auto& outputsj = json.get("outputs");
+  if (!!outputsj && outputsj.type == Value::Type::OBJECT)
+  {
+    for (const auto& oit: outputsj.o)
+    {
+      const auto& oid = oit.first;
+      const auto& outputj = oit.second;
+      if (oid.empty())
+        throw runtime_error("Graph output pin requires an 'id'");
+      const auto& typej = outputj.get("type");
+      if (!typej)
+        throw runtime_error("Graph output pin requires a 'type'");
+      const auto& type = typej.as_str();
+      if (type.empty())
+        throw runtime_error("Graph output pin requires a 'type'");
+
+      graph.add_output_pin(oid, oid, "output");
 
       // Connections
-      auto oit = inputpinj.o.find("outputs");
-      if (oit != inputpinj.o.end())
+      const auto& connectionsj = outputj.get("connections");
+      if (!!connectionsj && connectionsj.type == Value::Type::ARRAY)
       {
-        const auto& outputsj = oit->second;
-        for (const auto& outputj: outputsj.a)
+        for (const auto& connj: connectionsj.a)
         {
-          const auto& iname = outputj["element"].as_str();
-          const auto& iinput = outputj["input"].as_str();
-          auto ielement = graph.get_element(iname);
+          const auto& iname = connj["element"].as_str();
+          const auto& iinput = connj["input"].as_str();
+          auto ielement = scope_graph->get_element(iname);
           if (!ielement)
           {
             Log::Error log;
             log << "Unknown element '" << iname << "' for element "
-                << graph.id << " output connection on " << id << endl;
+                << graph.id << " output connection on " << oid << endl;
             continue;
           }
 
-          if (!graph.connect(id, *ielement, iinput))
+          if (!graph.connect(oid, *ielement, iinput))
           {
             Log::Error log;
-            log << "Could not connect " << graph.id << "." << id << " to "
+            log << "Could not connect " << graph.id << "." << oid << " to "
                 << ielement->id << "." << iinput << endl;
             continue;
           }
@@ -195,6 +143,7 @@ void SetVisitor::visit(Dataflow::Graph& graph)
       }
     }
   }
+
   scope_graph = &graph;
 }
 
@@ -209,13 +158,13 @@ unique_ptr<Dataflow::Visitor> SetVisitor::getSubElementVisitor(const string& id)
 void SetVisitor::visit(Dataflow::Element& element)
 {
   auto& module = element.get_module();
-  auto it = json.o.find("inputs");
-  if (it != json.o.end() && it->second.type == Value::Type::OBJECT)
+  auto& inputsj = json.get("inputs");
+  if (!!inputsj && inputsj.type == Value::Type::OBJECT)
   {
-    for (const auto iit: it->second.o)
+    for (const auto iit: inputsj.o)
     {
       const auto& name = iit.first;
-      const auto& value = iit.second;
+      const auto& inputj = iit.second;
 
       auto input = module.get_input(name);
       if (!input)
@@ -226,37 +175,45 @@ void SetVisitor::visit(Dataflow::Element& element)
         continue;
       }
 
-      input->set_json(element, value);
+      const auto& valuej = inputj.get("value");
+      if (!!valuej)
+        input->set_json(element, valuej);
     }
   }
   if (scope_graph)
   {
-    it = json.o.find("outputs");
-    if (it != json.o.end() && it->second.type == Value::Type::OBJECT)
+    auto outputsj = json.get("outputs");
+    if (!!outputsj && outputsj.type == Value::Type::OBJECT)
     {
-      for (const auto oit: it->second.o)
+      for (const auto oit: outputsj.o)
       {
-        const auto& name = oit.first;
-        for (const auto& connection: oit.second.a)
-        {
-          const auto& iname = connection["element"].as_str();
-          const auto& iinput = connection["input"].as_str();
-          auto ielement = (iname == scope_graph->id
-                           ? scope_graph : scope_graph->get_element(iname));
-          if (!ielement)
-          {
-            Log::Error log;
-            log << "Unknown element '" << iname << "' for element "
-                << element.id << " output connection on " << name << endl;
-            continue;
-          }
+        const auto& id = oit.first;
+        const auto& outputj = oit.second;
 
-          if (!element.connect(name, *ielement, iinput))
+        const auto& connectionsj = outputj.get("connections");
+        if (!!connectionsj && connectionsj.type == Value::Type::ARRAY)
+        {
+          for (const auto& connectionj: connectionsj.a)
           {
-            Log::Error log;
-            log << "Could not connect " << element.id << "." << name << " to "
-                << ielement->id << "." << iinput << endl;
-            continue;
+            const auto& iid = connectionj["element"].as_str();
+            const auto& iinput = connectionj["input"].as_str();
+            auto ielement = (iid == scope_graph->id
+                             ? scope_graph : scope_graph->get_element(iid));
+            if (!ielement)
+            {
+              Log::Error log;
+              log << "Unknown element '" << iid << "' for element "
+                  << element.id << " output connection on " << id << endl;
+              continue;
+            }
+
+            if (!element.connect(id, *ielement, iinput))
+            {
+              Log::Error log;
+              log << "Could not connect " << element.id << "." << id << " to "
+                  << ielement->id << "." << iinput << endl;
+              continue;
+            }
           }
         }
       }

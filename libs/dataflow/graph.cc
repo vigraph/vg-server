@@ -25,18 +25,14 @@ bool Graph::connect(const string& out_name,
 {
   // Check if connecting an output pin
   auto oit = output_pins.find(out_name);
-  if (oit != output_pins.end())
-  {
-    auto& output_pin = oit->second;
-    return output_pin->connect("output", b, in_name);
-  }
-  // Now check input pins (connecting to internal stuff)
-  auto iit = input_pins.find(out_name);
-  if (iit == input_pins.end())
+  if (oit == output_pins.end())
     return false;
 
-  auto& input_pin = iit->second;
-  return input_pin->connect("output", b, in_name);
+  const auto& pin_info = oit->second;
+  auto output_pin = get_element(pin_info.element);
+  if (!output_pin)
+    return false;
+  return output_pin->connect(pin_info.connection, b, in_name);
 }
 
 //--------------------------------------------------------------------------
@@ -49,20 +45,26 @@ void Graph::notify_connection(const string& /*in_name*/,
 
 //--------------------------------------------------------------------------
 // Add input pin
-void Graph::add_input_pin(const string& id, shared_ptr<GraphElement> pin)
+void Graph::add_input_pin(const string& id,
+                          const string& element, const string& input)
 {
-  input_pins.emplace(id, pin);
+  auto pin = get_element(element);
+  if (!pin)
+  {
+    Log::Error log;
+    log << "Bad input pin element " << element << endl;
+    return;
+  }
+  input_pins.emplace(id, PinInfo{element, input});
   module.inputs.emplace(id, *pin);
-  module.outputs.emplace(id, *pin);
 }
 
 //--------------------------------------------------------------------------
 // Add output pin
-void Graph::add_output_pin(const string& id, shared_ptr<GraphElement> pin)
+void Graph::add_output_pin(const string& id,
+                          const string& element, const string& output)
 {
-  output_pins.emplace(id, pin);
-  module.inputs.emplace(id, *pin);
-  module.outputs.emplace(id, *pin);
+  output_pins.emplace(id, PinInfo{element, output});
 }
 
 //------------------------------------------------------------------------

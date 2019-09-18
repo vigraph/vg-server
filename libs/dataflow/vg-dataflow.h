@@ -1062,8 +1062,16 @@ private:
   double sample_rate = 0;
   GraphModule module;
 
-  map<string, shared_ptr<GraphElement>> input_pins;
-  map<string, shared_ptr<GraphElement>> output_pins;
+  struct PinInfo
+  {
+    string element;
+    string connection;
+    PinInfo(const string& _element, const string& _connection):
+      element{_element}, connection{_connection}
+    {}
+  };
+  map<string, PinInfo> input_pins;
+  map<string, PinInfo> output_pins;
 
 public:
   //------------------------------------------------------------------------
@@ -1091,26 +1099,18 @@ public:
   { return elements; }
 
   //------------------------------------------------------------------------
-  // Get input pins (for inspection)
-  const map<string, shared_ptr<GraphElement>>& get_input_pins() const
-  { return input_pins; }
-
-  //------------------------------------------------------------------------
-  // Get output pins (for inspection)
-  const map<string, shared_ptr<GraphElement>>& get_output_pins() const
-  { return output_pins; }
-
-  //------------------------------------------------------------------------
   // Add an element to the graph
   void add(GraphElement *el);
 
   //------------------------------------------------------------------------
   // Add input pin
-  void add_input_pin(const string& id, shared_ptr<GraphElement> pin);
+  void add_input_pin(const string& id,
+                     const string& element, const string& input);
 
   //------------------------------------------------------------------------
   // Add output pin
-  void add_output_pin(const string& id, shared_ptr<GraphElement> pin);
+  void add_output_pin(const string& id,
+                      const string& element, const string& output);
 
   //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
@@ -1142,11 +1142,7 @@ public:
   // Collect list of all elements
   void collect_elements(list<Element *>& els) override
   {
-    for (auto it: input_pins)
-      it.second->collect_elements(els);
     for (auto it: elements)
-      it.second->collect_elements(els);
-    for (auto it: output_pins)
       it.second->collect_elements(els);
   }
 

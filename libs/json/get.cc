@@ -16,53 +16,37 @@ void GetVisitor::visit(Dataflow::Engine&)
 
 unique_ptr<Dataflow::Visitor> GetVisitor::getSubGraphVisitor()
 {
-  auto git = json.o.find("graphs");
-  if (git == json.o.end())
-    git = json.o.emplace("graphs", Value::Type::ARRAY).first;
-  auto& graphs = git->second;
-  return make_unique<GetVisitor>(graphs.add(Value::Type::OBJECT));
+  return make_unique<GetVisitor>(json);
 }
 
 void GetVisitor::visit(Dataflow::Graph& graph)
 {
   auto& module = graph.get_module();
-  json.put("id", graph.id);
   json.put("type", module.get_full_type());
-  const auto& input_pins = graph.get_input_pins();
-  if (!input_pins.empty())
+  if (module.has_inputs())
   {
-    auto& input_pinsj = json.put("input-pins", Value::Type::ARRAY);
-    for (const auto& it: input_pins)
+    auto& inputsj = json.put("inputs", Value::Type::OBJECT);
+    module.for_each_input([&inputsj](const string& id,
+                                 const Dataflow::Module::InputMember& input)
     {
-      auto visitor = GetVisitor{input_pinsj.add(Value::Type::OBJECT)};
-      it.second->accept(visitor);
-    }
-  }
-  const auto& output_pins = graph.get_output_pins();
-  if (!output_pins.empty())
-  {
-    auto& output_pinsj = json.put("output-pins", Value::Type::ARRAY);
-    for (const auto& it: output_pins)
-    {
-      auto visitor = GetVisitor{output_pinsj.add(Value::Type::OBJECT)};
-      it.second->accept(visitor);
-    }
+      auto& inputj = inputsj.put(id, Value::Type::OBJECT);
+      inputj.put("type", input.get_type());
+    });
   }
 }
 
-unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string&)
+unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string& id)
 {
   auto eit = json.o.find("elements");
   if (eit == json.o.end())
-    eit = json.o.emplace("elements", Value::Type::ARRAY).first;
+    eit = json.o.emplace("elements", Value::Type::OBJECT).first;
   auto& elements = eit->second;
-  return make_unique<GetVisitor>(elements.add(Value::Type::OBJECT));
+  return make_unique<GetVisitor>(elements.put(id, Value::Type::OBJECT));
 }
 
 void GetVisitor::visit(Dataflow::Element& element)
 {
   auto& module = element.get_module();
-  json.put("id", element.id);
   json.put("type", module.get_full_type());
 
   if (module.has_settings())
@@ -71,7 +55,8 @@ void GetVisitor::visit(Dataflow::Element& element)
     module.for_each_setting([&element, &settingsj](const string& id,
                              const Dataflow::Module::SettingMember& setting)
     {
-      settingsj.put(id, setting.get_json(element));
+      auto& settingj = settingsj.put(id, Value::Type::OBJECT);
+      settingj.put("value", setting.get_json(element));
     });
   }
 
@@ -81,7 +66,8 @@ void GetVisitor::visit(Dataflow::Element& element)
     module.for_each_input([&element, &inputsj](const string& id,
                                  const Dataflow::Module::InputMember& input)
     {
-      inputsj.put(id, input.get_json(element));
+      auto& inputj = inputsj.put(id, Value::Type::OBJECT);
+      inputj.put("value", input.get_json(element));
     });
   }
 
@@ -95,10 +81,11 @@ void GetVisitor::visit(Dataflow::Element& element)
       const auto& conns = op.get_connections();
       if (conns.empty())
         return;
-      auto& outputj = outputsj.put(id, Value::Type::ARRAY);
+      auto& outputj = outputsj.put(id, Value::Type::OBJECT);
+      auto& connectionsj = outputj.put("connections", Value::Type::ARRAY);
       for (const auto& conn: conns)
       {
-        auto& connj = outputj.add(Value::Type::OBJECT);
+        auto& connj = connectionsj.add(Value::Type::OBJECT);
         connj.put("element", conn.element->id);
         auto& imodule = conn.element->get_module();
         connj.put("input", imodule.get_input_id(*conn.element, *conn.input));

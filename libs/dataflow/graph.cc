@@ -64,7 +64,15 @@ void Graph::add_input_pin(const string& id,
 void Graph::add_output_pin(const string& id,
                           const string& element, const string& output)
 {
+  auto pin = get_element(element);
+  if (!pin)
+  {
+    Log::Error log;
+    log << "Bad output pin element " << element << endl;
+    return;
+  }
   output_pins.emplace(id, PinInfo{element, output});
+  module.outputs.emplace(id, *pin);
 }
 
 //------------------------------------------------------------------------

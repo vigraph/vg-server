@@ -33,6 +33,29 @@ void GetVisitor::visit(Dataflow::Graph& graph)
       inputj.put("type", input.get_type());
     });
   }
+  if (module.has_outputs())
+  {
+    auto& outputsj = json.put("outputs", Value::Type::OBJECT);
+    module.for_each_output([&graph, &outputsj, this]
+              (const string& id, const Dataflow::Module::OutputMember& output)
+    {
+      auto& outputj = outputsj.put(id, Value::Type::OBJECT);
+      outputj.put("type", output.get_type());
+      this->output_pins.insert(id);
+      const auto& op = output.get(graph);
+      const auto& conns = op.get_connections();
+      if (conns.empty())
+        return;
+      auto& connectionsj = outputj.put("connections", Value::Type::ARRAY);
+      for (const auto& conn: conns)
+      {
+        auto& connj = connectionsj.add(Value::Type::OBJECT);
+        connj.put("element", conn.element->id);
+        auto& imodule = conn.element->get_module();
+        connj.put("input", imodule.get_input_id(*conn.element, *conn.input));
+      }
+    });
+  }
 }
 
 unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string& id)
@@ -41,7 +64,9 @@ unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string& id)
   if (eit == json.o.end())
     eit = json.o.emplace("elements", Value::Type::OBJECT).first;
   auto& elements = eit->second;
-  return make_unique<GetVisitor>(elements.put(id, Value::Type::OBJECT));
+  auto no_connections = output_pins.find(id) != output_pins.end();
+  return make_unique<GetVisitor>(elements.put(id, Value::Type::OBJECT),
+                                 no_connections);
 }
 
 void GetVisitor::visit(Dataflow::Element& element)
@@ -71,7 +96,7 @@ void GetVisitor::visit(Dataflow::Element& element)
     });
   }
 
-  if (module.has_outputs())
+  if (!no_connections && module.has_outputs())
   {
     auto& outputsj = json.put("outputs", Value::Type::OBJECT);
     module.for_each_output([&element, &outputsj](const string& id,
@@ -93,20 +118,5 @@ void GetVisitor::visit(Dataflow::Element& element)
     });
   }
 }
-
-/* path visit graph
-  else
-  {
-    // Split path and use first (or only) as ID, pass rest (or empty) down
-    auto bits = Text::split(path, '/', false, 2);
-    const auto it = elements.find(bits[0]);
-    if (it == elements.end())
-      throw runtime_error("No such sub-element "+bits[0]+" in graph");
-
-    // Return bare value (or INVALID) up, undecorated
-    return get_element(it->second, bits.size()>1 ? bits[1] : "");
-  }
-}
-*/
 
 }} // namespaces

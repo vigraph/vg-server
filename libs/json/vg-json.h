@@ -30,9 +30,13 @@ class GetVisitor: public Dataflow::Visitor
 {
 private:
   Value& json;
+  set<string> output_pins;
+  bool no_connections = false;
 
 public:
-  GetVisitor(Value& _json): json{_json} {}
+  GetVisitor(Value& _json, bool _no_connections = false):
+    json{_json}, no_connections{_no_connections}
+  {}
   void visit(Dataflow::Engine& engine) override;
   unique_ptr<Visitor> getSubGraphVisitor() override;
   void visit(Dataflow::Graph& graph) override;

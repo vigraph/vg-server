@@ -930,17 +930,53 @@ public:
 class Generator;  // forward
 
 //==========================================================================
-// Graph module information
-class GraphModule: public Module
+// Container interface
+class Container: public GraphElement
+{
+public:
+  //------------------------------------------------------------------------
+  // Get all elements (for inspection)
+  virtual const map<string, shared_ptr<GraphElement>>& get_elements() const = 0;
+
+  //------------------------------------------------------------------------
+  // Add an element to the graph
+  virtual void add(GraphElement *el) = 0;
+
+  //------------------------------------------------------------------------
+  // Add input pin
+  virtual void add_input_pin(const string& id,
+                             const string& element, const string& input) = 0;
+
+  //------------------------------------------------------------------------
+  // Add output pin
+  virtual void add_output_pin(const string& id,
+                              const string& element, const string& output) = 0;
+
+  //------------------------------------------------------------------------
+  // Set sample rate
+  virtual void set_sample_rate(double sr) = 0;
+
+  //------------------------------------------------------------------------
+  // Get a particular element by ID
+  virtual GraphElement *get_element(const string& id) = 0;
+
+  //------------------------------------------------------------------------
+  // Clear all elements
+  virtual void clear_elements() = 0;
+};
+
+//==========================================================================
+// Container module information
+class ContainerModule: public Module
 {
 private:
-  class GraphInputMember: public InputMember
+  class ContainerInputMember: public InputMember
   {
   private:
     GraphElement& pin;
     const Module::InputMember& module;
   public:
-    GraphInputMember(GraphElement& _pin):
+    ContainerInputMember(GraphElement& _pin):
       pin{_pin}, module{[&_pin]() -> const Module::InputMember&
       {
         auto m = _pin.get_module().get_input("input");
@@ -966,13 +1002,13 @@ private:
       return module.set_json(pin, json);
     }
   };
-  class GraphOutputMember: public OutputMember
+  class ContainerOutputMember: public OutputMember
   {
   private:
     GraphElement& pin;
     const Module::OutputMember& module;
   public:
-    GraphOutputMember(GraphElement& _pin):
+    ContainerOutputMember(GraphElement& _pin):
       pin{_pin}, module{[&_pin]() -> const Module::OutputMember&
       {
         auto m = _pin.get_module().get_output("output");
@@ -990,14 +1026,24 @@ private:
       return module.get(pin);
     }
   };
-  map<string, GraphInputMember> inputs;
-  map<string, GraphOutputMember> outputs;
+  map<string, ContainerInputMember> inputs;
+  map<string, ContainerOutputMember> outputs;
   friend class Graph;
+  friend class Clone;
+
+  string id;
+  string name;
+  string section;
 
 public:
-  string get_id() const override { return "graph"; }
-  string get_name() const override { return "Graph"; }
-  string get_section() const override { return "core"; }
+  ContainerModule(const string& _id, const string& _name,
+                  const string& _section):
+    id{_id}, name{_name}, section{_section}
+  {}
+
+  string get_id() const override { return id; }
+  string get_name() const override { return name; }
+  string get_section() const override { return section; }
 
   const SettingMember *get_setting( const string&) const override
   {
@@ -1053,8 +1099,28 @@ public:
 };
 
 //==========================================================================
+// Graph Module
+class GraphModule: public ContainerModule
+{
+public:
+  GraphModule():
+    ContainerModule{"graph", "Graph", "core"}
+  {}
+};
+
+//==========================================================================
+// Clone Module
+class CloneModule: public ContainerModule
+{
+public:
+  CloneModule():
+    ContainerModule{"clone", "Clone", "core"}
+  {}
+};
+
+//==========================================================================
 // Dataflow graph structure
-class Graph: public GraphElement
+class Graph: public Container
 {
 private:
   mutable MT::RWMutex mutex;
@@ -1095,22 +1161,22 @@ public:
 
   //------------------------------------------------------------------------
   // Get all elements (for inspection)
-  const map<string, shared_ptr<GraphElement> >& get_elements() const
+  const map<string, shared_ptr<GraphElement> >& get_elements() const override
   { return elements; }
 
   //------------------------------------------------------------------------
   // Add an element to the graph
-  void add(GraphElement *el);
+  void add(GraphElement *el) override;
 
   //------------------------------------------------------------------------
   // Add input pin
   void add_input_pin(const string& id,
-                     const string& element, const string& input);
+                     const string& element, const string& input) override;
 
   //------------------------------------------------------------------------
   // Add output pin
   void add_output_pin(const string& id,
-                      const string& element, const string& output);
+                      const string& element, const string& output) override;
 
   //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
@@ -1118,15 +1184,15 @@ public:
 
   //------------------------------------------------------------------------
   // Set sample rate
-  void set_sample_rate(double sr) { sample_rate = sr; }
+  void set_sample_rate(double sr) override { sample_rate = sr; }
 
   //------------------------------------------------------------------------
   // Get a particular element by ID
-  GraphElement *get_element(const string& id);
+  GraphElement *get_element(const string& id) override;
 
   //------------------------------------------------------------------------
   // Clear all elements
-  void clear_elements()
+  void clear_elements() override
   {
     elements.clear();
   }
@@ -1145,6 +1211,88 @@ public:
     for (auto it: elements)
       it.second->collect_elements(els);
   }
+
+  //------------------------------------------------------------------------
+  // Accept a visitor
+  void accept(Visitor& visitor) override;
+
+  //------------------------------------------------------------------------
+  // Shutdown all elements
+  void shutdown() override;
+};
+
+//==========================================================================
+// Dataflow graph structure
+class Clone: public Container
+{
+private:
+  list<shared_ptr<Graph>> clones;
+  CloneModule module;
+
+public:
+  //------------------------------------------------------------------------
+  // Constructors
+  Clone(const CloneModule& _module):
+    module{_module}
+  {
+    clones.push_back(make_shared<Graph>());
+  }
+
+  const Module& get_module() const override
+  {
+    if (clones.empty())
+      return module;
+    return clones.front()->get_module();
+  }
+
+  // Connect an element
+  bool connect(const string& out_name,
+               GraphElement& b, const string &in_name) override;
+
+  // Notify that connection has been made to input
+  void notify_connection(const string& in_name,
+                         GraphElement& a, const string& out_name) override;
+
+  //------------------------------------------------------------------------
+  // Get all elements (for inspection)
+  const map<string, shared_ptr<GraphElement>>& get_elements() const override;
+
+  //------------------------------------------------------------------------
+  // Add an element to the graph
+  void add(GraphElement *el) override;
+
+  //------------------------------------------------------------------------
+  // Add input pin
+  void add_input_pin(const string& id,
+                     const string& element, const string& input) override;
+
+  //------------------------------------------------------------------------
+  // Add output pin
+  void add_output_pin(const string& id,
+                      const string& element, const string& output) override;
+
+  //------------------------------------------------------------------------
+  // Final setup for elements and calculate topology
+  void setup() override;
+
+  //------------------------------------------------------------------------
+  // Set sample rate
+  void set_sample_rate(double sr) override;
+
+  //------------------------------------------------------------------------
+  // Get a particular element by ID
+  GraphElement *get_element(const string& id) override;
+
+  //------------------------------------------------------------------------
+  // Clear all elements
+  void clear_elements() override;
+
+  //------------------------------------------------------------------------
+  // Prepare for a tick
+  void reset() override;
+
+  // Collect list of all elements
+  void collect_elements(list<Element *>& els) override;
 
   //------------------------------------------------------------------------
   // Accept a visitor

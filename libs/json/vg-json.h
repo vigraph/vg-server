@@ -26,7 +26,7 @@ Value get_module_metadata(const Dataflow::Module& module);
 
 //==========================================================================
 // Get Visitor
-class GetVisitor: public Dataflow::Visitor
+class GetVisitor: public Dataflow::ReadVisitor
 {
 private:
   Value& json;
@@ -37,16 +37,21 @@ public:
   GetVisitor(Value& _json, bool _no_connections = false):
     json{_json}, no_connections{_no_connections}
   {}
-  void visit(Dataflow::Engine& engine) override;
-  unique_ptr<Visitor> getSubGraphVisitor() override;
-  void visit(Dataflow::Graph& graph) override;
-  unique_ptr<Visitor> getSubElementVisitor(const string& id) override;
-  void visit(Dataflow::Element& element) override;
+  void visit(const Dataflow::Engine& engine,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<ReadVisitor> getSubGraphVisitor() override;
+  void visit(const Dataflow::Graph& graph,
+             const Dataflow::Path& path, unsigned path_index) override;
+  void visit(const Dataflow::Clone& graph,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<ReadVisitor> getSubElementVisitor(const string& id) override;
+  void visit(const Dataflow::Element& element,
+             const Dataflow::Path& path, unsigned path_index) override;
 };
 
 //==========================================================================
 // Set Visitor
-class SetVisitor: public Dataflow::Visitor
+class SetVisitor: public Dataflow::WriteVisitor
 {
 private:
   const Dataflow::Engine& engine;
@@ -59,11 +64,16 @@ public:
              Dataflow::Graph *_scope_graph = nullptr):
     engine{_engine}, json{_json}, scope_graph{_scope_graph}
   {}
-  void visit(Dataflow::Engine& engine) override;
-  unique_ptr<Visitor> getSubGraphVisitor() override;
-  void visit(Dataflow::Graph& graph) override;
-  unique_ptr<Visitor> getSubElementVisitor(const string& id) override;
-  void visit(Dataflow::Element& element) override;
+  void visit(Dataflow::Engine& engine,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> getSubGraphVisitor() override;
+  void visit(Dataflow::Graph& graph,
+             const Dataflow::Path& path, unsigned path_index) override;
+  void visit(Dataflow::Clone& graph,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> getSubElementVisitor(const string& id) override;
+  void visit(Dataflow::Element& element,
+             const Dataflow::Path& path, unsigned path_index) override;
 };
 
 //==========================================================================

@@ -104,18 +104,25 @@ void Engine::tick(Time::Stamp t)
 }
 
 //--------------------------------------------------------------------------
-// Accept a visitor
-void Engine::accept(Visitor& visitor, bool write)
+// Accept visitors
+void Engine::accept(ReadVisitor& visitor,
+                    const Path& path, unsigned path_index) const
 {
-  auto lock = shared_ptr<void>{};
-  if (write)
-    lock.reset(new MT::RWWriteLock(graph_mutex));
-  else
-    lock.reset(new MT::RWReadLock(graph_mutex));
-  visitor.visit(*this);
+  MT::RWReadLock lock{graph_mutex};
+  visitor.visit(*this, path, path_index);
   auto sv = visitor.getSubGraphVisitor();
   if (sv)
-    graph->accept(*sv);
+    graph->accept(*sv, path, path_index);
+}
+
+void Engine::accept(WriteVisitor& visitor,
+                    const Path& path, unsigned path_index)
+{
+  MT::RWWriteLock lock{graph_mutex};
+  visitor.visit(*this, path, path_index);
+  auto sv = visitor.getSubGraphVisitor();
+  if (sv)
+    graph->accept(*sv, path, path_index);
 }
 
 //--------------------------------------------------------------------------

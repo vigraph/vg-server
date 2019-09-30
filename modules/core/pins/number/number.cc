@@ -12,6 +12,12 @@ namespace {
 
 class NumberPin: public Pin<double>
 {
+private:
+  // Clone
+  NumberPin *create_clone() const override
+  {
+    return new NumberPin{module};
+  }
 public:
   using Pin::Pin;
 };

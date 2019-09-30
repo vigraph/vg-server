@@ -10,16 +10,18 @@
 
 namespace ViGraph { namespace JSON {
 
-void GetVisitor::visit(Dataflow::Engine&)
+void GetVisitor::visit(const Dataflow::Engine&,
+                       const Dataflow::Path&, unsigned)
 {
 }
 
-unique_ptr<Dataflow::Visitor> GetVisitor::getSubGraphVisitor()
+unique_ptr<Dataflow::ReadVisitor> GetVisitor::getSubGraphVisitor()
 {
   return make_unique<GetVisitor>(json);
 }
 
-void GetVisitor::visit(Dataflow::Graph& graph)
+void GetVisitor::visit(const Dataflow::Graph& graph,
+                       const Dataflow::Path&, unsigned)
 {
   auto& module = graph.get_module();
   json.put("type", module.get_full_type());
@@ -58,7 +60,14 @@ void GetVisitor::visit(Dataflow::Graph& graph)
   }
 }
 
-unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string& id)
+void GetVisitor::visit(const Dataflow::Clone& clone,
+                       const Dataflow::Path&, unsigned)
+{
+  json["number"] = clone.get_number();
+}
+
+unique_ptr<Dataflow::ReadVisitor>
+    GetVisitor::getSubElementVisitor(const string& id)
 {
   auto eit = json.o.find("elements");
   if (eit == json.o.end())
@@ -69,7 +78,8 @@ unique_ptr<Dataflow::Visitor> GetVisitor::getSubElementVisitor(const string& id)
                                  no_connections);
 }
 
-void GetVisitor::visit(Dataflow::Element& element)
+void GetVisitor::visit(const Dataflow::Element& element,
+                       const Dataflow::Path&, unsigned)
 {
   auto& module = element.get_module();
   json.put("type", module.get_full_type());

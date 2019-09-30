@@ -66,7 +66,7 @@ bool GraphURLHandler::handle_get(const string& path,
   {
     auto json = JSON::Value{JSON::Value::Type::OBJECT};
     auto visitor = JSON::GetVisitor{json};
-    engine.accept(visitor, false);
+    engine.accept(visitor, path, 0);
     if (!json)
     {
       response.code = 404;
@@ -111,7 +111,7 @@ bool GraphURLHandler::handle_put(const string& path,
   try
   {
     auto visitor = JSON::SetVisitor{engine, value};
-    engine.accept(visitor, true);
+    engine.accept(visitor, path, 0);
     engine.update_elements();
   }
   catch (runtime_error& e)
@@ -152,7 +152,7 @@ bool GraphURLHandler::handle_post(const string& path,
   try
   {
     auto visitor = JSON::SetVisitor{engine, value};
-    engine.accept(visitor, true);
+    engine.accept(visitor, path, 0);
     engine.update_elements();
   }
   catch (runtime_error& e)

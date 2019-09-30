@@ -29,6 +29,12 @@ private:
   // Source/Element virtuals
   void tick(const TickData& td) override;
 
+  // Clone
+  OscillatorSource *create_clone() const override
+  {
+    return new OscillatorSource{module};
+  }
+
 public:
   using SimpleElement::SimpleElement;
 

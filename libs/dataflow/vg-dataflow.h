@@ -53,20 +53,112 @@ struct TickData
 // forward declarations
 class Engine;
 class Graph;
+class Clone;
 class Element;
 class GraphElement;
 
 //==========================================================================
-// Visitor class
-class Visitor
+// Path class
+class Path
 {
 public:
-  virtual void visit(Engine& engine) = 0;
-  virtual unique_ptr<Visitor> getSubGraphVisitor() = 0;
-  virtual void visit(Graph& graph) = 0;
-  virtual unique_ptr<Visitor> getSubElementVisitor(const string& id) = 0;
-  virtual void visit(Element& element) = 0;
-  virtual ~Visitor() {}
+  enum class PartType
+  {
+    none,
+    element,
+    attribute,
+  };
+
+private:
+  struct Part
+  {
+    string name;
+    PartType type;
+    Part(const string& _name, PartType _type):
+      name{_name}, type{_type}
+    {}
+  };
+  vector<Part> parts;
+
+public:
+  Path(const string& path)
+  {
+    if (!path.empty())
+    {
+      auto _parts = Text::split(path, '/');
+      for (const auto p: _parts)
+      {
+        if (p.empty())
+          parts.emplace_back("", PartType::none);
+        else if (p[0] == '@')
+          parts.emplace_back(p.substr(1, p.size() - 1), PartType::attribute);
+        else
+          parts.emplace_back(p, PartType::element);
+      }
+    }
+  }
+
+  string name(decltype(parts.size()) index) const
+  {
+    if (index < parts.size())
+      return parts[index].name;
+    else
+      return "";
+  }
+
+  PartType type(decltype(parts.size()) index) const
+  {
+    if (index < parts.size())
+      return parts[index].type;
+    else
+      return PartType::none;
+  }
+
+  auto size() const
+  {
+    return parts.size();
+  }
+
+  bool empty() const
+  {
+    return parts.empty();
+  }
+};
+
+//==========================================================================
+// Read Visitor class
+class ReadVisitor
+{
+public:
+  virtual void visit(const Engine& engine,
+                     const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<ReadVisitor> getSubGraphVisitor() = 0;
+  virtual void visit(const Graph& graph,
+                     const Path& path, unsigned path_index) = 0;
+  virtual void visit(const Clone& clone,
+                     const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<ReadVisitor> getSubElementVisitor(const string& id) = 0;
+  virtual void visit(const Element& element,
+                     const Path& path, unsigned path_index) = 0;
+  virtual ~ReadVisitor() {}
+};
+
+//==========================================================================
+// Write Visitor class
+class WriteVisitor
+{
+public:
+  virtual void visit(Engine& engine,
+                     const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<WriteVisitor> getSubGraphVisitor() = 0;
+  virtual void visit(Graph& graph,
+                     const Path& path, unsigned path_index) = 0;
+  virtual void visit(Clone& clone,
+                     const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<WriteVisitor> getSubElementVisitor(const string& id) = 0;
+  virtual void visit(Element& element,
+                     const Path& path, unsigned path_index) = 0;
+  virtual ~WriteVisitor() {}
 };
 
 //==========================================================================
@@ -90,11 +182,6 @@ public:
 
   void set(const T& _value) { value = _value; }
   T get() const { return value; }
-
-  void accept(Visitor& visitor)
-  {
-    visitor.visit(*this);
-  }
 };
 
 //==========================================================================
@@ -352,8 +439,9 @@ public:
   {
   public:
     virtual string get_type() const = 0;
+    virtual const T& get(const GraphElement& b) const = 0;
     virtual T& get(GraphElement& b) const = 0;
-    virtual JSON::Value get_json(GraphElement& b) const = 0;
+    virtual JSON::Value get_json(const GraphElement& b) const = 0;
     virtual void set_json(GraphElement& b, const JSON::Value& json) const = 0;
     virtual ~Member() {}
   };
@@ -363,6 +451,7 @@ public:
   {
   public:
     virtual string get_type() const = 0;
+    virtual const ElementOutput& get(const GraphElement& b) const = 0;
     virtual ElementOutput& get(GraphElement& b) const = 0;
     virtual ~OutputMember() {}
   };
@@ -479,12 +568,17 @@ protected:
         return get_module_type<T>();
       }
 
+      const ElementSetting& get(const GraphElement& b) const override
+      {
+        return b.*member_pointer;
+      }
+
       ElementSetting& get(GraphElement& b) const override
       {
         return b.*member_pointer;
       }
 
-      JSON::Value get_json(GraphElement& b) const override
+      JSON::Value get_json(const GraphElement& b) const override
       {
         return get_as_json((b.*member_pointer).get());
       }
@@ -509,12 +603,17 @@ protected:
       return typed_member->get_type();
     }
 
+    const ElementSetting& get(const GraphElement& b) const override
+    {
+      return typed_member->get(b);
+    }
+
     ElementSetting& get(GraphElement& b) const override
     {
       return typed_member->get(b);
     }
 
-    JSON::Value get_json(GraphElement& b) const override
+    JSON::Value get_json(const GraphElement& b) const override
     {
       return typed_member->get_json(b);
     }
@@ -547,12 +646,17 @@ protected:
         return get_module_type<T>();
       }
 
+      const ElementInput& get(const GraphElement& b) const override
+      {
+        return b.*member_pointer;
+      }
+
       ElementInput& get(GraphElement& b) const override
       {
         return b.*member_pointer;
       }
 
-      JSON::Value get_json(GraphElement& b) const override
+      JSON::Value get_json(const GraphElement& b) const override
       {
         return get_as_json((b.*member_pointer).get());
       }
@@ -577,12 +681,17 @@ protected:
       return typed_member->get_type();
     }
 
+    const ElementInput& get(const GraphElement& b) const override
+    {
+      return typed_member->get(b);
+    }
+
     ElementInput& get(GraphElement& b) const override
     {
       return typed_member->get(b);
     }
 
-    JSON::Value get_json(GraphElement& b) const override
+    JSON::Value get_json(const GraphElement& b) const override
     {
       return typed_member->get_json(b);
     }
@@ -615,6 +724,11 @@ protected:
         return get_module_type<T>();
       }
 
+      const ElementOutput& get(const GraphElement& b) const override
+      {
+        return b.*member_pointer;
+      }
+
       ElementOutput& get(GraphElement& b) const override
       {
         return b.*member_pointer;
@@ -631,6 +745,11 @@ protected:
     string get_type() const override
     {
       return typed_member->get_type();
+    }
+
+    const ElementOutput& get(const GraphElement& b) const override
+    {
+      return typed_member->get(b);
     }
 
     ElementOutput& get(GraphElement& b) const override
@@ -805,8 +924,14 @@ public:
   // Collect list of all elements
   virtual void collect_elements(list<Element *>& elements) = 0;
 
-  // Accept a visitor
-  virtual void accept(Visitor&) = 0;
+  // Accept visitors
+  virtual void accept(ReadVisitor& visitor,
+                      const Path& path, unsigned path_index) const = 0;
+  virtual void accept(WriteVisitor& visitor,
+                      const Path& path, unsigned path_index) = 0;
+
+  // Clone element
+  virtual GraphElement *clone() const = 0;
 
   // Clean shutdown
   virtual void shutdown() {}
@@ -846,6 +971,9 @@ private:
     }
   }
 
+  // Get a default constructed clone
+  virtual Element *create_clone() const = 0;
+
 protected:
   template<typename... Ss, typename... Is, typename... Os, typename F>
   void sample_iterate(const unsigned count, const tuple<Ss...>& ss,
@@ -883,15 +1011,21 @@ public:
     elements.push_back(this);
   }
 
-  // Accept a visitor
-  void accept(Visitor& visitor) override;
+  // Clone element
+  Element *clone() const override;
+
+  // Accept visitors
+  void accept(ReadVisitor& visitor,
+              const Path& path, unsigned path_index) const override;
+  void accept(WriteVisitor& visitor,
+              const Path& path, unsigned path_index) override;
 };
 
 //==========================================================================
 // Element that has static module information
 class SimpleElement: public Element
 {
-private:
+protected:
   const SimpleModule& module;
 
 public:
@@ -989,11 +1123,15 @@ private:
     {
       return module.get_type();
     }
+    const ElementInput& get(const GraphElement&) const override
+    {
+      return module.get(pin);
+    }
     ElementInput& get(GraphElement&) const override
     {
       return module.get(pin);
     }
-    JSON::Value get_json(GraphElement&) const override
+    JSON::Value get_json(const GraphElement&) const override
     {
       return module.get_json(pin);
     }
@@ -1020,6 +1158,10 @@ private:
     string get_type() const override
     {
       return module.get_type();
+    }
+    const ElementOutput& get(const GraphElement&) const override
+    {
+      return module.get(pin);
     }
     ElementOutput& get(GraphElement&) const override
     {
@@ -1212,9 +1354,15 @@ public:
       it.second->collect_elements(els);
   }
 
+  // Clone element
+  Graph *clone() const override;
+
   //------------------------------------------------------------------------
-  // Accept a visitor
-  void accept(Visitor& visitor) override;
+  // Accept visitors
+  void accept(ReadVisitor& visitor,
+              const Path& path, unsigned path_index) const override;
+  void accept(WriteVisitor& visitor,
+              const Path& path, unsigned path_index) override;
 
   //------------------------------------------------------------------------
   // Shutdown all elements
@@ -1237,6 +1385,13 @@ public:
   {
     clones.push_back(make_shared<Graph>());
   }
+
+  auto get_number() const
+  {
+    return clones.size();
+  }
+
+  void set_number(unsigned number);
 
   const Module& get_module() const override
   {
@@ -1294,9 +1449,15 @@ public:
   // Collect list of all elements
   void collect_elements(list<Element *>& els) override;
 
+  // Clone element
+  Clone *clone() const override;
+
   //------------------------------------------------------------------------
-  // Accept a visitor
-  void accept(Visitor& visitor) override;
+  // Accept visitors
+  void accept(ReadVisitor& visitor,
+              const Path& path, unsigned path_index) const override;
+  void accept(WriteVisitor& visitor,
+              const Path& path, unsigned path_index) override;
 
   //------------------------------------------------------------------------
   // Shutdown all elements
@@ -1457,8 +1618,11 @@ class Engine
   void tick(Time::Stamp t);
 
   //------------------------------------------------------------------------
-  // Accept a visitor
-  void accept(Visitor& visitor, bool write);
+  // Accept visitors
+  void accept(ReadVisitor& visitor,
+              const Path& path, unsigned path_index) const;
+  void accept(WriteVisitor& visitor,
+              const Path& path, unsigned path_index);
 
   //------------------------------------------------------------------------
   // Reset

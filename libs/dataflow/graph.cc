@@ -44,6 +44,18 @@ void Graph::notify_connection(const string& /*in_name*/,
 }
 
 //--------------------------------------------------------------------------
+// Clone
+Graph *Graph::clone() const
+{
+  auto g = new Graph{GraphModule{}};
+  for (const auto& el: elements)
+  {
+    g->elements.emplace(el.first, el.second->clone());
+  }
+  return g;
+}
+
+//--------------------------------------------------------------------------
 // Add input pin
 void Graph::add_input_pin(const string& id,
                           const string& element, const string& input)
@@ -95,15 +107,28 @@ GraphElement *Graph::get_element(const string& id)
 }
 
 //--------------------------------------------------------------------------
-// Accept a visitor
-void Graph::accept(Visitor& visitor)
+// Accept visitors
+void Graph::accept(ReadVisitor& visitor,
+                   const Path& path, unsigned path_index) const
 {
-  visitor.visit(*this);
+  visitor.visit(*this, path, path_index);
   for (auto& eit: elements)
   {
     auto sv = visitor.getSubElementVisitor(eit.first);
     if (sv)
-      eit.second->accept(*sv);
+      eit.second->accept(*sv, path, path_index);
+  }
+}
+
+void Graph::accept(WriteVisitor& visitor,
+                   const Path& path, unsigned path_index)
+{
+  visitor.visit(*this, path, path_index);
+  for (auto& eit: elements)
+  {
+    auto sv = visitor.getSubElementVisitor(eit.first);
+    if (sv)
+      eit.second->accept(*sv, path, path_index);
   }
 }
 

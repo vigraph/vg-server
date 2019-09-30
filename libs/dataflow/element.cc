@@ -48,6 +48,18 @@ void Element::notify_connection(const string& in_name,
     return;
 }
 
+
+//--------------------------------------------------------------------------
+// Clone element
+Element *Element::clone() const
+{
+  auto el = create_clone();
+  if (!el)
+    return el;
+
+  return el;
+}
+
 //--------------------------------------------------------------------------
 // Ready - check for tick readiness
 bool Element::ready() const
@@ -67,10 +79,17 @@ void Element::reset()
 }
 
 //--------------------------------------------------------------------------
-// Accept a visitor
-void Element::accept(Visitor& visitor)
+// Accept visitors
+void Element::accept(ReadVisitor& visitor,
+                     const Path& path, unsigned path_index) const
 {
-  visitor.visit(*this);
+  visitor.visit(*this, path, path_index);
+}
+
+void Element::accept(WriteVisitor& visitor,
+                     const Path& path, unsigned path_index)
+{
+  visitor.visit(*this, path, path_index);
 }
 
 }} // namespaces

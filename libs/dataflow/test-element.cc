@@ -18,15 +18,15 @@ namespace {
 // Test Element
 // Just for testing control updates
 
-extern Module test_module;
-class TestElement: public Element
+extern SimpleModule test_module;
+class TestElement: public SimpleElement
 {
  public:
-  TestElement(): Element(&test_module) {}
+  TestElement(): SimpleElement(test_module) {}
   Input<double> x;
 };
 
-Module test_module
+SimpleModule test_module
 {
   "test",
   "Test",

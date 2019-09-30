@@ -34,6 +34,12 @@ private:
   void tick(const TickData& td) override;
   void shutdown() override;
 
+  // Clone
+  SDLSink *create_clone() const override
+  {
+    return new SDLSink{module};
+  }
+
 public:
   using DynamicElement::DynamicElement;
 

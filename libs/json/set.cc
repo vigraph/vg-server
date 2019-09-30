@@ -10,16 +10,18 @@
 
 namespace ViGraph { namespace JSON {
 
-void SetVisitor::visit(Dataflow::Engine&)
+void SetVisitor::visit(Dataflow::Engine&,
+                       const Dataflow::Path&, unsigned)
 {
 }
 
-unique_ptr<Dataflow::Visitor> SetVisitor::getSubGraphVisitor()
+unique_ptr<Dataflow::WriteVisitor> SetVisitor::getSubGraphVisitor()
 {
   return make_unique<SetVisitor>(engine, json, scope_graph);
 }
 
-void SetVisitor::visit(Dataflow::Graph& graph)
+void SetVisitor::visit(Dataflow::Graph& graph,
+                       const Dataflow::Path&, unsigned)
 {
   graph.shutdown();
 
@@ -147,7 +149,16 @@ void SetVisitor::visit(Dataflow::Graph& graph)
   scope_graph = &graph;
 }
 
-unique_ptr<Dataflow::Visitor> SetVisitor::getSubElementVisitor(const string& id)
+void SetVisitor::visit(Dataflow::Clone& clone,
+                       const Dataflow::Path&, unsigned)
+{
+  clone.shutdown();
+  auto number = json["number"].as_int();
+  clone.set_number(number);
+}
+
+unique_ptr<Dataflow::WriteVisitor>
+    SetVisitor::getSubElementVisitor(const string& id)
 {
   auto it = sub_element_json.find(id);
   if (it == sub_element_json.end())
@@ -155,7 +166,8 @@ unique_ptr<Dataflow::Visitor> SetVisitor::getSubElementVisitor(const string& id)
   return make_unique<SetVisitor>(engine, *it->second, scope_graph);
 }
 
-void SetVisitor::visit(Dataflow::Element& element)
+void SetVisitor::visit(Dataflow::Element& element,
+                       const Dataflow::Path&, unsigned)
 {
   auto& module = element.get_module();
   auto& inputsj = json.get("inputs");

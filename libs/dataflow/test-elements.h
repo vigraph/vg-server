@@ -38,7 +38,7 @@ public:
   }
 };
 
-Module TestSourceModule
+SimpleModule TestSourceModule
 {
   "test-source", "", "test",
   {},
@@ -46,7 +46,8 @@ Module TestSourceModule
   { {"output", &TestSource::output} },
 };
 
-Registry::NewFactory<TestSource> TestSourceFactory;
+Registry::NewFactory<TestSource, SimpleModule>
+    TestSourceFactory{TestSourceModule};
 
 //==========================================================================
 // Test Filter
@@ -73,7 +74,7 @@ public:
 
 };
 
-Module TestFilterModule
+SimpleModule TestFilterModule
 {
   "test-filter", "", "test",
   { { "value", &TestFilter::value } },
@@ -81,7 +82,8 @@ Module TestFilterModule
   { { "output", &TestFilter::output } },
 };
 
-Registry::NewFactory<TestFilter> TestFilterFactory;
+Registry::NewFactory<TestFilter, SimpleModule>
+    TestFilterFactory{TestFilterModule};
 
 //==========================================================================
 // Test Sink
@@ -107,7 +109,7 @@ public:
   }
 };
 
-Module TestSinkModule
+SimpleModule TestSinkModule
 {
   "test-sink", "", "test",
   {},
@@ -115,35 +117,37 @@ Module TestSinkModule
   {}
 };
 
-Registry::NewFactory<TestSink> TestSinkFactory;
+Registry::NewFactory<TestSink, SimpleModule>
+    TestSinkFactory{TestSinkModule};
 
 //==========================================================================
 // Test graph - sugars setters
 class TestGraph: public Graph
 {
+  Engine& engine;
   int id_serial{0};
 
- public:
-  using Graph::Graph;
+public:
+  TestGraph(Engine& _engine, GraphModule& module):
+    Graph{module}, engine{_engine}
+  {}
 
+  using Graph::add;
   // Add an element
-  Element& add(const string& name, const string& id = "")
+  GraphElement& add(const string& name, string id = "")
   {
-    Element *e = get_engine().create(name);
-    if (!e) throw runtime_error("Can't create element "+name);
     if (id.empty())
-      e->id = name + Text::itos(++id_serial);
-    else
-      e->id = id;
+      id = name + Text::itos(++id_serial);
+    GraphElement *e = engine.create(name, id);
+    if (!e) throw runtime_error("Can't create element "+name);
     Graph::add(e);
-    e->graph = this;
     return *e;
   }
 
   // Get an element of a given type, nullptr if not found or wrong type
   template <typename T> T *get(const string& name)
   {
-    Element *el = get_element(name);
+    auto *el = get_element(name);
     if (!el) return nullptr;
     return dynamic_cast<T *>(el);
   }
@@ -159,8 +163,8 @@ public:
   void SetUp()
   {
     engine.add_default_section("test");
-    engine.element_registry.add(TestSourceModule, TestSourceFactory);
-    engine.element_registry.add(TestFilterModule, TestFilterFactory);
-    engine.element_registry.add(TestSinkModule, TestSinkFactory);
+    engine.element_registry.add("test", "test-source", TestSourceFactory);
+    engine.element_registry.add("test", "test-filter", TestFilterFactory);
+    engine.element_registry.add("test", "test-sink", TestSinkFactory);
   }
 };

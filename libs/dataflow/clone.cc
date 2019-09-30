@@ -13,6 +13,25 @@ namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
 // Add an element to the clone (testing)
+void Clone::set_number(unsigned number)
+{
+  if (clones.size() == number)
+    return;
+
+  if (clones.size() > number)
+  {
+    clones.resize(number);
+    return;
+  }
+
+  while (clones.size() < number)
+    clones.emplace_back(new Graph{});
+
+  // !!! TODO: replicated structure to new clones
+}
+
+//------------------------------------------------------------------------
+// Add an element to the clone (testing)
 void Clone::add(GraphElement *el)
 {
   if (clones.empty())
@@ -45,6 +64,18 @@ void Clone::notify_connection(const string& /*in_name*/,
                               GraphElement& /*a*/, const string& /*out_name*/)
 {
   throw(runtime_error("Unimplemented"));
+}
+
+//--------------------------------------------------------------------------
+// Clone
+Clone *Clone::clone() const
+{
+  auto c = new Clone{CloneModule{}};
+  for (const auto& graph: clones)
+  {
+    c->clones.emplace_back(graph->clone());
+  }
+  return c;
 }
 
 //--------------------------------------------------------------------------
@@ -131,13 +162,21 @@ void Clone::collect_elements(list<Element *>& els)
 }
 
 //--------------------------------------------------------------------------
-// Accept a visitor
-void Clone::accept(Visitor& visitor)
+// Accept visitors
+void Clone::accept(ReadVisitor& visitor,
+                   const Path& path, unsigned path_index) const
 {
-  if (clones.empty())
-    return;
+  visitor.visit(*this, path, path_index);
+  if (!clones.empty())
+    clones.front()->accept(visitor, path, path_index);
+}
+
+void Clone::accept(WriteVisitor& visitor,
+                   const Path& path, unsigned path_index)
+{
+  visitor.visit(*this, path, path_index);
   for (auto& graph: clones)
-    graph->accept(visitor);
+    graph->accept(visitor, path, path_index);
 }
 
 //--------------------------------------------------------------------------

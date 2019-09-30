@@ -67,6 +67,11 @@ private:
     {}
   };
 
+  TestTarget<T> *create_clone() const override
+  {
+    return new TestTarget<T>{};
+  }
+
 public:
   Input<T> input;
   vector<T> capture;

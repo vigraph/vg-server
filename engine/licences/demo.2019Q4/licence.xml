@@ -1,0 +1,19 @@
+<licence xmlns="http://www.packetship.com/ns">
+  <description>
+    <issuer>ViGraph</issuer>
+    <licensee>Engine Demonstrator</licensee>
+    <purpose>Demonstration and evaluation, not for production use</purpose>
+  </description>
+  <window begin="20191001T000000" end="20191231T235959"/>
+  <computers>
+    <computer mac="any"/>
+  </computers>
+  <components>
+    <vg-engine/>
+  </components>
+  <signature>
+    CGmfyO6ozkz1YDicYYJCS0zlHZFMPinG7ewi/Q3fRZB//5LGMC1EuKjlxiajclmmLVfmqIaM
+    DkRusE+b0ruGTXpruqGM6ijzcTUNyUxzuQldzDhagjlWHBs/x/YXA90MfYG6r2iAZxbkBGTI
+    cjAZQjPFNHijou77SJVjQ5gTTSM=
+  </signature>
+</licence>

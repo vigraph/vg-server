@@ -21,7 +21,12 @@ namespace {
 extern SimpleModule test_module;
 class TestElement: public SimpleElement
 {
- public:
+private:
+  TestElement *create_clone() const override
+  {
+    return new TestElement{};
+  }
+public:
   TestElement(): SimpleElement(test_module) {}
   Input<double> x;
 };

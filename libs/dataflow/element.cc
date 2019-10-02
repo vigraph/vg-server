@@ -33,7 +33,9 @@ bool Element::connect(const string& out_name,
         << b.id << endl;
     return false;
   }
-  o->connect({&b, i});
+  if (!o->connect({&b, i}))
+    return false;
+  b.notify_connection(in_name, *this, out_name);
   return true;
 }
 
@@ -46,6 +48,7 @@ void Element::notify_connection(const string& in_name,
   auto i = module.get_input(*this, in_name);
   if (!i)
     return;
+  inputs.insert(i);
 }
 
 

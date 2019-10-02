@@ -13,21 +13,28 @@ using namespace ViGraph::Dataflow;
 
 //==========================================================================
 // Test Source
-class TestSource: public Element
+class TestSource: public SimpleElement
 {
+private:
+  TestSource *create_clone() const override
+  {
+    return new TestSource{module};
+  }
+
 public:
   bool shutdown_called = false;
-  Output<int> output;
+  Output<double> output;
   string *tick_order{nullptr};
 
   // Construct
-  using Element::Element;
+  using SimpleElement::SimpleElement;
 
   // Generate some data
   void tick(const TickData& td) override
   {
     auto buffer = output.get_buffer();
-    buffer.data.push_back(td.timestamp.seconds());
+    for (auto i = 0u; i < td.nsamples; ++i)
+      buffer.data.push_back(td.timestamp.seconds() + 1);
     if (tick_order) *tick_order += id;
   }
 
@@ -51,16 +58,22 @@ Registry::NewFactory<TestSource, SimpleModule>
 
 //==========================================================================
 // Test Filter
-class TestFilter: public Element
+class TestFilter: public SimpleElement
 {
+private:
+  TestFilter *create_clone() const override
+  {
+    return new TestFilter{module};
+  }
+
 public:
-  Setting<int> value;
-  Input<int> input;
-  Output<int> output;
+  Setting<double> value;
+  Input<double> input;
+  Output<double> output;
   string *tick_order{nullptr};
 
   // Construct
-  using Element::Element;
+  using SimpleElement::SimpleElement;
 
   // Process some data
   void tick(const TickData&) override
@@ -87,16 +100,22 @@ Registry::NewFactory<TestFilter, SimpleModule>
 
 //==========================================================================
 // Test Sink
-class TestSink: public Element
+class TestSink: public SimpleElement
 {
+private:
+  TestSink *create_clone() const override
+  {
+    return new TestSink{module};
+  }
+
 public:
   MT::Mutex mutex;
-  Input<int> input;
-  int received_data = 0;  // Accumulates
+  Input<double> input;
+  double received_data = 0;  // Accumulates
   string *tick_order{nullptr};
 
   // Construct
-  using Element::Element;
+  using SimpleElement::SimpleElement;
 
   // Tick
   void tick(const TickData&) override
@@ -122,34 +141,45 @@ Registry::NewFactory<TestSink, SimpleModule>
 
 //==========================================================================
 // Test graph - sugars setters
-class TestGraph: public Graph
+class TestGraph
 {
   Engine& engine;
   int id_serial{0};
 
 public:
-  TestGraph(Engine& _engine, GraphModule& module):
-    Graph{module}, engine{_engine}
+  TestGraph(Engine& _engine):
+    engine{_engine}
   {}
 
-  using Graph::add;
-  // Add an element
   GraphElement& add(const string& name, string id = "")
   {
     if (id.empty())
       id = name + Text::itos(++id_serial);
     GraphElement *e = engine.create(name, id);
     if (!e) throw runtime_error("Can't create element "+name);
-    Graph::add(e);
+    engine.get_graph().add(e);
     return *e;
   }
 
   // Get an element of a given type, nullptr if not found or wrong type
   template <typename T> T *get(const string& name)
   {
-    auto *el = get_element(name);
+    auto *el = engine.get_graph().get_element(name);
     if (!el) return nullptr;
     return dynamic_cast<T *>(el);
+  }
+
+  void setup()
+  {
+    engine.set_sample_rate(1);
+    engine.set_tick_interval(Time::Duration{1.0});
+    engine.get_graph().setup();
+    engine.update_elements();
+  }
+
+  void shutdown()
+  {
+    engine.get_graph().shutdown();
   }
 };
 

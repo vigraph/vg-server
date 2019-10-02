@@ -32,7 +32,10 @@ bool Graph::connect(const string& out_name,
   auto output_pin = get_element(pin_info.element);
   if (!output_pin)
     return false;
-  return output_pin->connect(pin_info.connection, b, in_name);
+  if (!output_pin->connect(pin_info.connection, b, in_name))
+    return false;
+  b.notify_connection(in_name, *this, out_name);
+  return true;
 }
 
 //--------------------------------------------------------------------------

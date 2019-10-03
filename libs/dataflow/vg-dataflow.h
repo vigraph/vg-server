@@ -157,6 +157,7 @@ public:
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_sub_element_visitor(const string& id,
                                                            Graph& scope) = 0;
+  virtual unique_ptr<WriteVisitor> get_sub_clone_visitor(Clone& clone) = 0;
   virtual void visit(Element& element,
                      const Path& path, unsigned path_index) = 0;
   virtual ~WriteVisitor() {}
@@ -1211,133 +1212,6 @@ public:
 };
 
 //==========================================================================
-// Clone Module
-const Dataflow::SimpleModule clone_module
-{
-  "clone",
-  "Clone",
-  "core",
-  {},
-  {},
-  {}
-};
-
-class CloneInfo;
-class Graph;
-
-//==========================================================================
-// Dataflow graph structure
-class Clone: public GraphElement
-{
-private:
-  struct CloneGraph
-  {
-    shared_ptr<Graph> graph;
-    vector<CloneInfo *> infos;
-    CloneGraph():
-      graph{make_shared<Graph>()}
-    {}
-    CloneGraph(Graph *_graph):
-      graph{_graph}
-    {}
-  };
-  vector<CloneGraph> clones;
-  const SimpleModule& module;
-
-public:
-  //------------------------------------------------------------------------
-  // Constructors
-  Clone(const SimpleModule& _module):
-    module{_module}
-  {
-    clones.emplace_back();
-  }
-
-  void set_id(const string& _id) override;
-
-  auto get_number() const
-  {
-    return clones.size();
-  }
-
-  void set_number(unsigned number);
-
-  const Module& get_module() const override;
-
-  // Connect an element
-  bool connect(const string& out_name,
-               GraphElement& b, const string &in_name) override;
-
-  // Notify that connection has been made to input
-  void notify_connection(const string& in_name,
-                         GraphElement& a, const string& out_name) override;
-
-  //------------------------------------------------------------------------
-  // Final setup for elements and calculate topology
-  void setup() override;
-
-  //------------------------------------------------------------------------
-  // Prepare for a tick
-  void reset() override;
-
-  // Collect list of all elements
-  void collect_elements(list<Element *>& els) override;
-
-  // Clone element
-  Clone *clone() const override;
-
-  //------------------------------------------------------------------------
-  // Accept visitors
-  void accept(ReadVisitor& visitor,
-              const Path& path, unsigned path_index) const override;
-  void accept(WriteVisitor& visitor,
-              const Path& path, unsigned path_index) override;
-
-  //------------------------------------------------------------------------
-  // Shutdown all elements
-  void shutdown() override;
-};
-
-//==========================================================================
-// Clone Info
-class CloneInfo: public SimpleElement
-{
-private:
-  friend class Clone;
-
-  double clone_number = 0;
-  double clone_total = 0;
-
-  void tick(const TickData& td) override;
-
-  CloneInfo *create_clone() const override
-  {
-    return new CloneInfo{module};
-  }
-public:
-  using SimpleElement::SimpleElement;
-
-  // Info Outputs
-  Output<double> number;
-  Output<double> total;
-  Output<double> fraction;
-};
-
-const Dataflow::SimpleModule clone_info_module
-{
-  "clone-info",
-  "Clone Information",
-  "core",
-  {},
-  {},
-  {
-    { "number", &CloneInfo::number },
-    { "total", &CloneInfo::total },
-    { "fraction", &CloneInfo::fraction },
-  }
-};
-
-//==========================================================================
 // Dataflow graph structure
 class Graph: public GraphElement
 {
@@ -1444,6 +1318,136 @@ public:
   //------------------------------------------------------------------------
   // Shutdown all elements
   void shutdown() override;
+};
+
+//==========================================================================
+// Clone Module
+const Dataflow::SimpleModule clone_module
+{
+  "clone",
+  "Clone",
+  "core",
+  {},
+  {},
+  {}
+};
+
+class CloneInfo;
+
+//==========================================================================
+// Dataflow graph structure
+class Clone: public GraphElement
+{
+private:
+  struct CloneGraph
+  {
+    shared_ptr<Graph> graph;
+    std::set<CloneInfo *> infos;
+    CloneGraph():
+      graph{make_shared<Graph>()}
+    {}
+    CloneGraph(Graph *_graph):
+      graph{_graph}
+    {}
+  };
+  vector<CloneGraph> clones;
+  const SimpleModule& module;
+
+public:
+  //------------------------------------------------------------------------
+  // Constructors
+  Clone(const SimpleModule& _module):
+    module{_module}
+  {
+    clones.emplace_back();
+  }
+
+  void set_id(const string& _id) override;
+
+  auto get_number() const
+  {
+    return clones.size();
+  }
+
+  void set_number(unsigned number);
+
+  const Module& get_module() const override;
+
+  // Connect an element
+  bool connect(const string& out_name,
+               GraphElement& b, const string &in_name) override;
+
+  // Notify that connection has been made to input
+  void notify_connection(const string& in_name,
+                         GraphElement& a, const string& out_name) override;
+
+  //------------------------------------------------------------------------
+  // Register a clone info
+  void register_info(const Graph& graph, CloneInfo *info);
+
+  //------------------------------------------------------------------------
+  // Final setup for elements and calculate topology
+  void setup() override;
+
+  //------------------------------------------------------------------------
+  // Prepare for a tick
+  void reset() override;
+
+  // Collect list of all elements
+  void collect_elements(list<Element *>& els) override;
+
+  // Clone element
+  Clone *clone() const override;
+
+  //------------------------------------------------------------------------
+  // Accept visitors
+  void accept(ReadVisitor& visitor,
+              const Path& path, unsigned path_index) const override;
+  void accept(WriteVisitor& visitor,
+              const Path& path, unsigned path_index) override;
+
+  //------------------------------------------------------------------------
+  // Shutdown all elements
+  void shutdown() override;
+};
+
+//==========================================================================
+// Clone Info
+class CloneInfo: public SimpleElement
+{
+private:
+  friend class Clone;
+
+  double clone_number = 0;
+  double clone_total = 0;
+
+  void tick(const TickData& td) override;
+
+  CloneInfo *create_clone() const override
+  {
+    return new CloneInfo{module};
+  }
+public:
+  using SimpleElement::SimpleElement;
+
+  // Info Outputs
+  Output<double> number;
+  Output<double> total;
+  Output<double> fraction;
+};
+
+const Dataflow::SimpleModule clone_info_module
+{
+  "clone-info",
+  "Clone Information",
+  "core",
+  {},
+  {},
+  {
+    { "number", &CloneInfo::number },
+    { "total", &CloneInfo::total },
+    { "fraction", &CloneInfo::fraction },
+  }
 };
 
 

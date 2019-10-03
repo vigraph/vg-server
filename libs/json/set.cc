@@ -46,6 +46,15 @@ void SetVisitor::visit(Dataflow::Graph& graph,
       if (element)
       {
         graph.add(element);
+
+        // If it's a clone info, notify clone
+        if (clone)
+        {
+          auto info = dynamic_cast<Dataflow::CloneInfo *>(element);
+          if (info)
+            clone->register_info(graph, info);
+        }
+
         // Setup element
         auto& module = element->get_module();
         auto it = elementj.o.find("settings");
@@ -126,7 +135,6 @@ void SetVisitor::visit(Dataflow::Graph& graph,
           const auto& iname = connj["element"].as_str();
           const auto& iinput = connj["input"].as_str();
           auto ielement = scope_graph->get_element(iname);
-          cout << "Scope el: " << scope_graph->get_id() << endl;
           if (!ielement)
           {
             Log::Error log;
@@ -166,6 +174,12 @@ unique_ptr<Dataflow::WriteVisitor>
   if (it == sub_element_json.end())
     return {};
   return make_unique<SetVisitor>(engine, *it->second, &scope);
+}
+
+unique_ptr<Dataflow::WriteVisitor>
+    SetVisitor::get_sub_clone_visitor(Dataflow::Clone &clone)
+{
+  return make_unique<SetVisitor>(engine, json, scope_graph, &clone);
 }
 
 void SetVisitor::visit(Dataflow::Element& element,
@@ -213,10 +227,6 @@ void SetVisitor::visit(Dataflow::Element& element,
             const auto& iinput = connectionj["input"].as_str();
             auto ielement = (iid == scope_graph->get_id()
                              ? scope_graph : scope_graph->get_element(iid));
-            cout << "Scope " << scope_graph->get_id() << endl;
-            cout << "connect element '" << iid << iinput << "' for element '"
-                << element.get_id() << "' output connection on '" << id
-                << "' in scope of '" << scope_graph->get_id() << "'" << endl;
             if (!ielement)
             {
               Log::Error log;

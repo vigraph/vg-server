@@ -64,6 +64,24 @@ void Clone::set_number(unsigned number)
 }
 
 //--------------------------------------------------------------------------
+// Register a clone info
+void Clone::register_info(const Graph& graph, CloneInfo *info)
+{
+  auto i = 0;
+  for (auto& g: clones)
+  {
+    if (g.graph.get() == &graph)
+    {
+      g.infos.insert(info);
+      info->clone_number = i + 1;
+      info->clone_total = clones.size();
+      return;
+    }
+    ++i;
+  }
+}
+
+//--------------------------------------------------------------------------
 // Connect an element
 bool Clone::connect(const string& out_name,
                     GraphElement& b, const string& in_name)
@@ -138,8 +156,11 @@ void Clone::accept(WriteVisitor& visitor,
                    const Path& path, unsigned path_index)
 {
   visitor.visit(*this, path, path_index);
+  auto cv = visitor.get_sub_clone_visitor(*this);
+  if (!cv)
+    return;
   for (auto& graph: clones)
-    graph.graph->accept(visitor, path, path_index);
+    graph.graph->accept(*cv, path, path_index);
 }
 
 //--------------------------------------------------------------------------

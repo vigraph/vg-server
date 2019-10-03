@@ -1,11 +1,11 @@
 //==========================================================================
-// ViGraph dataflow module: core/containers/clone/clone.cc
+// ViGraph dataflow module: core/sources/clone/clone-info.cc
 //
-// Clone container module
+// Clone info module
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../../core-module.h"
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(Clone, clone_module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(CloneInfo, clone_info_module)

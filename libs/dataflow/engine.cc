@@ -22,7 +22,7 @@ GraphElement *Engine::create(const string& type, const string& id) const
     // Qualified - use the section given
     auto e = element_registry.create(bits[0], bits[1]);
     if (e)
-      e->id = id;
+      e->set_id(id);
     return e;
   }
   else
@@ -33,7 +33,7 @@ GraphElement *Engine::create(const string& type, const string& id) const
       auto e = element_registry.create(section, type);
       if (e)
       {
-        e->id = id;
+        e->set_id(id);
         return e;
       }
     }
@@ -110,7 +110,7 @@ void Engine::accept(ReadVisitor& visitor,
 {
   MT::RWReadLock lock{graph_mutex};
   visitor.visit(*this, path, path_index);
-  auto sv = visitor.getSubGraphVisitor();
+  auto sv = visitor.get_root_graph_visitor();
   if (sv)
     graph->accept(*sv, path, path_index);
 }
@@ -120,7 +120,7 @@ void Engine::accept(WriteVisitor& visitor,
 {
   MT::RWWriteLock lock{graph_mutex};
   visitor.visit(*this, path, path_index);
-  auto sv = visitor.getSubGraphVisitor();
+  auto sv = visitor.get_root_graph_visitor();
   if (sv)
     graph->accept(*sv, path, path_index);
 }

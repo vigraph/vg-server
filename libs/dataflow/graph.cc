@@ -15,7 +15,7 @@ namespace ViGraph { namespace Dataflow {
 // Add an element to the graph (testing)
 void Graph::add(GraphElement *el)
 {
-  elements[el->id].reset(el);
+  elements[el->get_id()].reset(el);
 }
 
 //--------------------------------------------------------------------------
@@ -43,7 +43,7 @@ bool Graph::connect(const string& out_name,
 void Graph::notify_connection(const string& /*in_name*/,
                               GraphElement& /*a*/, const string& /*out_name*/)
 {
-  throw(runtime_error("Unimplemented"));
+//  throw(runtime_error("Unimplemented"));
 }
 
 //--------------------------------------------------------------------------
@@ -117,7 +117,7 @@ void Graph::accept(ReadVisitor& visitor,
   visitor.visit(*this, path, path_index);
   for (auto& eit: elements)
   {
-    auto sv = visitor.getSubElementVisitor(eit.first);
+    auto sv = visitor.get_sub_element_visitor(eit.first);
     if (sv)
       eit.second->accept(*sv, path, path_index);
   }
@@ -129,7 +129,7 @@ void Graph::accept(WriteVisitor& visitor,
   visitor.visit(*this, path, path_index);
   for (auto& eit: elements)
   {
-    auto sv = visitor.getSubElementVisitor(eit.first);
+    auto sv = visitor.get_sub_element_visitor(eit.first, *this);
     if (sv)
       eit.second->accept(*sv, path, path_index);
   }

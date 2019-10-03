@@ -15,9 +15,9 @@ void SetVisitor::visit(Dataflow::Engine&,
 {
 }
 
-unique_ptr<Dataflow::WriteVisitor> SetVisitor::getSubGraphVisitor()
+unique_ptr<Dataflow::WriteVisitor> SetVisitor::get_root_graph_visitor()
 {
-  return make_unique<SetVisitor>(engine, json, scope_graph);
+  return make_unique<SetVisitor>(engine, json, &engine.get_graph());
 }
 
 void SetVisitor::visit(Dataflow::Graph& graph,
@@ -61,7 +61,7 @@ void SetVisitor::visit(Dataflow::Graph& graph,
             {
               Log::Error log;
               log << "Unknown setting '" << name << "' on element "
-                  << element->id << endl;
+                  << element->get_id() << endl;
               continue;
             }
 
@@ -126,27 +126,28 @@ void SetVisitor::visit(Dataflow::Graph& graph,
           const auto& iname = connj["element"].as_str();
           const auto& iinput = connj["input"].as_str();
           auto ielement = scope_graph->get_element(iname);
+          cout << "Scope el: " << scope_graph->get_id() << endl;
           if (!ielement)
           {
             Log::Error log;
-            log << "Unknown element '" << iname << "' for element "
-                << graph.id << " output connection on " << oid << endl;
+            log << "Unknown element '" << iname << "' for element '"
+                << graph.get_id() << "' output connection on '" << oid
+                << "' in scope of '" << scope_graph->get_id() << "'"
+                << endl;
             continue;
           }
 
           if (!graph.connect(oid, *ielement, iinput))
           {
             Log::Error log;
-            log << "Could not connect " << graph.id << "." << oid << " to "
-                << ielement->id << "." << iinput << endl;
+            log << "Could not connect " << graph.get_id() << "." << oid
+                << " to " << ielement->get_id() << "." << iinput << endl;
             continue;
           }
         }
       }
     }
   }
-
-  scope_graph = &graph;
 }
 
 void SetVisitor::visit(Dataflow::Clone& clone,
@@ -158,12 +159,13 @@ void SetVisitor::visit(Dataflow::Clone& clone,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::getSubElementVisitor(const string& id)
+    SetVisitor::get_sub_element_visitor(const string& id,
+                                        Dataflow::Graph &scope)
 {
   auto it = sub_element_json.find(id);
   if (it == sub_element_json.end())
     return {};
-  return make_unique<SetVisitor>(engine, *it->second, scope_graph);
+  return make_unique<SetVisitor>(engine, *it->second, &scope);
 }
 
 void SetVisitor::visit(Dataflow::Element& element,
@@ -183,7 +185,7 @@ void SetVisitor::visit(Dataflow::Element& element,
       {
         Log::Error log;
         log << "Unknown input '" << name << "' on element "
-            << element.id << endl;
+            << element.get_id() << endl;
         continue;
       }
 
@@ -209,21 +211,27 @@ void SetVisitor::visit(Dataflow::Element& element,
           {
             const auto& iid = connectionj["element"].as_str();
             const auto& iinput = connectionj["input"].as_str();
-            auto ielement = (iid == scope_graph->id
+            auto ielement = (iid == scope_graph->get_id()
                              ? scope_graph : scope_graph->get_element(iid));
+            cout << "Scope " << scope_graph->get_id() << endl;
+            cout << "connect element '" << iid << iinput << "' for element '"
+                << element.get_id() << "' output connection on '" << id
+                << "' in scope of '" << scope_graph->get_id() << "'" << endl;
             if (!ielement)
             {
               Log::Error log;
-              log << "Unknown element '" << iid << "' for element "
-                  << element.id << " output connection on " << id << endl;
+              log << "Unknown element '" << iid << "' for element '"
+                  << element.get_id() << "' output connection on '" << id
+                  << "' in scope of '" << scope_graph->get_id() << "'"
+                  << endl;
               continue;
             }
 
             if (!element.connect(id, *ielement, iinput))
             {
               Log::Error log;
-              log << "Could not connect " << element.id << "." << id << " to "
-                  << ielement->id << "." << iinput << endl;
+              log << "Could not connect " << element.get_id() << "." << id
+                  << " to " << ielement->get_id() << "." << iinput << endl;
               continue;
             }
           }

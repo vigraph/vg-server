@@ -35,7 +35,7 @@ public:
     auto buffer = output.get_buffer();
     for (auto i = 0u; i < td.nsamples; ++i)
       buffer.data.push_back(td.timestamp.seconds() + 1);
-    if (tick_order) *tick_order += id;
+    if (tick_order) *tick_order += get_id();
   }
 
   // Shutdown
@@ -82,7 +82,7 @@ public:
     auto out = output.get_buffer();
     for (const auto i: in)
       out.data.push_back(i * value.get());
-    if (tick_order) *tick_order += id;
+    if (tick_order) *tick_order += get_id();
   }
 
 };
@@ -124,7 +124,7 @@ public:
     const auto& in = input.get_buffer();
     for (const auto i: in)
       received_data += i;
-    if (tick_order) *tick_order += id;
+    if (tick_order) *tick_order += get_id();
   }
 };
 

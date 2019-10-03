@@ -12,36 +12,54 @@
 namespace ViGraph { namespace Dataflow {
 
 //------------------------------------------------------------------------
-// Add an element to the clone (testing)
+// Set id
+void Clone::set_id(const string& id)
+{
+  GraphElement::set_id(id);
+  for (auto& clone: clones)
+    clone.graph->set_id(id);
+}
+
+//--------------------------------------------------------------------------
+// Get module
+const Module& Clone::get_module() const
+{
+  if (clones.empty())
+    return module;
+  return clones.front().graph->get_module();
+}
+
+//------------------------------------------------------------------------
+// Set number of clones
 void Clone::set_number(unsigned number)
 {
+  if (number < 1)
+    return;
+
   if (clones.size() == number)
     return;
 
   if (clones.size() > number)
   {
     clones.resize(number);
-    return;
   }
 
   while (clones.size() < number)
-    clones.emplace_back(new Graph{});
+  {
+    clones.emplace_back(clones.front().graph->clone());
+    // !!! TODO: find clone infos
+  }
 
-  // !!! TODO: replicated structure to new clones
-}
-
-//------------------------------------------------------------------------
-// Add an element to the clone (testing)
-void Clone::add(GraphElement *el)
-{
-  if (clones.empty())
-    return;
-  bool first = true;
+  // Sort out clone info numbering
+  auto i = 0;
   for (auto& graph: clones)
   {
-    if (first)
-      graph->add(el);
-    first = false;
+    for (auto info: graph.infos)
+    {
+      info->clone_number = i + 1;
+      info->clone_total = clones.size();
+    };
+    ++i;
   }
 }
 
@@ -53,8 +71,11 @@ bool Clone::connect(const string& out_name,
   if (clones.empty())
     return false;
   for (auto& graph: clones)
-    if (!graph->connect(out_name, b, in_name))
+  {
+    if (!graph.graph->connect(out_name, b, in_name))
       return false;
+    b.notify_connection(in_name, *graph.graph, out_name);
+  }
   return true;
 }
 
@@ -63,53 +84,20 @@ bool Clone::connect(const string& out_name,
 void Clone::notify_connection(const string& /*in_name*/,
                               GraphElement& /*a*/, const string& /*out_name*/)
 {
-  throw(runtime_error("Unimplemented"));
+  //throw(runtime_error("Unimplemented"));
 }
 
 //--------------------------------------------------------------------------
 // Clone
 Clone *Clone::clone() const
 {
-  auto c = new Clone{CloneModule{}};
+  auto c = new Clone{clone_module};
   for (const auto& graph: clones)
   {
-    c->clones.emplace_back(graph->clone());
+    c->clones.emplace_back(graph.graph->clone());
+    // !!! TODO: sort out clone infos
   }
   return c;
-}
-
-//--------------------------------------------------------------------------
-// Get all elements (for inspection)
-const map<string, shared_ptr<GraphElement>>& Clone::get_elements() const
-{
-  if (clones.empty())
-  {
-    static const auto empty = map<string, shared_ptr<GraphElement>>{};
-    return empty;
-  }
-  return clones.front()->get_elements();
-}
-
-//--------------------------------------------------------------------------
-// Add input pin
-void Clone::add_input_pin(const string& id,
-                          const string& element, const string& input)
-{
-  if (clones.empty())
-    return;
-  for (auto& graph: clones)
-    graph->add_input_pin(id, element, input);
-}
-
-//--------------------------------------------------------------------------
-// Add output pin
-void Clone::add_output_pin(const string& id,
-                          const string& element, const string& output)
-{
-  if (clones.empty())
-    return;
-  for (auto& graph: clones)
-    graph->add_input_pin(id, element, output);
 }
 
 //--------------------------------------------------------------------------
@@ -117,32 +105,7 @@ void Clone::add_output_pin(const string& id,
 void Clone::setup()
 {
   for (const auto& graph: clones)
-    graph->setup();
-}
-
-//--------------------------------------------------------------------------
-// Set sample rate
-void Clone::set_sample_rate(double sr)
-{
-  for (const auto& graph: clones)
-    graph->set_sample_rate(sr);
-}
-
-//--------------------------------------------------------------------------
-// Get a particular element by ID
-GraphElement *Clone::get_element(const string& id)
-{
-  if (clones.empty())
-    return nullptr;
-  return clones.front()->get_element(id);
-}
-
-//--------------------------------------------------------------------------
-// Clear all elements
-void Clone::clear_elements()
-{
-  for (const auto& graph: clones)
-    graph->clear_elements();
+    graph.graph->setup();
 }
 
 //--------------------------------------------------------------------------
@@ -150,7 +113,7 @@ void Clone::clear_elements()
 void Clone::reset()
 {
   for (const auto& graph: clones)
-    graph->reset();
+    graph.graph->reset();
 }
 
 //--------------------------------------------------------------------------
@@ -158,7 +121,7 @@ void Clone::reset()
 void Clone::collect_elements(list<Element *>& els)
 {
   for (auto& graph: clones)
-    graph->collect_elements(els);
+    graph.graph->collect_elements(els);
 }
 
 //--------------------------------------------------------------------------
@@ -166,9 +129,9 @@ void Clone::collect_elements(list<Element *>& els)
 void Clone::accept(ReadVisitor& visitor,
                    const Path& path, unsigned path_index) const
 {
-  visitor.visit(*this, path, path_index);
   if (!clones.empty())
-    clones.front()->accept(visitor, path, path_index);
+    clones.front().graph->accept(visitor, path, path_index);
+  visitor.visit(*this, path, path_index);
 }
 
 void Clone::accept(WriteVisitor& visitor,
@@ -176,7 +139,7 @@ void Clone::accept(WriteVisitor& visitor,
 {
   visitor.visit(*this, path, path_index);
   for (auto& graph: clones)
-    graph->accept(visitor, path, path_index);
+    graph.graph->accept(visitor, path, path_index);
 }
 
 //--------------------------------------------------------------------------
@@ -184,7 +147,25 @@ void Clone::accept(WriteVisitor& visitor,
 void Clone::shutdown()
 {
   for (auto& graph: clones)
-    graph->shutdown();
+    graph.graph->shutdown();
+}
+
+//==========================================================================
+// Clone Info
+
+//--------------------------------------------------------------------------
+// Tick
+void CloneInfo::tick(const TickData& td)
+{
+  sample_iterate(td.nsamples, {}, {},
+                 tie(number, total, fraction),
+                 [&](double& number, double& total, double& fraction)
+  {
+    number = clone_number;
+    total = clone_total;
+    fraction = clone_total ? (clone_number - 1) / clone_total : 0;
+  });
+
 }
 
 }} // namespaces

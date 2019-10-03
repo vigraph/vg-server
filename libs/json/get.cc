@@ -15,7 +15,7 @@ void GetVisitor::visit(const Dataflow::Engine&,
 {
 }
 
-unique_ptr<Dataflow::ReadVisitor> GetVisitor::getSubGraphVisitor()
+unique_ptr<Dataflow::ReadVisitor> GetVisitor::get_root_graph_visitor()
 {
   return make_unique<GetVisitor>(json);
 }
@@ -52,7 +52,7 @@ void GetVisitor::visit(const Dataflow::Graph& graph,
       for (const auto& conn: conns)
       {
         auto& connj = connectionsj.add(Value::Type::OBJECT);
-        connj.put("element", conn.element->id);
+        connj.put("element", conn.element->get_id());
         auto& imodule = conn.element->get_module();
         connj.put("input", imodule.get_input_id(*conn.element, *conn.input));
       }
@@ -63,11 +63,12 @@ void GetVisitor::visit(const Dataflow::Graph& graph,
 void GetVisitor::visit(const Dataflow::Clone& clone,
                        const Dataflow::Path&, unsigned)
 {
+  json["type"] = "core:clone";
   json["number"] = clone.get_number();
 }
 
 unique_ptr<Dataflow::ReadVisitor>
-    GetVisitor::getSubElementVisitor(const string& id)
+    GetVisitor::get_sub_element_visitor(const string& id)
 {
   auto eit = json.o.find("elements");
   if (eit == json.o.end())
@@ -121,7 +122,7 @@ void GetVisitor::visit(const Dataflow::Element& element,
       for (const auto& conn: conns)
       {
         auto& connj = connectionsj.add(Value::Type::OBJECT);
-        connj.put("element", conn.element->id);
+        connj.put("element", conn.element->get_id());
         auto& imodule = conn.element->get_module();
         connj.put("input", imodule.get_input_id(*conn.element, *conn.input));
       }

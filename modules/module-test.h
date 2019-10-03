@@ -80,7 +80,7 @@ public:
   TestTarget():
     SimpleElement(module_data)
   {
-    id = "test";
+    set_id("test");
   }
 
   void tick(const TickData&) override

@@ -21,7 +21,7 @@ bool Element::connect(const string& out_name,
   {
     Log::Error log;
     log << "Unknown output '" << out_name << "' on element "
-        << id << endl;
+        << get_id() << endl;
     return false;
   }
   auto& bmodule = b.get_module();
@@ -30,7 +30,7 @@ bool Element::connect(const string& out_name,
   {
     Log::Error log;
     log << "Unknown input '" << out_name << "' on element "
-        << b.id << endl;
+        << b.get_id() << endl;
     return false;
   }
   if (!o->connect({&b, i}))

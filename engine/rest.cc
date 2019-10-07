@@ -250,7 +250,8 @@ bool GraphURLHandler::handle_request(const Web::HTTPMessage& request,
 
 // URL format:
 // /meta                      Total metadata structure
-// /meta/<type>               Metadata for specific type
+// /meta/<section>            Metadata for specific section
+// /meta/<section>/<module>   Metadata for specific module
 
 class MetaURLHandler: public Web::URLHandler
 {
@@ -475,6 +476,63 @@ bool LayoutURLHandler::handle_request(const Web::HTTPMessage& request,
 }
 
 //==========================================================================
+// /version URL Handler
+// Operations:  GET
+
+// URL format:
+// /version                   Version information
+
+class VersionURLHandler: public Web::URLHandler
+{
+  bool handle_get(Web::HTTPMessage& response);
+  bool handle_request(const Web::HTTPMessage& request,
+                      Web::HTTPMessage& response,
+                      const SSL::ClientDetails& client);
+
+public:
+  VersionURLHandler(Dataflow::Engine&):
+    URLHandler("/version")
+  {}
+};
+
+//--------------------------------------------------------------------------
+// Handle a GET request
+// Returns whether request was valid
+bool VersionURLHandler::handle_get(Web::HTTPMessage& response)
+{
+  Log::Streams log;
+  log.detail << "REST Version: GET request\n";
+  JSON::Value json(JSON::Value::OBJECT);
+  json.put("major", 2);
+  json.put("minor", 0);
+  json.put("name", "TBC");
+  response.body = json.str(true);
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Handle the request
+bool VersionURLHandler::handle_request(const Web::HTTPMessage& request,
+                                       Web::HTTPMessage& response,
+                                       const SSL::ClientDetails& /* client */)
+{
+  if (request.method == "GET")
+  {
+    if (!handle_get(response))
+    {
+      response.code = 400;
+      response.reason = "Bad request";
+    }
+  }
+  else
+  {
+    response.code = 405;
+    response.reason = "Method not allowed";
+  }
+  return true;
+}
+
+//==========================================================================
 // REST interface
 //--------------------------------------------------------------------------
 // Constructor
@@ -497,6 +555,7 @@ RESTInterface::RESTInterface(const XML::Element& config,
   http_server->add(new GraphURLHandler(engine));
   http_server->add(new MetaURLHandler(engine));
   http_server->add(new LayoutURLHandler(base_dir.resolve(layout_file)));
+  http_server->add(new VersionURLHandler(engine));
 
   // Allow cross-origin fetch from anywhere
   http_server->set_cors_origin();

@@ -1324,18 +1324,6 @@ public:
   void shutdown() override;
 };
 
-//==========================================================================
-// Clone Module
-const Dataflow::SimpleModule clone_module
-{
-  "clone",
-  "Clone",
-  "core",
-  {},
-  {},
-  {}
-};
-
 class CloneInfo;
 
 //==========================================================================
@@ -1366,14 +1354,9 @@ public:
     clones.emplace_back();
   }
 
+  Setting<double> number;
+
   void set_id(const string& _id) override;
-
-  auto get_number() const
-  {
-    return clones.size();
-  }
-
-  void set_number(unsigned number);
 
   const Module& get_module() const override;
 
@@ -1413,6 +1396,20 @@ public:
   //------------------------------------------------------------------------
   // Shutdown all elements
   void shutdown() override;
+};
+
+//==========================================================================
+// Clone Module
+const Dataflow::SimpleModule clone_module
+{
+  "clone",
+  "Clone",
+  "core",
+  {
+    { "number", &Clone::number }
+  },
+  {},
+  {}
 };
 
 //==========================================================================

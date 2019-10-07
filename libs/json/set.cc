@@ -170,7 +170,8 @@ void SetVisitor::visit(Dataflow::Clone& clone,
 {
   clone.shutdown();
   auto number = json["number"].as_int();
-  clone.set_number(number);
+  clone.number.set(number);
+  clone.setup();
 }
 
 unique_ptr<Dataflow::WriteVisitor>

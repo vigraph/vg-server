@@ -60,6 +60,8 @@ Element *Element::clone() const
   if (!el)
     return el;
 
+  el->set_id(get_id());
+  // !!! TODO: clone settings
   return el;
 }
 

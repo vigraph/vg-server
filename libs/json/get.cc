@@ -64,7 +64,7 @@ void GetVisitor::visit(const Dataflow::Clone& clone,
                        const Dataflow::Path&, unsigned)
 {
   json["type"] = "core:clone";
-  json["number"] = clone.get_number();
+  json["number"] = clone.number.get();
 }
 
 unique_ptr<Dataflow::ReadVisitor>

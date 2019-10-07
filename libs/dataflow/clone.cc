@@ -29,40 +29,6 @@ const Module& Clone::get_module() const
   return clones.front().graph->get_module();
 }
 
-//------------------------------------------------------------------------
-// Set number of clones
-void Clone::set_number(unsigned number)
-{
-  if (number < 1)
-    return;
-
-  if (clones.size() == number)
-    return;
-
-  if (clones.size() > number)
-  {
-    clones.resize(number);
-  }
-
-  while (clones.size() < number)
-  {
-    clones.emplace_back(clones.front().graph->clone());
-    // !!! TODO: find clone infos
-  }
-
-  // Sort out clone info numbering
-  auto i = 0;
-  for (auto& graph: clones)
-  {
-    for (auto info: graph.infos)
-    {
-      info->clone_number = i + 1;
-      info->clone_total = clones.size();
-    };
-    ++i;
-  }
-}
-
 //--------------------------------------------------------------------------
 // Register a clone info
 void Clone::register_info(const Graph& graph, CloneInfo *info)
@@ -122,6 +88,34 @@ Clone *Clone::clone() const
 // Final setup for elements and calculate topology
 void Clone::setup()
 {
+  auto n = number.get();
+  if (n < 1)
+    return;
+
+  if (clones.size() > n)
+  {
+    clones.resize(n);
+  }
+
+  while (clones.size() < n)
+  {
+    clones.emplace_back(clones.front().graph->clone());
+    // !!! TODO: find clone infos
+  }
+
+  // Sort out clone info numbering
+  auto i = 0;
+  for (auto& graph: clones)
+  {
+    for (auto info: graph.infos)
+    {
+      info->clone_number = i + 1;
+      info->clone_total = clones.size();
+    };
+    ++i;
+  }
+
+  // Setup clones
   for (const auto& graph: clones)
     graph.graph->setup();
 }

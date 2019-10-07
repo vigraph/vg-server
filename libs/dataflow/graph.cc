@@ -65,6 +65,8 @@ Graph *Graph::clone() const
   {
     g->elements.emplace(el.first, el.second->clone());
   }
+
+  // !!! TODO: clone element & graph connections
   return g;
 }
 

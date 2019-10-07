@@ -280,17 +280,24 @@ bool MetaURLHandler::handle_get(const string& path,
     if (path.empty())
     {
       log.detail << "REST Meta: GET request\n";
-      JSON::Value json(JSON::Value::ARRAY);
-      for(const auto& sit: registry.sections)
-        for(const auto& mit: sit.second.modules)
-          json.add(JSON::get_module_metadata(*mit.second->get_module()));
+      JSON::Value json(JSON::Value::OBJECT);
+      for (const auto& sit: registry.sections)
+      {
+        auto& section_json = json.put(sit.first, JSON::Value::OBJECT);
+        for (const auto& mit: sit.second.modules)
+        {
+          const auto& mod = *mit.second->get_module();
+          const auto mod_json = JSON::get_module_metadata(mod);
+          section_json.put(mod.get_id(), mod_json);
+        }
+      }
       response.body = json.str(true);
     }
     else
     {
       log.detail << "REST Meta: GET request for " << path << endl;
       vector<string> bits = Text::split(path, '/');
-      if (bits.size() < 2)
+      if (bits.size() < 1 || bits.size() > 2)
       {
         log.error << "Specific /meta requests require <section>/<id>\n";
         response.code = 404;
@@ -307,20 +314,34 @@ bool MetaURLHandler::handle_get(const string& path,
       }
       else
       {
-        const auto mit = sit->second.modules.find(bits[1]);
-        if (mit == sit->second.modules.end())
+        if (bits.size() < 2)
         {
-          log.error << "No such module '" << bits[1]
-                    << "' in section '" << bits[0]
-                    << "' requested in REST /meta\n";
-          response.code = 404;
-          response.reason = "Not found";
+          JSON::Value json(JSON::Value::OBJECT);
+          for (const auto& mit: sit->second.modules)
+          {
+            const auto& mod = *mit.second->get_module();
+            const auto mod_json = JSON::get_module_metadata(mod);
+            json.put(mod.get_id(), mod_json);
+          }
+          response.body = json.str(true);
         }
         else
         {
-          const auto json = JSON::get_module_metadata(
-                                                *mit->second->get_module());
-          response.body = json.str(true);
+          const auto mit = sit->second.modules.find(bits[1]);
+          if (mit == sit->second.modules.end())
+          {
+            log.error << "No such module '" << bits[1]
+                      << "' in section '" << bits[0]
+                      << "' requested in REST /meta\n";
+            response.code = 404;
+            response.reason = "Not found";
+          }
+          else
+          {
+            const auto& mod = *mit->second->get_module();
+            const auto json = JSON::get_module_metadata(mod);
+            response.body = json.str(true);
+          }
         }
       }
     }

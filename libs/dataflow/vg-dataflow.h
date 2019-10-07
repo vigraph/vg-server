@@ -98,6 +98,16 @@ public:
     }
   }
 
+  bool reached(decltype(parts.size()) index) const
+  {
+    return empty() || index >= parts.size();
+  }
+
+  auto get(decltype(parts.size()) index) const
+  {
+    return parts[index];
+  }
+
   string name(decltype(parts.size()) index) const
   {
     if (index < parts.size())

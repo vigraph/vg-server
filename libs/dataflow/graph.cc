@@ -126,12 +126,35 @@ GraphElement *Graph::get_element(const string& id)
 void Graph::accept(ReadVisitor& visitor,
                    const Path& path, unsigned path_index) const
 {
-  visitor.visit(*this, path, path_index);
-  for (auto& eit: elements)
+  if (path.reached(path_index))
   {
-    auto sv = visitor.get_sub_element_visitor(eit.first);
-    if (sv)
-      eit.second->accept(*sv, path, path_index);
+    visitor.visit(*this, path, path_index);
+    for (auto& eit: elements)
+    {
+      auto sv = visitor.get_sub_element_visitor(eit.first);
+      if (sv)
+        eit.second->accept(*sv, path, ++path_index);
+    }
+  }
+  else
+  {
+    auto part = path.get(path_index);
+
+    switch (part.type)
+    {
+      case Path::PartType::attribute:
+        break;
+      case Path::PartType::element:
+        {
+          auto eit = elements.find(part.name);
+          if (eit == elements.end())
+            throw(runtime_error{"Element not found: " + part.name});
+          eit->second->accept(visitor, path, ++path_index);
+         }
+        break;
+      default:
+        break;
+    }
   }
 }
 

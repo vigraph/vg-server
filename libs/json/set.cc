@@ -152,6 +152,13 @@ void SetVisitor::visit(Dataflow::Graph& graph,
                 << " to " << ielement->get_id() << "." << iinput << endl;
             continue;
           }
+
+#if OBTOOLS_LOG_DEBUG
+          Log::Debug dlog;
+          dlog << "CONNECT " << graph.get_id() << ":" << oid << " to "
+               << iname << ":" << iinput << " (scope: "
+               << scope_graph->get_id() << ")" << endl;
+#endif
         }
       }
     }
@@ -244,6 +251,13 @@ void SetVisitor::visit(Dataflow::Element& element,
                   << " to " << ielement->get_id() << "." << iinput << endl;
               continue;
             }
+
+#if OBTOOLS_LOG_DEBUG
+            Log::Debug dlog;
+            dlog << "CONNECT " << element.get_id() << ":" << id << " to "
+                 << iid << ":" << iinput << " (scope: "
+                 << scope_graph->get_id() << ")" << endl;
+#endif
           }
         }
       }

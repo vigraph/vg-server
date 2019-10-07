@@ -46,7 +46,7 @@ GraphElement *Engine::create(const string& type, const string& id) const
 // Update element list
 void Engine::update_elements()
 {
-  MT::RWReadLock lock(graph_mutex);
+  MT::RWWriteLock lock(graph_mutex);
   tick_elements.clear();
   graph->collect_elements(tick_elements);
 }

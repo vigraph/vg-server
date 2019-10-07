@@ -32,18 +32,27 @@ bool Graph::connect(const string& out_name,
   auto output_pin = get_element(pin_info.element);
   if (!output_pin)
     return false;
-  if (!output_pin->connect(pin_info.connection, b, in_name))
-    return false;
-  b.notify_connection(in_name, *this, out_name);
-  return true;
+
+  // Pass connection on to the pin
+  return output_pin->connect(pin_info.connection, b, in_name);
 }
 
 //--------------------------------------------------------------------------
 // Notify of a connection
-void Graph::notify_connection(const string& /*in_name*/,
-                              GraphElement& /*a*/, const string& /*out_name*/)
+void Graph::notify_connection(const string& in_name,
+                              GraphElement& a, const string& out_name)
 {
-//  throw(runtime_error("Unimplemented"));
+  auto iit = input_pins.find(in_name);
+  if (iit == input_pins.end())
+    return;
+
+  const auto& pin_info = iit->second;
+  auto input_pin = get_element(pin_info.element);
+  if (!input_pin)
+    return;
+
+  // Pass notification to pin
+  input_pin->notify_connection("input", a, out_name);
 }
 
 //--------------------------------------------------------------------------
@@ -51,6 +60,7 @@ void Graph::notify_connection(const string& /*in_name*/,
 Graph *Graph::clone() const
 {
   auto g = new Graph{GraphModule{}};
+  g->set_id(get_id());
   for (const auto& el: elements)
   {
     g->elements.emplace(el.first, el.second->clone());

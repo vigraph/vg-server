@@ -232,8 +232,9 @@ private:
 
 
   // Combine for types which addition is valid for
+  // Second arg is for disambiguation, always pass true
   template<typename U = T, class = decltype(declval<U>() + declval<U>())>
-  void combine(decltype(input_data.begin()) it)
+  void combine(decltype(input_data.begin()) it, bool)
   {
     for (auto i = input_data.begin(); i != input_data.end(); ++i)
     {
@@ -251,7 +252,9 @@ private:
   }
 
   // Combine for types which can't be added
-  void combine(decltype(input_data.begin()))
+  // Second arg is for disambiguation, always pass true
+  template<typename U = T>
+  void combine(decltype(input_data.begin()), int)
   {
     // Just use the first connection
     combined = true;
@@ -283,7 +286,7 @@ public:
 
     auto it = input_data.begin();
     if (!combined && input_data.size() > 1)
-      combine(it);
+      combine(it, true);
 
     return it->second.data;
   }
@@ -296,12 +299,13 @@ public:
 
       // Ensure combined
       if (!combined && input_data.size() > 1)
-        combine(it);
+        combine(it, true);
 
       // Store last value
       if (!it->second.data.empty())
         this->set(it->second.data.back());
     }
+    combined = false;
 
     for (auto& i: input_data)
     {

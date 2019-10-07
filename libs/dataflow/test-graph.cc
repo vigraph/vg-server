@@ -53,9 +53,9 @@ TEST_F(GraphTest, TestGraphTickAndMultipleSources)
   ASSERT_NE(nullptr, sink);
 
   ASSERT_NO_THROW(engine.tick(1));
-  EXPECT_EQ(2, sink->received_data);
+  EXPECT_EQ(4, sink->received_data);
   ASSERT_NO_THROW(engine.tick(2));
-  EXPECT_EQ(6, sink->received_data);
+  EXPECT_EQ(12, sink->received_data);
 }
 
 TEST_F(GraphTest, TestGraphSimpleTickOrdering)

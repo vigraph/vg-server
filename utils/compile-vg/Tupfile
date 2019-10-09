@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph 'vg' compiler
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-compile
+TYPE    = exe
+DEPENDS = vg-compiler
+
+include_rules

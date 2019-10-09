@@ -1,0 +1,2 @@
+# Basic VG sample
+foo i1=2 i2=3.14 i3="Hello" ->- bar ->- splat

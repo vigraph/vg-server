@@ -33,7 +33,7 @@ void Parser::read_inputs(JSON::Value& element)
   for(;;) // Looping on inputs
   {
     // Read ahead another name
-    Lex::Token token = lex.read_token();
+    auto token = lex.read_token();
     if (token.type != Lex::Token::NAME)
     {
       lex.put_back(token);
@@ -41,7 +41,7 @@ void Parser::read_inputs(JSON::Value& element)
     }
 
     // Then optional =
-    Lex::Token symbol = lex.read_token();
+    auto symbol = lex.read_token();
     if (symbol.type == Lex::Token::SYMBOL && symbol.value == "=")
     {
       // It's an input assignment
@@ -49,10 +49,10 @@ void Parser::read_inputs(JSON::Value& element)
       // Create inputs if none yet
       if (!element["inputs"])
         element.put("inputs", JSON::Value::OBJECT);
-      JSON::Value& inputs = element["inputs"];
-      JSON::Value& input = inputs.put(token.value, JSON::Value::OBJECT);
+      auto& inputs = element["inputs"];
+      auto& input = inputs.put(token.value, JSON::Value::OBJECT);
 
-      Lex::Token value = lex.read_token();
+      auto value = lex.read_token();
       switch (value.type)
       {
         case Lex::Token::NUMBER:
@@ -90,7 +90,7 @@ void Parser::read_outputs(JSON::Value& element)
   for(;;) // Looping on outputs
   {
     // Read ahead another name
-    Lex::Token token = lex.read_token();
+    auto token = lex.read_token();
 
     // Special case for '-' = 'output'
     if (token.type == Lex::Token::SYMBOL && token.value == "-")
@@ -103,7 +103,7 @@ void Parser::read_outputs(JSON::Value& element)
     }
 
     // Then optional ->
-    Lex::Token symbol = lex.read_token();
+    auto symbol = lex.read_token();
     if (symbol.type == Lex::Token::SYMBOL && symbol.value == ">")
     {
       // It's an output assignment
@@ -111,20 +111,20 @@ void Parser::read_outputs(JSON::Value& element)
       // Create outputs if none yet
       if (!element["outputs"])
         element.set("outputs", JSON::Value::OBJECT);
-      JSON::Value& outputs = element["outputs"];
+      auto& outputs = element["outputs"];
 
       // Create this output if not already done
       if (!outputs[token.value])
         outputs.put(token.value, JSON::Value::OBJECT)
                .put("connections", JSON::Value::ARRAY);
 
-      JSON::Value& output = outputs[token.value];
-      JSON::Value& conns = output["connections"];
-      JSON::Value& conn = conns.add(JSON::Value::OBJECT);
+      auto& output = outputs[token.value];
+      auto& conns = output["connections"];
+      auto& conn = conns.add(JSON::Value::OBJECT);
 
       // Try to read <element> .
-      Lex::Token el = lex.read_token();
-      Lex::Token dot = lex.read_token();
+      auto el = lex.read_token();
+      auto dot = lex.read_token();
       if (el.type == Lex::Token::NAME
           && dot.type == Lex::Token::SYMBOL && dot.value == ".")
       {
@@ -137,7 +137,7 @@ void Parser::read_outputs(JSON::Value& element)
         lex.put_back(el);
       }
 
-      Lex::Token input = lex.read_token();
+      auto input = lex.read_token();
 
       // Special case for '-' = 'input'
       if (input.type == Lex::Token::SYMBOL && input.value == "-")
@@ -197,7 +197,7 @@ JSON::Value Parser::get_json()
     JSON::Value root(JSON::Value::OBJECT);
     for(;;) // Looping on elements
     {
-      Lex::Token token = lex.read_token();
+      auto token = lex.read_token();
       if (token.type == Lex::Token::END) break;
 
       if (token.type != Lex::Token::NAME)
@@ -205,10 +205,10 @@ JSON::Value Parser::get_json()
 
       // Try for : to see if this is the ID prefix or the type
       string id, type;
-      Lex::Token colon = lex.read_token();
+      auto colon = lex.read_token();
       if (colon.type == Lex::Token::SYMBOL && colon.value == ":")
       {
-        Lex::Token type_t = lex.read_token();
+        auto type_t = lex.read_token();
         if (type_t.type != Lex::Token::NAME)
           throw Exception("Expected a type name");
         type = type_t.value;
@@ -225,7 +225,7 @@ JSON::Value Parser::get_json()
       }
 
       // Create new element
-      JSON::Value& element = root.put(id, JSON::Value::OBJECT);
+      auto& element = root.put(id, JSON::Value::OBJECT);
       element.put("type", type);
       read_inputs(element);
       read_outputs(element);
@@ -233,11 +233,11 @@ JSON::Value Parser::get_json()
       // Check if last element has any unconnected inputs
       if (!last_element_id.empty())
       {
-        JSON::Value& last_element = root[last_element_id];
-        JSON::Value& outputs = last_element["outputs"];
+        auto& last_element = root[last_element_id];
+        auto& outputs = last_element["outputs"];
         for(auto& oit: outputs.o)
         {
-          JSON::Value& connections = oit.second["connections"];
+          auto& connections = oit.second["connections"];
           for(auto& cit: connections.a)
           {
             // Set if not explicitly set already

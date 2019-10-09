@@ -39,28 +39,28 @@ void Reader::add(uint8_t byte)
         case 0:  // Note off
           if (data.size() >= 2)
           {
-            data.clear();
             events.emplace_back(Event::Direction::in, Event::Type::note_off,
                                 chan, data[0], data[1]);
+            data.clear();
           }
         break;
 
         case 1:  // Note on
           if (data.size() >= 2)
           {
-            data.clear();
             events.emplace_back(Event::Direction::in, Event::Type::note_on,
                                 chan, data[0], data[1]);
+            data.clear();
           }
         break;
 
         case 3:  // Control change
           if (data.size() >= 2)
           {
-            data.clear();
             events.emplace_back(Event::Direction::in,
                                 Event::Type::control_change,
                                 chan, data[0], data[1]);
+            data.clear();
           }
         break;
 

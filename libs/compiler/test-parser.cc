@@ -223,7 +223,23 @@ e2: splat
   EXPECT_EQ("e1", o2e1.s);
 }
 
+TEST(ParserTest, TestSanityCheckFailsOnDanglingOutputs)
+{
+  string input("foo ->-");
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  JSON::Value v;
+  ASSERT_THROW(v = parser.get_json(), Compiler::Exception);
+}
 
+TEST(ParserTest, TestSanityCheckFailsOnNonExistentOutputs)
+{
+  string input("foo -> nowhere.-");
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  JSON::Value v;
+  ASSERT_THROW(v = parser.get_json(), Compiler::Exception);
+}
 
 } // anonymous namespace
 

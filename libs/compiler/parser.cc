@@ -159,6 +159,33 @@ void Parser::read_outputs(JSON::Value& element)
 }
 
 //------------------------------------------------------------------------
+// Final sanity check that everything is connected
+void Parser::sanity_check(const JSON::Value& root)
+{
+  for(auto& eit: root.o)
+  {
+    const auto& outputs = eit.second["outputs"];
+    for(auto& oit: outputs.o)
+    {
+      const auto& connections = oit.second["connections"];
+      for(auto& cit: connections.a)
+      {
+        // Fail if not set
+        const auto& id = cit["element"].as_str();
+        if (id.empty())
+          throw Exception("Unconnected output "+oit.first
+                          +" in element "+eit.first);
+
+        // Fail if it doesn't exist
+        if (!root[id])
+          throw Exception("No such element "+id+" in output "+oit.first
+                          +" in element "+eit.first);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 // Read structure as JSON
 JSON::Value Parser::get_json()
 {
@@ -222,8 +249,7 @@ JSON::Value Parser::get_json()
       last_element_id = id;
     }
 
-    cout << root;
-
+    sanity_check(root);
     return root;
   }
   catch (const Lex::Exception& e)

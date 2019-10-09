@@ -37,6 +37,7 @@ class Parser
   // Internals
   void read_inputs(JSON::Value& element);
   void read_outputs(JSON::Value& element);
+  void sanity_check(const JSON::Value& root);
 
 public:
   //------------------------------------------------------------------------

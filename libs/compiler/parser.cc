@@ -18,36 +18,39 @@ Parser::Parser(istream& input): lex(input)
 {
   // Add symbols
   lex.add_symbol("=");
-  lex.add_symbol("->");
-  lex.add_symbol(".");
   lex.add_symbol(">");
+  lex.add_symbol(".");
+  lex.add_symbol("-");
   lex.add_symbol(":");
   lex.add_line_comment_symbol("#");
 }
 
 //------------------------------------------------------------------------
 // Try to read inputs name=value onto the given element
-// Pushes back if not name = format
+// Stops and pushes back if not 'name =' format
 void Parser::read_inputs(JSON::Value& element)
 {
   for(;;) // Looping on inputs
   {
     // Read ahead another name
-    Lex::Token next_token = lex.read_token();
-    if (next_token.type == Lex::Token::END) break;
+    Lex::Token token = lex.read_token();
+    if (token.type != Lex::Token::NAME)
+    {
+      lex.put_back(token);
+      break;
+    }
 
     // Then optional =
     Lex::Token symbol = lex.read_token();
     if (symbol.type == Lex::Token::SYMBOL && symbol.value == "=")
     {
+      // It's an input assignment
+
       // Create inputs if none yet
       if (!element["inputs"])
-        element.set("inputs", JSON::Value::OBJECT);
+        element.put("inputs", JSON::Value::OBJECT);
       JSON::Value& inputs = element["inputs"];
-
-      // It's an input assignment
-      inputs.set(next_token.value, JSON::Value::OBJECT);
-      JSON::Value& input = inputs[next_token.value];
+      JSON::Value& input = inputs.put(token.value, JSON::Value::OBJECT);
 
       Lex::Token value = lex.read_token();
       switch (value.type)
@@ -73,7 +76,83 @@ void Parser::read_inputs(JSON::Value& element)
     {
       // Put both back and go to next element
       lex.put_back(symbol);
-      lex.put_back(next_token);
+      lex.put_back(token);
+      break;
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+// Try to read outputs [<output>]>[<id>.]<input> onto the given element
+// Stops and pushes back if not > format
+void Parser::read_outputs(JSON::Value& element)
+{
+  for(;;) // Looping on outputs
+  {
+    // Read ahead another name
+    Lex::Token token = lex.read_token();
+
+    // Special case for '-' = 'output'
+    if (token.type == Lex::Token::SYMBOL && token.value == "-")
+      token = Lex::Token(Lex::Token::NAME, "output");
+
+    if (token.type != Lex::Token::NAME)
+    {
+      lex.put_back(token);
+      break;
+    }
+
+    // Then optional ->
+    Lex::Token symbol = lex.read_token();
+    if (symbol.type == Lex::Token::SYMBOL && symbol.value == ">")
+    {
+      // It's an output assignment
+
+      // Create outputs if none yet
+      if (!element["outputs"])
+        element.set("outputs", JSON::Value::OBJECT);
+      JSON::Value& outputs = element["outputs"];
+
+      // Create this output if not already done
+      if (!outputs[token.value])
+        outputs.put(token.value, JSON::Value::OBJECT)
+               .put("connections", JSON::Value::ARRAY);
+
+      JSON::Value& output = outputs[token.value];
+      JSON::Value& conns = output["connections"];
+      JSON::Value& conn = conns.add(JSON::Value::OBJECT);
+
+      // Try to read <element> .
+      Lex::Token el = lex.read_token();
+      Lex::Token dot = lex.read_token();
+      if (el.type == Lex::Token::NAME
+          && dot.type == Lex::Token::SYMBOL && dot.value == ".")
+      {
+        conn.put("element", el.value);
+      }
+      else
+      {
+        // Revert
+        lex.put_back(dot);
+        lex.put_back(el);
+      }
+
+      Lex::Token input = lex.read_token();
+
+      // Special case for '-' = 'input'
+      if (input.type == Lex::Token::SYMBOL && input.value == "-")
+        input = Lex::Token(Lex::Token::NAME, "input");
+
+      if (input.type != Lex::Token::NAME)
+        throw Exception("Unexpected token in output route "+input.value);
+
+      conn.put("input", input.value);
+    }
+    else
+    {
+      // Put both back and go to next element
+      lex.put_back(symbol);
+      lex.put_back(token);
       break;
     }
   }
@@ -94,10 +173,9 @@ JSON::Value Parser::get_json()
       if (token.type != Lex::Token::NAME)
         throw Exception("Expected an element name");
 
-      root.set(token.value, JSON::Value::OBJECT);
-      JSON::Value& element = root[token.value];
-
+      JSON::Value& element = root.put(token.value, JSON::Value::OBJECT);
       read_inputs(element);
+      read_outputs(element);
     }
     cout << root;
     return root;

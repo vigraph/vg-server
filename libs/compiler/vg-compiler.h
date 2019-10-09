@@ -33,6 +33,9 @@ class Parser
 {
   Lex::Analyser lex;
 
+  // Internals
+  void read_inputs(JSON::Value& element);
+
 public:
   //------------------------------------------------------------------------
   // Constructor on an istream

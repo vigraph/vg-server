@@ -55,7 +55,12 @@ class Engine;
 class Graph;
 class Clone;
 class Element;
+class ElementSetting;
+class ElementInput;
+class ElementOutput;
 class GraphElement;
+class ReadVisitor;
+class WriteVisitor;
 
 //==========================================================================
 // Path class
@@ -136,6 +141,42 @@ public:
 };
 
 //==========================================================================
+// Member wrappers
+template<typename T>
+class Member
+{
+public:
+  virtual string get_type() const = 0;
+  virtual const T& get(const GraphElement& b) const = 0;
+  virtual T& get(GraphElement& b) const = 0;
+  virtual JSON::Value get_json(const GraphElement& b) const = 0;
+  virtual void set_json(GraphElement& b, const JSON::Value& json) const = 0;
+  virtual void accept(ReadVisitor& visitor,
+                      const Path& path, unsigned path_index,
+                      const GraphElement& element) const = 0;
+  virtual void accept(WriteVisitor& visitor,
+                      const Path& path, unsigned path_index,
+                      GraphElement& element) const = 0;
+  virtual ~Member() {}
+};
+using SettingMember = Member<ElementSetting>;
+using InputMember = Member<ElementInput>;
+class OutputMember
+{
+public:
+  virtual string get_type() const = 0;
+  virtual const ElementOutput& get(const GraphElement& b) const = 0;
+  virtual ElementOutput& get(GraphElement& b) const = 0;
+  virtual void accept(ReadVisitor& visitor,
+                      const Path& path, unsigned path_index,
+                      const GraphElement& element) const = 0;
+  virtual void accept(WriteVisitor& visitor,
+                      const Path& path, unsigned path_index,
+                      GraphElement& element) const = 0;
+  virtual ~OutputMember() {}
+};
+
+//==========================================================================
 // Read Visitor class
 class ReadVisitor
 {
@@ -147,9 +188,23 @@ public:
                      const Path& path, unsigned path_index) = 0;
   virtual void visit(const Clone& clone,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_sub_element_visitor(const string& id) = 0;
+  virtual unique_ptr<ReadVisitor> get_sub_element_visitor(const string& id,
+                                                     const Graph &scope) = 0;
   virtual void visit(const Element& element,
                      const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<ReadVisitor> get_element_setting_visitor(const string &id)
+          = 0;
+  virtual void visit(const GraphElement& element, const SettingMember& setting,
+                     const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<ReadVisitor> get_element_input_visitor(const string &id)
+          = 0;
+  virtual void visit(const GraphElement& element, const InputMember& input,
+                     const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<ReadVisitor> get_element_output_visitor(const string &id)
+          = 0;
+  virtual void visit(const GraphElement& element, const OutputMember& output,
+                     const Path& path, unsigned path_index) = 0;
+
   virtual ~ReadVisitor() {}
 };
 
@@ -170,6 +225,19 @@ public:
   virtual unique_ptr<WriteVisitor> get_sub_clone_visitor(Clone& clone) = 0;
   virtual void visit(Element& element,
                      const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<WriteVisitor> get_element_setting_visitor(const string &id)
+          = 0;
+  virtual void visit(GraphElement& element, const SettingMember& setting,
+                     const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<WriteVisitor> get_element_input_visitor(const string &id)
+          = 0;
+  virtual void visit(GraphElement& element, const InputMember& input,
+                     const Path& path, unsigned path_index) = 0;
+  virtual unique_ptr<WriteVisitor> get_element_output_visitor(const string &id)
+          = 0;
+  virtual void visit(GraphElement& element, const OutputMember& output,
+                     const Path& path, unsigned path_index) = 0;
+
   virtual ~WriteVisitor() {}
 };
 
@@ -178,6 +246,7 @@ public:
 class ElementSetting
 {
 public:
+  // Accept visitors
   virtual ~ElementSetting() {}
 };
 
@@ -221,6 +290,8 @@ public:
   };
   virtual bool connect(const Connection&) = 0;
   virtual vector<Connection> get_connections() const = 0;
+
+  virtual ~ElementOutput() {}
 };
 
 template<typename T> class Output;
@@ -451,28 +522,6 @@ public:
   virtual string get_section() const = 0;
   virtual string get_full_type() const { return get_section() + ":" +
                                                 get_id(); }
-  template<typename T>
-  class Member
-  {
-  public:
-    virtual string get_type() const = 0;
-    virtual const T& get(const GraphElement& b) const = 0;
-    virtual T& get(GraphElement& b) const = 0;
-    virtual JSON::Value get_json(const GraphElement& b) const = 0;
-    virtual void set_json(GraphElement& b, const JSON::Value& json) const = 0;
-    virtual ~Member() {}
-  };
-  using SettingMember = Member<ElementSetting>;
-  using InputMember = Member<ElementInput>;
-  class OutputMember
-  {
-  public:
-    virtual string get_type() const = 0;
-    virtual const ElementOutput& get(const GraphElement& b) const = 0;
-    virtual ElementOutput& get(GraphElement& b) const = 0;
-    virtual ~OutputMember() {}
-  };
-
   ElementSetting *get_setting(GraphElement& element, const string& name) const
   {
     auto s = get_setting(name);
@@ -564,11 +613,11 @@ protected:
   string section;
 
   // settings
-  class Setting: public Module::SettingMember
+  class Setting: public SettingMember
   {
   private:
     template<typename T>
-    class TypedMember: public Module::SettingMember
+    class TypedMember: public SettingMember
     {
     private:
       Dataflow::Setting<T> GraphElement::* member_pointer = nullptr;
@@ -606,8 +655,24 @@ protected:
         set_from_json(v, json);
         (b.*member_pointer).set(v);
       }
+
+      void accept(ReadVisitor& visitor,
+                  const Path& path, unsigned path_index,
+                  const GraphElement& element) const override
+      {
+        if (path.reached(path_index))
+          visitor.visit(element, *this, path, path_index);
+      }
+
+      void accept(WriteVisitor& visitor,
+                  const Path& path, unsigned path_index,
+                  GraphElement& element) const override
+      {
+        if (path.reached(path_index))
+          visitor.visit(element, *this, path, path_index);
+      }
     };
-    shared_ptr<Module::SettingMember> typed_member;
+    shared_ptr<SettingMember> typed_member;
 
   public:
     template<typename T, typename C>
@@ -639,14 +704,28 @@ protected:
     {
       typed_member->set_json(b, json);
     }
+
+    void accept(ReadVisitor& visitor,
+                const Path& path, unsigned path_index,
+                const GraphElement& element) const override
+    {
+      typed_member->accept(visitor, path, path_index, element);
+    }
+
+    void accept(WriteVisitor& visitor,
+                const Path& path, unsigned path_index,
+                GraphElement& element) const override
+    {
+      typed_member->accept(visitor, path, path_index, element);
+    }
   };
   map<string, Setting> settings;
 
-  class Input: public Module::InputMember
+  class Input: public InputMember
   {
   private:
     template<typename T>
-    class TypedMember: public Module::InputMember
+    class TypedMember: public InputMember
     {
     private:
       Dataflow::Input<T> GraphElement::* member_pointer = nullptr;
@@ -684,8 +763,24 @@ protected:
         set_from_json(v, json);
         (b.*member_pointer).set(v);
       }
+
+      void accept(ReadVisitor& visitor,
+                  const Path& path, unsigned path_index,
+                  const GraphElement& element) const override
+      {
+        if (path.reached(path_index))
+          visitor.visit(element, *this, path, path_index);
+      }
+
+      void accept(WriteVisitor& visitor,
+                  const Path& path, unsigned path_index,
+                  GraphElement& element) const override
+      {
+        if (path.reached(path_index))
+          visitor.visit(element, *this, path, path_index);
+      }
     };
-    shared_ptr<Module::InputMember> typed_member;
+    shared_ptr<InputMember> typed_member;
 
   public:
     template<typename T, typename C>
@@ -717,14 +812,28 @@ protected:
     {
       typed_member->set_json(b, json);
     }
+
+    void accept(ReadVisitor& visitor,
+                const Path& path, unsigned path_index,
+                const GraphElement& element) const override
+    {
+      typed_member->accept(visitor, path, path_index, element);
+    }
+
+    void accept(WriteVisitor& visitor,
+                const Path& path, unsigned path_index,
+                GraphElement& element) const override
+    {
+      typed_member->accept(visitor, path, path_index, element);
+    }
   };
   map<string, Input> inputs;
 
-  class Output: public Module::OutputMember
+  class Output: public OutputMember
   {
   private:
     template<typename T>
-    class TypedMember: public Module::OutputMember
+    class TypedMember: public OutputMember
     {
     private:
       Dataflow::Output<T> GraphElement::* member_pointer = nullptr;
@@ -750,8 +859,24 @@ protected:
       {
         return b.*member_pointer;
       }
+
+      void accept(ReadVisitor& visitor,
+                  const Path& path, unsigned path_index,
+                  const GraphElement& element) const override
+      {
+        if (path.reached(path_index))
+          visitor.visit(element, *this, path, path_index);
+      }
+
+      void accept(WriteVisitor& visitor,
+                  const Path& path, unsigned path_index,
+                  GraphElement& element) const override
+      {
+        if (path.reached(path_index))
+          visitor.visit(element, *this, path, path_index);
+      }
     };
-    shared_ptr<Module::OutputMember> typed_member;
+    shared_ptr<OutputMember> typed_member;
 
   public:
     template<typename T, typename C>
@@ -772,6 +897,20 @@ protected:
     ElementOutput& get(GraphElement& b) const override
     {
       return typed_member->get(b);
+    }
+
+    void accept(ReadVisitor& visitor,
+                const Path& path, unsigned path_index,
+                const GraphElement& element) const override
+    {
+      typed_member->accept(visitor, path, path_index, element);
+    }
+
+    void accept(WriteVisitor& visitor,
+                const Path& path, unsigned path_index,
+                GraphElement& element) const override
+    {
+      typed_member->accept(visitor, path, path_index, element);
     }
   };
   map<string, Output> outputs;
@@ -1094,10 +1233,10 @@ private:
   {
   private:
     GraphElement& pin;
-    const Module::InputMember& module;
+    const InputMember& module;
   public:
     GraphInputMember(GraphElement& _pin):
-      pin{_pin}, module{[&_pin]() -> const Module::InputMember&
+      pin{_pin}, module{[&_pin]() -> const InputMember&
       {
         auto m = _pin.get_module().get_input("input");
         if (!m)
@@ -1125,15 +1264,31 @@ private:
     {
       return module.set_json(pin, json);
     }
+
+    void accept(ReadVisitor& visitor,
+                const Path& path, unsigned path_index,
+                const GraphElement& element) const override
+    {
+      if (path.reached(path_index))
+        visitor.visit(element, *this, path, path_index);
+    }
+
+    void accept(WriteVisitor& visitor,
+                const Path& path, unsigned path_index,
+                GraphElement& element) const override
+    {
+      if (path.reached(path_index))
+        visitor.visit(element, *this, path, path_index);
+    }
   };
   class GraphOutputMember: public OutputMember
   {
   private:
     GraphElement& pin;
-    const Module::OutputMember& module;
+    const OutputMember& module;
   public:
     GraphOutputMember(GraphElement& _pin):
-      pin{_pin}, module{[&_pin]() -> const Module::OutputMember&
+      pin{_pin}, module{[&_pin]() -> const OutputMember&
       {
         auto m = _pin.get_module().get_output("output");
         if (!m)
@@ -1152,6 +1307,22 @@ private:
     ElementOutput& get(GraphElement&) const override
     {
       return module.get(pin);
+    }
+
+    void accept(ReadVisitor& visitor,
+                const Path& path, unsigned path_index,
+                const GraphElement& element) const override
+    {
+      if (path.reached(path_index))
+        visitor.visit(element, *this, path, path_index);
+    }
+
+    void accept(WriteVisitor& visitor,
+                const Path& path, unsigned path_index,
+                GraphElement& element) const override
+    {
+      if (path.reached(path_index))
+        visitor.visit(element, *this, path, path_index);
     }
   };
   map<string, GraphInputMember> inputs;

@@ -123,15 +123,43 @@ GraphElement *Graph::get_element(const string& id)
 
 //--------------------------------------------------------------------------
 // Accept visitors
-void Graph::accept(ReadVisitor& visitor,
-                   const Path& path, unsigned path_index) const
+template<class G, class V>
+inline void accept_visitor(G& graph, V& visitor,
+                           const Path& path, unsigned path_index)
 {
   if (path.reached(path_index))
   {
-    visitor.visit(*this, path, path_index);
+    visitor.visit(graph, path, path_index);
+
+    auto& module = graph.get_module();
+    if (module.has_inputs())
+    {
+      module.for_each_input([&graph, &visitor, &path, &path_index]
+                            (const string& id,
+                             const InputMember& input)
+      {
+        auto iv = visitor.get_element_input_visitor(id);
+        if (iv)
+          input.accept(*iv, path, ++path_index, graph);
+      });
+    }
+
+    if (module.has_outputs())
+    {
+      module.for_each_output([&graph, &visitor, &path, &path_index]
+                             (const string& id,
+                              const OutputMember& output)
+      {
+        auto ov = visitor.get_element_output_visitor(id);
+        if (ov)
+          output.accept(*ov, path, ++path_index, graph);
+      });
+    }
+
+    auto& elements = graph.get_elements();
     for (auto& eit: elements)
     {
-      auto sv = visitor.get_sub_element_visitor(eit.first);
+      auto sv = visitor.get_sub_element_visitor(eit.first, graph);
       if (sv)
         eit.second->accept(*sv, path, ++path_index);
     }
@@ -146,6 +174,7 @@ void Graph::accept(ReadVisitor& visitor,
         break;
       case Path::PartType::element:
         {
+          auto& elements = graph.get_elements();
           auto eit = elements.find(part.name);
           if (eit == elements.end())
             throw(runtime_error{"Element not found: " + part.name});
@@ -158,16 +187,16 @@ void Graph::accept(ReadVisitor& visitor,
   }
 }
 
+void Graph::accept(ReadVisitor& visitor,
+                   const Path& path, unsigned path_index) const
+{
+  accept_visitor(*this, visitor, path, path_index);
+}
+
 void Graph::accept(WriteVisitor& visitor,
                    const Path& path, unsigned path_index)
 {
-  visitor.visit(*this, path, path_index);
-  for (auto& eit: elements)
-  {
-    auto sv = visitor.get_sub_element_visitor(eit.first, *this);
-    if (sv)
-      eit.second->accept(*sv, path, path_index);
-  }
+  accept_visitor(*this, visitor, path, path_index);
 }
 
 //------------------------------------------------------------------------

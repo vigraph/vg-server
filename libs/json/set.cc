@@ -17,7 +17,7 @@ void SetVisitor::visit(Dataflow::Engine&,
 
 unique_ptr<Dataflow::WriteVisitor> SetVisitor::get_root_graph_visitor()
 {
-  return make_unique<SetVisitor>(engine, json, &engine.get_graph());
+  return make_unique<SetVisitor>(engine, json, "root", &engine.get_graph());
 }
 
 void SetVisitor::visit(Dataflow::Graph& graph,
@@ -125,42 +125,6 @@ void SetVisitor::visit(Dataflow::Graph& graph,
         throw runtime_error("Graph output pin requires a 'type'");
 
       graph.add_output_pin(oid, oid, "output");
-
-      // Connections
-      const auto& connectionsj = outputj.get("connections");
-      if (!!connectionsj && connectionsj.type == Value::Type::ARRAY)
-      {
-        for (const auto& connj: connectionsj.a)
-        {
-          const auto& iname = connj["element"].as_str();
-          const auto& iinput = connj["input"].as_str();
-          auto ielement = scope_graph->get_element(iname);
-          if (!ielement)
-          {
-            Log::Error log;
-            log << "Unknown element '" << iname << "' for element '"
-                << graph.get_id() << "' output connection on '" << oid
-                << "' in scope of '" << scope_graph->get_id() << "'"
-                << endl;
-            continue;
-          }
-
-          if (!graph.connect(oid, *ielement, iinput))
-          {
-            Log::Error log;
-            log << "Could not connect " << graph.get_id() << "." << oid
-                << " to " << ielement->get_id() << "." << iinput << endl;
-            continue;
-          }
-
-#if OBTOOLS_LOG_DEBUG
-          Log::Debug dlog;
-          dlog << "CONNECT " << graph.get_id() << ":" << oid << " to "
-               << iname << ":" << iinput << " (scope: "
-               << scope_graph->get_id() << ")" << endl;
-#endif
-        }
-      }
     }
   }
 }
@@ -181,88 +145,123 @@ unique_ptr<Dataflow::WriteVisitor>
   auto it = sub_element_json.find(id);
   if (it == sub_element_json.end())
     return {};
-  return make_unique<SetVisitor>(engine, *it->second, &scope);
+  return make_unique<SetVisitor>(engine, *it->second, id, &scope);
 }
 
 unique_ptr<Dataflow::WriteVisitor>
     SetVisitor::get_sub_clone_visitor(Dataflow::Clone &clone)
 {
-  return make_unique<SetVisitor>(engine, json, scope_graph, &clone);
+  return make_unique<SetVisitor>(engine, json, id, scope_graph, &clone);
 }
 
-void SetVisitor::visit(Dataflow::Element& element,
+void SetVisitor::visit(Dataflow::Element&,
                        const Dataflow::Path&, unsigned)
 {
-  auto& module = element.get_module();
-  auto& inputsj = json.get("inputs");
-  if (!!inputsj && inputsj.type == Value::Type::OBJECT)
+}
+
+unique_ptr<Dataflow::WriteVisitor>
+    SetVisitor::get_element_setting_visitor(const string &id)
+{
+  const auto& settingsj = json.get("settings");
+  if (!settingsj || settingsj.type != Value::Type::OBJECT)
+    return nullptr;
+
+  const auto& settingj = settingsj.get(id);
+  if (!settingj)
+    return nullptr;
+
+  return make_unique<SetVisitor>(engine, settingj, id, scope_graph);
+}
+
+void SetVisitor::visit(Dataflow::GraphElement& element,
+                       const Dataflow::SettingMember& setting,
+                       const Dataflow::Path&, unsigned)
+{
+  const auto& valuej = json.get("value");
+  if (!valuej)
+    return;
+  setting.set_json(element, valuej);
+}
+
+unique_ptr<Dataflow::WriteVisitor>
+    SetVisitor::get_element_input_visitor(const string &id)
+{
+  const auto& inputsj = json.get("inputs");
+  if (!inputsj || inputsj.type != Value::Type::OBJECT)
+    return nullptr;
+
+  const auto& inputj = inputsj.get(id);
+  if (!inputj)
+    return nullptr;
+
+  return make_unique<SetVisitor>(engine, inputj, id, scope_graph);
+}
+
+void SetVisitor::visit(Dataflow::GraphElement& element,
+                       const Dataflow::InputMember& input,
+                       const Dataflow::Path&, unsigned)
+{
+  const auto& valuej = json.get("value");
+  if (!valuej)
+    return;
+  input.set_json(element, valuej);
+}
+
+unique_ptr<Dataflow::WriteVisitor>
+    SetVisitor::get_element_output_visitor(const string &id)
+{
+  const auto& outputsj = json.get("outputs");
+  if (!outputsj || outputsj.type != Value::Type::OBJECT)
+    return nullptr;
+
+  const auto& outputj = outputsj.get(id);
+  if (!outputj)
+    return nullptr;
+
+  return make_unique<SetVisitor>(engine, outputj, id, scope_graph);
+}
+
+void SetVisitor::visit(Dataflow::GraphElement& element,
+                       const Dataflow::OutputMember&,
+                       const Dataflow::Path&, unsigned)
+{
+  if (!scope_graph)
+    return; // Can't make connections without a scope
+
+  const auto& connectionsj = json.get("connections");
+  if (!connectionsj || connectionsj.type != Value::Type::ARRAY)
+    return;
+
+  for (const auto& connectionj: connectionsj.a)
   {
-    for (const auto iit: inputsj.o)
+    const auto& iid = connectionj["element"].as_str();
+    const auto& iinput = connectionj["input"].as_str();
+    auto ielement = (iid == scope_graph->get_id()
+                     ? scope_graph : scope_graph->get_element(iid));
+    if (!ielement)
     {
-      const auto& name = iit.first;
-      const auto& inputj = iit.second;
-
-      auto input = module.get_input(name);
-      if (!input)
-      {
-        Log::Error log;
-        log << "Unknown input '" << name << "' on element "
-            << element.get_id() << endl;
-        continue;
-      }
-
-      const auto& valuej = inputj.get("value");
-      if (!!valuej)
-        input->set_json(element, valuej);
+      Log::Error log;
+      log << "Unknown element '" << iid << "' for element '"
+          << element.get_id() << "' output connection on '" << id
+          << "' in scope of '" << scope_graph->get_id() << "'"
+          << endl;
+      continue;
     }
-  }
-  if (scope_graph)
-  {
-    auto outputsj = json.get("outputs");
-    if (!!outputsj && outputsj.type == Value::Type::OBJECT)
+
+    if (!element.connect(id, *ielement, iinput))
     {
-      for (const auto oit: outputsj.o)
-      {
-        const auto& id = oit.first;
-        const auto& outputj = oit.second;
-
-        const auto& connectionsj = outputj.get("connections");
-        if (!!connectionsj && connectionsj.type == Value::Type::ARRAY)
-        {
-          for (const auto& connectionj: connectionsj.a)
-          {
-            const auto& iid = connectionj["element"].as_str();
-            const auto& iinput = connectionj["input"].as_str();
-            auto ielement = (iid == scope_graph->get_id()
-                             ? scope_graph : scope_graph->get_element(iid));
-            if (!ielement)
-            {
-              Log::Error log;
-              log << "Unknown element '" << iid << "' for element '"
-                  << element.get_id() << "' output connection on '" << id
-                  << "' in scope of '" << scope_graph->get_id() << "'"
-                  << endl;
-              continue;
-            }
-
-            if (!element.connect(id, *ielement, iinput))
-            {
-              Log::Error log;
-              log << "Could not connect " << element.get_id() << "." << id
-                  << " to " << ielement->get_id() << "." << iinput << endl;
-              continue;
-            }
+      Log::Error log;
+      log << "Could not connect " << element.get_id() << "." << id
+          << " to " << ielement->get_id() << "." << iinput << endl;
+      continue;
+    }
 
 #if OBTOOLS_LOG_DEBUG
-            Log::Debug dlog;
-            dlog << "CONNECT " << element.get_id() << ":" << id << " to "
-                 << iid << ":" << iinput << " (scope: "
-                 << scope_graph->get_id() << ")" << endl;
+    Log::Debug dlog;
+    dlog << "CONNECT " << element.get_id() << ":" << id << " to "
+         << iid << ":" << iinput << " (scope: "
+         << scope_graph->get_id() << ")" << endl;
 #endif
-          }
-        }
-      }
-    }
   }
 }
 

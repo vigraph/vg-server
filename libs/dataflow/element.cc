@@ -85,16 +85,63 @@ void Element::reset()
 
 //--------------------------------------------------------------------------
 // Accept visitors
+template<class E, class V>
+void accept_visitor(E& element, V& visitor,
+                    const Path& path, unsigned path_index)
+{
+  if (path.reached(path_index))
+  {
+    visitor.visit(element, path, path_index);
+
+    auto& module = element.get_module();
+    if (module.has_settings())
+    {
+      module.for_each_setting([&element, &visitor, &path, &path_index]
+                              (const string& id,
+                               const SettingMember& setting)
+      {
+        auto sv = visitor.get_element_setting_visitor(id);
+        if (sv)
+          setting.accept(*sv, path, ++path_index, element);
+      });
+    }
+
+    if (module.has_inputs())
+    {
+      module.for_each_input([&element, &visitor, &path, &path_index]
+                            (const string& id,
+                             const InputMember& input)
+      {
+        auto iv = visitor.get_element_input_visitor(id);
+        if (iv)
+          input.accept(*iv, path, ++path_index, element);
+      });
+    }
+
+    if (module.has_outputs())
+    {
+      module.for_each_output([&element, &visitor, &path, &path_index]
+                             (const string& id,
+                              const OutputMember& output)
+      {
+        auto ov = visitor.get_element_output_visitor(id);
+        if (ov)
+          output.accept(*ov, path, ++path_index, element);
+      });
+    }
+  }
+}
+
 void Element::accept(ReadVisitor& visitor,
                      const Path& path, unsigned path_index) const
 {
-  visitor.visit(*this, path, path_index);
+  accept_visitor(*this, visitor, path, path_index);
 }
 
 void Element::accept(WriteVisitor& visitor,
                      const Path& path, unsigned path_index)
 {
-  visitor.visit(*this, path, path_index);
+  accept_visitor(*this, visitor, path, path_index);
 }
 
 }} // namespaces

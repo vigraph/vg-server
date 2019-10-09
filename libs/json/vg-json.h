@@ -44,8 +44,22 @@ public:
              const Dataflow::Path& path, unsigned path_index) override;
   void visit(const Dataflow::Clone& graph,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<ReadVisitor> get_sub_element_visitor(const string& id) override;
+  unique_ptr<ReadVisitor> get_sub_element_visitor(const string& id,
+                                      const Dataflow::Graph& scope) override;
   void visit(const Dataflow::Element& element,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<ReadVisitor> get_element_setting_visitor(
+                                                  const string &id) override;
+  void visit(const Dataflow::GraphElement& element,
+             const Dataflow::SettingMember& setting,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<ReadVisitor> get_element_input_visitor(const string &id) override;
+  void visit(const Dataflow::GraphElement& element,
+             const Dataflow::InputMember& input,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<ReadVisitor> get_element_output_visitor(const string &id) override;
+  void visit(const Dataflow::GraphElement& element,
+             const Dataflow::OutputMember& output,
              const Dataflow::Path& path, unsigned path_index) override;
 };
 
@@ -56,15 +70,18 @@ class SetVisitor: public Dataflow::WriteVisitor
 private:
   const Dataflow::Engine& engine;
   const Value& json;
+  const string id;
   Dataflow::Graph *scope_graph = nullptr;
   Dataflow::Clone *clone = nullptr;
   map<string, const Value *> sub_element_json;
 
 public:
   SetVisitor(const Dataflow::Engine& _engine, const Value& _json,
+             const string& _id = "",
              Dataflow::Graph *_scope_graph = nullptr,
              Dataflow::Clone *_clone = nullptr):
-    engine{_engine}, json{_json}, scope_graph{_scope_graph}, clone{_clone}
+    engine{_engine}, json{_json}, id{_id},
+    scope_graph{_scope_graph}, clone{_clone}
   {}
   void visit(Dataflow::Engine& engine,
              const Dataflow::Path& path, unsigned path_index) override;
@@ -78,6 +95,21 @@ public:
   unique_ptr<WriteVisitor> get_sub_clone_visitor(
                                             Dataflow::Clone& clone) override;
   void visit(Dataflow::Element& element,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> get_element_setting_visitor(
+                                                  const string &id) override;
+  void visit(Dataflow::GraphElement& element,
+             const Dataflow::SettingMember& setting,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> get_element_input_visitor(
+                                                  const string &id) override;
+  void visit(Dataflow::GraphElement& element,
+             const Dataflow::InputMember& input,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> get_element_output_visitor(
+                                                  const string &id) override;
+  void visit(Dataflow::GraphElement& element,
+             const Dataflow::OutputMember& output,
              const Dataflow::Path& path, unsigned path_index) override;
 };
 

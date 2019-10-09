@@ -25,37 +25,12 @@ void GetVisitor::visit(const Dataflow::Graph& graph,
 {
   auto& module = graph.get_module();
   json.put("type", module.get_full_type());
-  if (module.has_inputs())
-  {
-    auto& inputsj = json.put("inputs", Value::Type::OBJECT);
-    module.for_each_input([&inputsj](const string& id,
-                                 const Dataflow::Module::InputMember& input)
-    {
-      auto& inputj = inputsj.put(id, Value::Type::OBJECT);
-      inputj.put("type", input.get_type());
-    });
-  }
   if (module.has_outputs())
   {
-    auto& outputsj = json.put("outputs", Value::Type::OBJECT);
-    module.for_each_output([&graph, &outputsj, this]
-              (const string& id, const Dataflow::Module::OutputMember& output)
+    module.for_each_output([this]
+                           (const string& id, const Dataflow::OutputMember&)
     {
-      auto& outputj = outputsj.put(id, Value::Type::OBJECT);
-      outputj.put("type", output.get_type());
       this->output_pins.insert(id);
-      const auto& op = output.get(graph);
-      const auto& conns = op.get_connections();
-      if (conns.empty())
-        return;
-      auto& connectionsj = outputj.put("connections", Value::Type::ARRAY);
-      for (const auto& conn: conns)
-      {
-        auto& connj = connectionsj.add(Value::Type::OBJECT);
-        connj.put("element", conn.element->get_id());
-        auto& imodule = conn.element->get_module();
-        connj.put("input", imodule.get_input_id(*conn.element, *conn.input));
-      }
     });
   }
 }
@@ -68,7 +43,8 @@ void GetVisitor::visit(const Dataflow::Clone& clone,
 }
 
 unique_ptr<Dataflow::ReadVisitor>
-    GetVisitor::get_sub_element_visitor(const string& id)
+    GetVisitor::get_sub_element_visitor(const string& id,
+                                        const Dataflow::Graph&)
 {
   auto eit = json.o.find("elements");
   if (eit == json.o.end())
@@ -84,49 +60,72 @@ void GetVisitor::visit(const Dataflow::Element& element,
 {
   auto& module = element.get_module();
   json.put("type", module.get_full_type());
+}
 
-  if (module.has_settings())
-  {
-    auto& settingsj = json.put("settings", Value::Type::OBJECT);
-    module.for_each_setting([&element, &settingsj](const string& id,
-                             const Dataflow::Module::SettingMember& setting)
-    {
-      auto& settingj = settingsj.put(id, Value::Type::OBJECT);
-      settingj.put("value", setting.get_json(element));
-    });
-  }
+unique_ptr<Dataflow::ReadVisitor>
+    GetVisitor::get_element_setting_visitor(const string& id)
+{
+  auto eit = json.o.find("settings");
+  if (eit == json.o.end())
+    eit = json.o.emplace("settings", Value::Type::OBJECT).first;
+  auto& settings = eit->second;
+  return make_unique<GetVisitor>(settings.put(id, Value::Type::OBJECT));
+}
 
-  if (module.has_inputs())
-  {
-    auto& inputsj = json.put("inputs", Value::Type::OBJECT);
-    module.for_each_input([&element, &inputsj](const string& id,
-                                 const Dataflow::Module::InputMember& input)
-    {
-      auto& inputj = inputsj.put(id, Value::Type::OBJECT);
-      inputj.put("value", input.get_json(element));
-    });
-  }
+void GetVisitor::visit(const Dataflow::GraphElement& element,
+                       const Dataflow::SettingMember& setting,
+                       const Dataflow::Path&, unsigned)
+{
+  json.put("type", setting.get_type());
+  json.put("value", setting.get_json(element));
+}
 
-  if (!no_connections && module.has_outputs())
+unique_ptr<Dataflow::ReadVisitor>
+    GetVisitor::get_element_input_visitor(const string& id)
+{
+  auto eit = json.o.find("inputs");
+  if (eit == json.o.end())
+    eit = json.o.emplace("inputs", Value::Type::OBJECT).first;
+  auto& inputs = eit->second;
+  return make_unique<GetVisitor>(inputs.put(id, Value::Type::OBJECT));
+}
+
+void GetVisitor::visit(const Dataflow::GraphElement& element,
+                       const Dataflow::InputMember& input,
+                       const Dataflow::Path&, unsigned)
+{
+  json.put("type", input.get_type());
+  json.put("value", input.get_json(element));
+}
+
+unique_ptr<Dataflow::ReadVisitor>
+    GetVisitor::get_element_output_visitor(const string& id)
+{
+  if (no_connections)
+    return nullptr;
+  auto eit = json.o.find("outputs");
+  if (eit == json.o.end())
+    eit = json.o.emplace("outputs", Value::Type::OBJECT).first;
+  auto& outputs = eit->second;
+  return make_unique<GetVisitor>(outputs.put(id, Value::Type::OBJECT));
+}
+
+void GetVisitor::visit(const Dataflow::GraphElement& element,
+                       const Dataflow::OutputMember& output,
+                       const Dataflow::Path&, unsigned)
+{
+  json.put("type", output.get_type());
+  auto& op = output.get(element);
+  const auto& conns = op.get_connections();
+  if (conns.empty())
+    return;
+  auto& connectionsj = json.put("connections", Value::Type::ARRAY);
+  for (const auto& conn: conns)
   {
-    auto& outputsj = json.put("outputs", Value::Type::OBJECT);
-    module.for_each_output([&element, &outputsj](const string& id,
-                               const Dataflow::Module::OutputMember& output)
-    {
-      const auto& op = output.get(element);
-      const auto& conns = op.get_connections();
-      if (conns.empty())
-        return;
-      auto& outputj = outputsj.put(id, Value::Type::OBJECT);
-      auto& connectionsj = outputj.put("connections", Value::Type::ARRAY);
-      for (const auto& conn: conns)
-      {
-        auto& connj = connectionsj.add(Value::Type::OBJECT);
-        connj.put("element", conn.element->get_id());
-        auto& imodule = conn.element->get_module();
-        connj.put("input", imodule.get_input_id(*conn.element, *conn.input));
-      }
-    });
+    auto& connj = connectionsj.add(Value::Type::OBJECT);
+    connj.put("element", conn.element->get_id());
+    auto& imodule = conn.element->get_module();
+    connj.put("input", imodule.get_input_id(*conn.element, *conn.input));
   }
 }
 

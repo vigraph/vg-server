@@ -130,6 +130,52 @@ void accept_visitor(E& element, V& visitor,
       });
     }
   }
+  else
+  {
+    auto part = path.get(path_index);
+
+    switch (part.type)
+    {
+      case Path::PartType::attribute:
+        {
+          auto& module = element.get_module();
+          auto s = module.get_setting(part.name);
+          if (s)
+          {
+            s->accept(visitor, path, ++path_index, element);
+          }
+          else
+          {
+            auto i = module.get_input(part.name);
+            if (i)
+            {
+              i->accept(visitor, path, ++path_index, element);
+            }
+            else
+            {
+              auto o = module.get_output(part.name);
+              if (o)
+              {
+                o->accept(visitor, path, ++path_index, element);
+              }
+              else
+              {
+                throw(runtime_error{"Attribute not found: " + part.name});
+              }
+            }
+          }
+        }
+        break;
+      case Path::PartType::element:
+        {
+          auto& module = element.get_module();
+          throw(runtime_error{module.get_full_type() + "has no sub-elements"});
+        }
+        break;
+      default:
+        break;
+    }
+  }
 }
 
 void Element::accept(ReadVisitor& visitor,

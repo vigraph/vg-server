@@ -94,7 +94,7 @@ public:
       for (const auto p: _parts)
       {
         if (p.empty())
-          parts.emplace_back("", PartType::none);
+          continue;
         else if (p[0] == '@')
           parts.emplace_back(p.substr(1, p.size() - 1), PartType::attribute);
         else

@@ -171,6 +171,34 @@ inline void accept_visitor(G& graph, V& visitor,
     switch (part.type)
     {
       case Path::PartType::attribute:
+        {
+          auto& module = graph.get_module();
+          auto s = module.get_setting(part.name);
+          if (s)
+          {
+            s->accept(visitor, path, ++path_index, graph);
+          }
+          else
+          {
+            auto i = module.get_input(part.name);
+            if (i)
+            {
+              i->accept(visitor, path, ++path_index, graph);
+            }
+            else
+            {
+              auto o = module.get_output(part.name);
+              if (o)
+              {
+                o->accept(visitor, path, ++path_index, graph);
+              }
+              else
+              {
+                throw(runtime_error{"Attribute not found: " + part.name});
+              }
+            }
+          }
+        }
         break;
       case Path::PartType::element:
         {
@@ -179,7 +207,7 @@ inline void accept_visitor(G& graph, V& visitor,
           if (eit == elements.end())
             throw(runtime_error{"Element not found: " + part.name});
           eit->second->accept(visitor, path, ++path_index);
-         }
+        }
         break;
       default:
         break;

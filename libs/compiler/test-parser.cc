@@ -29,7 +29,7 @@ TEST(ParserTest, TestReadEmptyGraph)
 TEST(ParserTest, TestReadSingleElement)
 {
   string input(R"(
-foo
+foo: FOO
 )");
   istringstream iss(input);
   Compiler::Parser parser(iss);
@@ -38,14 +38,15 @@ foo
   ASSERT_EQ(JSON::Value::OBJECT, v.type);
   const JSON::Value& foo = v["foo"];
   ASSERT_EQ(JSON::Value::OBJECT, foo.type);
-  ASSERT_TRUE(foo.o.empty());
+  const JSON::Value& type = foo["type"];
+  EXPECT_EQ("FOO", type.as_str());
 }
 
 TEST(ParserTest, TestReadTwoElements)
 {
   string input(R"(
-foo
-bar
+foo: FOO
+bar: BAR
 )");
   istringstream iss(input);
   Compiler::Parser parser(iss);
@@ -54,10 +55,29 @@ bar
   ASSERT_EQ(JSON::Value::OBJECT, v.type);
   const JSON::Value& foo = v["foo"];
   ASSERT_EQ(JSON::Value::OBJECT, foo.type);
-  ASSERT_TRUE(foo.o.empty());
+  const JSON::Value& ftype = foo["type"];
+  EXPECT_EQ("FOO", ftype.as_str());
+
   const JSON::Value& bar = v["bar"];
   ASSERT_EQ(JSON::Value::OBJECT, bar.type);
-  ASSERT_TRUE(bar.o.empty());
+  const JSON::Value& btype = bar["type"];
+  EXPECT_EQ("BAR", btype.as_str());
+}
+
+TEST(ParserTest, TestReadSingleElementWithNoID)
+{
+  string input(R"(
+foo
+)");
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  JSON::Value v;
+  ASSERT_NO_THROW(v = parser.get_json());
+  ASSERT_EQ(JSON::Value::OBJECT, v.type);
+  const JSON::Value& foo = v["foo1"];
+  ASSERT_EQ(JSON::Value::OBJECT, foo.type);
+  const JSON::Value& type = foo["type"];
+  EXPECT_EQ("foo", type.as_str());
 }
 
 TEST(ParserTest, TestIgnoreComments)
@@ -72,12 +92,15 @@ bar #another comment
   JSON::Value v;
   ASSERT_NO_THROW(v = parser.get_json());
   ASSERT_EQ(JSON::Value::OBJECT, v.type);
-  const JSON::Value& foo = v["foo"];
+  const JSON::Value& foo = v["foo1"];
   ASSERT_EQ(JSON::Value::OBJECT, foo.type);
-  ASSERT_TRUE(foo.o.empty());
-  const JSON::Value& bar = v["bar"];
+  const JSON::Value& ftype = foo["type"];
+  EXPECT_EQ("foo", ftype.as_str());
+
+  const JSON::Value& bar = v["bar1"];
   ASSERT_EQ(JSON::Value::OBJECT, bar.type);
-  ASSERT_TRUE(bar.o.empty());
+  const JSON::Value& btype = bar["type"];
+  EXPECT_EQ("bar", btype.as_str());
 }
 
 TEST(ParserTest, TestSetInputs)
@@ -90,7 +113,7 @@ foo i1=42 i2=3.14 i3="Hello"
   JSON::Value v;
   ASSERT_NO_THROW(v = parser.get_json());
   ASSERT_EQ(JSON::Value::OBJECT, v.type);
-  const JSON::Value& foo = v["foo"];
+  const JSON::Value& foo = v["foo1"];
   ASSERT_EQ(JSON::Value::OBJECT, foo.type);
   const JSON::Value& inputs = foo["inputs"];
   ASSERT_EQ(JSON::Value::OBJECT, inputs.type);
@@ -114,17 +137,50 @@ foo i1=42 i2=3.14 i3="Hello"
   EXPECT_EQ("Hello", i3v.s);
 }
 
-TEST(ParserTest, TestSetOutputs)
+TEST(ParserTest, TestSetOutputsWithDefaultConnection)
 {
   string input(R"(
-foo o1>i1 ->i2 o1>e1.- # Note two from o1
+foo ->- bar
 )");
   istringstream iss(input);
   Compiler::Parser parser(iss);
   JSON::Value v;
   ASSERT_NO_THROW(v = parser.get_json());
   ASSERT_EQ(JSON::Value::OBJECT, v.type);
-  const JSON::Value& foo = v["foo"];
+  const JSON::Value& foo = v["foo1"];
+  ASSERT_EQ(JSON::Value::OBJECT, foo.type);
+  const JSON::Value& outputs = foo["outputs"];
+  ASSERT_EQ(JSON::Value::OBJECT, outputs.type);
+
+  const JSON::Value& o1 = outputs["output"];
+  ASSERT_EQ(JSON::Value::OBJECT, o1.type);
+  const JSON::Value& o1c = o1["connections"];
+  ASSERT_EQ(JSON::Value::ARRAY, o1c.type);
+  ASSERT_EQ(1, o1c.size());
+
+  const JSON::Value& o1c1 = o1c.get(0);
+  ASSERT_EQ(JSON::Value::OBJECT, o1c1.type);
+  const JSON::Value& o1i1 = o1c1["input"];
+  ASSERT_EQ(JSON::Value::STRING, o1i1.type);
+  EXPECT_EQ("input", o1i1.s);
+  const JSON::Value& o1e1 = o1c1["element"];
+  ASSERT_EQ(JSON::Value::STRING, o1e1.type);
+  EXPECT_EQ("bar1", o1e1.s);
+}
+
+TEST(ParserTest, TestSetMultipleOutputsWithExplicitIDs)
+{
+  string input(R"(
+foo o1>i1 ->i2 o1>e2.- # Note two from o1
+e1: bar
+e2: splat
+)");
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  JSON::Value v;
+  ASSERT_NO_THROW(v = parser.get_json());
+  ASSERT_EQ(JSON::Value::OBJECT, v.type);
+  const JSON::Value& foo = v["foo1"];
   ASSERT_EQ(JSON::Value::OBJECT, foo.type);
   const JSON::Value& outputs = foo["outputs"];
   ASSERT_EQ(JSON::Value::OBJECT, outputs.type);
@@ -139,6 +195,9 @@ foo o1>i1 ->i2 o1>e1.- # Note two from o1
   const JSON::Value& o1i1 = o1c1["input"];
   ASSERT_EQ(JSON::Value::STRING, o1i1.type);
   EXPECT_EQ("i1", o1i1.s);
+  const JSON::Value& o1e1 = o1c1["element"];
+  ASSERT_EQ(JSON::Value::STRING, o1e1.type);
+  EXPECT_EQ("e1", o1e1.s);
 
   const JSON::Value& o1c2 = o1c.get(1);
   ASSERT_EQ(JSON::Value::OBJECT, o1c2.type);
@@ -147,7 +206,7 @@ foo o1>i1 ->i2 o1>e1.- # Note two from o1
   EXPECT_EQ("input", o1i2.s);
   const JSON::Value& o1e2 = o1c2["element"];
   ASSERT_EQ(JSON::Value::STRING, o1e2.type);
-  EXPECT_EQ("e1", o1e2.s);
+  EXPECT_EQ("e2", o1e2.s);
 
   const JSON::Value& o2 = outputs["output"];
   ASSERT_EQ(JSON::Value::OBJECT, o2.type);
@@ -156,10 +215,14 @@ foo o1>i1 ->i2 o1>e1.- # Note two from o1
   ASSERT_EQ(1, o2c.size());
   const JSON::Value& o2c1 = o2c.get(0);
   ASSERT_EQ(JSON::Value::OBJECT, o2c1.type);
-  const JSON::Value& o2i = o2c1["input"];
-  ASSERT_EQ(JSON::Value::STRING, o2i.type);
-  EXPECT_EQ("i2", o2i.s);
+  const JSON::Value& o2i1 = o2c1["input"];
+  ASSERT_EQ(JSON::Value::STRING, o2i1.type);
+  EXPECT_EQ("i2", o2i1.s);
+  const JSON::Value& o2e1 = o2c1["element"];
+  ASSERT_EQ(JSON::Value::STRING, o2e1.type);
+  EXPECT_EQ("e1", o2e1.s);
 }
+
 
 
 } // anonymous namespace

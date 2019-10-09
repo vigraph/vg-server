@@ -32,6 +32,7 @@ struct Exception
 class Parser
 {
   Lex::Analyser lex;
+  map<string, int> type_serials;
 
   // Internals
   void read_inputs(JSON::Value& element);

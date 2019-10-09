@@ -162,6 +162,9 @@ void Parser::read_outputs(JSON::Value& element)
 // Read structure as JSON
 JSON::Value Parser::get_json()
 {
+  type_serials.clear();
+  string last_element_id;
+
   try
   {
     JSON::Value root(JSON::Value::OBJECT);
@@ -171,13 +174,56 @@ JSON::Value Parser::get_json()
       if (token.type == Lex::Token::END) break;
 
       if (token.type != Lex::Token::NAME)
-        throw Exception("Expected an element name");
+        throw Exception("Expected a name");
 
-      JSON::Value& element = root.put(token.value, JSON::Value::OBJECT);
+      // Try for : to see if this is the ID prefix or the type
+      string id, type;
+      Lex::Token colon = lex.read_token();
+      if (colon.type == Lex::Token::SYMBOL && colon.value == ":")
+      {
+        Lex::Token type_t = lex.read_token();
+        if (type_t.type != Lex::Token::NAME)
+          throw Exception("Expected a type name");
+        type = type_t.value;
+        id = token.value;
+      }
+      else
+      {
+        // This is the type, invent an ID
+        type = token.value;
+        id = type+Text::itos(++type_serials[type]);
+
+        // Put non-colon back
+        lex.put_back(colon);
+      }
+
+      // Create new element
+      JSON::Value& element = root.put(id, JSON::Value::OBJECT);
+      element.put("type", type);
       read_inputs(element);
       read_outputs(element);
+
+      // Check if last element has any unconnected inputs
+      if (!last_element_id.empty())
+      {
+        JSON::Value& last_element = root[last_element_id];
+        JSON::Value& outputs = last_element["outputs"];
+        for(auto& oit: outputs.o)
+        {
+          JSON::Value& connections = oit.second["connections"];
+          for(auto& cit: connections.a)
+          {
+            // Set if not explicitly set already
+            if (!cit["element"]) cit.put("element", id);
+          }
+        }
+      }
+
+      last_element_id = id;
     }
+
     cout << root;
+
     return root;
   }
   catch (const Lex::Exception& e)

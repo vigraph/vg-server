@@ -203,7 +203,8 @@ void Path::render(vector<Point>& points, double precision, bool normalise)
           break;
 
         case Command::Type::smooth_quadratic_bezier_curveto:
-          p = render_quadratic(v, p, c, offset, control, points, precision);
+          p = render_smooth_quadratic(v, p, c, offset, control,
+                                      points, precision);
           break;
 
         case Command::Type::elliptical_arc:

@@ -84,6 +84,10 @@ bool SetVisitor::visit(Dataflow::Graph& graph,
         // Add to our element cache for later visiting
         sub_element_json[id] = &elementj;
       }
+      else
+      {
+        throw(runtime_error{"Unknown element type: " + type});
+      }
     }
   }
 

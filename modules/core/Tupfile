@@ -6,11 +6,16 @@
 
 NAME     = vg-modules-core
 TYPE     = package
-DEPENDS  = vg-module-core-clone \
-           vg-module-core-clone-info \
-           vg-module-core-graph \
-           vg-module-core-number-pin \
-           vg-module-core-oscillator
+DEPENDS  = vg-module-core-clone       \
+           vg-module-core-clone-info  \
+           vg-module-core-graph       \
+           vg-module-core-number-pin  \
+           vg-module-core-oscillator  \
+           vg-module-core-multiply    \
+           vg-module-core-divide      \
+           vg-module-core-add         \
+           vg-module-core-subtract
+
 #           vg-module-core-source-selector \
 #           vg-module-core-control-compare \
 #           vg-module-core-control-envelope \

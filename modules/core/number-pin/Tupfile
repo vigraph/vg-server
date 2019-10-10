@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph <graph> core source module
+# Tupfile for Vigraph Number pin module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-source-graph
+NAME    = vg-module-core-number-pin
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry
+DEPENDS = vg-dataflow ot-lib vg-waveform
 
 include_rules

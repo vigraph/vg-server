@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph <clone-fraction> core control module
+# Tupfile for Vigraph Clone Info module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-control-clone-fraction
+NAME    = vg-module-core-clone-info
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry
+DEPENDS = vg-dataflow ot-lib vg-waveform
 
 include_rules

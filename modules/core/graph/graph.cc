@@ -6,7 +6,7 @@
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../core-module.h"
+#include "../core-module.h"
 
 namespace {
 

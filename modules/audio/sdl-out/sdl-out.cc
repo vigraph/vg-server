@@ -1,13 +1,12 @@
 //==========================================================================
-// ViGraph dataflow module:
-//    audio/sinks/sdl/audio-sink-sdl.cc
+// ViGraph dataflow module: audio/sdl-out/sdl-out.cc
 //
-// Sink to output audio to the SDL output
+// Output audio to the SDL output
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../audio-module.h"
+#include "../audio-module.h"
 #include <SDL.h>
 
 namespace {

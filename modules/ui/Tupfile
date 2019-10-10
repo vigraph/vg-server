@@ -6,11 +6,12 @@
 
 NAME     = vg-modules-ui
 TYPE     = package
-DEPENDS  = vg-module-ui-control-websocket \
-           vg-module-ui-service-key-distributor
+DEPENDS  =
+#           vg-module-ui-control-websocket \
+#           vg-module-ui-service-key-distributor
 
 PACKAGE  = $(NAME)
-VERSION  = 0.4.0
+VERSION  = 2.0.0
 REVISION = 1~dev1
 
 ifdef RELEASE

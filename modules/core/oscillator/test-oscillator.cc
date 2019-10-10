@@ -6,7 +6,7 @@
 // Copyright (c) 2017 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../../module-test.h"
+#include "../../module-test.h"
 #include "vg-geometry.h"
 #include "vg-waveform.h"
 #include <cmath>
@@ -186,6 +186,6 @@ TEST(OscillatorTest, TestRandomSingleCycle)
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-source-oscillator.so");
+  loader.load("./vg-module-core-oscillator.so");
   return RUN_ALL_TESTS();
 }

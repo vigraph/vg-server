@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph Clone container module
+# Tupfile for Vigraph Graph container module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-container-clone
+NAME    = vg-module-core-graph
 TYPE    = shared
 DEPENDS = vg-dataflow ot-lib vg-waveform
 

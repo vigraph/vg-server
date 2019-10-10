@@ -1,12 +1,12 @@
 //==========================================================================
-// ViGraph dataflow module: core/containers/pins/number.cc
+// ViGraph dataflow module: core/number-pin/number-pin.cc
 //
-// Basic graph container module
+// Number valued pin module
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../core-module.h"
+#include "../core-module.h"
 
 namespace {
 

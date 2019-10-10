@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph <clone-number> core control module
+# Tupfile for Vigraph Clone container module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-control-clone-number
+NAME    = vg-module-core-clone
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry
+DEPENDS = vg-dataflow ot-lib vg-waveform
 
 include_rules

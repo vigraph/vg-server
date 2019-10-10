@@ -1,24 +1,21 @@
 //==========================================================================
-// ViGraph dataflow module: audio/sources/vco/vco.cc
+// ViGraph dataflow module: audio/sources/oscillator/oscillator.cc
 //
 // Simple fixed-waveform Voltage Controlled Oscillator
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../audio-module.h"
+#include "../core-module.h"
 #include "vg-geometry.h"
-#include "vg-waveform.h"
-#include "vg-midi.h"
-#include <cmath>
 
 namespace {
 
 using namespace ViGraph::Geometry;
 
 //==========================================================================
-// VCO source
-class VCOSource: public Element
+// Oscillator source
+class OscillatorSource: public SimpleElement
 {
 private:
   double theta = 0.0;
@@ -32,30 +29,39 @@ private:
   // Source/Element virtuals
   void tick(const TickData& td) override;
 
+  // Clone
+  OscillatorSource *create_clone() const override
+  {
+    return new OscillatorSource{module};
+  }
+
 public:
-  using Element::Element;
+  using SimpleElement::SimpleElement;
 
   // Configuration
   Input<Waveform::Type> waveform;
-  Input<double> freq; // Hz
-  Input<double> pulse_width;
+  Input<double> freq{1}; // Hz
+  Input<double> pulse_width{0.5};
   Output<double> output;
+  Output<double> control;
 };
 
 //--------------------------------------------------------------------------
 // Generate a fragment
-void VCOSource::tick(const TickData& td)
+void OscillatorSource::tick(const TickData& td)
 {
-  const auto nsamples = td.samples();
-  tick_iterate(nsamples, {}, tie(waveform, freq, pulse_width), tie(output),
-               [&](Waveform::Type wf, double f, double pw, double& o)
+  sample_iterate(td.nsamples, {}, tie(waveform, freq, pulse_width),
+                 tie(output, control),
+                 [&](Waveform::Type wf, double f, double pw,
+                     double& o, double& c)
   {
     switch (state)
     {
       case State::enabled:
       case State::completing:
         o = Waveform::get_value(wf, pw, theta);
-        theta += f/sample_rate;
+        c = (o + 1) / 2;
+        theta += f / td.sample_rate;
         if (theta >= 1)
         {
           theta -= floor(theta); // Wrap to 0..1
@@ -65,29 +71,30 @@ void VCOSource::tick(const TickData& td)
         break;
       case State::disabled:
         o = 0;
+        c = 0;
         break;
     }
   });
 }
 
-Dataflow::Module module
+Dataflow::SimpleModule module
 {
-  "vco",
-  "VCO",
-  "audio",
+  "oscillator",
+  "Oscillator",
+  "core",
   {},
   {
-    { "wave",  &VCOSource::waveform },
-    { "freq", &VCOSource::freq },
-    { "pulse-width",  &VCOSource::pulse_width },
+    { "wave",         &OscillatorSource::waveform },
+    { "freq",         &OscillatorSource::freq },
+    { "pulse-width",  &OscillatorSource::pulse_width },
   },
   {
-    { "output", &VCOSource::output },
+    { "output", &OscillatorSource::output },
+    { "control", &OscillatorSource::control },
   }
 };
 
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(VCOSource, module)
-
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(OscillatorSource, module)

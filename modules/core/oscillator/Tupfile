@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph <clone> core source module
+# Tupfile for Vigraph oscillator module
 #
-# Copyright (c) 2018 Paul Clark. All rights reserved
+# Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-source-clone
+NAME    = vg-module-core-oscillator
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry
+DEPENDS = vg-dataflow vg-waveform ot-lib
 
 include_rules

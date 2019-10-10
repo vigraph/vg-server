@@ -6,13 +6,14 @@
 
 NAME     = vg-modules-dmx
 TYPE     = package
-DEPENDS  = vg-module-dmx-service-distributor \
-           vg-module-dmx-control-ola \
-           vg-module-dmx-control-channel-in \
-           vg-module-dmx-control-channel-out
+DEPENDS  =
+#           vg-module-dmx-service-distributor \
+#           vg-module-dmx-control-ola \
+#           vg-module-dmx-control-channel-in \
+#           vg-module-dmx-control-channel-out
 
 PACKAGE  = $(NAME)
-VERSION  = 0.4.0
+VERSION  = 2.0.0
 REVISION = 1~dev1
 
 ifdef RELEASE

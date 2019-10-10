@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: core/multiply/multiply.cc
+// ViGraph dataflow module: core/add/add.cc
 //
-// Multiplier module (=attenuator and ring mod for audio)
+// Multiplier module (=attenuator for audio)
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -11,17 +11,17 @@
 namespace {
 
 //==========================================================================
-// Multiply filter
-class MultiplyFilter: public SimpleElement
+// Add filter
+class AddFilter: public SimpleElement
 {
 private:
   // Element virtuals
   void tick(const TickData& td) override;
 
   // Clone
-  MultiplyFilter *create_clone() const override
+  AddFilter *create_clone() const override
   {
-    return new MultiplyFilter{module};
+    return new AddFilter{module};
   }
 
 public:
@@ -29,37 +29,37 @@ public:
 
   // Configuration
   Input<double> input{0.0};
-  Input<double> factor{1.0};
+  Input<double> offset{0.0};
   Output<double> output;
 };
 
 //--------------------------------------------------------------------------
 // Generate a fragment
-void MultiplyFilter::tick(const TickData& td)
+void AddFilter::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {}, tie(input, factor), tie(output),
-                 [&](double input, double factor, double& o)
+  sample_iterate(td.nsamples, {}, tie(input, offset), tie(output),
+                 [&](double input, double offset, double& o)
   {
-    o = input * factor;
+    o = input + offset;
   });
 }
 
 Dataflow::SimpleModule module
 {
-  "multiply",
-  "Multiply",
+  "add",
+  "Add",
   "core",
   {},
   {
-    { "input",        &MultiplyFilter::input },
-    { "factor",       &MultiplyFilter::factor }
+    { "input",        &AddFilter::input },
+    { "offset",       &AddFilter::offset }
   },
   {
-    { "output", &MultiplyFilter::output }
+    { "output", &AddFilter::output }
   }
 };
 
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(MultiplyFilter, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(AddFilter, module)

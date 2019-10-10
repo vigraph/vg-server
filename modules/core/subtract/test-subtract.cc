@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: core/multiply/test-multiply.cc
+// ViGraph dataflow module: core/subtract/test-subtract.cc
 //
-// Tests for <multiply> filter
+// Tests for <subtract> filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -14,11 +14,11 @@ ModuleLoader loader;
 
 const auto waveform_size = 44100;
 
-TEST(MultiplyTest, TestSetOnlyInput)
+TEST(SubtractTest, TestSetOnlyInput)
 {
   GraphTester<double> tester{loader, waveform_size};
 
-  auto& osc = tester.add("multiply")
+  auto& osc = tester.add("subtract")
                     .set("input", 42.0);
   tester.capture_from(osc, "output");
 
@@ -32,46 +32,46 @@ TEST(MultiplyTest, TestSetOnlyInput)
     EXPECT_DOUBLE_EQ(42.0, waveform[i]);
 }
 
-TEST(MultiplyTest, TestSetOnlyFactor)
+TEST(SubtractTest, TestSetOnlyOffset)
 {
   GraphTester<double> tester{loader, waveform_size};
 
-  auto& osc = tester.add("multiply")
-                    .set("factor", 10.0);
+  auto& osc = tester.add("subtract")
+                    .set("offset", 10.0);
   tester.capture_from(osc, "output");
 
   tester.run();
 
   const auto waveform = tester.get_output();
 
-  // Should be 44100 samples at 0.0
+  // Should be 44100 samples at -10.0
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(0.0, waveform[i]);
+    EXPECT_DOUBLE_EQ(-10.0, waveform[i]);
 }
 
-TEST(MultiplyTest, TestSetBothInputAndFactor)
+TEST(SubtractTest, TestSetBothInputAndOffset)
 {
   GraphTester<double> tester{loader, waveform_size};
 
-  auto& osc = tester.add("multiply")
+  auto& osc = tester.add("subtract")
                     .set("input", 42.0)
-                    .set("factor", 0.1);
+                    .set("offset", 3.14);
   tester.capture_from(osc, "output");
 
   tester.run();
 
   const auto waveform = tester.get_output();
 
-  // Should be 44100 samples at 4.2
+  // Should be 44100 samples at 38.86
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(4.2, waveform[i]);
+    EXPECT_DOUBLE_EQ(38.86, waveform[i]);
 }
 
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-multiply.so");
+  loader.load("./vg-module-core-subtract.so");
   return RUN_ALL_TESTS();
 }

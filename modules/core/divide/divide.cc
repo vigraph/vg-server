@@ -1,27 +1,28 @@
 //==========================================================================
-// ViGraph dataflow module: core/multiply/multiply.cc
+// ViGraph dataflow module: core/divide/divide.cc
 //
-// Multiplier module (=attenuator and ring mod for audio)
+// Divider module
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../core-module.h"
+#include <cfloat>
 
 namespace {
 
 //==========================================================================
-// Multiply filter
-class MultiplyFilter: public SimpleElement
+// Divide filter
+class DivideFilter: public SimpleElement
 {
 private:
   // Element virtuals
   void tick(const TickData& td) override;
 
   // Clone
-  MultiplyFilter *create_clone() const override
+  DivideFilter *create_clone() const override
   {
-    return new MultiplyFilter{module};
+    return new DivideFilter{module};
   }
 
 public:
@@ -35,31 +36,32 @@ public:
 
 //--------------------------------------------------------------------------
 // Generate a fragment
-void MultiplyFilter::tick(const TickData& td)
+void DivideFilter::tick(const TickData& td)
 {
   sample_iterate(td.nsamples, {}, tie(input, factor), tie(output),
                  [&](double input, double factor, double& o)
   {
-    o = input * factor;
+    // If DBZ, fence to DBL_MAX/DBL_MIN to avoid sending NaN down the line
+    o = factor ? (input/factor) : (input<0?DBL_MIN:DBL_MAX);
   });
 }
 
 Dataflow::SimpleModule module
 {
-  "multiply",
-  "Multiply",
+  "divide",
+  "Divide",
   "core",
   {},
   {
-    { "input",        &MultiplyFilter::input },
-    { "factor",       &MultiplyFilter::factor }
+    { "input",  &DivideFilter::input },
+    { "factor", &DivideFilter::factor }
   },
   {
-    { "output", &MultiplyFilter::output }
+    { "output", &DivideFilter::output }
   }
 };
 
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(MultiplyFilter, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(DivideFilter, module)

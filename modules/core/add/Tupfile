@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph add module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-core-add
+TYPE    = shared
+DEPENDS = vg-dataflow vg-waveform ot-lib
+
+include_rules

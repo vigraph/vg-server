@@ -141,17 +141,19 @@ void Clone::collect_elements(list<Element *>& els)
 void Clone::accept(ReadVisitor& visitor,
                    const Path& path, unsigned path_index) const
 {
-  if (path.reached(path_index))
-    visitor.visit(*this, path, path_index);
   if (!clones.empty())
     clones.front().graph->accept(visitor, path, path_index);
+  if (path.reached(path_index))
+    if (!visitor.visit(*this, path, path_index))
+      return;
 }
 
 void Clone::accept(WriteVisitor& visitor,
                    const Path& path, unsigned path_index)
 {
   if (path.reached(path_index))
-    visitor.visit(*this, path, path_index);
+    if (!visitor.visit(*this, path, path_index))
+      return;
   auto cv = visitor.get_sub_clone_visitor(*this);
   if (!cv)
     return;

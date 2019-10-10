@@ -29,6 +29,7 @@ using namespace std;
 using namespace ObTools;
 using namespace ViGraph;
 
+const auto namespace_separator = '/';
 const auto default_frequency = 25.0;
 const auto default_tick_interval = Time::Duration{1.0 / default_frequency};
 const auto default_sample_rate = default_frequency;
@@ -181,28 +182,28 @@ public:
 class ReadVisitor
 {
 public:
-  virtual void visit(const Engine& engine,
+  virtual bool visit(const Engine& engine,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<ReadVisitor> get_root_graph_visitor() = 0;
-  virtual void visit(const Graph& graph,
+  virtual bool visit(const Graph& graph,
                      const Path& path, unsigned path_index) = 0;
-  virtual void visit(const Clone& clone,
+  virtual bool visit(const Clone& clone,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<ReadVisitor> get_sub_element_visitor(const string& id,
                                                      const Graph &scope) = 0;
-  virtual void visit(const Element& element,
+  virtual bool visit(const Element& element,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<ReadVisitor> get_element_setting_visitor(const string &id)
           = 0;
-  virtual void visit(const GraphElement& element, const SettingMember& setting,
+  virtual bool visit(const GraphElement& element, const SettingMember& setting,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<ReadVisitor> get_element_input_visitor(const string &id)
           = 0;
-  virtual void visit(const GraphElement& element, const InputMember& input,
+  virtual bool visit(const GraphElement& element, const InputMember& input,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<ReadVisitor> get_element_output_visitor(const string &id)
           = 0;
-  virtual void visit(const GraphElement& element, const OutputMember& output,
+  virtual bool visit(const GraphElement& element, const OutputMember& output,
                      const Path& path, unsigned path_index) = 0;
 
   virtual ~ReadVisitor() {}
@@ -213,29 +214,29 @@ public:
 class WriteVisitor
 {
 public:
-  virtual void visit(Engine& engine,
+  virtual bool visit(Engine& engine,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_root_graph_visitor() = 0;
-  virtual void visit(Graph& graph,
+  virtual bool visit(Graph& graph,
                      const Path& path, unsigned path_index) = 0;
-  virtual void visit(Clone& clone,
+  virtual bool visit(Clone& clone,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_sub_element_visitor(const string& id,
                                                            Graph& scope) = 0;
   virtual unique_ptr<WriteVisitor> get_sub_clone_visitor(Clone& clone) = 0;
-  virtual void visit(Element& element,
+  virtual bool visit(Element& element,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_element_setting_visitor(const string &id)
           = 0;
-  virtual void visit(GraphElement& element, const SettingMember& setting,
+  virtual bool visit(GraphElement& element, const SettingMember& setting,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_element_input_visitor(const string &id)
           = 0;
-  virtual void visit(GraphElement& element, const InputMember& input,
+  virtual bool visit(GraphElement& element, const InputMember& input,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_element_output_visitor(const string &id)
           = 0;
-  virtual void visit(GraphElement& element, const OutputMember& output,
+  virtual bool visit(GraphElement& element, const OutputMember& output,
                      const Path& path, unsigned path_index) = 0;
 
   virtual ~WriteVisitor() {}
@@ -520,7 +521,8 @@ public:
   virtual string get_id() const = 0;
   virtual string get_name() const = 0;
   virtual string get_section() const = 0;
-  virtual string get_full_type() const { return get_section() + ":" +
+  virtual string get_full_type() const { return get_section() +
+                                                namespace_separator +
                                                 get_id(); }
   ElementSetting *get_setting(GraphElement& element, const string& name) const
   {
@@ -1467,6 +1469,10 @@ public:
   //------------------------------------------------------------------------
   // Get a particular element by ID
   GraphElement *get_element(const string& id);
+
+  //------------------------------------------------------------------------
+  // Remove an element
+  void remove(const string& id);
 
   //------------------------------------------------------------------------
   // Clear all elements

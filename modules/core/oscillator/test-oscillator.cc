@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: audio/sources/oscillator/test-oscialltor.cc
+// ViGraph dataflow module: core/oscillator/test-oscillator.cc
 //
 // Tests for <oscillator> source
 //

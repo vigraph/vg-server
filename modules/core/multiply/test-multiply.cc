@@ -14,7 +14,7 @@ ModuleLoader loader;
 
 const auto waveform_size = 44100;
 
-TEST(OscillatorTest, TestSetOnlyInput)
+TEST(MultiplyTest, TestSetOnlyInput)
 {
   GraphTester<double> tester{loader, waveform_size};
 
@@ -32,7 +32,7 @@ TEST(OscillatorTest, TestSetOnlyInput)
     EXPECT_DOUBLE_EQ(42.0, waveform[i]);
 }
 
-TEST(OscillatorTest, TestSetOnlyFactor)
+TEST(MultiplyTest, TestSetOnlyFactor)
 {
   GraphTester<double> tester{loader, waveform_size};
 
@@ -50,7 +50,7 @@ TEST(OscillatorTest, TestSetOnlyFactor)
     EXPECT_DOUBLE_EQ(0.0, waveform[i]);
 }
 
-TEST(OscillatorTest, TestSetBothInputAndFactor)
+TEST(MultiplyTest, TestSetBothInputAndFactor)
 {
   GraphTester<double> tester{loader, waveform_size};
 

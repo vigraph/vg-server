@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: audio/sources/oscillator/oscillator.cc
+// ViGraph dataflow module: core/oscillator/oscillator.cc
 //
 // Simple fixed-waveform Voltage Controlled Oscillator
 //

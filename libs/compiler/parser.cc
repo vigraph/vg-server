@@ -24,6 +24,7 @@ Parser::Parser(istream& input): lex(input)
   lex.add_symbol(":");
   lex.add_symbol("/");
   lex.add_line_comment_symbol("#");
+  lex.allow_dashed_names();
 }
 
 //------------------------------------------------------------------------
@@ -187,7 +188,7 @@ void Parser::sanity_check(const JSON::Value& root)
 }
 
 //------------------------------------------------------------------------
-// Read structure as JSON
+// Read structure as JSON - raw object of elements
 JSON::Value Parser::get_json()
 {
   type_serials.clear();
@@ -283,5 +284,13 @@ JSON::Value Parser::get_json()
   }
 }
 
+//------------------------------------------------------------------------
+// Read structure as JSON - object containing 'elements' object of elements
+JSON::Value Parser::get_elements_json()
+{
+  JSON::Value root(JSON::Value::OBJECT);
+  root.put("elements", get_json());
+  return root;
+}
 
 }} // namespaces

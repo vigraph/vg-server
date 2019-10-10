@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     {
       Compiler::Parser parser(cin);
       parser.set_default_section(default_section);
-      root = parser.get_json();
+      root = parser.get_elements_json();
     }
     else
     {

@@ -26,6 +26,19 @@ TEST(ParserTest, TestReadEmptyGraph)
   ASSERT_TRUE(v.o.empty());
 }
 
+TEST(ParserTest, TestReadEmptyGraphWithElements)
+{
+  string input;
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  JSON::Value v;
+  ASSERT_NO_THROW(v = parser.get_elements_json());
+  ASSERT_EQ(JSON::Value::OBJECT, v.type);
+  const JSON::Value& elements = v["elements"];
+  ASSERT_EQ(JSON::Value::OBJECT, elements.type);
+  ASSERT_TRUE(elements.o.empty());
+}
+
 TEST(ParserTest, TestReadSingleElement)
 {
   string input(R"(
@@ -40,6 +53,22 @@ foo: FOO
   ASSERT_EQ(JSON::Value::OBJECT, foo.type);
   const JSON::Value& type = foo["type"];
   EXPECT_EQ("FOO", type.as_str());
+}
+
+TEST(ParserTest, TestReadSingleElementWithDashedName)
+{
+  string input(R"(
+foo-bar: FOO-BAR
+)");
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  JSON::Value v;
+  ASSERT_NO_THROW(v = parser.get_json());
+  ASSERT_EQ(JSON::Value::OBJECT, v.type);
+  const JSON::Value& foo = v["foo-bar"];
+  ASSERT_EQ(JSON::Value::OBJECT, foo.type);
+  const JSON::Value& type = foo["type"];
+  EXPECT_EQ("FOO-BAR", type.as_str());
 }
 
 TEST(ParserTest, TestReadTwoElements)

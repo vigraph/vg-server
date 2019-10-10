@@ -50,8 +50,12 @@ public:
   void set_default_section(const string& s) { default_section = s; }
 
   //------------------------------------------------------------------------
-  // Read structure as JSON
+  // Read structure as JSON - raw object of elements
   JSON::Value get_json();
+
+  //------------------------------------------------------------------------
+  // Read structure as JSON - object containing 'elements' object of elements
+  JSON::Value get_elements_json();
 };
 
 //==========================================================================

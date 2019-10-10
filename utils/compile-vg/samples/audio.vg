@@ -1,0 +1,4 @@
+# Audio test
+oscillator freq=880 wave="saw"
+ -> channel1 -> channel2
+audio/sdl-out

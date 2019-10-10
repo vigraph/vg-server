@@ -10,9 +10,10 @@
 
 namespace ViGraph { namespace JSON {
 
-void GetVisitor::visit(const Dataflow::Engine&,
+bool GetVisitor::visit(const Dataflow::Engine&,
                        const Dataflow::Path&, unsigned)
 {
+  return true;
 }
 
 unique_ptr<Dataflow::ReadVisitor> GetVisitor::get_root_graph_visitor()
@@ -20,7 +21,7 @@ unique_ptr<Dataflow::ReadVisitor> GetVisitor::get_root_graph_visitor()
   return make_unique<GetVisitor>(json);
 }
 
-void GetVisitor::visit(const Dataflow::Graph& graph,
+bool GetVisitor::visit(const Dataflow::Graph& graph,
                        const Dataflow::Path&, unsigned)
 {
   auto& module = graph.get_module();
@@ -33,13 +34,15 @@ void GetVisitor::visit(const Dataflow::Graph& graph,
       this->output_pins.insert(id);
     });
   }
+  return true;
 }
 
-void GetVisitor::visit(const Dataflow::Clone& clone,
+bool GetVisitor::visit(const Dataflow::Clone& clone,
                        const Dataflow::Path&, unsigned)
 {
   json["type"] = "core:clone";
   json["number"] = clone.number.get();
+  return true;
 }
 
 unique_ptr<Dataflow::ReadVisitor>
@@ -55,11 +58,12 @@ unique_ptr<Dataflow::ReadVisitor>
                                  no_connections);
 }
 
-void GetVisitor::visit(const Dataflow::Element& element,
+bool GetVisitor::visit(const Dataflow::Element& element,
                        const Dataflow::Path&, unsigned)
 {
   auto& module = element.get_module();
   json.put("type", module.get_full_type());
+  return true;
 }
 
 unique_ptr<Dataflow::ReadVisitor>
@@ -72,12 +76,13 @@ unique_ptr<Dataflow::ReadVisitor>
   return make_unique<GetVisitor>(settings.put(id, Value::Type::OBJECT));
 }
 
-void GetVisitor::visit(const Dataflow::GraphElement& element,
+bool GetVisitor::visit(const Dataflow::GraphElement& element,
                        const Dataflow::SettingMember& setting,
                        const Dataflow::Path&, unsigned)
 {
   json.put("type", setting.get_type());
   json.put("value", setting.get_json(element));
+  return true;
 }
 
 unique_ptr<Dataflow::ReadVisitor>
@@ -90,12 +95,13 @@ unique_ptr<Dataflow::ReadVisitor>
   return make_unique<GetVisitor>(inputs.put(id, Value::Type::OBJECT));
 }
 
-void GetVisitor::visit(const Dataflow::GraphElement& element,
+bool GetVisitor::visit(const Dataflow::GraphElement& element,
                        const Dataflow::InputMember& input,
                        const Dataflow::Path&, unsigned)
 {
   json.put("type", input.get_type());
   json.put("value", input.get_json(element));
+  return true;
 }
 
 unique_ptr<Dataflow::ReadVisitor>
@@ -110,7 +116,7 @@ unique_ptr<Dataflow::ReadVisitor>
   return make_unique<GetVisitor>(outputs.put(id, Value::Type::OBJECT));
 }
 
-void GetVisitor::visit(const Dataflow::GraphElement& element,
+bool GetVisitor::visit(const Dataflow::GraphElement& element,
                        const Dataflow::OutputMember& output,
                        const Dataflow::Path&, unsigned)
 {
@@ -118,7 +124,7 @@ void GetVisitor::visit(const Dataflow::GraphElement& element,
   auto& op = output.get(element);
   const auto& conns = op.get_connections();
   if (conns.empty())
-    return;
+    return true;
   auto& connectionsj = json.put("connections", Value::Type::ARRAY);
   for (const auto& conn: conns)
   {
@@ -127,6 +133,7 @@ void GetVisitor::visit(const Dataflow::GraphElement& element,
     auto& imodule = conn.element->get_module();
     connj.put("input", imodule.get_input_id(*conn.element, *conn.input));
   }
+  return true;
 }
 
 }} // namespaces

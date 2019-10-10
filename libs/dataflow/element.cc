@@ -91,7 +91,8 @@ void accept_visitor(E& element, V& visitor,
 {
   if (path.reached(path_index))
   {
-    visitor.visit(element, path, path_index);
+    if (!visitor.visit(element, path, path_index))
+      return;
 
     auto& module = element.get_module();
     if (module.has_settings())

@@ -37,28 +37,28 @@ public:
   GetVisitor(Value& _json, bool _no_connections = false):
     json{_json}, no_connections{_no_connections}
   {}
-  void visit(const Dataflow::Engine& engine,
+  bool visit(const Dataflow::Engine& engine,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<ReadVisitor> get_root_graph_visitor() override;
-  void visit(const Dataflow::Graph& graph,
+  bool visit(const Dataflow::Graph& graph,
              const Dataflow::Path& path, unsigned path_index) override;
-  void visit(const Dataflow::Clone& graph,
+  bool visit(const Dataflow::Clone& graph,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<ReadVisitor> get_sub_element_visitor(const string& id,
                                       const Dataflow::Graph& scope) override;
-  void visit(const Dataflow::Element& element,
+  bool visit(const Dataflow::Element& element,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<ReadVisitor> get_element_setting_visitor(
                                                   const string &id) override;
-  void visit(const Dataflow::GraphElement& element,
+  bool visit(const Dataflow::GraphElement& element,
              const Dataflow::SettingMember& setting,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<ReadVisitor> get_element_input_visitor(const string &id) override;
-  void visit(const Dataflow::GraphElement& element,
+  bool visit(const Dataflow::GraphElement& element,
              const Dataflow::InputMember& input,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<ReadVisitor> get_element_output_visitor(const string &id) override;
-  void visit(const Dataflow::GraphElement& element,
+  bool visit(const Dataflow::GraphElement& element,
              const Dataflow::OutputMember& output,
              const Dataflow::Path& path, unsigned path_index) override;
 };
@@ -83,32 +83,77 @@ public:
     engine{_engine}, json{_json}, id{_id},
     scope_graph{_scope_graph}, clone{_clone}
   {}
-  void visit(Dataflow::Engine& engine,
+  bool visit(Dataflow::Engine& engine,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_root_graph_visitor() override;
-  void visit(Dataflow::Graph& graph,
+  bool visit(Dataflow::Graph& graph,
              const Dataflow::Path& path, unsigned path_index) override;
-  void visit(Dataflow::Clone& graph,
+  bool visit(Dataflow::Clone& graph,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_sub_element_visitor(const string& id,
                                             Dataflow::Graph& scope) override;
   unique_ptr<WriteVisitor> get_sub_clone_visitor(
                                             Dataflow::Clone& clone) override;
-  void visit(Dataflow::Element& element,
+  bool visit(Dataflow::Element& element,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_element_setting_visitor(
                                                   const string &id) override;
-  void visit(Dataflow::GraphElement& element,
+  bool visit(Dataflow::GraphElement& element,
              const Dataflow::SettingMember& setting,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_element_input_visitor(
                                                   const string &id) override;
-  void visit(Dataflow::GraphElement& element,
+  bool visit(Dataflow::GraphElement& element,
              const Dataflow::InputMember& input,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_element_output_visitor(
                                                   const string &id) override;
-  void visit(Dataflow::GraphElement& element,
+  bool visit(Dataflow::GraphElement& element,
+             const Dataflow::OutputMember& output,
+             const Dataflow::Path& path, unsigned path_index) override;
+};
+
+//==========================================================================
+// Delete Visitor
+class DeleteVisitor: public Dataflow::WriteVisitor
+{
+private:
+  const Dataflow::Engine& engine;
+  const string id;
+  Dataflow::Graph *scope_graph = nullptr;
+
+public:
+  DeleteVisitor(const Dataflow::Engine& _engine,
+                const string& _id = "",
+                Dataflow::Graph *_scope_graph = nullptr):
+    engine{_engine}, id{_id}, scope_graph{_scope_graph}
+  {}
+  bool visit(Dataflow::Engine& engine,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> get_root_graph_visitor() override;
+  bool visit(Dataflow::Graph& graph,
+             const Dataflow::Path& path, unsigned path_index) override;
+  bool visit(Dataflow::Clone& graph,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> get_sub_element_visitor(const string& id,
+                                            Dataflow::Graph& scope) override;
+  unique_ptr<WriteVisitor> get_sub_clone_visitor(
+                                            Dataflow::Clone& clone) override;
+  bool visit(Dataflow::Element& element,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> get_element_setting_visitor(
+                                                  const string &id) override;
+  bool visit(Dataflow::GraphElement& element,
+             const Dataflow::SettingMember& setting,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> get_element_input_visitor(
+                                                  const string &id) override;
+  bool visit(Dataflow::GraphElement& element,
+             const Dataflow::InputMember& input,
+             const Dataflow::Path& path, unsigned path_index) override;
+  unique_ptr<WriteVisitor> get_element_output_visitor(
+                                                  const string &id) override;
+  bool visit(Dataflow::GraphElement& element,
              const Dataflow::OutputMember& output,
              const Dataflow::Path& path, unsigned path_index) override;
 };

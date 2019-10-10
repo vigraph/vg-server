@@ -16,7 +16,7 @@ namespace ViGraph { namespace Dataflow {
 // which is looked up in default namespaces
 GraphElement *Engine::create(const string& type, const string& id) const
 {
-  vector<string> bits = Text::split(type, ':');
+  vector<string> bits = Text::split(type, namespace_separator);
   if (bits.size() > 1)
   {
     // Qualified - use the section given
@@ -109,7 +109,8 @@ void Engine::accept(ReadVisitor& visitor,
 {
   MT::RWReadLock lock{graph_mutex};
   if (path.reached(path_index))
-    visitor.visit(*this, path, path_index);
+    if (!visitor.visit(*this, path, path_index))
+      return;
   auto sv = visitor.get_root_graph_visitor();
   if (sv)
     graph->accept(*sv, path, path_index);
@@ -119,7 +120,8 @@ void Engine::accept(WriteVisitor& visitor,
                     const Path& path, unsigned path_index)
 {
   MT::RWWriteLock lock{graph_mutex};
-  visitor.visit(*this, path, path_index);
+  if (!visitor.visit(*this, path, path_index))
+    return;
   auto sv = visitor.get_root_graph_visitor();
   if (sv)
     graph->accept(*sv, path, path_index);

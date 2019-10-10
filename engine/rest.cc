@@ -176,9 +176,8 @@ bool GraphURLHandler::handle_delete(const string& path,
 
   try
   {
-    // !!! TODO: Make a Delete visitor
-    //engine.delete_item(path);
-    engine.update_elements();
+    auto visitor = JSON::DeleteVisitor{engine};
+    engine.accept(visitor, path, 0);
   }
   catch (runtime_error& e)
   {

@@ -10,9 +10,10 @@
 
 namespace ViGraph { namespace JSON {
 
-void SetVisitor::visit(Dataflow::Engine&,
+bool SetVisitor::visit(Dataflow::Engine&,
                        const Dataflow::Path&, unsigned)
 {
+  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor> SetVisitor::get_root_graph_visitor()
@@ -20,7 +21,7 @@ unique_ptr<Dataflow::WriteVisitor> SetVisitor::get_root_graph_visitor()
   return make_unique<SetVisitor>(engine, json, "root", &engine.get_graph());
 }
 
-void SetVisitor::visit(Dataflow::Graph& graph,
+bool SetVisitor::visit(Dataflow::Graph& graph,
                        const Dataflow::Path&, unsigned)
 {
   graph.shutdown();
@@ -127,15 +128,17 @@ void SetVisitor::visit(Dataflow::Graph& graph,
       graph.add_output_pin(oid, oid, "output");
     }
   }
+  return true;
 }
 
-void SetVisitor::visit(Dataflow::Clone& clone,
+bool SetVisitor::visit(Dataflow::Clone& clone,
                        const Dataflow::Path&, unsigned)
 {
   clone.shutdown();
   auto number = json["number"].as_int();
   clone.number.set(number);
   clone.setup();
+  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
@@ -154,9 +157,10 @@ unique_ptr<Dataflow::WriteVisitor>
   return make_unique<SetVisitor>(engine, json, id, scope_graph, &clone);
 }
 
-void SetVisitor::visit(Dataflow::Element&,
+bool SetVisitor::visit(Dataflow::Element&,
                        const Dataflow::Path&, unsigned)
 {
+  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
@@ -173,14 +177,15 @@ unique_ptr<Dataflow::WriteVisitor>
   return make_unique<SetVisitor>(engine, settingj, id, scope_graph);
 }
 
-void SetVisitor::visit(Dataflow::GraphElement& element,
+bool SetVisitor::visit(Dataflow::GraphElement& element,
                        const Dataflow::SettingMember& setting,
                        const Dataflow::Path&, unsigned)
 {
   const auto& valuej = json.get("value");
   if (!valuej)
-    return;
+    return true;
   setting.set_json(element, valuej);
+  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
@@ -197,14 +202,15 @@ unique_ptr<Dataflow::WriteVisitor>
   return make_unique<SetVisitor>(engine, inputj, id, scope_graph);
 }
 
-void SetVisitor::visit(Dataflow::GraphElement& element,
+bool SetVisitor::visit(Dataflow::GraphElement& element,
                        const Dataflow::InputMember& input,
                        const Dataflow::Path&, unsigned)
 {
   const auto& valuej = json.get("value");
   if (!valuej)
-    return;
+    return true;;
   input.set_json(element, valuej);
+  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
@@ -221,16 +227,16 @@ unique_ptr<Dataflow::WriteVisitor>
   return make_unique<SetVisitor>(engine, outputj, id, scope_graph);
 }
 
-void SetVisitor::visit(Dataflow::GraphElement& element,
+bool SetVisitor::visit(Dataflow::GraphElement& element,
                        const Dataflow::OutputMember&,
                        const Dataflow::Path&, unsigned)
 {
   if (!scope_graph)
-    return; // Can't make connections without a scope
+    return true; // Can't make connections without a scope
 
   const auto& connectionsj = json.get("connections");
   if (!connectionsj || connectionsj.type != Value::Type::ARRAY)
-    return;
+    return true;
 
   for (const auto& connectionj: connectionsj.a)
   {
@@ -263,6 +269,7 @@ void SetVisitor::visit(Dataflow::GraphElement& element,
          << scope_graph->get_id() << ")" << endl;
 #endif
   }
+  return true;
 }
 
 }} // namespaces

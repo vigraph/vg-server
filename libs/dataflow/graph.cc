@@ -11,12 +11,26 @@
 
 namespace ViGraph { namespace Dataflow {
 
-//------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // Add an element to the graph (testing)
 void Graph::add(GraphElement *el)
 {
   elements[el->get_id()].reset(el);
 }
+
+//--------------------------------------------------------------------------
+// Remove an element
+void Graph::remove(const string& id)
+{
+  cout << "DELETING " << id << endl;
+  auto it = elements.find(id);
+  if (it == elements.end())
+    throw(runtime_error{"Element not found: " + id});
+  it->second->shutdown();
+  elements.erase(it);
+  cout << "DELETED " << id << endl;
+}
+
 
 //--------------------------------------------------------------------------
 // Connect an element
@@ -129,7 +143,8 @@ inline void accept_visitor(G& graph, V& visitor,
 {
   if (path.reached(path_index))
   {
-    visitor.visit(graph, path, path_index);
+    if (!visitor.visit(graph, path, path_index))
+      return;
 
     auto& module = graph.get_module();
     if (module.has_inputs())
@@ -206,7 +221,9 @@ inline void accept_visitor(G& graph, V& visitor,
           auto eit = elements.find(part.name);
           if (eit == elements.end())
             throw(runtime_error{"Element not found: " + part.name});
-          eit->second->accept(visitor, path, ++path_index);
+          auto sv = visitor.get_sub_element_visitor(eit->first, graph);
+          if (sv)
+            eit->second->accept(*sv, path, ++path_index);
         }
         break;
       default:

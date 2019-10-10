@@ -1,4 +1,5 @@
 # Audio test
-oscillator freq=880 wave="saw"
- -> channel1 -> channel2
-audio/sdl-out
+oscillator freq=1 wave="triangle" -> vco1.pulse-width -> vco2.pulse-width
+vco1: oscillator freq=880 wave="square" -> out.channel1
+vco2: oscillator freq=440 wave="sin" -> out.channel2
+out: audio/sdl-out

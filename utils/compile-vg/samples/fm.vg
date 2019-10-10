@@ -1,0 +1,7 @@
+# Frequency modulation test
+oscillator freq=50 wave="sin" ->-
+multiply factor=100 ->-
+add offset=200 -> freq
+oscillator wave="sin" ->-
+add -> channel1 -> channel2
+audio/sdl-out

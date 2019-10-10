@@ -1,0 +1,12 @@
+# Audio test
+oscillator freq=5 wave="sin" ->-
+multiply factor=200 ->-
+add offset=440 -> vco1.freq
+vco1: oscillator freq=440 wave="sin" ->-
+att: multiply -> mod.input
+vco2: oscillator freq=440 wave="sin" -> mod.factor
+mod: multiply ->-
+add -> channel1 -> channel2
+audio/sdl-out
+
+oscillator freq=0.2 wave="sin" -> att.factor

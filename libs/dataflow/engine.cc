@@ -46,7 +46,6 @@ GraphElement *Engine::create(const string& type, const string& id) const
 // Update element list
 void Engine::update_elements()
 {
-  MT::RWWriteLock lock(graph_mutex);
   tick_elements.clear();
   graph->collect_elements(tick_elements);
 }
@@ -124,6 +123,7 @@ void Engine::accept(WriteVisitor& visitor,
   auto sv = visitor.get_root_graph_visitor();
   if (sv)
     graph->accept(*sv, path, path_index);
+  update_elements();
 }
 
 //--------------------------------------------------------------------------

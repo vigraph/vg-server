@@ -112,7 +112,6 @@ bool GraphURLHandler::handle_put(const string& path,
   {
     auto visitor = JSON::SetVisitor{engine, value};
     engine.accept(visitor, path, 0);
-    engine.update_elements();
   }
   catch (runtime_error& e)
   {
@@ -153,7 +152,6 @@ bool GraphURLHandler::handle_post(const string& path,
   {
     auto visitor = JSON::SetVisitor{engine, value};
     engine.accept(visitor, path, 0);
-    engine.update_elements();
   }
   catch (runtime_error& e)
   {

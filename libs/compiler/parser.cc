@@ -22,6 +22,7 @@ Parser::Parser(istream& input): lex(input)
   lex.add_symbol(".");
   lex.add_symbol("-");
   lex.add_symbol(":");
+  lex.add_symbol("/");
   lex.add_line_comment_symbol("#");
 }
 
@@ -204,7 +205,7 @@ JSON::Value Parser::get_json()
         throw Exception("Expected a name");
 
       // Try for : to see if this is the ID prefix or the type
-      string id, type;
+      string id, type, id_base;
       auto colon = lex.read_token();
       if (colon.type == Lex::Token::SYMBOL && colon.value == ":")
       {
@@ -216,13 +217,37 @@ JSON::Value Parser::get_json()
       }
       else
       {
-        // This is the type, invent an ID
-        type = token.value;
-        id = type+Text::itos(++type_serials[type]);
+        // This is the type, invent an ID later
+        id_base = type = token.value;
 
         // Put non-colon back
         lex.put_back(colon);
       }
+
+      // Try for / to see if there is a section prefix
+      auto slash = lex.read_token();
+      if (slash.type == Lex::Token::SYMBOL && slash.value == "/")
+      {
+        // The type we have is actually the section
+        auto type_t = lex.read_token();
+        if (type_t.type != Lex::Token::NAME)
+          throw Exception("Expected a type name");
+        type += '/';
+        type += type_t.value;
+        id_base = type_t.value;
+      }
+      else
+      {
+        // Is there a default section?
+        if (!default_section.empty())
+          type = default_section + '/' + type;
+
+        // Put non-slash back
+        lex.put_back(slash);
+      }
+
+      // Create an ID if none set
+      if (id.empty()) id = id_base + Text::itos(++type_serials[id_base]);
 
       // Create new element
       auto& element = root.put(id, JSON::Value::OBJECT);

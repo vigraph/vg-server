@@ -33,6 +33,7 @@ class Parser
 {
   Lex::Analyser lex;
   map<string, int> type_serials;
+  string default_section;
 
   // Internals
   void read_inputs(JSON::Value& element);
@@ -43,6 +44,10 @@ public:
   //------------------------------------------------------------------------
   // Constructor on an istream
   Parser(istream& _input);
+
+  //------------------------------------------------------------------------
+  // Set default section name
+  void set_default_section(const string& s) { default_section = s; }
 
   //------------------------------------------------------------------------
   // Read structure as JSON

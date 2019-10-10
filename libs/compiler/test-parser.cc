@@ -80,6 +80,39 @@ foo
   EXPECT_EQ("foo", type.as_str());
 }
 
+TEST(ParserTest, TestReadSingleElementWithSection)
+{
+  string input(R"(
+foo: BAR/FOO
+)");
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  JSON::Value v;
+  ASSERT_NO_THROW(v = parser.get_json());
+  ASSERT_EQ(JSON::Value::OBJECT, v.type);
+  const JSON::Value& foo = v["foo"];
+  ASSERT_EQ(JSON::Value::OBJECT, foo.type);
+  const JSON::Value& type = foo["type"];
+  EXPECT_EQ("BAR/FOO", type.as_str());
+}
+
+TEST(ParserTest, TestReadSingleElementWithDefaultSection)
+{
+  string input(R"(
+foo: FOO
+)");
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  parser.set_default_section("default");
+  JSON::Value v;
+  ASSERT_NO_THROW(v = parser.get_json());
+  ASSERT_EQ(JSON::Value::OBJECT, v.type);
+  const JSON::Value& foo = v["foo"];
+  ASSERT_EQ(JSON::Value::OBJECT, foo.type);
+  const JSON::Value& type = foo["type"];
+  EXPECT_EQ("default/FOO", type.as_str());
+}
+
 TEST(ParserTest, TestIgnoreComments)
 {
   string input(R"(

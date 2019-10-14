@@ -50,6 +50,58 @@ public:
   }
 };
 
+// Test source - outputs given buffer
+template<typename T>
+class TestSource: public SimpleElement
+{
+private:
+  SimpleModule module_data =
+  {
+    "test-source",
+    "Test Source",
+    "test",
+    {},
+    {},
+    {
+      { "output", &TestSource::output },
+    }
+  };
+
+  TestSource<T> *create_clone() const override
+  {
+    return new TestSource<T>{data, get_id()};
+  }
+
+  vector<T> data;
+  decltype(data.size()) pos = 0;
+
+public:
+  Output<T> output;
+
+  // Construct
+  TestSource(const vector<T>& _data, const string& id):
+    SimpleElement(module_data), data{_data}
+  {
+    set_id(id);
+  }
+
+  void tick(const TickData& td) override
+  {
+    sample_iterate(td.nsamples, {}, {}, tie(output),
+                   [&](double& o)
+    {
+      if (data.empty())
+        o = {};
+      else
+      {
+        o = data[pos++];
+        if (pos >= data.size())
+          pos = 0;
+      }
+    });
+  }
+};
+
 // Test control - accepts any property and remembers it
 template<typename T>
 class TestTarget: public SimpleElement
@@ -106,6 +158,16 @@ class GraphTester
     const auto id = name + Text::itos(++id_serial);
     auto e = loader.engine.create(name, id);
     if (!e) throw runtime_error("Can't create element "+name);
+    loader.engine.get_graph().add(e);
+    return *e;
+  }
+
+  // Add a source
+  template<typename U>
+  GraphElement& add_source(const vector<U>& data)
+  {
+    const auto id = "test-source" + Text::itos(++id_serial);
+    auto e = new TestSource<T>{data, id};
     loader.engine.get_graph().add(e);
     return *e;
   }

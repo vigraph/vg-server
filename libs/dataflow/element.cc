@@ -101,7 +101,7 @@ void accept_visitor(E& element, V& visitor,
                               (const string& id,
                                const SettingMember& setting)
       {
-        auto sv = visitor.get_element_setting_visitor(id);
+        auto sv = visitor.get_element_setting_visitor(id, true);
         if (sv)
           setting.accept(*sv, path, ++path_index, element);
       });
@@ -113,7 +113,7 @@ void accept_visitor(E& element, V& visitor,
                             (const string& id,
                              const InputMember& input)
       {
-        auto iv = visitor.get_element_input_visitor(id);
+        auto iv = visitor.get_element_input_visitor(id, true);
         if (iv)
           input.accept(*iv, path, ++path_index, element);
       });
@@ -125,7 +125,7 @@ void accept_visitor(E& element, V& visitor,
                              (const string& id,
                               const OutputMember& output)
       {
-        auto ov = visitor.get_element_output_visitor(id);
+        auto ov = visitor.get_element_output_visitor(id, true);
         if (ov)
           output.accept(*ov, path, ++path_index, element);
       });
@@ -143,21 +143,27 @@ void accept_visitor(E& element, V& visitor,
           auto s = module.get_setting(part.name);
           if (s)
           {
-            s->accept(visitor, path, ++path_index, element);
+            auto sv = visitor.get_element_setting_visitor(part.name, false);
+            if (sv)
+              s->accept(*sv, path, ++path_index, element);
           }
           else
           {
             auto i = module.get_input(part.name);
             if (i)
             {
-              i->accept(visitor, path, ++path_index, element);
+              auto iv = visitor.get_element_input_visitor(part.name, false);
+              if (iv)
+                i->accept(*iv, path, ++path_index, element);
             }
             else
             {
               auto o = module.get_output(part.name);
               if (o)
               {
-                o->accept(visitor, path, ++path_index, element);
+                auto ov = visitor.get_element_output_visitor(part.name, false);
+                if (ov)
+                  o->accept(*ov, path, ++path_index, element);
               }
               else
               {

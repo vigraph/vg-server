@@ -190,18 +190,22 @@ public:
   virtual bool visit(const Clone& clone,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<ReadVisitor> get_sub_element_visitor(const string& id,
+                                                          bool visit,
                                                      const Graph &scope) = 0;
   virtual bool visit(const Element& element,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_setting_visitor(const string &id)
+  virtual unique_ptr<ReadVisitor> get_element_setting_visitor(const string &id,
+                                                              bool visit)
           = 0;
   virtual bool visit(const GraphElement& element, const SettingMember& setting,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_input_visitor(const string &id)
+  virtual unique_ptr<ReadVisitor> get_element_input_visitor(const string &id,
+                                                            bool visit)
           = 0;
   virtual bool visit(const GraphElement& element, const InputMember& input,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_output_visitor(const string &id)
+  virtual unique_ptr<ReadVisitor> get_element_output_visitor(const string &id,
+                                                             bool visit)
           = 0;
   virtual bool visit(const GraphElement& element, const OutputMember& output,
                      const Path& path, unsigned path_index) = 0;
@@ -222,19 +226,23 @@ public:
   virtual bool visit(Clone& clone,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_sub_element_visitor(const string& id,
+                                                           bool visit,
                                                            Graph& scope) = 0;
   virtual unique_ptr<WriteVisitor> get_sub_clone_visitor(Clone& clone) = 0;
   virtual bool visit(Element& element,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_setting_visitor(const string &id)
+  virtual unique_ptr<WriteVisitor> get_element_setting_visitor(const string &id,
+                                                               bool visit)
           = 0;
   virtual bool visit(GraphElement& element, const SettingMember& setting,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_input_visitor(const string &id)
+  virtual unique_ptr<WriteVisitor> get_element_input_visitor(const string &id,
+                                                             bool visit)
           = 0;
   virtual bool visit(GraphElement& element, const InputMember& input,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_output_visitor(const string &id)
+  virtual unique_ptr<WriteVisitor> get_element_output_visitor(const string &id,
+                                                              bool visit)
           = 0;
   virtual bool visit(GraphElement& element, const OutputMember& output,
                      const Path& path, unsigned path_index) = 0;
@@ -291,6 +299,7 @@ public:
   };
   virtual bool connect(const Connection&) = 0;
   virtual vector<Connection> get_connections() const = 0;
+  virtual void disconnect() = 0;
 
   virtual ~ElementOutput() {}
 };
@@ -458,6 +467,15 @@ public:
       else
         primary_data = output_data.begin()->first;
     }
+  }
+
+  // Disconnection everything
+  void disconnect() override
+  {
+    primary_data = nullptr;
+    for (const auto& od: output_data)
+      od.first->input_data.erase(this);
+    output_data.clear();
   }
 
   bool connected() const

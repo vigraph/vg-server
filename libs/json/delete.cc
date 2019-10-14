@@ -40,7 +40,7 @@ bool DeleteVisitor::visit(Dataflow::Clone& clone,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_sub_element_visitor(const string& id,
+    DeleteVisitor::get_sub_element_visitor(const string& id, bool,
                                            Dataflow::Graph &scope)
 {
   return make_unique<DeleteVisitor>(engine, id, &scope);
@@ -62,7 +62,7 @@ bool DeleteVisitor::visit(Dataflow::Element& element,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_setting_visitor(const string &id)
+    DeleteVisitor::get_element_setting_visitor(const string &id, bool)
 {
   return make_unique<DeleteVisitor>(engine, id, scope_graph);
 }
@@ -75,7 +75,7 @@ bool DeleteVisitor::visit(Dataflow::GraphElement&,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_input_visitor(const string &id)
+    DeleteVisitor::get_element_input_visitor(const string &id, bool)
 {
   return make_unique<DeleteVisitor>(engine, id, scope_graph);
 }
@@ -88,7 +88,7 @@ bool DeleteVisitor::visit(Dataflow::GraphElement&,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_output_visitor(const string &id)
+    DeleteVisitor::get_element_output_visitor(const string &id, bool)
 {
   return make_unique<DeleteVisitor>(engine, id, scope_graph);
 }

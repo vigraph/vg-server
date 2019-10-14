@@ -147,8 +147,12 @@ bool SetVisitor::visit(Dataflow::Clone& clone,
 
 unique_ptr<Dataflow::WriteVisitor>
     SetVisitor::get_sub_element_visitor(const string& id,
+                                        bool visit,
                                         Dataflow::Graph &scope)
 {
+  if (!visit) // Assume the json should not be traversed
+    return make_unique<SetVisitor>(engine, json, id, &scope);
+
   auto it = sub_element_json.find(id);
   if (it == sub_element_json.end())
     return {};
@@ -168,9 +172,13 @@ bool SetVisitor::visit(Dataflow::Element&,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_setting_visitor(const string &id)
+    SetVisitor::get_element_setting_visitor(const string &id, bool visit)
 {
+  if (!visit) // Assume the json should not be traversed
+    return make_unique<SetVisitor>(engine, json, id, scope_graph);
+
   const auto& settingsj = json.get("settings");
+
   if (!settingsj || settingsj.type != Value::Type::OBJECT)
     return nullptr;
 
@@ -193,8 +201,11 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_input_visitor(const string &id)
+    SetVisitor::get_element_input_visitor(const string &id, bool visit)
 {
+  if (!visit) // Assume the json should not be traversed
+    return make_unique<SetVisitor>(engine, json, id, scope_graph);
+
   const auto& inputsj = json.get("inputs");
   if (!inputsj || inputsj.type != Value::Type::OBJECT)
     return nullptr;
@@ -218,8 +229,11 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_output_visitor(const string &id)
+    SetVisitor::get_element_output_visitor(const string &id, bool visit)
 {
+  if (!visit) // Assume the json should not be traversed
+    return make_unique<SetVisitor>(engine, json, id, scope_graph);
+
   const auto& outputsj = json.get("outputs");
   if (!outputsj || outputsj.type != Value::Type::OBJECT)
     return nullptr;
@@ -232,7 +246,7 @@ unique_ptr<Dataflow::WriteVisitor>
 }
 
 bool SetVisitor::visit(Dataflow::GraphElement& element,
-                       const Dataflow::OutputMember&,
+                       const Dataflow::OutputMember& output,
                        const Dataflow::Path&, unsigned)
 {
   if (!scope_graph)
@@ -241,6 +255,10 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
   const auto& connectionsj = json.get("connections");
   if (!connectionsj || connectionsj.type != Value::Type::ARRAY)
     return true;
+
+  // Disconnect any existing connections
+  auto& op = output.get(element);
+  op.disconnect();
 
   for (const auto& connectionj: connectionsj.a)
   {

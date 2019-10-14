@@ -223,11 +223,20 @@ inline void accept_visitor(G& graph, V& visitor,
         {
           auto& elements = graph.get_elements();
           auto eit = elements.find(part.name);
-          if (eit == elements.end())
+          auto exists = (eit != elements.end());
+          if (!exists && !path.reached(path_index + 1))
             throw(runtime_error{"Element not found: " + part.name});
-          auto sv = visitor.get_sub_element_visitor(eit->first, false, graph);
+          auto sv = visitor.get_sub_element_visitor(part.name, false, graph);
           if (sv)
+          {
+            if (!exists)
+            {
+              eit = elements.find(part.name); // It may just have been created
+              if (eit == elements.end())
+                throw(runtime_error{"Element not found: " + part.name});
+            }
             eit->second->accept(*sv, path, ++path_index);
+          }
         }
         break;
       default:

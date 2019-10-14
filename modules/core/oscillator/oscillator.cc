@@ -43,7 +43,6 @@ public:
   Input<double> freq{1}; // Hz
   Input<double> pulse_width{0.5};
   Output<double> output;
-  Output<double> control;
 };
 
 //--------------------------------------------------------------------------
@@ -51,16 +50,15 @@ public:
 void OscillatorSource::tick(const TickData& td)
 {
   sample_iterate(td.nsamples, {}, tie(waveform, freq, pulse_width),
-                 tie(output, control),
+                 tie(output),
                  [&](Waveform::Type wf, double f, double pw,
-                     double& o, double& c)
+                     double& o)
   {
     switch (state)
     {
       case State::enabled:
       case State::completing:
-        o = Waveform::get_value(wf, pw, theta);
-        c = (o + 1) / 2;
+        o = Waveform::get_value(wf, pw, theta);  // Universal 0..1 range
         theta += f / td.sample_rate;
         if (theta >= 1)
         {
@@ -71,7 +69,6 @@ void OscillatorSource::tick(const TickData& td)
         break;
       case State::disabled:
         o = 0;
-        c = 0;
         break;
     }
   });
@@ -89,8 +86,7 @@ Dataflow::SimpleModule module
     { "pulse-width",  &OscillatorSource::pulse_width },
   },
   {
-    { "output", &OscillatorSource::output },
-    { "control", &OscillatorSource::control },
+    { "output", &OscillatorSource::output }
   }
 };
 

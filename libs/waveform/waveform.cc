@@ -67,38 +67,38 @@ bool get_type(const string& str, Type& wf)
 }
 
 //==========================================================================
-// Get waveform value (-1..1) for a given type, pulse width and theta
+// Get waveform value (0..1) for a given type, pulse width and theta
 double get_value(Type wf, double pw, double theta)
 {
   switch (wf)
   {
     case Type::none:
-      return 0;
+      return 0.5;
 
     case Type::saw:
       if (theta < 0.5)
-        return theta * 2;
+        return 0.5+theta;
       else
-        return theta * 2 - 2;
+        return theta-0.5;
 
     case Type::sin:
       // !!! TODO: can this be improved in terms of pulse width?
-      return theta < pw ? sin(theta * pi / pw)
-                        : sin((theta - 1.0) * pi / (1.0 - pw));
+      return 0.5+0.5*(theta < pw ? sin(theta * pi / pw)
+                                 : sin((theta - 1.0) * pi / (1.0 - pw)));
 
     case Type::square:
-      return (theta < pw) ? 1.0 : -1.0;
+      return (theta < pw) ? 1.0 : 0.0;
 
     case Type::triangle:
-      if (theta < pw / 2)
-        return theta / (pw / 2);
-      else if (theta >= (1 - (pw / 2)))
-        return (theta - (1 - (pw / 2))) / (pw / 2) - 1.0;
+      if (theta < pw/2)
+        return 0.5 + theta/pw;
+      else if (theta < (1 - pw/2))
+        return 1.0 - (theta - pw/2) / pw;
       else
-        return 1 - (theta - (pw / 2)) / ((1 - pw) / 2);
+        return (theta - (1 - pw/2)) / pw;
 
     case Type::random:
-      return 2.0 * rand() / RAND_MAX - 1;
+      return rand() / RAND_MAX;
   }
   return 0;
 }

@@ -24,7 +24,7 @@ private:
     disabled,
     enabled,
     completing
-  } state = State::enabled;
+  } state = State::disabled;   // Note we go enabled if start not connected
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -42,6 +42,12 @@ public:
   Input<Waveform::Type> waveform;
   Input<double> freq{1}; // Hz
   Input<double> pulse_width{0.5};
+
+  // Triggers
+  Input<double> start{0.0};    // Trigger to start
+  Input<double> stop{0.0};     // Trigger to stop
+
+  // Output
   Output<double> output;
   Output<double> control;
 };
@@ -50,11 +56,26 @@ public:
 // Generate a fragment
 void OscillatorSource::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {}, tie(waveform, freq, pulse_width),
+  sample_iterate(td.nsamples, {}, tie(waveform, freq, pulse_width, start, stop),
                  tie(output, control),
                  [&](Waveform::Type wf, double f, double pw,
+                     double _start, double _stop,
                      double& o, double& c)
   {
+    if (_stop)
+    {
+      if (state == State::enabled)
+        state = State::completing;
+    }
+    else if (_start || !start.connected())
+    {
+      if (state == State::disabled)
+      {
+        state = State::enabled;
+        theta = 0.0;
+      }
+    }
+
     switch (state)
     {
       case State::enabled:
@@ -87,6 +108,8 @@ Dataflow::SimpleModule module
     { "wave",         &OscillatorSource::waveform },
     { "freq",         &OscillatorSource::freq },
     { "pulse-width",  &OscillatorSource::pulse_width },
+    { "start",        &OscillatorSource::start },
+    { "stop",         &OscillatorSource::stop },
   },
   {
     { "output", &OscillatorSource::output },

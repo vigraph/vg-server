@@ -36,6 +36,23 @@ TEST(OscillatorTest, TestNoWaveform)
     EXPECT_EQ(0.0, waveform[i]);
 }
 
+TEST(OscillatorTest, TestNoWaveformControl)
+{
+  GraphTester<double> tester{loader, waveform_size};
+
+  auto& osc = tester.add("oscillator");
+  tester.capture_from(osc, "control");
+
+  tester.run();
+
+  const auto waveform = tester.get_output();
+
+  // Should be 44100 samples at 0.5
+  EXPECT_EQ(waveform_size, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ(0.5, waveform[i]);
+}
+
 TEST(OscillatorTest, TestSquareWaveSingleCycle)
 {
   GraphTester<double> tester{loader, waveform_size};
@@ -57,6 +74,127 @@ TEST(OscillatorTest, TestSquareWaveSingleCycle)
       EXPECT_EQ(1, waveform[i]) << i;
     else
       EXPECT_EQ(-1, waveform[i]) << i;
+  }
+}
+
+TEST(OscillatorTest, TestSquareWaveSingleCycleControl)
+{
+  GraphTester<double> tester{loader, waveform_size};
+
+  auto& osc = tester.add("oscillator")
+                    .set("wave", Waveform::Type::square)
+                    .set("freq", 1.0);
+  tester.capture_from(osc, "control");
+
+  tester.run();
+
+  const auto waveform = tester.get_output();
+
+  // Should be 44100 samples at alternating 0, 1
+  EXPECT_EQ(waveform_size, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+  {
+    if (i < half_waveform_size)
+      EXPECT_EQ(1, waveform[i]) << i;
+    else
+      EXPECT_EQ(0, waveform[i]) << i;
+  }
+}
+
+TEST(OscillatorTest, TestSquareWaveStartConnectedButNotStarted)
+{
+  GraphTester<double> tester{loader, waveform_size};
+
+  auto& osc = tester.add("oscillator")
+                    .set("wave", Waveform::Type::square)
+                    .set("freq", 1.0);
+
+  auto start_data = vector<double>(100);
+  auto& sts = tester.add_source(start_data);
+  sts.connect("output", osc, "start");
+
+  tester.capture_from(osc, "output");
+
+  tester.run();
+
+  const auto waveform = tester.get_output();
+
+  // Should be 44100 samples at 0
+  EXPECT_EQ(waveform_size, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+    EXPECT_EQ(0.0, waveform[i]) << i;
+}
+
+TEST(OscillatorTest, TestSquareWaveStartHalfWayThrough)
+{
+  GraphTester<double> tester{loader, waveform_size};
+
+  auto& osc = tester.add("oscillator")
+                    .set("wave", Waveform::Type::square)
+                    .set("freq", 2.0);
+
+  auto start_data = vector<double>(waveform_size);
+  start_data[half_waveform_size] = 1.0;
+  auto& sts = tester.add_source(start_data);
+  sts.connect("output", osc, "start");
+
+  tester.capture_from(osc, "output");
+
+  tester.run();
+
+  const auto waveform = tester.get_output();
+
+  // Should be 44100 samples, half at 0, half at alternating 1.0, -1.0
+  EXPECT_EQ(waveform_size, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+  {
+    if (i < half_waveform_size)
+      EXPECT_EQ(0.0, waveform[i]) << i;
+    else if (i < three_quarter_waveform_size)
+      EXPECT_EQ(1, waveform[i]) << i;
+    else
+      EXPECT_EQ(-1, waveform[i]) << i;
+  }
+}
+
+TEST(OscillatorTest, TestSquareWaveStopPartWayThrough)
+{
+  GraphTester<double> tester{loader, waveform_size};
+
+  auto& osc = tester.add("oscillator")
+                    .set("wave", Waveform::Type::square)
+                    .set("freq", 2.0);
+
+  // Note we have to connect and trigger start otherwise it will
+  // retrigger automatically because not connected
+  auto start_data = vector<double>(waveform_size);
+  start_data[0] = 1.0;
+  auto& sts = tester.add_source(start_data);
+  sts.connect("output", osc, "start");
+
+  auto stop_data = vector<double>(waveform_size);
+  // Note we set the stop half-way through the waveform, to test it is
+  // properly run out to theta wrap
+  stop_data[quarter_waveform_size] = 1.0;
+  auto& sos = tester.add_source(stop_data);
+  sos.connect("output", osc, "stop");
+
+  tester.capture_from(osc, "output");
+
+  tester.run();
+
+  const auto waveform = tester.get_output();
+
+  // Should be 44100 samples, half at 0, half at alternating 1.0, -1.0
+  EXPECT_EQ(waveform_size, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+  {
+    if (i < quarter_waveform_size)
+      EXPECT_EQ(1, waveform[i]) << i;
+    else if (i < half_waveform_size)
+      EXPECT_EQ(-1, waveform[i]) << i;
+    else
+      EXPECT_EQ(0.0, waveform[i]) << i;
   }
 }
 

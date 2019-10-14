@@ -42,7 +42,7 @@ string get_name(Type wf);
 bool get_type(const string& str, Type& wf);
 
 //==========================================================================
-// Get waveform value (-1..1) for a given type, pulse width and theta
+// Get waveform value (0..1) for a given type, pulse width and theta
 double get_value(Type wf, double width, double theta);
 
 //==========================================================================

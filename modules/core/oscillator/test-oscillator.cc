@@ -30,10 +30,10 @@ TEST(OscillatorTest, TestNoWaveform)
 
   const auto waveform = tester.get_output();
 
-  // Should be 44100 samples at 0
+  // Should be 44100 samples at 0.5
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ(0.0, waveform[i]);
+    EXPECT_EQ(0.5, waveform[i]);
 }
 
 TEST(OscillatorTest, TestSquareWaveSingleCycle)
@@ -49,14 +49,14 @@ TEST(OscillatorTest, TestSquareWaveSingleCycle)
 
   const auto waveform = tester.get_output();
 
-  // Should be 44100 samples at alternating -1, 1
+  // Should be 44100 samples at alternating 0, 1
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
   {
     if (i < half_waveform_size)
       EXPECT_EQ(1, waveform[i]) << i;
     else
-      EXPECT_EQ(-1, waveform[i]) << i;
+      EXPECT_EQ(0, waveform[i]) << i;
   }
 }
 
@@ -73,14 +73,14 @@ TEST(OscillatorTest, TestSquareWaveMultiCycle)
 
   const auto waveform = tester.get_output();
 
-  // Should be 44100 samples at alternating 1, -1
+  // Should be 44100 samples at alternating 0, 1
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
   {
     if (i % (waveform_size / 10) < (half_waveform_size / 10))
       EXPECT_EQ(1, waveform[i]) << i;
     else
-      EXPECT_EQ(-1, waveform[i]) << i;
+      EXPECT_EQ(0, waveform[i]) << i;
   }
 }
 
@@ -93,7 +93,7 @@ TEST(OscillatorTest, TestSawWaveSingleCycle)
                     .set("freq", 1.0);
   tester.capture_from(osc, "output");
 
-  tester.run(2);
+  tester.run();
 
   const auto waveform = tester.get_output();
 
@@ -102,9 +102,10 @@ TEST(OscillatorTest, TestSawWaveSingleCycle)
   for(auto i=0u; i<waveform.size(); i++)
   {
     if (i < half_waveform_size)
-      EXPECT_NEAR((double)i / half_waveform_size, waveform[i], 0.0001) << i;
+      EXPECT_NEAR(0.5 + 0.5 * (double)i / half_waveform_size,
+                  waveform[i], 0.0001) << i;
     else
-      EXPECT_NEAR((double)(i - half_waveform_size) / half_waveform_size - 1,
+      EXPECT_NEAR(0.5*(double)(i-half_waveform_size) / half_waveform_size,
                   waveform[i], 0.0001) << i;
   }
 }
@@ -127,17 +128,14 @@ TEST(OscillatorTest, TestTriangleWaveSingleCycle)
   for(auto i=0u; i<waveform.size(); i++)
   {
     if (i < quarter_waveform_size)
-      EXPECT_NEAR((double)i / quarter_waveform_size, waveform[i], 0.0001) << i;
-    else if (i < half_waveform_size)
-      EXPECT_NEAR(1.0 - ((double)i - quarter_waveform_size)
-                        / quarter_waveform_size,
+      EXPECT_NEAR(0.5+0.5*(double)i / quarter_waveform_size,
                   waveform[i], 0.0001) << i;
     else if (i < three_quarter_waveform_size)
-      EXPECT_NEAR(-((double)i - half_waveform_size) / quarter_waveform_size,
+      EXPECT_NEAR(1.0-((double)i - quarter_waveform_size) / half_waveform_size,
                   waveform[i], 0.0001) << i;
     else
-      EXPECT_NEAR(-1.0 + ((double)i - three_quarter_waveform_size)
-                         / quarter_waveform_size,
+      EXPECT_NEAR(0.5*((double)i - three_quarter_waveform_size)
+                  / quarter_waveform_size,
                   waveform[i], 0.0001) << i;
   }
 }
@@ -155,10 +153,11 @@ TEST(OscillatorTest, TestSinWaveSingleCycle)
 
   const auto waveform = tester.get_output();
 
-  // Should be 44100 samples in sin -1..1
+  // Should be 44100 samples in sin 0..1
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_NEAR(sin(2*pi*(double)i/waveform.size()), waveform[i], 0.0001) << i;
+    EXPECT_NEAR(0.5+0.5*sin(2*pi*(double)i/waveform.size()),
+                waveform[i], 0.0001) << i;
 }
 
 TEST(OscillatorTest, TestRandomSingleCycle)

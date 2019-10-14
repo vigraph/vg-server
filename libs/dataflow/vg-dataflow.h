@@ -41,11 +41,11 @@ typedef double timestamp_t; // Relative timestamp
 // Tick data - data that is passed for each tick
 struct TickData
 {
-  Time::Stamp timestamp;
+  timestamp_t timestamp;
   double sample_rate = 0;
   unsigned long nsamples = 0;
 
-  TickData(const Time::Stamp& _timestamp, double _sample_rate,
+  TickData(timestamp_t _timestamp, double _sample_rate,
            unsigned long _nsamples):
     timestamp{_timestamp}, sample_rate{_sample_rate}, nsamples{_nsamples}
   {}

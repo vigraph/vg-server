@@ -34,7 +34,7 @@ public:
   {
     auto buffer = output.get_buffer();
     for (auto i = 0u; i < td.nsamples; ++i)
-      buffer.data.push_back(td.timestamp.seconds() + 1);
+      buffer.data.push_back(td.timestamp + 1);
     if (tick_order) *tick_order += get_id();
   }
 

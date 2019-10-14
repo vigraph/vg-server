@@ -26,7 +26,7 @@ private:
     completing
   } state = State::enabled;
 
-  // Source/Element virtuals
+  // Element virtuals
   void tick(const TickData& td) override;
 
   // Clone

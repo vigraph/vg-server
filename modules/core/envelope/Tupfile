@@ -1,12 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph <envelope> core control module
+# Tupfile for Vigraph <envelope> core module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-control-envelope
+NAME    = vg-module-core-envelope
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry \
-          vg-module-core-control-set
+DEPENDS = vg-dataflow vg-geometry ot-lib
 
 include_rules

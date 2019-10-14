@@ -196,17 +196,17 @@ void SDLSink::tick(const TickData& td)
                    [&](double c1, double c2, double c3,
                        double c4, double c5, double c6)
     {
-      output_buffer[bpos++] = (c1-0.5)*2;  // From 0..1 to -1..1
+      output_buffer[bpos++] = c1;
       if (channels >= 2)
-        output_buffer[bpos++] = (c2-0.5)*2;
+        output_buffer[bpos++] = c2;
       if (channels >= 3)
-        output_buffer[bpos++] = (c3-0.5)*2;
+        output_buffer[bpos++] = c3;
       if (channels >= 4)
-        output_buffer[bpos++] = (c4-0.5)*2;
+        output_buffer[bpos++] = c4;
       if (channels >= 5)
-        output_buffer[bpos++] = (c5-0.5)*2;
+        output_buffer[bpos++] = c5;
       if (channels >= 6)
-        output_buffer[bpos++] = (c6-0.5)*2;
+        output_buffer[bpos++] = c6;
     });
     SDL_UnlockAudioDevice(dev);
   }

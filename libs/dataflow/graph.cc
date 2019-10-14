@@ -22,13 +22,11 @@ void Graph::add(GraphElement *el)
 // Remove an element
 void Graph::remove(const string& id)
 {
-  cout << "DELETING " << id << endl;
   auto it = elements.find(id);
   if (it == elements.end())
     throw(runtime_error{"Element not found: " + id});
   it->second->shutdown();
   elements.erase(it);
-  cout << "DELETED " << id << endl;
 }
 
 
@@ -153,7 +151,7 @@ inline void accept_visitor(G& graph, V& visitor,
                             (const string& id,
                              const InputMember& input)
       {
-        auto iv = visitor.get_element_input_visitor(id);
+        auto iv = visitor.get_element_input_visitor(id, true);
         if (iv)
           input.accept(*iv, path, ++path_index, graph);
       });
@@ -165,7 +163,7 @@ inline void accept_visitor(G& graph, V& visitor,
                              (const string& id,
                               const OutputMember& output)
       {
-        auto ov = visitor.get_element_output_visitor(id);
+        auto ov = visitor.get_element_output_visitor(id, true);
         if (ov)
           output.accept(*ov, path, ++path_index, graph);
       });
@@ -174,7 +172,7 @@ inline void accept_visitor(G& graph, V& visitor,
     auto& elements = graph.get_elements();
     for (auto& eit: elements)
     {
-      auto sv = visitor.get_sub_element_visitor(eit.first, graph);
+      auto sv = visitor.get_sub_element_visitor(eit.first, true, graph);
       if (sv)
         eit.second->accept(*sv, path, ++path_index);
     }
@@ -191,21 +189,27 @@ inline void accept_visitor(G& graph, V& visitor,
           auto s = module.get_setting(part.name);
           if (s)
           {
-            s->accept(visitor, path, ++path_index, graph);
+            auto sv = visitor.get_element_setting_visitor(part.name, false);
+            if (sv)
+              s->accept(*sv, path, ++path_index, graph);
           }
           else
           {
             auto i = module.get_input(part.name);
             if (i)
             {
-              i->accept(visitor, path, ++path_index, graph);
+              auto iv = visitor.get_element_input_visitor(part.name, false);
+              if (iv)
+                i->accept(*iv, path, ++path_index, graph);
             }
             else
             {
               auto o = module.get_output(part.name);
               if (o)
               {
-                o->accept(visitor, path, ++path_index, graph);
+                auto ov = visitor.get_element_output_visitor(part.name, false);
+                if (ov)
+                  o->accept(*ov, path, ++path_index, graph);
               }
               else
               {
@@ -219,11 +223,20 @@ inline void accept_visitor(G& graph, V& visitor,
         {
           auto& elements = graph.get_elements();
           auto eit = elements.find(part.name);
-          if (eit == elements.end())
+          auto exists = (eit != elements.end());
+          if (!exists && !path.reached(path_index + 1))
             throw(runtime_error{"Element not found: " + part.name});
-          auto sv = visitor.get_sub_element_visitor(eit->first, graph);
+          auto sv = visitor.get_sub_element_visitor(part.name, false, graph);
           if (sv)
+          {
+            if (!exists)
+            {
+              eit = elements.find(part.name); // It may just have been created
+              if (eit == elements.end())
+                throw(runtime_error{"Element not found: " + part.name});
+            }
             eit->second->accept(*sv, path, ++path_index);
+          }
         }
         break;
       default:

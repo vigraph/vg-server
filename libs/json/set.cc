@@ -21,6 +21,67 @@ unique_ptr<Dataflow::WriteVisitor> SetVisitor::get_root_graph_visitor()
   return make_unique<SetVisitor>(engine, json, "root", &engine.get_graph());
 }
 
+void create_element(const Dataflow::Engine& engine, Dataflow::Graph& graph,
+                    Dataflow::Clone *clone,
+                    const string& id, const Value& json,
+                    map<string, const Value *>& sub_element_json)
+{
+  if (id.empty())
+    throw runtime_error("Graph element requires an 'id'");
+  const auto &typej = json.get("type");
+  if (!typej)
+    throw runtime_error("Graph element requires a 'type'");
+  const auto& type = typej.as_str();
+  if (type.empty())
+    throw runtime_error("Graph element requires a 'type'");
+
+  auto element = engine.create(type, id);
+  if (element)
+  {
+    graph.add(element);
+
+    // If it's a clone info, notify clone
+    if (clone)
+    {
+      auto info = dynamic_cast<Dataflow::CloneInfo *>(element);
+      if (info)
+        clone->register_info(graph, info);
+    }
+
+    // Setup element
+    auto& module = element->get_module();
+    auto it = json.o.find("settings");
+    if (it != json.o.end() && it->second.type == Value::Type::OBJECT)
+    {
+      for (const auto sit: it->second.o)
+      {
+        const auto& name = sit.first;
+        const auto& value = sit.second;
+
+        auto setting = module.get_setting(name);
+        if (!setting)
+        {
+          Log::Error log;
+          log << "Unknown setting '" << name << "' on element "
+              << element->get_id() << endl;
+          continue;
+        }
+
+        setting->set_json(*element, value);
+      }
+    }
+
+    element->setup();
+
+    // Add to our element cache for later visiting
+    sub_element_json[id] = &json;
+  }
+  else
+  {
+    throw(runtime_error{"Unknown element type: " + type});
+  }
+}
+
 bool SetVisitor::visit(Dataflow::Graph& graph,
                        const Dataflow::Path&, unsigned)
 {
@@ -34,60 +95,7 @@ bool SetVisitor::visit(Dataflow::Graph& graph,
     {
       const auto& id = it.first;
       const auto& elementj = it.second;
-      if (id.empty())
-        throw runtime_error("Graph element requires an 'id'");
-      const auto &typej = elementj.get("type");
-      if (!typej)
-        throw runtime_error("Graph element requires a 'type'");
-      const auto& type = typej.as_str();
-      if (type.empty())
-        throw runtime_error("Graph element requires a 'type'");
-
-      auto element = engine.create(type, id);
-      if (element)
-      {
-        graph.add(element);
-
-        // If it's a clone info, notify clone
-        if (clone)
-        {
-          auto info = dynamic_cast<Dataflow::CloneInfo *>(element);
-          if (info)
-            clone->register_info(graph, info);
-        }
-
-        // Setup element
-        auto& module = element->get_module();
-        auto it = elementj.o.find("settings");
-        if (it != elementj.o.end() && it->second.type == Value::Type::OBJECT)
-        {
-          for (const auto sit: it->second.o)
-          {
-            const auto& name = sit.first;
-            const auto& value = sit.second;
-
-            auto setting = module.get_setting(name);
-            if (!setting)
-            {
-              Log::Error log;
-              log << "Unknown setting '" << name << "' on element "
-                  << element->get_id() << endl;
-              continue;
-            }
-
-            setting->set_json(*element, value);
-          }
-        }
-
-        element->setup();
-
-        // Add to our element cache for later visiting
-        sub_element_json[id] = &elementj;
-      }
-      else
-      {
-        throw(runtime_error{"Unknown element type: " + type});
-      }
+      create_element(engine, graph, clone, id, elementj, sub_element_json);
     }
   }
 
@@ -147,8 +155,17 @@ bool SetVisitor::visit(Dataflow::Clone& clone,
 
 unique_ptr<Dataflow::WriteVisitor>
     SetVisitor::get_sub_element_visitor(const string& id,
+                                        bool visit,
                                         Dataflow::Graph &scope)
 {
+  // If this is for a non-existant element, assume it is being created
+  const auto& elements = scope.get_elements();
+  if (elements.find(id) == elements.end())
+    create_element(engine, scope, clone, id, json, sub_element_json);
+
+  if (!visit) // Assume the json should not be traversed
+    return make_unique<SetVisitor>(engine, json, id, &scope);
+
   auto it = sub_element_json.find(id);
   if (it == sub_element_json.end())
     return {};
@@ -168,9 +185,13 @@ bool SetVisitor::visit(Dataflow::Element&,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_setting_visitor(const string &id)
+    SetVisitor::get_element_setting_visitor(const string &id, bool visit)
 {
+  if (!visit) // Assume the json should not be traversed
+    return make_unique<SetVisitor>(engine, json, id, scope_graph);
+
   const auto& settingsj = json.get("settings");
+
   if (!settingsj || settingsj.type != Value::Type::OBJECT)
     return nullptr;
 
@@ -193,8 +214,11 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_input_visitor(const string &id)
+    SetVisitor::get_element_input_visitor(const string &id, bool visit)
 {
+  if (!visit) // Assume the json should not be traversed
+    return make_unique<SetVisitor>(engine, json, id, scope_graph);
+
   const auto& inputsj = json.get("inputs");
   if (!inputsj || inputsj.type != Value::Type::OBJECT)
     return nullptr;
@@ -218,8 +242,11 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_output_visitor(const string &id)
+    SetVisitor::get_element_output_visitor(const string &id, bool visit)
 {
+  if (!visit) // Assume the json should not be traversed
+    return make_unique<SetVisitor>(engine, json, id, scope_graph);
+
   const auto& outputsj = json.get("outputs");
   if (!outputsj || outputsj.type != Value::Type::OBJECT)
     return nullptr;
@@ -232,7 +259,7 @@ unique_ptr<Dataflow::WriteVisitor>
 }
 
 bool SetVisitor::visit(Dataflow::GraphElement& element,
-                       const Dataflow::OutputMember&,
+                       const Dataflow::OutputMember& output,
                        const Dataflow::Path&, unsigned)
 {
   if (!scope_graph)
@@ -241,6 +268,10 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
   const auto& connectionsj = json.get("connections");
   if (!connectionsj || connectionsj.type != Value::Type::ARRAY)
     return true;
+
+  // Disconnect any existing connections
+  auto& op = output.get(element);
+  op.disconnect();
 
   for (const auto& connectionj: connectionsj.a)
   {

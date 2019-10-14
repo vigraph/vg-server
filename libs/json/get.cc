@@ -47,15 +47,23 @@ bool GetVisitor::visit(const Dataflow::Clone& clone,
 
 unique_ptr<Dataflow::ReadVisitor>
     GetVisitor::get_sub_element_visitor(const string& id,
+                                        bool visit,
                                         const Dataflow::Graph&)
 {
-  auto eit = json.o.find("elements");
-  if (eit == json.o.end())
-    eit = json.o.emplace("elements", Value::Type::OBJECT).first;
-  auto& elements = eit->second;
-  auto no_connections = output_pins.find(id) != output_pins.end();
-  return make_unique<GetVisitor>(elements.put(id, Value::Type::OBJECT),
-                                 no_connections);
+  if (visit)
+  {
+    auto eit = json.o.find("elements");
+    if (eit == json.o.end())
+      eit = json.o.emplace("elements", Value::Type::OBJECT).first;
+    auto& elements = eit->second;
+    auto no_connections = output_pins.find(id) != output_pins.end();
+    return make_unique<GetVisitor>(elements.put(id, Value::Type::OBJECT),
+                                   no_connections);
+  }
+  else
+  {
+    return make_unique<GetVisitor>(json);
+  }
 }
 
 bool GetVisitor::visit(const Dataflow::Element& element,
@@ -67,13 +75,20 @@ bool GetVisitor::visit(const Dataflow::Element& element,
 }
 
 unique_ptr<Dataflow::ReadVisitor>
-    GetVisitor::get_element_setting_visitor(const string& id)
+    GetVisitor::get_element_setting_visitor(const string& id, bool visit)
 {
-  auto eit = json.o.find("settings");
-  if (eit == json.o.end())
-    eit = json.o.emplace("settings", Value::Type::OBJECT).first;
-  auto& settings = eit->second;
-  return make_unique<GetVisitor>(settings.put(id, Value::Type::OBJECT));
+  if (visit)
+  {
+    auto eit = json.o.find("settings");
+    if (eit == json.o.end())
+      eit = json.o.emplace("settings", Value::Type::OBJECT).first;
+    auto& settings = eit->second;
+    return make_unique<GetVisitor>(settings.put(id, Value::Type::OBJECT));
+  }
+  else
+  {
+    return make_unique<GetVisitor>(json);
+  }
 }
 
 bool GetVisitor::visit(const Dataflow::GraphElement& element,
@@ -86,13 +101,20 @@ bool GetVisitor::visit(const Dataflow::GraphElement& element,
 }
 
 unique_ptr<Dataflow::ReadVisitor>
-    GetVisitor::get_element_input_visitor(const string& id)
+    GetVisitor::get_element_input_visitor(const string& id, bool visit)
 {
-  auto eit = json.o.find("inputs");
-  if (eit == json.o.end())
-    eit = json.o.emplace("inputs", Value::Type::OBJECT).first;
-  auto& inputs = eit->second;
-  return make_unique<GetVisitor>(inputs.put(id, Value::Type::OBJECT));
+  if (visit)
+  {
+    auto eit = json.o.find("inputs");
+    if (eit == json.o.end())
+      eit = json.o.emplace("inputs", Value::Type::OBJECT).first;
+    auto& inputs = eit->second;
+    return make_unique<GetVisitor>(inputs.put(id, Value::Type::OBJECT));
+  }
+  else
+  {
+    return make_unique<GetVisitor>(json);
+  }
 }
 
 bool GetVisitor::visit(const Dataflow::GraphElement& element,
@@ -105,15 +127,22 @@ bool GetVisitor::visit(const Dataflow::GraphElement& element,
 }
 
 unique_ptr<Dataflow::ReadVisitor>
-    GetVisitor::get_element_output_visitor(const string& id)
+    GetVisitor::get_element_output_visitor(const string& id, bool visit)
 {
-  if (no_connections)
-    return nullptr;
-  auto eit = json.o.find("outputs");
-  if (eit == json.o.end())
-    eit = json.o.emplace("outputs", Value::Type::OBJECT).first;
-  auto& outputs = eit->second;
-  return make_unique<GetVisitor>(outputs.put(id, Value::Type::OBJECT));
+  if (visit)
+  {
+    if (no_connections)
+      return nullptr;
+    auto eit = json.o.find("outputs");
+    if (eit == json.o.end())
+      eit = json.o.emplace("outputs", Value::Type::OBJECT).first;
+    auto& outputs = eit->second;
+    return make_unique<GetVisitor>(outputs.put(id, Value::Type::OBJECT));
+  }
+  else
+  {
+    return make_unique<GetVisitor>(json);
+  }
 }
 
 bool GetVisitor::visit(const Dataflow::GraphElement& element,

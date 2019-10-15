@@ -21,7 +21,8 @@ class Beat: public SimpleElement
  private:
   // Dynamic state
   bool active{false};
-  Dataflow::timestamp_t last_trigger{-1000000.0};
+  bool synchronised{false};
+  Dataflow::timestamp_t last_trigger{0.0};
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -37,6 +38,7 @@ public:
 
   // Configuration
   Input<double> interval{0.0};
+  Input<double> offset{0.0};
 
   // Triggers
   Input<double> start{0.0};    // Trigger to start
@@ -52,33 +54,39 @@ void Beat::tick(const TickData& td)
 {
   auto count{0};
   sample_iterate(td.nsamples, {},
-                 tie(interval, start, stop),
+                 tie(interval, offset, start, stop),
                  tie(output),
-                 [&](double interval,
+                 [&](double interval, double offset,
                      double _start, double _stop,
                      double& output)
   {
     if (_stop)
     {
       active = false;
-      last_trigger = -1000000.0;  // restart timebase
+      synchronised = false;
     }
     else if (_start || !start.connected())
     {
       active = true;
     }
 
-    const auto sample_time = td.timestamp + count++/td.sample_rate;
-    if (active && sample_time >= last_trigger + interval - interval_rounding)
-    {
-      if (last_trigger < 0.0)
-        last_trigger = sample_time;     // Reset to now
-      else
-        last_trigger += interval;       // Maintain constant timebase
+    output = 0;
 
-      output = 1;
+    const auto sample_time = td.timestamp + count++/td.sample_rate;
+    if (active)
+    {
+      if (!synchronised)
+      {
+        last_trigger = sample_time-interval;
+        synchronised = true;
+      }
+
+      if (sample_time >= last_trigger + interval + offset - interval_rounding)
+      {
+        last_trigger += interval;       // Maintain constant timebase
+        output = 1;
+      }
     }
-    else output = 0;
   });
 }
 
@@ -92,6 +100,7 @@ Dataflow::SimpleModule module
   {},
   {
     { "interval",  &Beat::interval },
+    { "offset",    &Beat::offset   },
     { "start",     &Beat::start    },
     { "stop",      &Beat::stop     }
   },

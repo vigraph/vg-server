@@ -30,6 +30,26 @@ TEST(BeatTest, TestInterval)
 
 }
 
+TEST(BeatTest, TestIntervalWithOffset)
+{
+  GraphTester<double> tester(loader, sample_rate);
+
+  auto& beat = tester.add("beat")
+                     .set("interval", 0.1)
+                     .set("offset",   0.05);
+  tester.capture_from(beat, "output");
+
+  tester.run();
+
+  const auto output = tester.get_output();
+
+  // Should be 100 samples at 0, with 1's every 10, starting at 5
+  EXPECT_EQ(sample_rate, output.size());
+  for(auto i=0u; i<output.size(); i++)
+    EXPECT_EQ(((i+5)%10)?0.0:1.0, output[i]) << i;
+
+}
+
 TEST(BeatTest, TestStartingMidwayThroughTick)
 {
   GraphTester<double> tester(loader, sample_rate);

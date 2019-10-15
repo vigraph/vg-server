@@ -1,12 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph <compare> core control module
+# Tupfile for Vigraph <compare> core module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-control-compare
+NAME    = vg-module-core-compare
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry \
-          vg-module-core-control-set
+DEPENDS = vg-dataflow vg-geometry ot-lib
 
 include_rules

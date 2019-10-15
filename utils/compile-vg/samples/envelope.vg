@@ -1,0 +1,8 @@
+# Audio envelope test
+vco: oscillator wave="sin" freq=440 ->-
+att: multiply ->channel1 ->channel2
+out: audio/sdl-out
+
+beat interval=1 ->env.start
+beat interval=1 offset=0.3 ->env.stop
+env: envelope attack=0.01 decay=0.1 sustain=0.3 release=0.3 ->att.factor

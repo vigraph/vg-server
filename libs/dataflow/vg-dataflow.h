@@ -255,6 +255,8 @@ public:
 class ElementSetting
 {
 public:
+  virtual void set_from(const ElementSetting& setting) = 0;
+
   // Accept visitors
   virtual ~ElementSetting() {}
 };
@@ -272,6 +274,13 @@ public:
 
   void set(const T& _value) { value = _value; }
   T get() const { return value; }
+
+  void set_from(const ElementSetting& setting) override
+  {
+    const auto s = dynamic_cast<const Setting<T> *>(&setting);
+    if (s)
+      set(s->get());
+  }
 };
 
 //==========================================================================
@@ -353,6 +362,11 @@ private:
 
 public:
   using Setting<T>::Setting;
+
+  void set_from(const ElementSetting& setting) override
+  {
+    Setting<T>::set_from(setting);
+  }
 
   bool ready() const override
   {

@@ -61,7 +61,27 @@ Element *Element::clone() const
     return el;
 
   el->set_id(get_id());
-  // !!! TODO: clone settings
+
+  const auto& module = get_module();
+  if (module.has_settings())
+  {
+    module.for_each_setting([this, &el]
+                            (const string&,
+                             const SettingMember& setting)
+    {
+      setting.get(*el).set_from(setting.get(*this));
+    });
+  }
+  if (module.has_inputs())
+  {
+    module.for_each_input([this, &el]
+                          (const string&,
+                           const InputMember& input)
+    {
+      input.get(*el).set_from(input.get(*this));
+    });
+  }
+
   return el;
 }
 

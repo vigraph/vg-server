@@ -10,10 +10,10 @@ beat/vg-module-core-beat.so /usr/lib/vigraph/modules/
 compare/vg-module-core-compare.so /usr/lib/vigraph/modules/
 envelope/vg-module-core-envelope.so /usr/lib/vigraph/modules/
 count/vg-module-core-count.so /usr/lib/vigraph/modules/
+limit/vg-module-core-limit.so /usr/lib/vigraph/modules/
 
 #controls/interpolate/vg-module-core-control-interpolate.so /usr/lib/vigraph/modules/
 #controls/log/vg-module-core-control-log.so /usr/lib/vigraph/modules/
-#controls/limit/vg-module-core-control-limit.so /usr/lib/vigraph/modules/
 #controls/random/vg-module-core-control-random.so /usr/lib/vigraph/modules/
 #controls/round/vg-module-core-control-round.so /usr/lib/vigraph/modules/
 #controls/set/vg-module-core-control-set.so /usr/lib/vigraph/modules/

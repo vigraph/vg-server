@@ -1137,8 +1137,11 @@ private:
                            const F& f)
   {
     auto settings = make_tuple(get<Sc>(ss).get()...);
+    (void)settings;
     auto inputs = make_tuple(get<Ic>(is).get_buffer()...);
+    (void)inputs;
     auto outputs = make_tuple(get<Oc>(os).get_buffer()...);
+    (void)outputs;
     // Resize all outputs to wanted size
     int dummy[] = {0, (void(get<Oc>(outputs).data.resize(count)), 0)...};
     (void)dummy;

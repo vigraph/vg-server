@@ -73,12 +73,58 @@ Graph *Graph::clone() const
 {
   auto g = new Graph{GraphModule{}};
   g->set_id(get_id());
+
+  // Elements
+  auto pairs = vector<pair<GraphElement *, GraphElement *>>{};
   for (const auto& el: elements)
   {
-    g->elements.emplace(el.first, el.second->clone());
+    auto c = el.second->clone();
+    c->setup();
+    g->elements.emplace(el.first, c);
+    pairs.emplace_back(el.second.get(), c);
   }
 
-  // !!! TODO: clone element & graph connections
+  // Input pins
+  for (const auto &ip: input_pins)
+  {
+    g->add_input_pin(ip.first, ip.second.element, ip.second.connection);
+  }
+
+  // Output pins
+  for (const auto &op: output_pins)
+  {
+    g->add_output_pin(op.first, op.second.element, op.second.connection);
+  }
+
+  // Element connections
+  for (auto& els: pairs)
+  {
+    auto orig = els.first;
+    auto clone = els.second;
+    auto& m = orig->get_module();
+    if (m.has_outputs())
+    {
+      m.for_each_output([&orig, &clone, &g]
+                        (const string& id, const OutputMember& output)
+      {
+        auto& op = output.get(*orig);
+        const auto& conns = op.get_connections();
+        for (const auto& conn: conns)
+        {
+          const auto& eid = conn.element->get_id();
+          auto e = g->get_element(eid);
+          if (!e)
+            continue;
+          const auto& emodule = conn.element->get_module();
+          const auto& einput = emodule.get_input_id(*conn.element, *conn.input);
+          clone->connect(id, *e, einput);
+        }
+      });
+    }
+  }
+
+  // !!! TODO: connections to/from graph
+
   return g;
 }
 

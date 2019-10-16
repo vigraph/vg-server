@@ -11,13 +11,13 @@ ModuleLoader loader;
 
 const auto sample_rate = 1;
 
-TEST(CompareTest, TestDefaultCompareTriggersInsideInRange)
+TEST(CompareTest, TestDefaultCompareLowerTriggersLower)
 {
   GraphTester<double> tester{loader, sample_rate};
 
   auto& compare = tester.add("compare")
-                        .set("input", 0.5);
-  tester.capture_from(compare, "inside");
+                        .set("input", -0.5);
+  tester.capture_from(compare, "lower");
 
   tester.run();
 
@@ -28,13 +28,13 @@ TEST(CompareTest, TestDefaultCompareTriggersInsideInRange)
   EXPECT_EQ(1.0, output[0]);
 }
 
-TEST(CompareTest, TestDefaultCompareDoesntTriggerOutsideInRange)
+TEST(CompareTest, TestDefaultCompareLowerTriggersDoesntTriggerEqual)
 {
   GraphTester<double> tester{loader, sample_rate};
 
   auto& compare = tester.add("compare")
-                        .set("input", 0.5);
-  tester.capture_from(compare, "outside");
+                        .set("input", -0.5);
+  tester.capture_from(compare, "equal");
 
   tester.run();
 
@@ -45,14 +45,29 @@ TEST(CompareTest, TestDefaultCompareDoesntTriggerOutsideInRange)
   EXPECT_EQ(0.0, output[0]);
 }
 
-TEST(CompareTest, TestSetMinCompareTriggersOutsideOutOfRange)
+TEST(CompareTest, TestDefaultCompareLowerDoesntTriggerHigher)
 {
   GraphTester<double> tester{loader, sample_rate};
 
   auto& compare = tester.add("compare")
-                        .set("min", 0.6)
-                        .set("input", 0.5);
-  tester.capture_from(compare, "outside");
+                        .set("input", -0.5);
+  tester.capture_from(compare, "higher");
+
+  tester.run();
+
+  const auto output = tester.get_output();
+
+  // Should be 1 samples at 1.0
+  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(0.0, output[0]);
+}
+
+TEST(CompareTest, TestDefaultCompareEqualTriggersEqual)
+{
+  GraphTester<double> tester{loader, sample_rate};
+
+  auto& compare = tester.add("compare");
+  tester.capture_from(compare, "equal");
 
   tester.run();
 
@@ -63,14 +78,12 @@ TEST(CompareTest, TestSetMinCompareTriggersOutsideOutOfRange)
   EXPECT_EQ(1.0, output[0]);
 }
 
-TEST(CompareTest, TestSetMinCompareDoesntTriggerInsideOutOfRange)
+TEST(CompareTest, TestDefaultCompareEqualTriggersDoesntTriggerLower)
 {
   GraphTester<double> tester{loader, sample_rate};
 
-  auto& compare = tester.add("compare")
-                        .set("min", 0.6)
-                        .set("input", 0.5);
-  tester.capture_from(compare, "inside");
+  auto& compare = tester.add("compare");
+  tester.capture_from(compare, "lower");
 
   tester.run();
 
@@ -81,14 +94,29 @@ TEST(CompareTest, TestSetMinCompareDoesntTriggerInsideOutOfRange)
   EXPECT_EQ(0.0, output[0]);
 }
 
-TEST(CompareTest, TestSetMaxCompareTriggersOutsideOutOfRange)
+TEST(CompareTest, TestDefaultCompareEqualDoesntTriggerHigher)
+{
+  GraphTester<double> tester{loader, sample_rate};
+
+  auto& compare = tester.add("compare");
+  tester.capture_from(compare, "higher");
+
+  tester.run();
+
+  const auto output = tester.get_output();
+
+  // Should be 1 samples at 1.0
+  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(0.0, output[0]);
+}
+
+TEST(CompareTest, TestDefaultCompareHigherTriggersHigher)
 {
   GraphTester<double> tester{loader, sample_rate};
 
   auto& compare = tester.add("compare")
-                        .set("max", 0.4)
                         .set("input", 0.5);
-  tester.capture_from(compare, "outside");
+  tester.capture_from(compare, "higher");
 
   tester.run();
 
@@ -99,14 +127,13 @@ TEST(CompareTest, TestSetMaxCompareTriggersOutsideOutOfRange)
   EXPECT_EQ(1.0, output[0]);
 }
 
-TEST(CompareTest, TestSetMaxCompareDoesntTriggerInsideOutOfRange)
+TEST(CompareTest, TestDefaultCompareHigherTriggersDoesntTriggerEqual)
 {
   GraphTester<double> tester{loader, sample_rate};
 
   auto& compare = tester.add("compare")
-                        .set("max", 0.4)
                         .set("input", 0.5);
-  tester.capture_from(compare, "inside");
+  tester.capture_from(compare, "equal");
 
   tester.run();
 
@@ -117,14 +144,49 @@ TEST(CompareTest, TestSetMaxCompareDoesntTriggerInsideOutOfRange)
   EXPECT_EQ(0.0, output[0]);
 }
 
-TEST(CompareTest, TestDefaultCompareWithOnChangeTriggersInsideInRangeOnlyOnce)
+TEST(CompareTest, TestDefaultCompareHigherDoesntTriggerLower)
+{
+  GraphTester<double> tester{loader, sample_rate};
+
+  auto& compare = tester.add("compare")
+                        .set("input", 0.5);
+  tester.capture_from(compare, "lower");
+
+  tester.run();
+
+  const auto output = tester.get_output();
+
+  // Should be 1 samples at 1.0
+  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(0.0, output[0]);
+}
+
+TEST(CompareTest, TestSetValueCompareHigherDoesntTriggerHigher)
+{
+  GraphTester<double> tester{loader, sample_rate};
+
+  auto& compare = tester.add("compare")
+                        .set("value", 0.6)
+                        .set("input", 0.5);
+  tester.capture_from(compare, "higher");
+
+  tester.run();
+
+  const auto output = tester.get_output();
+
+  // Should be 1 samples at 0.0
+  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(0.0, output[0]);
+}
+
+TEST(CompareTest, TestDefaultCompareLowerWithOnChangeTriggersLowerOnlyOnce)
 {
   GraphTester<double> tester{loader, 2};
 
   auto& compare = tester.add("compare")
-                        .set("input", 0.5)
+                        .set("input", -1.0)
                         .set("on-change", 1.0);
-  tester.capture_from(compare, "inside");
+  tester.capture_from(compare, "lower");
 
   tester.run();
 
@@ -136,15 +198,33 @@ TEST(CompareTest, TestDefaultCompareWithOnChangeTriggersInsideInRangeOnlyOnce)
   EXPECT_EQ(0.0, output[1]);
 }
 
-TEST(CompareTest,
-     TestDefaultCompareWithOnChangeTriggersOutsideOutOfRangeOnlyOnce)
+TEST(CompareTest, TestDefaultCompareEqualWithOnChangeTriggersEqualOnlyOnce)
 {
   GraphTester<double> tester{loader, 2};
 
   auto& compare = tester.add("compare")
-                        .set("input", 1.5)
+                        .set("input", 0.0)
                         .set("on-change", 1.0);
-  tester.capture_from(compare, "outside");
+  tester.capture_from(compare, "equal");
+
+  tester.run();
+
+  const auto output = tester.get_output();
+
+  // Should be 2 samples at 1.0, 0.0
+  ASSERT_EQ(2, output.size());
+  EXPECT_EQ(1.0, output[0]);
+  EXPECT_EQ(0.0, output[1]);
+}
+
+TEST(CompareTest, TestDefaultCompareHigherWithOnChangeTriggersHigherOnlyOnce)
+{
+  GraphTester<double> tester{loader, 2};
+
+  auto& compare = tester.add("compare")
+                        .set("input", 0.5)
+                        .set("on-change", 1.0);
+  tester.capture_from(compare, "higher");
 
   tester.run();
 

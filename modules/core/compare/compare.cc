@@ -18,8 +18,9 @@ private:
   enum class Last
   {
     none,
-    inside,
-    outside
+    lower,
+    equal,
+    higher
   } last{Last::none};
 
   // Element virtuals
@@ -38,15 +39,15 @@ public:
   Setting<double> on_change;
 
   // Configuration
-  Input<double> min{0.0};
-  Input<double> max{1.0};
+  Input<double> value{0.0};
 
   // Input
   Input<double> input{0.0};
 
   // Outputs
-  Output<double> inside;     // When inside the range (inclusive)
-  Output<double> outside;    // When outside the range (exclusive)
+  Output<double> lower;     // When input < value
+  Output<double> equal;     // When input == value
+  Output<double> higher;    // When input > value
 };
 
 //--------------------------------------------------------------------------
@@ -55,27 +56,35 @@ void Compare::tick(const TickData& td)
 {
   sample_iterate(td.nsamples,
                  tie(on_change),
-                 tie(min, max, input),
-                 tie(inside, outside),
+                 tie(value, input),
+                 tie(lower, equal, higher),
                  [&](double on_change,
-                     double min, double max, double input,
-                     double& inside, double& outside)
+                     double value, double input,
+                     double& lower, double& equal, double& higher)
   {
-    inside = outside = 0.0;
-    if (input > max || input < min)
+    lower = equal = higher = 0.0;
+    if (input > value)
     {
-      if (!on_change || last != Last::outside)
+      if (!on_change || last != Last::higher)
       {
-        outside = 1;
-        last = Last::outside;
+        higher = 1;
+        last = Last::higher;
+      }
+    }
+    else if (input < value)
+    {
+      if (!on_change || last != Last::lower)
+      {
+        lower = 1;
+        last = Last::lower;
       }
     }
     else
     {
-      if (!on_change || last != Last::inside)
+      if (!on_change || last != Last::equal)
       {
-        inside = 1;
-        last = Last::inside;
+        equal = 1;
+        last = Last::equal;
       }
     }
   });
@@ -90,16 +99,15 @@ Dataflow::SimpleModule module
   "core",
   {
     { "on-change",  &Compare::on_change }
-
   },
   {
-    { "min",        &Compare::min       },
-    { "max",        &Compare::max       },
+    { "value",      &Compare::value     },
     { "input",      &Compare::input     }
   },
   {
-    { "inside",     &Compare::inside    },
-    { "outside",    &Compare::outside   }
+    { "lower",     &Compare::lower      },
+    { "equal",     &Compare::equal      },
+    { "higher",    &Compare::higher     }
   }
 };
 

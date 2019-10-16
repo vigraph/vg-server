@@ -11,79 +11,46 @@
 
 namespace ViGraph { namespace Dataflow {
 
-//------------------------------------------------------------------------
-// Configure with <graph> XML
-// Throws a runtime_error if configuration fails
-void Engine::configure(const File::Directory& base_dir,
-                       const XML::Element& graph_config)
-{
-  // Configure graph from graph config
-  graph->configure(base_dir, graph_config);
-
-  // Enable it
-  graph->enable();
-}
-
-//------------------------------------------------------------------------
-// Create an element with the given name - may be section:id or just id,
+//--------------------------------------------------------------------------
+// Create an element with the given type - may be section:id or just id,
 // which is looked up in default namespaces
-Element *Engine::create(const string& name, const XML::Element& config)
+GraphElement *Engine::create(const string& type, const string& id) const
 {
-  vector<string> bits = Text::split(name, ':');
+  vector<string> bits = Text::split(type, namespace_separator);
   if (bits.size() > 1)
   {
     // Qualified - use the section given
-    return element_registry.create(bits[0], bits[1], config);
+    auto e = element_registry.create(bits[0], bits[1]);
+    if (e)
+      e->set_id(id);
+    return e;
   }
   else
   {
     // Try default sections
-    for(const auto& section: default_sections)
+    for (const auto& section: default_sections)
     {
-      Element *e = element_registry.create(section, name, config);
-      if (e) return e;
+      auto e = element_registry.create(section, type);
+      if (e)
+      {
+        e->set_id(id);
+        return e;
+      }
     }
 
     return nullptr;
   }
 }
 
-//------------------------------------------------------------------------
-// Get state as a JSON value (see Graph::get_json())
-JSON::Value Engine::get_json(const string& path) const
+//--------------------------------------------------------------------------
+// Update element list
+void Engine::update_elements()
 {
-  MT::RWReadLock lock(graph_mutex);
-  return graph->get_json(path);
+  tick_elements.clear();
+  graph->collect_elements(tick_elements);
 }
 
-//------------------------------------------------------------------------
-// Set state from JSON
-// path is a path/to/leaf/prop - can set any intermediate level too
-void Engine::set_json(const string& path, const JSON::Value& value)
-{
-  MT::RWWriteLock lock(graph_mutex);
-  graph->set_json(path, value);
-}
-
-//------------------------------------------------------------------------
-// Set a new element from JSON
-// path is a path/to/leaf
-void Engine::add_json(const string& path, const JSON::Value& value)
-{
-  MT::RWWriteLock lock(graph_mutex);
-  graph->add_json(path, value);
-}
-
-//------------------------------------------------------------------------
-// Delete an item (from REST)
-// path is a path/to/leaf
-void Engine::delete_item(const string& path)
-{
-  MT::RWWriteLock lock(graph_mutex);
-  graph->delete_item(path);
-}
-
-//------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 // Tick the engine
 void Engine::tick(Time::Stamp t)
 {
@@ -91,18 +58,39 @@ void Engine::tick(Time::Stamp t)
 
   while (t >= start_time + tick_interval * tick_number)
   {
-    timestamp_t timestamp = tick_interval.seconds() * tick_number;
+    const auto timestamp = tick_interval.seconds() * tick_number;
 
     try
     {
-      const auto td = TickData{timestamp, tick_number, tick_interval,
-                               get_sample_rate()};
+      const auto sample_rate = get_sample_rate();
+      const auto last_tick_total = static_cast<unsigned long>(
+        floor(tick_interval.seconds() * tick_number * sample_rate));
+      const auto tick_total = static_cast<unsigned long>(
+        floor(tick_interval.seconds() * (tick_number + 1) * sample_rate));
+      const auto nsamples = tick_total - last_tick_total;
+      const auto td = TickData{timestamp, sample_rate, nsamples};
 
       // Tick the graph
       MT::RWReadLock lock(graph_mutex);
-      graph->pre_tick(td);
-      graph->tick(td);
-      graph->post_tick(td);
+      auto ticked = list<Element *>{};
+      while (!tick_elements.empty())
+      {
+        for (auto it = tick_elements.begin(); it != tick_elements.end();)
+        {
+          if ((*it)->ready())
+          {
+            (*it)->tick(td);
+            (*it)->reset();
+            ticked.push_back(*it);
+            it = tick_elements.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
+        }
+      }
+      tick_elements = ticked;
     }
     catch (const runtime_error& e)
     {
@@ -114,7 +102,33 @@ void Engine::tick(Time::Stamp t)
   }
 }
 
-//------------------------------------------------------------------------
+//--------------------------------------------------------------------------
+// Accept visitors
+void Engine::accept(ReadVisitor& visitor,
+                    const Path& path, unsigned path_index) const
+{
+  MT::RWReadLock lock{graph_mutex};
+  if (path.reached(path_index))
+    if (!visitor.visit(*this, path, path_index))
+      return;
+  auto sv = visitor.get_root_graph_visitor();
+  if (sv)
+    graph->accept(*sv, path, path_index);
+}
+
+void Engine::accept(WriteVisitor& visitor,
+                    const Path& path, unsigned path_index)
+{
+  MT::RWWriteLock lock{graph_mutex};
+  if (!visitor.visit(*this, path, path_index))
+    return;
+  auto sv = visitor.get_root_graph_visitor();
+  if (sv)
+    graph->accept(*sv, path, path_index);
+  update_elements();
+}
+
+//--------------------------------------------------------------------------
 // Shut down the graph
 void Engine::shutdown()
 {

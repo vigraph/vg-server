@@ -6,17 +6,18 @@
 
 NAME     = vg-modules-laser
 TYPE     = package
-DEPENDS  = vg-module-laser-filter-beamify \
-           vg-module-laser-source-ilda \
-           vg-module-laser-filter-idn-transmit \
-           vg-module-laser-filter-add-blanking-anchors \
-           vg-module-laser-filter-add-vertex-repeats \
-           vg-module-laser-filter-infill-lines \
-           vg-module-laser-filter-reorder-segments \
-           vg-module-laser-filter-show-blanking
+DEPENDS  =
+#           vg-module-laser-filter-beamify \
+#           vg-module-laser-source-ilda \
+#           vg-module-laser-filter-idn-transmit \
+#           vg-module-laser-filter-add-blanking-anchors \
+#           vg-module-laser-filter-add-vertex-repeats \
+#           vg-module-laser-filter-infill-lines \
+#           vg-module-laser-filter-reorder-segments \
+#           vg-module-laser-filter-show-blanking
 
 PACKAGE  = $(NAME)
-VERSION  = 0.4.0
+VERSION  = 2.0.0
 REVISION = 1~dev1
 
 ifdef RELEASE

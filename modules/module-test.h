@@ -50,47 +50,99 @@ public:
   }
 };
 
-// Test control - accepts any property and remembers it
-class TestTarget: public Element
+// Test source - outputs given buffer
+template<typename T>
+class TestSource: public SimpleElement
 {
-  struct Module module_data =
+private:
+  SimpleModule module_data =
+  {
+    "test-source",
+    "Test Source",
+    "test",
+    {},
+    {},
+    {
+      { "output", &TestSource::output },
+    }
+  };
+
+  TestSource<T> *create_clone() const override
+  {
+    return new TestSource<T>{data, get_id()};
+  }
+
+  vector<T> data;
+  decltype(data.size()) pos = 0;
+
+public:
+  Output<T> output;
+
+  // Construct
+  TestSource(const vector<T>& _data, const string& id):
+    SimpleElement(module_data), data{_data}
+  {
+    set_id(id);
+  }
+
+  void tick(const TickData& td) override
+  {
+    sample_iterate(td.nsamples, {}, {}, tie(output),
+                   [&](double& o)
+    {
+      if (data.empty())
+        o = {};
+      else
+      {
+        o = data[pos++];
+        if (pos >= data.size())
+          pos = 0;
+      }
+    });
+  }
+};
+
+// Test control - accepts any property and remembers it
+template<typename T>
+class TestTarget: public SimpleElement
+{
+private:
+  SimpleModule module_data =
   {
     "test",
     "Test",
-    "Test target",
     "test",
+    {},
     {
-      { "x", { "Test property", Value::Type::number,
-               Dataflow::Module::Property::Member(), true } }
+      { "input", &TestTarget::input },
     },
-    { }
+    {}
   };
 
-public:
-  map<string, Value> properties;
-  Value::Type prop_type{Value::Type::number};
-  int sets_called{0};
-
-  // Control/Element virtuals
-  void set_property(const string& property, const Value& v) override
-  { properties[property] = v; sets_called++; }
-  void set_property(const string& property, const vector<double>& v) override
-  { if (!v.empty()) properties[property] = v[0]; sets_called++; }
-  Value::Type get_property_type(const string&) override
-  { return prop_type; }
+  TestTarget<T> *create_clone() const override
+  {
+    return new TestTarget<T>{};
+  }
 
 public:
+  Input<T> input;
+  vector<T> capture;
+
   // Construct
- TestTarget(Value::Type _prop_type = Value::Type::number):
-  Element(&module_data, XML::Element("test", "id", "test")),
-    prop_type(_prop_type) {}
+  TestTarget():
+    SimpleElement(module_data)
+  {
+    set_id("test");
+  }
 
-  // Test helpers
-  bool got(const string& prop) { return properties.find(prop)!=properties.end(); }
-  const Value& get(const string& prop) { return properties[prop]; }
+  void tick(const TickData&) override
+  {
+    capture = input.get_buffer();
+  }
 };
 
 // Graph constructor
+template<typename T>
 class GraphTester
 {
   ModuleLoader& loader;
@@ -98,98 +150,60 @@ class GraphTester
   double sample_rate = 50;
 
  public:
-  struct ElementProxy
-  {
-    Element *e;
-    ElementProxy(Element *_e): e(_e) {}
-
-    // Arrow for direct use of 'e'
-    Element *operator->() { return e; }
-
-    // All methods return *this, for chaining
-    // Set a property direct with Dataflow::Value
-    // Template to avoid ambiguity with JSON version
-    template <typename T> const ElementProxy&
-    set(const string& name, const T& v) const
-    { e->set_property(name, v); return *this; }
-
-    // Set a complex property with JSON
-    const ElementProxy& set(const string& name,
-                            const JSON::Value& v) const
-    { e->set_json(name, v); return *this; }
-
-    // Connect to another element
-    const ElementProxy& connect(const string& src_prop,
-                                const ElementProxy& dest,
-                                const string& dest_prop) const
-    {
-      JSON::Value json(JSON::Value::ARRAY);
-      auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));
-      pj.set("element", dest.e->id);
-      pj.set("prop", dest_prop);
-      e->set_output_json(src_prop, json);
-      return *this;
-    }
-
-    // Default output for controls
-    const ElementProxy& connect(const ElementProxy& dest,
-                                const string& dest_prop="value") const
-    { return connect("output", dest, dest_prop); }
-
-    // Connect to test target
-    const ElementProxy& connect_test(const string& src_prop,
-                                     const string& dest_prop) const
-    {
-      JSON::Value json(JSON::Value::ARRAY);
-      auto& pj = json.add(JSON::Value(JSON::Value::OBJECT));
-      pj.set("element", "test");
-      pj.set("prop", dest_prop);
-      e->set_output_json(src_prop, json);
-      return *this;
-    }
-
-    // Default output for controls
-    const ElementProxy& connect_test(const string& dest_prop="value") const
-    { return connect_test("output", dest_prop); }
-  };
-
-  Graph graph;
-  TestTarget *target;
+  TestTarget<T> *target = nullptr;
 
   // Add an element
-  ElementProxy add(const string& name)
+  GraphElement& add(const string& name)
   {
-    XML::Element config;  // !!! Until XML goes
-    Element *e = loader.engine.create(name, config);
+    const auto id = name + Text::itos(++id_serial);
+    auto e = loader.engine.create(name, id);
     if (!e) throw runtime_error("Can't create element "+name);
-    if (e->id.empty()) e->id = name + Text::itos(++id_serial);
-    graph.add(e);
-    e->graph = &graph;
-    return ElementProxy(e);
+    loader.engine.get_graph().add(e);
+    return *e;
+  }
+
+  // Add a source
+  template<typename U>
+  GraphElement& add_source(const vector<U>& data)
+  {
+    const auto id = "test-source" + Text::itos(++id_serial);
+    auto e = new TestSource<T>{data, id};
+    loader.engine.get_graph().add(e);
+    return *e;
   }
 
   // Run test
-  void test(int nticks = 1)
+  void run(int nticks = 1)
   {
+    auto& graph = loader.engine.get_graph();
     graph.setup();
-    graph.set_sample_rate(sample_rate);
+    loader.engine.set_tick_interval(Time::Duration{1});
+    loader.engine.set_sample_rate(sample_rate);
+    loader.engine.reset();
+    loader.engine.update_elements();
 
     for(auto i=0; i<nticks; i++)
     {
-      const auto td = TickData(i, i, Time::Duration{1}, 1);
-      graph.pre_tick(td);
-      graph.tick(td);
-      graph.post_tick(td);
+      loader.engine.tick(i);
     }
   }
 
   GraphTester(ModuleLoader& _loader,
-              Value::Type prop_type = Value::Type::number,
               double _sample_rate = 50):
-  loader(_loader), sample_rate(_sample_rate), graph(loader.engine),
-  target(new TestTarget(prop_type))
+  loader(_loader), sample_rate(_sample_rate)
   {
-    graph.add(target);
+    target = new TestTarget<T>{};
+    loader.engine.get_graph().add(target);
+  }
+
+  bool capture_from(GraphElement& element, const string& output)
+  {
+    return element.connect(output, *target, "input");
+  }
+
+  const vector<T>& get_output()
+  {
+    return target->capture;
   }
 };
 

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph JSON library
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-json
+TYPE    = lib
+DEPENDS = ot-json vg-dataflow
+
+include_rules

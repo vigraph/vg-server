@@ -22,17 +22,8 @@ public:
   string message;
 
   // Construct
-  LogControl(const Module *module, const XML::Element& config);
+  using Control::Control;
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-// <log>A message</log>
-LogControl::LogControl(const Module *module, const XML::Element& config):
-  Control(module, config)
-{
-  message = *config;
-}
 
 //--------------------------------------------------------------------------
 // Enable

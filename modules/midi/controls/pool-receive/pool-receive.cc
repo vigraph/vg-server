@@ -27,19 +27,11 @@ class PoolReceiveControl: public Dataflow::Control
 
 public:
   // Construct
-  PoolReceiveControl(const Dataflow::Module *module,
-                     const XML::Element& config);
-};
+  using Control::Control;
 
-//--------------------------------------------------------------------------
-// Construct from XML
-//   <pool-receive pool="x"/>
-PoolReceiveControl::PoolReceiveControl(const Dataflow::Module *module,
-                                       const XML::Element& config):
-  Control(module, config)
-{
-  pool = config["pool"];
-}
+  string get_pool() const { return pool; }
+  void set_pool(const string& _pool);
+};
 
 //--------------------------------------------------------------------------
 // Topology calculation - register as receiver
@@ -69,6 +61,23 @@ void PoolReceiveControl::disable()
 }
 
 //--------------------------------------------------------------------------
+// Set pool
+void PoolReceiveControl::set_pool(const string& _pool)
+{
+  if (_pool != pool)
+  {
+    auto distributor =
+      graph->find_service<PoolDistributor>("core", "pool-distributor");
+    if (distributor)
+    {
+      distributor->deregister_worker(this);
+      distributor->register_worker(_pool, this);
+    }
+    pool = _pool;
+  }
+}
+
+//--------------------------------------------------------------------------
 // Set a control property
 void PoolReceiveControl::set_property(const string& prop,
                                       const Value& v)
@@ -84,7 +93,11 @@ Dataflow::Module module
   "PoolReceive",
   "PoolReceive a control on/off",
   "midi",
-  { },
+  {
+    { "pool", { "Pool name", Value::Type::text,
+                { &PoolReceiveControl::get_pool,
+                  &PoolReceiveControl::set_pool }, true } },
+  },
   {
     { "number", { "Note number", "number", Value::Type::number }},
     { "velocity", { "Velocity", "velocity", Value::Type::number }},

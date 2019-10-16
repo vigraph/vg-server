@@ -33,8 +33,8 @@ public:
   double scale{1.0};
   double offset{0.0};
 
-  AmplitudeFilter(const Dataflow::Module *module, const XML::Element& config):
-    FragmentFilter(module, config), ControlImpl(module, config) {}
+  AmplitudeFilter(const Dataflow::Module *module):
+    FragmentFilter(module), ControlImpl(module) {}
 };
 
 //--------------------------------------------------------------------------

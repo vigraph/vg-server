@@ -27,7 +27,7 @@ private:
   ILDA::Animation animation;
 
   // Source/Element virtuals
-  void setup(const File::Directory& base_dir) override;
+  void setup() override;
   void tick(const TickData& td) override;
 
 public:
@@ -36,10 +36,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void ILDASource::setup(const File::Directory& base_dir)
+void ILDASource::setup()
 {
   // Read from file
-  File::Path fpath(base_dir, filename);
+  File::Path fpath(filename);
   ifstream in(fpath.c_str());
   if (!in) throw runtime_error("Can't read ILDA file "+fpath.str());
 

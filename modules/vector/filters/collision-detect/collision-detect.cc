@@ -38,10 +38,9 @@ private:
 
 public:
   // Construct
-  CollisionDetectFilter(const Dataflow::Module *module,
-                        const XML::Element& config):
-    FrameFilter(module, config),
-    ControlImpl(module, config, true)
+  CollisionDetectFilter(const Dataflow::Module *module):
+    FrameFilter(module),
+    ControlImpl(module, true)
   {}
 };
 

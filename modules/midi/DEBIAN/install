@@ -1,6 +1,6 @@
-services/distributor/vg-module-midi-service-distributor.so /usr/lib/vigraph/modules/
-controls/linux-alsa/vg-module-midi-control-linux-alsa.so /usr/lib/vigraph/modules/
-controls/key-in/vg-module-midi-control-key-in.so /usr/lib/vigraph/modules/
-controls/key-out/vg-module-midi-control-key-out.so /usr/lib/vigraph/modules/
-controls/control-in/vg-module-midi-control-control-in.so /usr/lib/vigraph/modules/
-controls/control-out/vg-module-midi-control-control-out.so /usr/lib/vigraph/modules/
+#services/distributor/vg-module-midi-service-distributor.so /usr/lib/vigraph/modules/
+#controls/linux-alsa/vg-module-midi-control-linux-alsa.so /usr/lib/vigraph/modules/
+#controls/key-in/vg-module-midi-control-key-in.so /usr/lib/vigraph/modules/
+#controls/key-out/vg-module-midi-control-key-out.so /usr/lib/vigraph/modules/
+#controls/control-in/vg-module-midi-control-control-in.so /usr/lib/vigraph/modules/
+#controls/control-out/vg-module-midi-control-control-out.so /usr/lib/vigraph/modules/

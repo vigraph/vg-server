@@ -52,9 +52,8 @@ private:
   void shutdown() override;
 
 public:
-  WebSocketControl(const Dataflow::Module *_module,
-                   const XML::Element& _config):
-    Control(_module, _config, true) // optional target
+  WebSocketControl(const Dataflow::Module *_module):
+    Control(_module, true) // optional target
   {}
 
   // Handle a key

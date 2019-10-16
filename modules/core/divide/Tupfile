@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph divide module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-core-divide
+TYPE    = shared
+DEPENDS = vg-dataflow vg-waveform ot-lib
+
+include_rules

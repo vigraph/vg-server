@@ -27,7 +27,7 @@ public:
   int entry_index = 0;
 
   // Construct
-  TriggerSequenceControl(const Module *module, const XML::Element& config);
+  using Control::Control;
 
   // Getters/Setters
   JSON::Value get_values() const;
@@ -38,28 +38,6 @@ public:
   void next();
   void reset();
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML
-//   <trigger-sequence property="x">
-//     <value>on</value>
-//     <value>off</value>
-//   </trigger-sequence>
-TriggerSequenceControl::TriggerSequenceControl(const Module *module,
-                                               const XML::Element& config):
-  Control(module, config)
-{
-  const auto vl = Text::split_words(config["value-list"]);
-  for (const auto& v: vl)
-    values.push_back(Text::stob(v));
-  if (values.empty())
-  {
-    const auto els = config.get_children("value");
-    for (const auto& el: els)
-      values.push_back(Text::stob(el->content));
-  }
-  original_values = values;
-}
 
 //--------------------------------------------------------------------------
 // Get values as JSON value

@@ -6,8 +6,8 @@
 
 NAME     = vg-engine
 TYPE     = exe
-DEPENDS  = ot-daemon ot-soap ot-g2d ot-json \
-           vg-dataflow vg-geometry vg-licence \
+DEPENDS  = ot-daemon ot-soap ot-g2d \
+           vg-dataflow vg-json vg-geometry vg-licence \
            ot-lib \
            ext-pkg-sdl2
 
@@ -15,7 +15,7 @@ WINDOWS-LFLAGS  = -mwindows
 WINDOWS-DEPENDS = ext-ole32 ext-comctl32 ext-oleaut32 ext-uuid
 
 PACKAGE  = $(NAME)
-VERSION  = 0.5.0
+VERSION  = 2.0.0
 REVISION = 1~dev1
 
 ifdef RELEASE

@@ -19,13 +19,14 @@ using namespace ViGraph::Dataflow;
 
 // Macro to define init function with logger and registration for elements
 #define VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(_class, _module)                   \
-Registry::NewFactory<_class> _new_factory;                                    \
+Registry::NewFactory<_class, decltype(_module)> _new_factory{_module};        \
 extern "C" bool vg_init(Log::Channel& logger, Dataflow::Engine& engine)       \
 {                                                                             \
   Log::logger.connect(new Log::ReferencedChannel{logger});                    \
   Log::Streams log;                                                           \
-  log.summary << "  Module: " << _module.id << endl;                          \
-  engine.element_registry.add(_module, _new_factory);                         \
+  log.summary << "  Module: " << _module.get_full_type() << endl;             \
+  engine.element_registry.add(_module.get_section(), _module.get_id(),        \
+                              _new_factory);                                  \
   return true;                                                                \
 }
 

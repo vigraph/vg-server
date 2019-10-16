@@ -38,8 +38,6 @@ private:
   map<int, Start> active_starts;  // Starts, zeroed when new
 
   // Source/Element virtuals
-  void configure(const File::Directory& base_dir,
-                 const XML::Element& config) override;
   void calculate_topology(Element::Topology& topo) override;
   void setup() override;
   void pre_tick(const TickData& td) override;
@@ -60,29 +58,6 @@ public:
   void enable_subgraph();
   void disable_subgraph();
 };
-
-//--------------------------------------------------------------------------
-// Construct from XML:
-//  <selector retrigger="false">
-//    <graph id="sub1">
-//      ..
-//    </graph>
-//    <graph id="sub2"/>
-//      ..
-//    </graph>
-//  </selector>
-void SelectorSource::configure(const File::Directory& base_dir,
-                               const XML::Element& config)
-{
-  Source::configure(base_dir, config);
-
-  retrigger = config.get_attr_bool("retrigger");
-  multigraph.reset(new Dataflow::MultiGraph(graph->get_engine(), graph));
-  multigraph->configure(base_dir, config);
-
-  // Pass upgoing data straight on as if we were the source
-  multigraph->set_send_up_function([this](DataPtr data) { send(data); });
-}
 
 //--------------------------------------------------------------------------
 // Topology calculation

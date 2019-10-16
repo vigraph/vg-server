@@ -194,24 +194,6 @@ void Server::reconfigure()
     engine.add_default_section(section);
   }
 
-  // Load graph from config <graph>
-  // !!! Remove with XML
-  const XML::Element& graph_e = config_xml.get_child("graph");
-  if (!!graph_e)
-  {
-    // Configure the graph engine using XML
-    try
-    {
-      // Based relative to our config filename
-      engine.configure(config_file.dirname(), graph_e);
-      log.summary << "Configured graph loaded OK\n";
-    }
-    catch (runtime_error& e)
-    {
-      log.error << "Can't create graph: " << e.what() << endl;
-    }
-  }
-
   // (re-)create the REST interface
   rest.reset();
   const XML::Element& rest_e = config_xml.get_child("rest");

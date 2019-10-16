@@ -1,2 +1,2 @@
-controls/websocket/vg-module-ui-control-websocket.so /usr/lib/vigraph/modules/
-services/key-distributor/vg-module-ui-service-key-distributor.so /usr/lib/vigraph/modules/
+#controls/websocket/vg-module-ui-control-websocket.so /usr/lib/vigraph/modules/
+#services/key-distributor/vg-module-ui-service-key-distributor.so /usr/lib/vigraph/modules/

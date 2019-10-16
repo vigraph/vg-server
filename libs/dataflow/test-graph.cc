@@ -14,214 +14,59 @@ namespace {
 
 #include "test-elements.h"
 
-// <== All these go when XML does !!!
-TEST_F(GraphTest, TestSourceConstructionWithExplicitID)
-{
-  const string& xml = R"(
-    <graph>
-      <test-source id='t1' value='42'/>
-    </graph>
-  )";
-
-  Graph graph(engine);
-  construct_graph(xml, graph);
-
-  Element *el = graph.get_element("t1");
-  ASSERT_FALSE(!el);
-  TestSource *source = dynamic_cast<TestSource *>(el);
-  ASSERT_FALSE(!source);
-  EXPECT_EQ(42, source->value);
-}
-
-TEST_F(GraphTest, TestFilterConstructionAndAutoID)
-{
-  const string& xml = R"(
-    <graph>
-      <test-source/>
-      <test-filter value='33'/>
-      <test-filter value='44'/>
-    </graph>
-  )";
-
-  Graph graph(engine);
-  construct_graph(xml, graph);
-
-  Element *el = graph.get_element("test-filter");
-  ASSERT_FALSE(!el);
-  TestFilter *f = dynamic_cast<TestFilter *>(el);
-  ASSERT_FALSE(!f);
-  EXPECT_EQ(33, f->value);
-
-  el = graph.get_element("test-filter-1");
-  ASSERT_FALSE(!el);
-  f = dynamic_cast<TestFilter *>(el);
-  ASSERT_FALSE(!f);
-  EXPECT_EQ(44, f->value);
-}
-
-TEST_F(GraphTest, TestMultiSourceFilterConstruction)
-{
-  const string& xml = R"(
-    <graph>
-      <test-source/>
-      <test-source/>
-      <test-filter/>
-    </graph>
-  )";
-
-  Graph graph(engine);
-  construct_graph(xml, graph);
-}
-
-TEST_F(GraphTest, TestExplicitAcceptorConstruction)
-{
-  const string& xml = R"(
-    <graph>
-      <test-source acceptor="filter"/>
-      <test-filter id="filter"/>
-    </graph>
-  )";
-
-  Graph graph(engine);
-  construct_graph(xml, graph);
-}
-
-TEST_F(GraphTest, TestExplicitReversedAcceptorConstruction)
-{
-  const string& xml = R"(
-    <graph>
-      <test-filter id="filter"/>
-      <test-source acceptor="filter"/>
-    </graph>
-  )";
-
-  Graph graph(engine);
-  construct_graph(xml, graph);
-}
-
-TEST_F(GraphTest, TestMultipleSubelementAcceptorConstruction)
-{
-  const string& xml = R"(
-    <graph>
-      <test-source>
-        <acceptor id="filter1"/>
-        <acceptor id="filter2"/>
-      </test-source>
-      <test-filter id="filter1"/>
-      <test-filter id="filter2"/>
-    </graph>
-  )";
-
-  Graph graph(engine);
-  construct_graph(xml, graph);
-}
-
-TEST_F(GraphTest, TestExplicitAcceptorConstructionFailsWhenNoUnboundInput)
-{
-  const string& xml = R"(
-    <graph>
-      <test-source acceptor="filter"/>
-      <test-filter id="orphan"/>
-      <test-filter id="filter"/>
-    </graph>
-  )";
-
-  Graph graph(engine);
-  construct_graph_should_fail(xml, graph);
-}
-
-TEST_F(GraphTest, TestExplicitAcceptorConstructionFailsWhenAcceptorNotThere)
-{
-  const string& xml = R"(
-    <graph>
-      <test-source acceptor="foo"/>
-    </graph>
-  )";
-
-  Graph graph(engine);
-  construct_graph_should_fail(xml, graph);
-}
-
-TEST_F(GraphTest, TestMultipleSubelementAcceptorConstructionFailsWhenNotThere)
-{
-  const string& xml = R"(
-    <graph>
-      <test-source>
-        <acceptor id="filter1"/>
-        <acceptor id="filterx"/>
-      </test-source>
-      <test-filter id="filter1"/>
-      <test-filter id="filter2"/>
-    </graph>
-  )";
-
-  Graph graph(engine);
-  construct_graph_should_fail(xml, graph);
-}
-// ==> All these go when XML does !!!
-
 TEST_F(GraphTest, TestGraphTickAndFiltering)
 {
   TestGraph graph(engine);
-  auto source = graph.add("test-source");
-  auto filter1 = graph.add("test-filter").set("value", 2);
-  auto filter2 = graph.add("test-filter").set("value", 3);
-  auto sinke = graph.add("test-sink", "SINK");
+  auto& source = graph.add("test-source");
+  auto& filter1 = graph.add("test-filter").set("value", 2.0);
+  auto& filter2 = graph.add("test-filter").set("value", 3.0);
+  auto& sinke = graph.add("test-sink", "SINK");
 
-  source.connect("default", filter1, "default");
-  filter1.connect("default", filter2, "default");
-  filter2.connect("default", sinke, "default");
+  source.connect("output", filter1, "input");
+  filter1.connect("output", filter2, "input");
+  filter2.connect("output", sinke, "input");
   graph.setup();
 
   auto sink = graph.get<TestSink>("SINK");
   ASSERT_NE(nullptr, sink);
 
-  EXPECT_FALSE(sink->pre_tick_called);
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
-  EXPECT_TRUE(sink->pre_tick_called);
-
-  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}, 1}));
-
-  EXPECT_FALSE(sink->post_tick_called);
-  ASSERT_NO_THROW(graph.post_tick({1.0, 0, Time::Duration{1}, 1}));
-  EXPECT_TRUE(sink->post_tick_called);
-
+  ASSERT_NO_THROW(engine.tick(1));
   EXPECT_EQ(6, sink->received_data);
-  ASSERT_NO_THROW(graph.tick({2.0, 1, Time::Duration{1}, 1}));
+  ASSERT_NO_THROW(engine.tick(2));
   EXPECT_EQ(18, sink->received_data);
 }
 
 TEST_F(GraphTest, TestGraphTickAndMultipleSources)
 {
   TestGraph graph(engine);
-  auto source1 = graph.add("test-source");
-  auto source2 = graph.add("test-source");
-  auto filter = graph.add("test-filter").set("value", 2);
-  auto sinke = graph.add("test-sink", "SINK");
+  auto& source1 = graph.add("test-source");
+  auto& source2 = graph.add("test-source");
+  auto& filter = graph.add("test-filter").set("value", 2.0);
+  auto& sinke = graph.add("test-sink", "SINK");
 
-  source1.connect("default", filter, "default");
-  source2.connect("default", filter, "default");
-  filter.connect("default", sinke, "default");
+  source1.connect("output", filter, "input");
+  source2.connect("output", filter, "input");
+  filter.connect("output", sinke, "input");
   graph.setup();
 
   auto sink = graph.get<TestSink>("SINK");
   ASSERT_NE(nullptr, sink);
 
-  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}, 1}));
+  ASSERT_NO_THROW(engine.tick(1));
   EXPECT_EQ(4, sink->received_data);
-  ASSERT_NO_THROW(graph.tick({2.0, 1, Time::Duration{1}, 1}));
+  ASSERT_NO_THROW(engine.tick(2));
   EXPECT_EQ(12, sink->received_data);
 }
 
 TEST_F(GraphTest, TestGraphSimpleTickOrdering)
 {
   TestGraph graph(engine);
-  auto filter_e = graph.add("test-filter", "f");
-  auto source_e = graph.add("test-source", "S");
-  auto sink_e = graph.add("test-sink", "s");
+  auto& filter_e = graph.add("test-filter", "f");
+  auto& source_e = graph.add("test-source", "S");
+  auto& sink_e = graph.add("test-sink", "s");
 
-  source_e.connect("default", filter_e, "default");
-  filter_e.connect("default", sink_e, "default");
+  source_e.connect("output", filter_e, "input");
+  filter_e.connect("output", sink_e, "input");
   graph.setup();
 
   string tick_order;
@@ -238,7 +83,7 @@ TEST_F(GraphTest, TestGraphSimpleTickOrdering)
   ASSERT_NE(nullptr, sink);
   sink->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
+  ASSERT_NO_THROW(engine.tick(1));
   EXPECT_EQ("Sfs", tick_order);
 }
 
@@ -259,216 +104,8 @@ TEST_F(GraphTest, TestGraphTickOrderingWithoutRouting)
   ASSERT_NE(nullptr, source1);
   source2->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
+  ASSERT_NO_THROW(engine.tick(1));
   EXPECT_EQ("S1S2", tick_order);
-}
-
-TEST_F(GraphTest, TestGraphTickOrderingWithRouting)
-{
-  TestGraph graph(engine);
-  graph.add("test-source", "S1").set("receive", "foo");
-  graph.add("test-source", "S2").set("send", "foo");
-  graph.setup();
-
-  string tick_order;
-
-  auto source1 = graph.get<TestSource>("S1");
-  ASSERT_NE(nullptr, source1);
-  source1->tick_order = &tick_order;
-
-  auto source2 = graph.get<TestSource>("S2");
-  ASSERT_NE(nullptr, source1);
-  source2->tick_order = &tick_order;
-
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
-  EXPECT_EQ("S2S1", tick_order);
-}
-
-TEST_F(GraphTest, TestGraphTickOrderingWithSubgraphSender)
-{
-  TestGraph graph(engine);
-  graph.add("test-source", "S1").set("receive", "foo");
-  graph.add("test-subgraph", "G");
-
-  TestGraph *subgraph = new TestGraph(engine);
-  subgraph->add("test-source", "S2").set("send", "foo");
-  auto sg = graph.get<TestSubgraph>("G");
-  ASSERT_FALSE(!sg);
-  sg->set_subgraph(subgraph);
-
-  graph.setup();
-
-  string tick_order;
-  sg->tick_order = &tick_order;
-
-  auto source1 = graph.get<TestSource>("S1");
-  ASSERT_NE(nullptr, source1);
-  source1->tick_order = &tick_order;
-
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
-  EXPECT_EQ("GS1", tick_order);
-}
-
-TEST_F(GraphTest, TestGraphTickOrderingWithSubgraphReceiver)
-{
-  TestGraph graph(engine);
-  graph.add("test-subgraph", "G");
-  graph.add("test-source", "S1").set("send", "foo");
-
-  TestGraph *subgraph = new TestGraph(engine);
-  subgraph->add("test-source", "S2").set("receive", "foo");
-  auto sg = graph.get<TestSubgraph>("G");
-  ASSERT_FALSE(!sg);
-  sg->set_subgraph(subgraph);
-
-  graph.setup();
-
-  string tick_order;
-  sg->tick_order = &tick_order;
-
-  auto source1 = graph.get<TestSource>("S1");
-  ASSERT_NE(nullptr, source1);
-  source1->tick_order = &tick_order;
-
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
-  EXPECT_EQ("S1G", tick_order);
-}
-
-TEST_F(GraphTest, TestGraphTickOrderingWithPeerSubgraphSenderAndReceiver)
-{
-  TestGraph graph(engine);
-  graph.add("test-subgraph", "G1");
-  graph.add("test-subgraph", "G2");
-  string tick_order;
-
-  TestGraph *subgraph1 = new TestGraph(engine);
-  subgraph1->add("test-source").set("receive", "foo");
-  auto sg1 = graph.get<TestSubgraph>("G1");
-  ASSERT_FALSE(!sg1);
-  sg1->set_subgraph(subgraph1);
-  sg1->tick_order = &tick_order;
-
-  TestGraph *subgraph2 = new TestGraph(engine);
-  subgraph2->add("test-source").set("send", "foo");
-  auto sg2 = graph.get<TestSubgraph>("G2");
-  ASSERT_FALSE(!sg2);
-  sg2->set_subgraph(subgraph2);
-  sg2->tick_order = &tick_order;
-
-  graph.setup();
-
-  ASSERT_NO_THROW(graph.pre_tick({1.0, 0, Time::Duration{1}, 1}));
-  EXPECT_EQ("G2G1", tick_order);
-}
-
-TEST_F(GraphTest, TestSubgraphExternalConnection)
-{
-  TestGraph graph(engine);
-  auto graph_e = graph.add("test-subgraph", "G");
-  auto sink_e = graph.add("test-sink", "SINK");
-
-  TestGraph *subgraph = new TestGraph(engine);
-  subgraph->add("test-source");
-  subgraph->setup();
-
-  auto sg = graph.get<TestSubgraph>("G");
-  ASSERT_FALSE(!sg);
-  sg->set_subgraph(subgraph);
-
-  graph_e.connect("default", sink_e, "default");
-  graph.setup();
-
-  auto sink = graph.get<TestSink>("SINK");
-  ASSERT_NE(nullptr, sink);
-
-  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}, 1}));
-  EXPECT_EQ(1, sink->received_data);
-}
-
-TEST_F(GraphTest, TestSubgraphExternalConnectionIsRestoredAfterDeleteOfTail)
-{
-  TestGraph graph(engine);
-  auto graph_e = graph.add("test-subgraph", "G");
-  auto sink_e = graph.add("test-sink", "SINK");
-
-  TestGraph *subgraph = new TestGraph(engine);
-  auto source_e = subgraph->add("test-source");
-  auto filter_e = subgraph->add("test-filter", "F").set("value", 2);
-  source_e.connect("default", filter_e, "default");
-  subgraph->setup();
-
-  auto sg = graph.get<TestSubgraph>("G");
-  ASSERT_FALSE(!sg);
-  sg->set_subgraph(subgraph);
-
-  graph_e.connect("default", sink_e, "default");
-  graph.setup();
-
-  // Delete the filter
-  subgraph->delete_item("F");
-
-  // Run without it - output should come direct from source as in previous
-  // test
-  auto sink = graph.get<TestSink>("SINK");
-  ASSERT_NE(nullptr, sink);
-
-  EXPECT_EQ(0, sink->received_data);
-  ASSERT_NO_THROW(graph.tick({1.0, 0, Time::Duration{1}, 1}));
-  EXPECT_EQ(1, sink->received_data);
-}
-
-TEST_F(GraphTest, TestGraphConstructionFromAndOutputToJSON)
-{
-  const string& json = R"(
-    [
-      {
-        "id": "s1",
-        "outputs":
-        {
-          "default":
-          [
-            {
-              "element": "f1",
-              "prop": "default"
-            }
-          ]
-        },
-        "props": {},
-        "type": "test:test-source"
-      },
-      {
-        "id": "f1",
-        "outputs":
-        {
-          "default":
-          [
-            {
-              "element": "f2",
-              "prop": "default"
-            }
-          ]
-        },
-        "props": {},
-        "type": "test:test-filter"
-      },
-      {
-        "id": "f2",
-        "props": {},
-        "type": "test:test-filter"
-      }
-    ]
-  )";
-
-  Graph graph(engine);
-  construct_graph_json(json, graph);
-
-  JSON::Value value = graph.get_json();
-  ASSERT_EQ(JSON::Value::Type::ARRAY, value.type);
-  ASSERT_EQ(3, value.a.size());
-  // Note ordered by dependency
-  EXPECT_EQ("s1", value.a[0]["id"].as_str());
-  EXPECT_EQ("f1", value.a[1]["id"].as_str());
-  EXPECT_EQ("f2", value.a[2]["id"].as_str());
 }
 
 TEST_F(GraphTest, TestGraphShutdown)

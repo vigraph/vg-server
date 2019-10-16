@@ -8,9 +8,9 @@
 
 #include "engine.h"
 #include "vg-licence.h"
+#include "vg-json.h"
 #include "ot-log.h"
 #include "ot-web.h"
-#include "ot-json.h"
 
 namespace ViGraph { namespace Engine {
 
@@ -36,7 +36,6 @@ namespace
 class GraphURLHandler: public Web::URLHandler
 {
   Dataflow::Engine& engine;
-  JSON::Value get_json_for_element(const Dataflow::Element& e);
   bool handle_get(const string& path, Web::HTTPMessage& response);
   bool handle_put(const string& path, const Web::HTTPMessage& request,
                    Web::HTTPMessage& response);
@@ -55,16 +54,6 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Get JSON for a graph element
-JSON::Value GraphURLHandler::get_json_for_element(const Dataflow::Element& e)
-{
-  JSON::Value json(JSON::Value::OBJECT);
-  json.set("id", e.id);
-  json.set("type", e.module->id);
-  return json;
-}
-
-//--------------------------------------------------------------------------
 // Handle a GET request
 // Returns whether request was valid
 bool GraphURLHandler::handle_get(const string& path,
@@ -75,7 +64,9 @@ bool GraphURLHandler::handle_get(const string& path,
 
   try
   {
-    JSON::Value json = engine.get_json(path);
+    auto json = JSON::Value{JSON::Value::Type::OBJECT};
+    auto visitor = JSON::GetVisitor{json};
+    engine.accept(visitor, path, 0);
     if (!json)
     {
       response.code = 404;
@@ -105,13 +96,13 @@ bool GraphURLHandler::handle_put(const string& path,
 
   // Parse JSON
   istringstream iss(request.body);
-  JSON::Parser parser(iss);
+  ObTools::JSON::Parser parser(iss);
   JSON::Value value;
   try
   {
     value = parser.read_value();
   }
-  catch (JSON::Exception& e)
+  catch (ObTools::JSON::Exception& e)
   {
     log.error << "REST: JSON parsing failed: " << e.error << endl;
     return false;
@@ -119,7 +110,8 @@ bool GraphURLHandler::handle_put(const string& path,
 
   try
   {
-    engine.add_json(path, value);
+    auto visitor = JSON::SetVisitor{engine, value};
+    engine.accept(visitor, path, 0);
   }
   catch (runtime_error& e)
   {
@@ -144,13 +136,13 @@ bool GraphURLHandler::handle_post(const string& path,
 
   // Parse JSON
   istringstream iss(request.body);
-  JSON::Parser parser(iss);
+  ObTools::JSON::Parser parser(iss);
   JSON::Value value;
   try
   {
     value = parser.read_value();
   }
-  catch (JSON::Exception& e)
+  catch (ObTools::JSON::Exception& e)
   {
     log.error << "REST: JSON parsing failed: " << e.error << endl;
     return false;
@@ -158,7 +150,8 @@ bool GraphURLHandler::handle_post(const string& path,
 
   try
   {
-    engine.set_json(path, value);
+    auto visitor = JSON::SetVisitor{engine, value};
+    engine.accept(visitor, path, 0);
   }
   catch (runtime_error& e)
   {
@@ -183,7 +176,8 @@ bool GraphURLHandler::handle_delete(const string& path,
 
   try
   {
-    engine.delete_item(path);
+    auto visitor = JSON::DeleteVisitor{engine};
+    engine.accept(visitor, path, 0);
   }
   catch (runtime_error& e)
   {
@@ -253,7 +247,8 @@ bool GraphURLHandler::handle_request(const Web::HTTPMessage& request,
 
 // URL format:
 // /meta                      Total metadata structure
-// /meta/<type>               Metadata for specific type
+// /meta/<section>            Metadata for specific section
+// /meta/<section>/<module>   Metadata for specific module
 
 class MetaURLHandler: public Web::URLHandler
 {
@@ -262,92 +257,12 @@ class MetaURLHandler: public Web::URLHandler
   bool handle_request(const Web::HTTPMessage& request,
                       Web::HTTPMessage& response,
                       const SSL::ClientDetails& client);
-  JSON::Value get_metadata_for_module(const Dataflow::Module& module);
 
 public:
   MetaURLHandler(Dataflow::Engine& _engine):
     URLHandler("/meta*"), engine(_engine)
   {}
 };
-
-//--------------------------------------------------------------------------
-// Get metadata JSON for a particular module
-JSON::Value MetaURLHandler::get_metadata_for_module(
-                                           const Dataflow::Module& module)
-{
-  JSON::Value json(JSON::Value::OBJECT);
-  json.set("id", module.id);
-  json.set("name", module.name);
-  json.set("description", module.description);
-  json.set("section", module.section);
-
-  // Properties
-  if (!module.properties.empty())
-  {
-    JSON::Value propsj(JSON::Value::ARRAY);
-    JSON::Value ipropsj(JSON::Value::ARRAY);
-    for(const auto pit: module.properties)
-    {
-      const auto& prop = pit.second;
-      JSON::Value& pj =
-        (prop.settable?ipropsj:propsj).add(JSON::Value(JSON::Value::OBJECT));
-      pj.set("id", pit.first);
-      pj.set("description", prop.description);
-      if (prop.type == Dataflow::Value::Type::other)
-        pj.set("type", prop.other_type);
-      else
-        pj.set("type", Dataflow::Value::type_str(prop.type));
-      if (prop.alias)
-        pj.set("alias", JSON::Value(JSON::Value::TRUE_));
-    }
-
-    if (!propsj.a.empty()) json.set("props", propsj);
-    if (!ipropsj.a.empty()) json.set("iprops", ipropsj);
-  }
-
-  // Controlled properties
-  if (!module.controlled_properties.empty())
-  {
-    JSON::Value& propsj = json.put("oprops",
-                                   JSON::Value(JSON::Value::ARRAY));
-    for(const auto pit: module.controlled_properties)
-    {
-      JSON::Value& pj = propsj.add(JSON::Value(JSON::Value::OBJECT));
-      pj.set("id", pit.first);
-      const auto& prop = pit.second;
-      pj.set("description", prop.description);
-      pj.set("type", Dataflow::Value::type_str(prop.type));
-    }
-  }
-
-  // Inputs
-  if (!module.inputs.empty())
-  {
-    JSON::Value& inputsj = json.put("inputs", JSON::Value(JSON::Value::ARRAY));
-    for(const auto input: module.inputs)
-    {
-      JSON::Value& ij = inputsj.add(JSON::Value(JSON::Value::OBJECT));
-      ij.set("type", input.type);
-      if (input.multiple)
-        ij.set("multiple", JSON::Value(JSON::Value::TRUE_));
-    }
-  }
-
-  // Outputs
-  if (!module.outputs.empty())
-  {
-    JSON::Value& outsj = json.put("outputs", JSON::Value(JSON::Value::ARRAY));
-    for(const auto output: module.outputs)
-    {
-      JSON::Value& oj = outsj.add(JSON::Value(JSON::Value::OBJECT));
-      oj.set("type", output.type);
-      if (output.multiple)
-        oj.set("multiple", JSON::Value(JSON::Value::TRUE_));
-    }
-  }
-
-  return json;
-}
 
 //--------------------------------------------------------------------------
 // Handle a GET request
@@ -363,17 +278,24 @@ bool MetaURLHandler::handle_get(const string& path,
     if (path.empty())
     {
       log.detail << "REST Meta: GET request\n";
-      JSON::Value json(JSON::Value::ARRAY);
-      for(const auto& sit: registry.sections)
-        for(const auto& mit: sit.second.modules)
-          json.add(get_metadata_for_module(*mit.second.module));
+      JSON::Value json(JSON::Value::OBJECT);
+      for (const auto& sit: registry.sections)
+      {
+        auto& section_json = json.put(sit.first, JSON::Value::OBJECT);
+        for (const auto& mit: sit.second.modules)
+        {
+          const auto& mod = *mit.second->get_module();
+          const auto mod_json = JSON::get_module_metadata(mod);
+          section_json.put(mod.get_id(), mod_json);
+        }
+      }
       response.body = json.str(true);
     }
     else
     {
       log.detail << "REST Meta: GET request for " << path << endl;
       vector<string> bits = Text::split(path, '/');
-      if (bits.size() < 2)
+      if (bits.size() < 1 || bits.size() > 2)
       {
         log.error << "Specific /meta requests require <section>/<id>\n";
         response.code = 404;
@@ -390,24 +312,39 @@ bool MetaURLHandler::handle_get(const string& path,
       }
       else
       {
-        const auto mit = sit->second.modules.find(bits[1]);
-        if (mit == sit->second.modules.end())
+        if (bits.size() < 2)
         {
-          log.error << "No such module '" << bits[1]
-                    << "' in section '" << bits[0]
-                    << "' requested in REST /meta\n";
-          response.code = 404;
-          response.reason = "Not found";
+          JSON::Value json(JSON::Value::OBJECT);
+          for (const auto& mit: sit->second.modules)
+          {
+            const auto& mod = *mit.second->get_module();
+            const auto mod_json = JSON::get_module_metadata(mod);
+            json.put(mod.get_id(), mod_json);
+          }
+          response.body = json.str(true);
         }
         else
         {
-          JSON::Value json = get_metadata_for_module(*mit->second.module);
-          response.body = json.str(true);
+          const auto mit = sit->second.modules.find(bits[1]);
+          if (mit == sit->second.modules.end())
+          {
+            log.error << "No such module '" << bits[1]
+                      << "' in section '" << bits[0]
+                      << "' requested in REST /meta\n";
+            response.code = 404;
+            response.reason = "Not found";
+          }
+          else
+          {
+            const auto& mod = *mit->second->get_module();
+            const auto json = JSON::get_module_metadata(mod);
+            response.body = json.str(true);
+          }
         }
       }
     }
   }
-  catch (JSON::Exception e)
+  catch (ObTools::JSON::Exception e)
   {
     log.error << "JSON output error: " << e.error << endl;
   }
@@ -536,6 +473,63 @@ bool LayoutURLHandler::handle_request(const Web::HTTPMessage& request,
 }
 
 //==========================================================================
+// /version URL Handler
+// Operations:  GET
+
+// URL format:
+// /version                   Version information
+
+class VersionURLHandler: public Web::URLHandler
+{
+  bool handle_get(Web::HTTPMessage& response);
+  bool handle_request(const Web::HTTPMessage& request,
+                      Web::HTTPMessage& response,
+                      const SSL::ClientDetails& client);
+
+public:
+  VersionURLHandler(Dataflow::Engine&):
+    URLHandler("/version")
+  {}
+};
+
+//--------------------------------------------------------------------------
+// Handle a GET request
+// Returns whether request was valid
+bool VersionURLHandler::handle_get(Web::HTTPMessage& response)
+{
+  Log::Streams log;
+  log.detail << "REST Version: GET request\n";
+  JSON::Value json(JSON::Value::OBJECT);
+  json.put("major", 2);
+  json.put("minor", 0);
+  json.put("name", "TBC");
+  response.body = json.str(true);
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Handle the request
+bool VersionURLHandler::handle_request(const Web::HTTPMessage& request,
+                                       Web::HTTPMessage& response,
+                                       const SSL::ClientDetails& /* client */)
+{
+  if (request.method == "GET")
+  {
+    if (!handle_get(response))
+    {
+      response.code = 400;
+      response.reason = "Bad request";
+    }
+  }
+  else
+  {
+    response.code = 405;
+    response.reason = "Method not allowed";
+  }
+  return true;
+}
+
+//==========================================================================
 // REST interface
 //--------------------------------------------------------------------------
 // Constructor
@@ -558,6 +552,7 @@ RESTInterface::RESTInterface(const XML::Element& config,
   http_server->add(new GraphURLHandler(engine));
   http_server->add(new MetaURLHandler(engine));
   http_server->add(new LayoutURLHandler(base_dir.resolve(layout_file)));
+  http_server->add(new VersionURLHandler(engine));
 
   // Allow cross-origin fetch from anywhere
   http_server->set_cors_origin();

@@ -236,7 +236,7 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
 {
   const auto& valuej = json.get("value");
   if (!valuej)
-    return true;;
+    return true;
   input.set_json(element, valuej);
   return true;
 }

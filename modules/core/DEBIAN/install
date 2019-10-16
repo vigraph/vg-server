@@ -6,14 +6,14 @@ add/vg-module-core-add.so /usr/lib/vigraph/modules/
 subtract/vg-module-core-subtract.so /usr/lib/vigraph/modules/
 multiply/vg-module-core-multiply.so /usr/lib/vigraph/modules/
 divide/vg-module-core-divide.so /usr/lib/vigraph/modules/
+beat/vg-module-core-beat.so /usr/lib/vigraph/modules/
+compare/vg-module-core-compare.so /usr/lib/vigraph/modules/
+envelope/vg-module-core-envelope.so /usr/lib/vigraph/modules/
+count/vg-module-core-count.so /usr/lib/vigraph/modules/
 
-#controls/beat/vg-module-core-control-beat.so /usr/lib/vigraph/modules/
-#controls/compare/vg-module-core-control-compare.so /usr/lib/vigraph/modules/
-#controls/envelope/vg-module-core-control-envelope.so /usr/lib/vigraph/modules/
 #controls/interpolate/vg-module-core-control-interpolate.so /usr/lib/vigraph/modules/
 #controls/log/vg-module-core-control-log.so /usr/lib/vigraph/modules/
 #controls/limit/vg-module-core-control-limit.so /usr/lib/vigraph/modules/
-#controls/count/vg-module-core-control-count.so /usr/lib/vigraph/modules/
 #controls/random/vg-module-core-control-random.so /usr/lib/vigraph/modules/
 #controls/round/vg-module-core-control-round.so /usr/lib/vigraph/modules/
 #controls/set/vg-module-core-control-set.so /usr/lib/vigraph/modules/

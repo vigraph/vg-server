@@ -11,6 +11,7 @@ compare/vg-module-core-compare.so /usr/lib/vigraph/modules/
 envelope/vg-module-core-envelope.so /usr/lib/vigraph/modules/
 count/vg-module-core-count.so /usr/lib/vigraph/modules/
 limit/vg-module-core-limit.so /usr/lib/vigraph/modules/
+wrap/vg-module-core-wrap.so /usr/lib/vigraph/modules/
 
 #controls/interpolate/vg-module-core-control-interpolate.so /usr/lib/vigraph/modules/
 #controls/log/vg-module-core-control-log.so /usr/lib/vigraph/modules/
@@ -24,7 +25,6 @@ limit/vg-module-core-limit.so /usr/lib/vigraph/modules/
 #controls/trigger-sequence/vg-module-core-control-trigger-sequence.so /usr/lib/vigraph/modules/
 #controls/toggle/vg-module-core-control-toggle.so /usr/lib/vigraph/modules/
 #controls/wait/vg-module-core-control-wait.so /usr/lib/vigraph/modules/
-#controls/wrap/vg-module-core-control-wrap.so /usr/lib/vigraph/modules/
 #controls/window/vg-module-core-control-window.so /usr/lib/vigraph/modules/
 #sources/selector/vg-module-core-source-selector.so /usr/lib/vigraph/modules/
 #services/thread-pool/vg-module-core-service-thread-pool.so /usr/lib/vigraph/modules/

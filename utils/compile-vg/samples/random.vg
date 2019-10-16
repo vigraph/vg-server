@@ -1,0 +1,5 @@
+# Random audio test
+beat interval=0.01 ->trigger
+random min=440 max=880 ->freq
+oscillator wave="sin" ->channel1 ->channel2
+audio/sdl-out

@@ -40,8 +40,8 @@ bool GetVisitor::visit(const Dataflow::Graph& graph,
 bool GetVisitor::visit(const Dataflow::Clone& clone,
                        const Dataflow::Path&, unsigned)
 {
-  json["type"] = "core:clone";
-  json["number"] = clone.number.get();
+  json.set("type", "core:clone");
+  json.set("number", clone.number.get());
   return true;
 }
 
@@ -95,8 +95,8 @@ bool GetVisitor::visit(const Dataflow::GraphElement& element,
                        const Dataflow::SettingMember& setting,
                        const Dataflow::Path&, unsigned)
 {
-  json.put("type", setting.get_type());
-  json.put("value", setting.get_json(element));
+  json.set("type", setting.get_type());
+  json.set("value", setting.get_json(element));
   return true;
 }
 
@@ -121,8 +121,8 @@ bool GetVisitor::visit(const Dataflow::GraphElement& element,
                        const Dataflow::InputMember& input,
                        const Dataflow::Path&, unsigned)
 {
-  json.put("type", input.get_type());
-  json.put("value", input.get_json(element));
+  json.set("type", input.get_type());
+  json.set("value", input.get_json(element));
   return true;
 }
 

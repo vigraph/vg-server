@@ -22,6 +22,8 @@ void Graph::add(GraphElement *el)
 // Remove an element
 void Graph::remove(const string& id)
 {
+  remove_input_pin(id);
+  remove_output_pin(id);
   auto it = elements.find(id);
   if (it == elements.end())
     throw(runtime_error{"Element not found: " + id});
@@ -145,6 +147,14 @@ void Graph::add_input_pin(const string& id,
 }
 
 //--------------------------------------------------------------------------
+// Remove input pin
+void Graph::remove_input_pin(const string& id)
+{
+  input_pins.erase(id);
+  module.inputs.erase(id);
+}
+
+//--------------------------------------------------------------------------
 // Add output pin
 void Graph::add_output_pin(const string& id,
                           const string& element, const string& output)
@@ -158,6 +168,25 @@ void Graph::add_output_pin(const string& id,
   }
   output_pins.emplace(id, PinInfo{element, output});
   module.outputs.emplace(id, *pin);
+}
+
+//--------------------------------------------------------------------------
+// Remove output pin
+void Graph::remove_output_pin(const string& id)
+{
+  auto it = output_pins.find(id);
+  if (it == output_pins.end())
+    return;
+  auto el = elements.find(id);
+  if (el != elements.end())
+  {
+    auto& m = el->second->get_module();
+    auto o = m.get_output(*el->second, it->second.connection);
+    if (o)
+      o->disconnect();
+  }
+  output_pins.erase(it);
+  module.outputs.erase(id);
 }
 
 //------------------------------------------------------------------------
@@ -259,7 +288,7 @@ inline void accept_visitor(G& graph, V& visitor,
               }
               else
               {
-                throw(runtime_error{"Attribute not found: " + part.name});
+                visitor.visit_graph_input_or_output(graph, part.name, true);
               }
             }
           }

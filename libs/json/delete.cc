@@ -62,7 +62,7 @@ bool DeleteVisitor::visit(Dataflow::Element& element,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_setting_visitor(const string &id, bool)
+    DeleteVisitor::get_element_setting_visitor(const string& id, bool)
 {
   return make_unique<DeleteVisitor>(engine, id, scope_graph);
 }
@@ -75,29 +75,44 @@ bool DeleteVisitor::visit(Dataflow::GraphElement&,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_input_visitor(const string &id, bool)
+    DeleteVisitor::get_element_input_visitor(const string& id, bool)
 {
   return make_unique<DeleteVisitor>(engine, id, scope_graph);
 }
 
-bool DeleteVisitor::visit(Dataflow::GraphElement&,
+bool DeleteVisitor::visit(Dataflow::GraphElement& element,
                           const Dataflow::InputMember&,
                           const Dataflow::Path&, unsigned)
 {
-  throw(runtime_error{"Cannot delete an input"});
+  auto g = dynamic_cast<Dataflow::Graph *>(&element);
+  if (!g)
+    throw(runtime_error{"Cannot delete an input on an element"});
+  g->remove_input_pin(id);
+  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_output_visitor(const string &id, bool)
+    DeleteVisitor::get_element_output_visitor(const string& id, bool)
 {
   return make_unique<DeleteVisitor>(engine, id, scope_graph);
 }
 
-bool DeleteVisitor::visit(Dataflow::GraphElement&,
+bool DeleteVisitor::visit(Dataflow::GraphElement& element,
                           const Dataflow::OutputMember&,
                           const Dataflow::Path&, unsigned)
 {
-  throw(runtime_error{"Cannot delete an output"});
+  auto g = dynamic_cast<Dataflow::Graph *>(&element);
+  if (!g)
+    throw(runtime_error{"Cannot delete an output on an element"});
+  g->remove_output_pin(id);
+  return true;
+}
+
+bool DeleteVisitor::visit_graph_input_or_output(Dataflow::Graph&,
+                                                const string&,
+                                                bool)
+{
+  return true;
 }
 
 }} // namespaces

@@ -165,4 +165,11 @@ bool GetVisitor::visit(const Dataflow::GraphElement& element,
   return true;
 }
 
+bool GetVisitor::visit_graph_input_or_output(const Dataflow::Graph&,
+                                             const string&,
+                                             bool)
+{
+  return true;
+}
+
 }} // namespaces

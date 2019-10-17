@@ -49,21 +49,24 @@ public:
                                       const Dataflow::Graph& scope) override;
   bool visit(const Dataflow::Element& element,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<ReadVisitor> get_element_setting_visitor(const string &id,
+  unique_ptr<ReadVisitor> get_element_setting_visitor(const string& id,
                                                       bool visit) override;
   bool visit(const Dataflow::GraphElement& element,
              const Dataflow::SettingMember& setting,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<ReadVisitor> get_element_input_visitor(const string &id,
+  unique_ptr<ReadVisitor> get_element_input_visitor(const string& id,
                                                     bool visit) override;
   bool visit(const Dataflow::GraphElement& element,
              const Dataflow::InputMember& input,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<ReadVisitor> get_element_output_visitor(const string &id,
+  unique_ptr<ReadVisitor> get_element_output_visitor(const string& id,
                                                      bool visit) override;
   bool visit(const Dataflow::GraphElement& element,
              const Dataflow::OutputMember& output,
              const Dataflow::Path& path, unsigned path_index) override;
+  bool visit_graph_input_or_output(const Dataflow::Graph& graph,
+                                   const string& id,
+                                   bool visit) override;
 };
 
 //==========================================================================
@@ -100,21 +103,24 @@ public:
                                             Dataflow::Clone& clone) override;
   bool visit(Dataflow::Element& element,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<WriteVisitor> get_element_setting_visitor(const string &id,
+  unique_ptr<WriteVisitor> get_element_setting_visitor(const string& id,
                                                        bool visit) override;
   bool visit(Dataflow::GraphElement& element,
              const Dataflow::SettingMember& setting,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<WriteVisitor> get_element_input_visitor(const string &id,
+  unique_ptr<WriteVisitor> get_element_input_visitor(const string& id,
                                                      bool visit) override;
   bool visit(Dataflow::GraphElement& element,
              const Dataflow::InputMember& input,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<WriteVisitor> get_element_output_visitor(const string &id,
+  unique_ptr<WriteVisitor> get_element_output_visitor(const string& id,
                                                       bool visit) override;
   bool visit(Dataflow::GraphElement& element,
              const Dataflow::OutputMember& output,
              const Dataflow::Path& path, unsigned path_index) override;
+  bool visit_graph_input_or_output(Dataflow::Graph& graph,
+                                   const string& id,
+                                   bool visit) override;
 };
 
 //==========================================================================
@@ -146,21 +152,24 @@ public:
                                             Dataflow::Clone& clone) override;
   bool visit(Dataflow::Element& element,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<WriteVisitor> get_element_setting_visitor(const string &id,
+  unique_ptr<WriteVisitor> get_element_setting_visitor(const string& id,
                                                        bool visit) override;
   bool visit(Dataflow::GraphElement& element,
              const Dataflow::SettingMember& setting,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<WriteVisitor> get_element_input_visitor(const string &id,
+  unique_ptr<WriteVisitor> get_element_input_visitor(const string& id,
                                                      bool visit) override;
   bool visit(Dataflow::GraphElement& element,
              const Dataflow::InputMember& input,
              const Dataflow::Path& path, unsigned path_index) override;
-  unique_ptr<WriteVisitor> get_element_output_visitor(const string &id,
+  unique_ptr<WriteVisitor> get_element_output_visitor(const string& id,
                                                       bool visit) override;
   bool visit(Dataflow::GraphElement& element,
              const Dataflow::OutputMember& output,
              const Dataflow::Path& path, unsigned path_index) override;
+  bool visit_graph_input_or_output(Dataflow::Graph& graph,
+                                   const string& id,
+                                   bool visit) override;
 };
 
 //==========================================================================

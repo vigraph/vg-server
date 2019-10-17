@@ -106,15 +106,8 @@ bool SetVisitor::visit(Dataflow::Graph& graph,
     for (const auto& iit: inputsj.o)
     {
       const auto& iid = iit.first;
-      const auto& inputj = iit.second;
       if (iid.empty())
         throw runtime_error("Graph input pin requires an 'id'");
-      const auto& typej = inputj.get("type");
-      if (!typej)
-        throw runtime_error("Graph input pin requires a 'type'");
-      const auto& type = typej.as_str();
-      if (type.empty())
-        throw runtime_error("Graph input pin requires a 'type'");
 
       graph.add_input_pin(iid, iid, "input");
     }
@@ -127,15 +120,8 @@ bool SetVisitor::visit(Dataflow::Graph& graph,
     for (const auto& oit: outputsj.o)
     {
       const auto& oid = oit.first;
-      const auto& outputj = oit.second;
       if (oid.empty())
         throw runtime_error("Graph output pin requires an 'id'");
-      const auto& typej = outputj.get("type");
-      if (!typej)
-        throw runtime_error("Graph output pin requires a 'type'");
-      const auto& type = typej.as_str();
-      if (type.empty())
-        throw runtime_error("Graph output pin requires a 'type'");
 
       graph.add_output_pin(oid, oid, "output");
     }
@@ -185,7 +171,7 @@ bool SetVisitor::visit(Dataflow::Element&,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_setting_visitor(const string &id, bool visit)
+    SetVisitor::get_element_setting_visitor(const string& id, bool visit)
 {
   if (!visit) // Assume the json should not be traversed
     return make_unique<SetVisitor>(engine, json, id, scope_graph);
@@ -214,7 +200,7 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_input_visitor(const string &id, bool visit)
+    SetVisitor::get_element_input_visitor(const string& id, bool visit)
 {
   if (!visit) // Assume the json should not be traversed
     return make_unique<SetVisitor>(engine, json, id, scope_graph);
@@ -242,7 +228,7 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_output_visitor(const string &id, bool visit)
+    SetVisitor::get_element_output_visitor(const string& id, bool visit)
 {
   if (!visit) // Assume the json should not be traversed
     return make_unique<SetVisitor>(engine, json, id, scope_graph);
@@ -303,6 +289,37 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
          << iid << ":" << iinput << " (scope: "
          << scope_graph->get_id() << ")" << endl;
 #endif
+  }
+  return true;
+}
+
+bool SetVisitor::visit_graph_input_or_output(Dataflow::Graph& graph,
+                                             const string& id,
+                                             bool visit)
+{
+  if (!visit)
+    return true;
+
+  const auto& dir = json.get("direction").as_str();
+  if (dir == "in")
+  {
+    graph.add_input_pin(id, id, "input");
+  }
+  else if (dir == "out")
+  {
+    graph.add_output_pin(id, id, "output");
+    // Visit it for possible connections
+    const auto& module = graph.get_module();
+    auto o = module.get_output(id);
+    if (o)
+    {
+      auto v = make_unique<SetVisitor>(engine, json, id, scope_graph);
+      v->visit(graph, *o, Dataflow::Path{""}, 0);
+    }
+  }
+  else
+  {
+    throw(runtime_error{"Graph in/out direction missing"});
   }
   return true;
 }

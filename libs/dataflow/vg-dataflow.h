@@ -194,21 +194,24 @@ public:
                                                      const Graph &scope) = 0;
   virtual bool visit(const Element& element,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_setting_visitor(const string &id,
+  virtual unique_ptr<ReadVisitor> get_element_setting_visitor(const string& id,
                                                               bool visit)
           = 0;
   virtual bool visit(const GraphElement& element, const SettingMember& setting,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_input_visitor(const string &id,
+  virtual unique_ptr<ReadVisitor> get_element_input_visitor(const string& id,
                                                             bool visit)
           = 0;
   virtual bool visit(const GraphElement& element, const InputMember& input,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_output_visitor(const string &id,
+  virtual unique_ptr<ReadVisitor> get_element_output_visitor(const string& id,
                                                              bool visit)
           = 0;
   virtual bool visit(const GraphElement& element, const OutputMember& output,
                      const Path& path, unsigned path_index) = 0;
+  virtual bool visit_graph_input_or_output(const Graph& graph,
+                                           const string& id,
+                                           bool visit) = 0;
 
   virtual ~ReadVisitor() {}
 };
@@ -231,21 +234,24 @@ public:
   virtual unique_ptr<WriteVisitor> get_sub_clone_visitor(Clone& clone) = 0;
   virtual bool visit(Element& element,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_setting_visitor(const string &id,
+  virtual unique_ptr<WriteVisitor> get_element_setting_visitor(const string& id,
                                                                bool visit)
           = 0;
   virtual bool visit(GraphElement& element, const SettingMember& setting,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_input_visitor(const string &id,
+  virtual unique_ptr<WriteVisitor> get_element_input_visitor(const string& id,
                                                              bool visit)
           = 0;
   virtual bool visit(GraphElement& element, const InputMember& input,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_output_visitor(const string &id,
+  virtual unique_ptr<WriteVisitor> get_element_output_visitor(const string& id,
                                                               bool visit)
           = 0;
   virtual bool visit(GraphElement& element, const OutputMember& output,
                      const Path& path, unsigned path_index) = 0;
+  virtual bool visit_graph_input_or_output(Graph& graph,
+                                           const string& id,
+                                           bool visit) = 0;
 
   virtual ~WriteVisitor() {}
 };
@@ -290,6 +296,7 @@ class ElementInput: public ElementSetting
 public:
   virtual bool ready() const = 0;
   virtual void reset() = 0;
+  virtual void disconnect() = 0;
 };
 
 //==========================================================================
@@ -419,10 +426,16 @@ public:
     }
   }
 
-  ~Input()
+  // Disconnect everything
+  void disconnect() override
   {
     while (!input_data.empty())
       input_data.begin()->first->disconnect(*this);
+  }
+
+  ~Input()
+  {
+    disconnect();
   }
 };
 
@@ -483,7 +496,7 @@ public:
     }
   }
 
-  // Disconnection everything
+  // Disconnect everything
   void disconnect() override
   {
     primary_data = nullptr;
@@ -1489,9 +1502,17 @@ public:
                      const string& element, const string& input);
 
   //------------------------------------------------------------------------
+  // Remove an input pin
+  void remove_input_pin(const string& id);
+
+  //------------------------------------------------------------------------
   // Add output pin
   void add_output_pin(const string& id,
                       const string& element, const string& output);
+
+  //------------------------------------------------------------------------
+  // Remove an output pin
+  void remove_output_pin(const string& id);
 
   //------------------------------------------------------------------------
   // Final setup for elements and calculate topology

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph 'random' core module
+#
+# Copyright (c) 2018-2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-core-random
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-lib
+
+include_rules

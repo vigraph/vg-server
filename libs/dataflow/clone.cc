@@ -72,15 +72,39 @@ void Clone::notify_connection(const string& /*in_name*/,
 }
 
 //--------------------------------------------------------------------------
+// Update clone infos
+void Clone::update_clone_infos()
+{
+  auto i = 0u;
+  for (auto& graph: clones)
+  {
+    for (auto info: graph.infos)
+    {
+      info->clone_number = i + 1;
+      info->clone_total = clones.size();
+    };
+    ++i;
+  }
+}
+
+//--------------------------------------------------------------------------
 // Clone
 Clone *Clone::clone() const
 {
   auto c = new Clone{clone_module};
   for (const auto& graph: clones)
   {
-    c->clones.emplace_back(graph.graph->clone());
-    // !!! TODO: sort out clone infos
+    auto g = graph.graph->clone();
+    c->clones.emplace_back(g);
+    const auto& els = g->get_elements();
+    for (const auto& el: els)
+    {
+      auto info = dynamic_cast<Dataflow::CloneInfo *>(el.second.get());
+      if (info)
+        c->register_info(*g, info);
+    }
   }
+  c->update_clone_infos();
   return c;
 }
 
@@ -99,21 +123,18 @@ void Clone::setup()
 
   while (clones.size() < n)
   {
-    clones.emplace_back(clones.front().graph->clone());
-    // !!! TODO: find clone infos
+    auto g = clones.front().graph->clone();
+    clones.emplace_back(g);
+    const auto& els = g->get_elements();
+    for (const auto& el: els)
+    {
+      auto info = dynamic_cast<Dataflow::CloneInfo *>(el.second.get());
+      if (info)
+        register_info(*g, info);
+    }
   }
 
-  // Sort out clone info numbering
-  auto i = 0;
-  for (auto& graph: clones)
-  {
-    for (auto info: graph.infos)
-    {
-      info->clone_number = i + 1;
-      info->clone_total = clones.size();
-    };
-    ++i;
-  }
+  update_clone_infos();
 
   // Setup clones
   for (const auto& graph: clones)

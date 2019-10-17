@@ -1588,6 +1588,9 @@ private:
   vector<CloneGraph> clones;
   const SimpleModule& module;
 
+  // Update CloneInfo objects
+  void update_clone_infos();
+
 public:
   //------------------------------------------------------------------------
   // Constructors

@@ -18,6 +18,7 @@ DEPENDS  = vg-module-core-clone       \
            vg-module-core-compare     \
            vg-module-core-count       \
            vg-module-core-limit       \
+           vg-module-core-wrap        \
            vg-module-core-random      \
            vg-module-core-beat        \
            vg-module-core-envelope
@@ -27,7 +28,6 @@ DEPENDS  = vg-module-core-clone       \
 #           vg-module-core-control-trigger \
 #           vg-module-core-control-wait \
 #           vg-module-core-control-interpolate \
-#           vg-module-core-control-wrap \
 #           vg-module-core-control-round \
 #           vg-module-core-control-scale \
 #           vg-module-core-control-smooth \

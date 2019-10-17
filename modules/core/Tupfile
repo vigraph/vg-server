@@ -14,22 +14,20 @@ DEPENDS  = vg-module-core-clone       \
            vg-module-core-multiply    \
            vg-module-core-divide      \
            vg-module-core-add         \
-           vg-module-core-subtract
+           vg-module-core-subtract    \
+           vg-module-core-compare     \
+           vg-module-core-count       \
+           vg-module-core-limit       \
+           vg-module-core-wrap        \
+           vg-module-core-random      \
+           vg-module-core-beat        \
+           vg-module-core-envelope
 
 #           vg-module-core-source-selector \
-#           vg-module-core-control-compare \
-#           vg-module-core-control-envelope \
 #           vg-module-core-control-set \
 #           vg-module-core-control-trigger \
 #           vg-module-core-control-wait \
 #           vg-module-core-control-interpolate \
-#           vg-module-core-control-add \
-#           vg-module-core-control-multiply \
-#           vg-module-core-control-count \
-#           vg-module-core-control-wrap \
-#           vg-module-core-control-limit \
-#           vg-module-core-control-random \
-#           vg-module-core-control-beat \
 #           vg-module-core-control-round \
 #           vg-module-core-control-scale \
 #           vg-module-core-control-smooth \

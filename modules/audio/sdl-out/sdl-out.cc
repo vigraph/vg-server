@@ -79,7 +79,7 @@ void SDLSink::callback(Uint8 *stream, int len)
       (starved ? 1.5 : 1.0) * static_cast<unsigned>(len))
   {
     starved = false;
-    copy(&output_buffer[0], &output_buffer[len / sizeof(sample_t)],
+    copy(&output_buffer[0], &output_buffer[0] + len / sizeof(sample_t),
          reinterpret_cast<sample_t *>(stream));
     output_buffer.erase(output_buffer.begin(),
                         output_buffer.begin() + len / sizeof(sample_t));
@@ -93,7 +93,7 @@ void SDLSink::callback(Uint8 *stream, int len)
   {
     auto have = output_buffer.size() * sizeof(sample_t);
     auto hstart = len - have;
-    fill(&stream[0], &stream[hstart], 0);
+    fill(&stream[0], &stream[0] + hstart, 0);
     copy(output_buffer.begin(), output_buffer.end(),
          reinterpret_cast<sample_t *>(stream + hstart));
     output_buffer.clear();

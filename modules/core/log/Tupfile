@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph <log> core control module
+# Tupfile for Vigraph <log> core module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-control-log
+NAME    = vg-module-core-log
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry
+DEPENDS = vg-dataflow vg-geometry ot-lib
 
 include_rules

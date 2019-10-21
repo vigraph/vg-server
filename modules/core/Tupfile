@@ -21,7 +21,8 @@ DEPENDS  = vg-module-core-clone       \
            vg-module-core-wrap        \
            vg-module-core-random      \
            vg-module-core-beat        \
-           vg-module-core-envelope
+           vg-module-core-envelope    \
+           vg-module-core-log
 
 #           vg-module-core-source-selector \
 #           vg-module-core-control-set \
@@ -34,7 +35,6 @@ DEPENDS  = vg-module-core-clone       \
 #           vg-module-core-control-sequence \
 #           vg-module-core-control-trigger-sequence \
 #           vg-module-core-control-toggle \
-#           vg-module-core-control-log \
 #           vg-module-core-control-window \
 #           vg-module-core-service-pool \
 #           vg-module-core-service-thread-pool

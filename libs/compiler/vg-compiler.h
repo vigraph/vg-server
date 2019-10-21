@@ -36,7 +36,7 @@ class Parser
   string default_section;
 
   // Internals
-  void read_inputs(JSON::Value& element);
+  void read_settings(JSON::Value& element);
   void read_outputs(JSON::Value& element);
   void sanity_check(const JSON::Value& root);
 

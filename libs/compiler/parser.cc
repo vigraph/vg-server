@@ -28,11 +28,11 @@ Parser::Parser(istream& input): lex(input)
 }
 
 //------------------------------------------------------------------------
-// Try to read inputs name=value onto the given element
+// Try to read settings name=value onto the given element
 // Stops and pushes back if not 'name =' format
-void Parser::read_inputs(JSON::Value& element)
+void Parser::read_settings(JSON::Value& element)
 {
-  for(;;) // Looping on inputs
+  for(;;) // Looping on settings
   {
     // Read ahead another name
     auto token = lex.read_token();
@@ -46,13 +46,13 @@ void Parser::read_inputs(JSON::Value& element)
     auto symbol = lex.read_token();
     if (symbol.type == Lex::Token::SYMBOL && symbol.value == "=")
     {
-      // It's an input assignment
+      // It's a setting assignment
 
-      // Create inputs if none yet
-      if (!element["inputs"])
-        element.put("inputs", JSON::Value::OBJECT);
-      auto& inputs = element["inputs"];
-      auto& input = inputs.put(token.value, JSON::Value::OBJECT);
+      // Create settings if none yet
+      if (!element["settings"])
+        element.put("settings", JSON::Value::OBJECT);
+      auto& settings = element["settings"];
+      auto& setting = settings.put(token.value, JSON::Value::OBJECT);
 
       auto value = lex.read_token();
       switch (value.type)
@@ -60,18 +60,18 @@ void Parser::read_inputs(JSON::Value& element)
         case Lex::Token::NUMBER:
           // Is it float?
           if (value.value.find('.') != string::npos)
-            input.put("value", Text::stof(value.value));
+            setting.put("value", Text::stof(value.value));
           else
-            input.put("value", Text::stoi64(value.value));
+            setting.put("value", Text::stoi64(value.value));
           break;
 
         case Lex::Token::STRING:
-          input.put("value", value.value);
+          setting.put("value", value.value);
           break;
 
         default:
           cout << "Bad token value " << value.type << endl;
-          throw Exception("Unrecognised input value");
+          throw Exception("Unrecognised setting value");
       }
     }
     else
@@ -253,10 +253,10 @@ JSON::Value Parser::get_json()
       // Create new element
       auto& element = root.put(id, JSON::Value::OBJECT);
       element.put("type", type);
-      read_inputs(element);
+      read_settings(element);
       read_outputs(element);
 
-      // Check if last element has any unconnected inputs
+      // Check if last element has any unconnected outputs
       if (!last_element_id.empty())
       {
         auto& last_element = root[last_element_id];

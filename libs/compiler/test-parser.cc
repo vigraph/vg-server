@@ -165,7 +165,7 @@ bar #another comment
   EXPECT_EQ("bar", btype.as_str());
 }
 
-TEST(ParserTest, TestSetInputs)
+TEST(ParserTest, TestSetSettings)
 {
   string input(R"(
 foo i1=42 i2=3.14 i3="Hello"
@@ -177,22 +177,22 @@ foo i1=42 i2=3.14 i3="Hello"
   ASSERT_EQ(JSON::Value::OBJECT, v.type);
   const JSON::Value& foo = v["foo1"];
   ASSERT_EQ(JSON::Value::OBJECT, foo.type);
-  const JSON::Value& inputs = foo["inputs"];
-  ASSERT_EQ(JSON::Value::OBJECT, inputs.type);
+  const JSON::Value& settings = foo["settings"];
+  ASSERT_EQ(JSON::Value::OBJECT, settings.type);
 
-  const JSON::Value& i1 = inputs["i1"];
+  const JSON::Value& i1 = settings["i1"];
   ASSERT_EQ(JSON::Value::OBJECT, i1.type);
   const JSON::Value& i1v = i1["value"];
   ASSERT_EQ(JSON::Value::INTEGER, i1v.type);
   EXPECT_EQ(42, i1v.n);
 
-  const JSON::Value& i2 = inputs["i2"];
+  const JSON::Value& i2 = settings["i2"];
   ASSERT_EQ(JSON::Value::OBJECT, i2.type);
   const JSON::Value& i2v = i2["value"];
   ASSERT_EQ(JSON::Value::NUMBER, i2v.type);
   EXPECT_DOUBLE_EQ(3.14, i2v.f);
 
-  const JSON::Value& i3 = inputs["i3"];
+  const JSON::Value& i3 = settings["i3"];
   ASSERT_EQ(JSON::Value::OBJECT, i3.type);
   const JSON::Value& i3v = i3["value"];
   ASSERT_EQ(JSON::Value::STRING, i3v.type);

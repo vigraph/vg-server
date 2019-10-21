@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph translate filter module
+# Tupfile for Vigraph vector translate module
 #
-# Copyright (c) 2018 Paul Clark. All rights reserved
+# Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-vector-filter-translate
+NAME    = vg-module-vector-translate
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry
+DEPENDS = vg-dataflow vg-geometry ot-lib
 
 include_rules

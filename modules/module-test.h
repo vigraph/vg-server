@@ -88,7 +88,7 @@ public:
   void tick(const TickData& td) override
   {
     sample_iterate(td.nsamples, {}, {}, tie(output),
-                   [&](double& o)
+                   [&](T& o)
     {
       if (data.empty())
         o = {};

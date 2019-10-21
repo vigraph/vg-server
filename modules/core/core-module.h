@@ -12,7 +12,6 @@
 #include "../module.h"
 #include "vg-waveform.h"
 #include "vg-dataflow.h"
-//#include "vg-json.h"
 
 namespace ViGraph { namespace Dataflow {
 
@@ -34,4 +33,4 @@ template<> inline JSON::Value get_as_json(const Waveform::Type& value)
 //==========================================================================
 }} //namespaces
 
-#endif // !__VIGRAPH_AUDIO_MODULE_H
+#endif // !__VIGRAPH_CORE_MODULE_H

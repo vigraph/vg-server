@@ -34,7 +34,7 @@ public:
 };
 
 //--------------------------------------------------------------------------
-// Generate a fragment
+// Tick data
 void AddFilter::tick(const TickData& td)
 {
   sample_iterate(td.nsamples, {}, tie(input, offset), tie(output),

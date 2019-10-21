@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-vector
 TYPE     = package
-DEPENDS  =
+DEPENDS  = vg-module-vector-translate
+
 #           vg-module-vector-source-test \
 #           vg-module-vector-source-figure \
 #           vg-module-vector-source-svg \
@@ -15,7 +16,6 @@ DEPENDS  =
 #           vg-module-vector-control-velocity \
 #           vg-module-vector-control-polar-velocity \
 #           vg-module-vector-filter-depth-fade \
-#           vg-module-vector-filter-translate \
 #           vg-module-vector-filter-colour \
 #           vg-module-vector-filter-pattern \
 #           vg-module-vector-filter-fade \

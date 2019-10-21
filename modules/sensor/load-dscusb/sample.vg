@@ -1,0 +1,6 @@
+# Load sensor to audio test
+sensor/load-dscusb device="/dev/ttyUSB1" ->-
+multiply factor=-20 ->-
+add offset=440 -> freq
+oscillator freq=880 wave="sin" -> channel1 -> channel2
+audio/sdl-out

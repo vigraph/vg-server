@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-vector
 TYPE     = package
-DEPENDS  = vg-module-vector-translate
+DEPENDS  = vg-module-vector-translate    \
+           vg-module-vector-scale
 
 #           vg-module-vector-source-test \
 #           vg-module-vector-source-figure \
@@ -19,7 +20,6 @@ DEPENDS  = vg-module-vector-translate
 #           vg-module-vector-filter-colour \
 #           vg-module-vector-filter-pattern \
 #           vg-module-vector-filter-fade \
-#           vg-module-vector-filter-scale \
 #           vg-module-vector-filter-rotate \
 #           vg-module-vector-filter-clip \
 #           vg-module-vector-filter-sum \

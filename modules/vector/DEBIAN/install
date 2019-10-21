@@ -1,5 +1,6 @@
 translate/vg-module-vector-translate.so /usr/lib/vigraph/modules/
 scale/vg-module-vector-scale.so /usr/lib/vigraph/modules/
+rotate/vg-module-vector-rotate.so /usr/lib/vigraph/modules/
 
 #controls/polar-velocity/vg-module-vector-control-polar-velocity.so /usr/lib/vigraph/modules/
 #controls/velocity/vg-module-vector-control-velocity.so /usr/lib/vigraph/modules/
@@ -15,7 +16,6 @@ scale/vg-module-vector-scale.so /usr/lib/vigraph/modules/
 #filters/depth-fade/vg-module-vector-filter-depth-fade.so /usr/lib/vigraph/modules/
 #filters/pattern/vg-module-vector-filter-pattern.so /usr/lib/vigraph/modules/
 #filters/perspective/vg-module-vector-filter-perspective.so /usr/lib/vigraph/modules/
-#filters/rotate/vg-module-vector-filter-rotate.so /usr/lib/vigraph/modules/
 #filters/send/vg-module-vector-filter-send.so /usr/lib/vigraph/modules/
 #filters/sum/vg-module-vector-filter-sum.so /usr/lib/vigraph/modules/
 #filters/combine/vg-module-vector-filter-combine.so /usr/lib/vigraph/modules/

@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph rotate filter module
+# Tupfile for Vigraph vector rotate module
 #
-# Copyright (c) 2018 Paul Clark. All rights reserved
+# Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-vector-filter-rotate
+NAME    = vg-module-vector-rotate
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry
+DEPENDS = vg-dataflow vg-geometry ot-lib
 
 include_rules

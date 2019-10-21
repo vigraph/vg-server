@@ -46,7 +46,7 @@ TEST(TranslateTest, TestDefaultTranslateHasNoEffect)
   }
 }
 
-TEST(TranslateTest, TestDefaultTranslateXYZ)
+TEST(TranslateTest, TestTranslateXYZ)
 {
   GraphTester<Frame> tester{loader, sample_rate};
 

@@ -46,7 +46,7 @@ TEST(ScaleTest, TestDefaultScaleHasNoEffect)
   }
 }
 
-TEST(ScaleTest, TestDefaultScaleXYZ)
+TEST(ScaleTest, TestScaleXYZ)
 {
   GraphTester<Frame> tester{loader, sample_rate};
 

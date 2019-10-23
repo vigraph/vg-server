@@ -7,5 +7,6 @@
 NAME    = vg-module-sensor-load-dscusb
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-lib ot-serial
+PLATFORMS = linux
 
 include_rules

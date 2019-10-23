@@ -1,15 +1,17 @@
 //==========================================================================
-// ViGraph dataflow module: vector/filters/websocket/websocket.cc
+// ViGraph dataflow module: vector/websocket/websocket.cc
 //
 // Filter to output display to a client WebSocket
 //
-// Copyright (c) 2017 Paul Clark.  All rights reserved
+// Copyright (c) 2017-2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../vector-module.h"
+#include "../vector-module.h"
 #include "ot-web.h"
 
 namespace {
+
+const auto default_port = 33382;
 
 //==========================================================================
 // WebSocket display server
@@ -109,60 +111,64 @@ void WebSocketDisplayServer::handle_websocket(
 
 //==========================================================================
 // WebSocket filter
-class WebSocketFilter: public FrameSink
+class WebSocketFilter: public SimpleElement
 {
-public:
-  int port = 33382;  // !!! Temporary until we can configure from GUI
-
 private:
   unique_ptr<WebSocketDisplayServer> server;
   unique_ptr<Net::TCPServerThread> server_thread;
   bool frame_seen{false};
 
-  // Source/Element virtuals
+  // Element virtuals
   void setup() override;
-  void accept(FramePtr frame) override;
-  void post_tick(const TickData&) override;
+  void tick(const TickData& td) override;
+
+  // Clone
+  WebSocketFilter *create_clone() const override
+  {
+    return new WebSocketFilter{module};
+  }
+
   void shutdown() override;
 
 public:
-  using FrameSink::FrameSink;
+  using SimpleElement::SimpleElement;
+
+  // Settings
+  Setting<double> port{default_port};
+
+  // Input
+  Input<Frame> input;
 };
 
 //--------------------------------------------------------------------------
 // Setup
 void WebSocketFilter::setup()
 {
-  if (port)
+  auto iport = static_cast<int>(port.get());
+  if (iport)
   {
     Log::Summary log;
-    log << "Starting WebSocket display server at port " << port << endl;
-    server.reset(new WebSocketDisplayServer(port,
-                           "ViGraph laserd WebSocket display server"));
+    log << "Starting WebSocket display server at port " << iport << endl;
+    server.reset(new WebSocketDisplayServer(iport,
+                           "ViGraph WebSocket display server"));
     server_thread.reset(new Net::TCPServerThread(*server));
     frame_seen = false;
   }
 }
 
 //--------------------------------------------------------------------------
-// Process some data
-void WebSocketFilter::accept(FramePtr frame)
+// Tick data
+void WebSocketFilter::tick(const TickData& td)
 {
-  if (!!server) server->queue(frame);
-  frame_seen = true;
-}
-
-//--------------------------------------------------------------------------
-// Post-tick flush
-void WebSocketFilter::post_tick(const TickData& td)
-{
-  // Send an empty frame to clear screen if none seen since last tick
-  if (!frame_seen && !!server)
+  sample_iterate(td.nsamples, {}, tie(input), {},
+                 [&](const Frame& input)
   {
-    FramePtr frame(new Frame(td.t));
-    server->queue(frame);
-  }
-  frame_seen = false;
+    if (!!server)
+    {
+      FramePtr frame{new Frame{input}};
+      server->queue(frame);
+    }
+  });
 }
 
 //--------------------------------------------------------------------------
@@ -186,18 +192,18 @@ void WebSocketFilter::shutdown()
 
 //--------------------------------------------------------------------------
 // Module definition
-Dataflow::Module module
+Dataflow::SimpleModule module
 {
   "websocket-display",
   "WebSocket Display",
-  "WebSocket server for vector display clients",
   "vector",
   {
-    { "port", { "Listening port", Value::Type::number,
-                &WebSocketFilter::port, false } },
+    { "port",  &WebSocketFilter::port }
   },
-  { "VectorFrame" }, // inputs
-  { }  // no outputs
+  {
+    { "input", &WebSocketFilter::input }
+  },
+  {}
 };
 
 } // anon

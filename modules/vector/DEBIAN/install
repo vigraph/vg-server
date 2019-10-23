@@ -1,12 +1,13 @@
 translate/vg-module-vector-translate.so /usr/lib/vigraph/modules/
 scale/vg-module-vector-scale.so /usr/lib/vigraph/modules/
 rotate/vg-module-vector-rotate.so /usr/lib/vigraph/modules/
+svg/vg-module-vector-svg.so /usr/lib/vigraph/modules/
+websocket/vg-module-vector-websocket.so /usr/lib/vigraph/modules/
 
 #controls/polar-velocity/vg-module-vector-control-polar-velocity.so /usr/lib/vigraph/modules/
 #controls/velocity/vg-module-vector-control-velocity.so /usr/lib/vigraph/modules/
 #sources/figure/vg-module-vector-source-figure.so /usr/lib/vigraph/modules/
 #sources/receive/vg-module-vector-source-receive.so /usr/lib/vigraph/modules/
-#sources/svg/vg-module-vector-source-svg.so /usr/lib/vigraph/modules/
 #sources/test/vg-module-vector-source-test.so /usr/lib/vigraph/modules/
 #sources/text/vg-module-vector-source-text.so /usr/lib/vigraph/modules/
 #filters/clip/vg-module-vector-filter-clip.so /usr/lib/vigraph/modules/
@@ -19,6 +20,5 @@ rotate/vg-module-vector-rotate.so /usr/lib/vigraph/modules/
 #filters/send/vg-module-vector-filter-send.so /usr/lib/vigraph/modules/
 #filters/sum/vg-module-vector-filter-sum.so /usr/lib/vigraph/modules/
 #filters/combine/vg-module-vector-filter-combine.so /usr/lib/vigraph/modules/
-#filters/websocket/vg-module-vector-filter-websocket.so /usr/lib/vigraph/modules/
 #services/collision-detector/vg-module-vector-service-collision-detector.so /usr/lib/vigraph/modules/
 #sinks/extract-rgb/vg-module-vector-sink-extract-rgb.so /usr/lib/vigraph/modules/

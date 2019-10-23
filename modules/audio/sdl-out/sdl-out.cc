@@ -25,6 +25,7 @@ class SDLSink: public DynamicElement
 {
 private:
   SDL_AudioDeviceID dev = 0;
+  bool sdl_inited = false;
   vector<sample_t> output_buffer;
   bool starved = false;
 
@@ -40,7 +41,7 @@ private:
   }
 
 public:
-  using DynamicElement::DynamicElement;
+  SDLSink(const DynamicModule& module);
 
   Setting<string> device{default_device};
   Setting<double> nchannels{default_channels};
@@ -57,7 +58,42 @@ public:
 
   // Callback for SDL
   void callback(Uint8 *stream, int len);
+
+  ~SDLSink();
 };
+
+//--------------------------------------------------------------------------
+// Constructor
+SDLSink::SDLSink(const DynamicModule& module):
+  DynamicElement(module)
+{
+  Log::Streams log;
+  SDL_version linked;
+  SDL_GetVersion(&linked);
+  SDL_version compiled;
+  SDL_VERSION(&compiled);
+  if (compiled.major != linked.major ||
+      compiled.minor != linked.minor ||
+      compiled.patch != linked.patch)
+  {
+    log.summary << "SDL compiled version: "
+                << static_cast<int>(compiled.major) << "."
+                << static_cast<int>(compiled.minor) << "."
+                << static_cast<int>(compiled.patch)
+                << ", linked version: "
+                << static_cast<int>(linked.major) << "."
+                << static_cast<int>(linked.minor) << "."
+                << static_cast<int>(linked.patch) << endl;
+  }
+
+  if (SDL_InitSubSystem(SDL_INIT_AUDIO))
+  {
+    log.error << "Failed to start SDL audio subsystem: "
+              << SDL_GetError() << endl;
+    return;
+  }
+  sdl_inited = true;
+}
 
 //--------------------------------------------------------------------------
 // Callback function that request data from us
@@ -106,30 +142,7 @@ void SDLSink::callback(Uint8 *stream, int len)
 void SDLSink::setup()
 {
   Log::Streams log;
-  SDL_version linked;
-  SDL_GetVersion(&linked);
-  SDL_version compiled;
-  SDL_VERSION(&compiled);
-  if (compiled.major != linked.major ||
-      compiled.minor != linked.minor ||
-      compiled.patch != linked.patch)
-  {
-    log.summary << "SDL compiled version: "
-                << static_cast<int>(compiled.major) << "."
-                << static_cast<int>(compiled.minor) << "."
-                << static_cast<int>(compiled.patch)
-                << ", linked version: "
-                << static_cast<int>(linked.major) << "."
-                << static_cast<int>(linked.minor) << "."
-                << static_cast<int>(linked.patch) << endl;
-  }
-
-  if (SDL_InitSubSystem(SDL_INIT_AUDIO))
-  {
-    log.error << "Failed to start SDL audio subsystem: "
-              << SDL_GetError() << endl;
-    return;
-  }
+  shutdown();
 
   log.summary << "Opening audio output on SDL device '" << device << "'\n";
   log.detail << "SDL: " << nchannels << " channels\n";
@@ -158,17 +171,29 @@ void SDLSink::setup()
     SDL_PauseAudioDevice(dev, 0);
 
     // Update module information
-    module.clear_inputs();
-    module.add_input("channel1", &SDLSink::channel1);
-    if (have.channels >= 2)
+    if (have.channels < 6 && module.num_inputs() >= 6)
+      module.erase_input("channel6");
+    if (have.channels < 5 && module.num_inputs() >= 5)
+      module.erase_input("channel5");
+    if (have.channels < 4 && module.num_inputs() >= 4)
+      module.erase_input("channel4");
+    if (have.channels < 3 && module.num_inputs() >= 3)
+      module.erase_input("channel3");
+    if (have.channels < 2 && module.num_inputs() >= 2)
+      module.erase_input("channel2");
+    if (have.channels < 1 && module.num_inputs() >= 1)
+      module.erase_input("channel1");
+    if (have.channels >= 1 && module.num_inputs() < 1)
+      module.add_input("channel1", &SDLSink::channel1);
+    if (have.channels >= 2 && module.num_inputs() < 2)
       module.add_input("channel2", &SDLSink::channel2);
-    if (have.channels >= 3)
+    if (have.channels >= 3 && module.num_inputs() < 3)
       module.add_input("channel3", &SDLSink::channel3);
-    if (have.channels >= 4)
+    if (have.channels >= 4 && module.num_inputs() < 4)
       module.add_input("channel4", &SDLSink::channel4);
-    if (have.channels >= 5)
+    if (have.channels >= 5 && module.num_inputs() < 5)
       module.add_input("channel5", &SDLSink::channel5);
-    if (have.channels >= 6)
+    if (have.channels >= 6 && module.num_inputs() < 6)
       module.add_input("channel6", &SDLSink::channel6);
 
     log.detail << "Created SDL audio out\n";
@@ -176,7 +201,6 @@ void SDLSink::setup()
   catch (const runtime_error& e)
   {
     log.error << "Can't open SDL audio output: " << e.what() << endl;
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
   }
 }
 
@@ -218,7 +242,15 @@ void SDLSink::shutdown()
 {
   if (dev) SDL_CloseAudioDevice(dev);
   dev = 0;
-  SDL_QuitSubSystem(SDL_INIT_AUDIO);
+}
+
+//--------------------------------------------------------------------------
+// Destructor
+SDLSink::~SDLSink()
+{
+  if (sdl_inited)
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+  sdl_inited = false;
 }
 
 //--------------------------------------------------------------------------

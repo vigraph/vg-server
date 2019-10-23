@@ -105,49 +105,50 @@ void Element::reset()
 
 //--------------------------------------------------------------------------
 // Accept visitors
-template<class E, class V>
-void accept_visitor(E& element, V& visitor,
-                    const Path& path, unsigned path_index)
+void Element::accept(ReadVisitor& visitor,
+                     const Path& path, unsigned path_index) const
 {
   if (path.reached(path_index))
   {
-    if (!visitor.visit(element, path, path_index))
-      return;
+    visitor.visit(*this, path, path_index);
 
-    auto& module = element.get_module();
+    auto& module = get_module();
     if (module.has_settings())
     {
-      module.for_each_setting([&element, &visitor, &path, &path_index]
+      module.for_each_setting([this, &visitor, &path, &path_index]
                               (const string& id,
                                const SettingMember& setting)
       {
-        auto sv = visitor.get_element_setting_visitor(id, true);
+        auto sv = visitor.get_element_setting_visitor(*this, id,
+                                                      path, path_index);
         if (sv)
-          setting.accept(*sv, path, ++path_index, element);
+          setting.accept(*sv, path, path_index + 1, *this);
       });
     }
 
     if (module.has_inputs())
     {
-      module.for_each_input([&element, &visitor, &path, &path_index]
+      module.for_each_input([this, &visitor, &path, &path_index]
                             (const string& id,
                              const InputMember& input)
       {
-        auto iv = visitor.get_element_input_visitor(id, true);
+        auto iv = visitor.get_element_input_visitor(*this, id,
+                                                    path, path_index);
         if (iv)
-          input.accept(*iv, path, ++path_index, element);
+          input.accept(*iv, path, path_index + 1, *this);
       });
     }
 
     if (module.has_outputs())
     {
-      module.for_each_output([&element, &visitor, &path, &path_index]
+      module.for_each_output([this, &visitor, &path, &path_index]
                              (const string& id,
                               const OutputMember& output)
       {
-        auto ov = visitor.get_element_output_visitor(id, true);
+        auto ov = visitor.get_element_output_visitor(*this, id,
+                                                     path, path_index);
         if (ov)
-          output.accept(*ov, path, ++path_index, element);
+          output.accept(*ov, path, path_index + 1, *this);
       });
     }
   }
@@ -159,31 +160,34 @@ void accept_visitor(E& element, V& visitor,
     {
       case Path::PartType::attribute:
         {
-          auto& module = element.get_module();
+          auto& module = get_module();
           auto s = module.get_setting(part.name);
           if (s)
           {
-            auto sv = visitor.get_element_setting_visitor(part.name, false);
+            auto sv = visitor.get_element_setting_visitor(*this, part.name,
+                                                          path, path_index);
             if (sv)
-              s->accept(*sv, path, ++path_index, element);
+              s->accept(*sv, path, path_index + 1, *this);
           }
           else
           {
             auto i = module.get_input(part.name);
             if (i)
             {
-              auto iv = visitor.get_element_input_visitor(part.name, false);
+              auto iv = visitor.get_element_input_visitor(*this, part.name,
+                                                          path, path_index);
               if (iv)
-                i->accept(*iv, path, ++path_index, element);
+                i->accept(*iv, path, path_index + 1, *this);
             }
             else
             {
               auto o = module.get_output(part.name);
               if (o)
               {
-                auto ov = visitor.get_element_output_visitor(part.name, false);
+                auto ov = visitor.get_element_output_visitor(*this, part.name,
+                                                             path, path_index);
                 if (ov)
-                  o->accept(*ov, path, ++path_index, element);
+                  o->accept(*ov, path, path_index + 1, *this);
               }
               else
               {
@@ -195,7 +199,7 @@ void accept_visitor(E& element, V& visitor,
         break;
       case Path::PartType::element:
         {
-          auto& module = element.get_module();
+          auto& module = get_module();
           throw(runtime_error{module.get_full_type() + "has no sub-elements"});
         }
         break;
@@ -205,16 +209,112 @@ void accept_visitor(E& element, V& visitor,
   }
 }
 
-void Element::accept(ReadVisitor& visitor,
-                     const Path& path, unsigned path_index) const
-{
-  accept_visitor(*this, visitor, path, path_index);
-}
-
 void Element::accept(WriteVisitor& visitor,
                      const Path& path, unsigned path_index)
 {
-  accept_visitor(*this, visitor, path, path_index);
+  if (path.reached(path_index))
+  {
+    visitor.visit(*this, path, path_index);
+
+    auto& module = get_module();
+    if (module.has_settings())
+    {
+      module.for_each_setting([this, &visitor, &path, &path_index]
+                              (const string& id,
+                               const SettingMember& setting)
+      {
+        auto sv = visitor.get_element_setting_visitor(*this, id,
+                                                      path, path_index);
+        if (sv)
+          setting.accept(*sv, path, path_index + 1, *this);
+      });
+    }
+    setup();
+
+    if (module.has_inputs())
+    {
+      module.for_each_input([this, &visitor, &path, &path_index]
+                            (const string& id,
+                             const InputMember& input)
+      {
+        auto iv = visitor.get_element_input_visitor(*this, id,
+                                                    path, path_index);
+        if (iv)
+          input.accept(*iv, path, path_index + 1, *this);
+      });
+    }
+
+    if (module.has_outputs())
+    {
+      module.for_each_output([this, &visitor, &path, &path_index]
+                             (const string& id,
+                              const OutputMember& output)
+      {
+        auto ov = visitor.get_element_output_visitor(*this, id,
+                                                     path, path_index);
+        if (ov)
+          output.accept(*ov, path, path_index + 1, *this);
+      });
+    }
+  }
+  else
+  {
+    auto part = path.get(path_index);
+
+    switch (part.type)
+    {
+      case Path::PartType::attribute:
+        {
+          auto& module = get_module();
+          auto s = module.get_setting(part.name);
+          if (s)
+          {
+            auto sv = visitor.get_element_setting_visitor(*this, part.name,
+                                                          path, path_index);
+            if (sv)
+            {
+              s->accept(*sv, path, path_index + 1, *this);
+              setup();
+            }
+          }
+          else
+          {
+            auto i = module.get_input(part.name);
+            if (i)
+            {
+              auto iv = visitor.get_element_input_visitor(*this, part.name,
+                                                          path, path_index);
+              if (iv)
+                i->accept(*iv, path, path_index + 1, *this);
+            }
+            else
+            {
+              auto o = module.get_output(part.name);
+              if (o)
+              {
+                auto ov = visitor.get_element_output_visitor(*this, part.name,
+                                                             path, path_index);
+                if (ov)
+                  o->accept(*ov, path, path_index + 1, *this);
+              }
+              else
+              {
+                throw(runtime_error{"Attribute not found: " + part.name});
+              }
+            }
+          }
+        }
+        break;
+      case Path::PartType::element:
+        {
+          auto& module = get_module();
+          throw(runtime_error{module.get_full_type() + "has no sub-elements"});
+        }
+        break;
+      default:
+        break;
+    }
+  }
 }
 
 }} // namespaces

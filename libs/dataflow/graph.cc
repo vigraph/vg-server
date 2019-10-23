@@ -193,6 +193,8 @@ void Graph::remove_output_pin(const string& id)
 // Final setup for elements and calculate topology
 void Graph::setup()
 {
+  for(const auto& it: elements)
+    it.second->setup();
 }
 
 //------------------------------------------------------------------------

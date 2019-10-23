@@ -64,14 +64,13 @@ void IDNOut::setup()
 {
   Log::Streams log;
 
-  destination = Net::EndPoint(Net::IPAddress(host_address.get()),
-                              host_port.get());
+  destination = Net::EndPoint(Net::IPAddress(host_address), host_port);
   log.summary << "Creating IDN transmitter to " << destination << endl;
 
-  log.detail << " - packet size " << packet_size.get() << endl;
-  log.detail << " - configuration interval: " << config_interval.get() << "s\n";
+  log.detail << " - packet size " << packet_size << endl;
+  log.detail << " - configuration interval: " << config_interval << "s\n";
 
-  source = Net::EndPoint(Net::IPAddress(source_address.get()), 0);
+  source = Net::EndPoint(Net::IPAddress(source_address), 0);
   // Bind to local port
   socket.reset(new Net::UDPSocket(source, true));
 
@@ -107,7 +106,7 @@ void IDNOut::transmit(const Frame& frame, timestamp_t timestamp,
 
   // Add configuration periodically
   Time::Stamp now = Time::Stamp::now();
-  if ((now-last_config_sent).seconds() >= config_interval.get())
+  if ((now-last_config_sent).seconds() >= config_interval)
   {
     message.add_configuration(
                         IDN::Message::Config::ServiceMode::graphic_discrete);
@@ -121,7 +120,7 @@ void IDNOut::transmit(const Frame& frame, timestamp_t timestamp,
     message.add_tag(IDN::Tags::red);
     message.add_tag(IDN::Tags::green);
     message.add_tag(IDN::Tags::blue);
-    if (intensity_enabled.get()) message.add_tag(IDN::Tags::intensity);
+    if (intensity_enabled) message.add_tag(IDN::Tags::intensity);
 
     last_config_sent = now;
   }
@@ -135,7 +134,7 @@ void IDNOut::transmit(const Frame& frame, timestamp_t timestamp,
     message.add_data(0);  // r,g,b blank
     message.add_data(0);
     message.add_data(0);
-    if (intensity_enabled.get()) message.add_data(0);
+    if (intensity_enabled) message.add_data(0);
   }
 
   // Loop, possibly fragmenting - first time, allow empty packets if
@@ -151,11 +150,11 @@ void IDNOut::transmit(const Frame& frame, timestamp_t timestamp,
     size += hello.length();
 
     // If even this won't fit, nothing we can do
-    if (size > static_cast<unsigned>(packet_size.get()))
+    if (size > static_cast<unsigned>(packet_size))
       throw runtime_error("Packet size too small for headers");
 
-    size_t data_space = packet_size.get()-size;
-    size_t bytes_per_point = intensity_enabled.get()?8:7;
+    size_t data_space = packet_size-size;
+    size_t bytes_per_point = intensity_enabled?8:7;
     size_t points_this_message =
       min(data_space / bytes_per_point, frame.points.size()-point_index);
 
@@ -183,7 +182,7 @@ void IDNOut::transmit(const Frame& frame, timestamp_t timestamp,
       message.add_data(static_cast<uint8_t>(p.c.r*255));
       message.add_data(static_cast<uint8_t>(p.c.g*255));
       message.add_data(static_cast<uint8_t>(p.c.b*255));
-      if (intensity_enabled.get())
+      if (intensity_enabled)
         message.add_data(static_cast<uint8_t>(p.c.get_intensity()*255));
     }
 

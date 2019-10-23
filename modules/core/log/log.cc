@@ -47,7 +47,7 @@ void LogControl::tick(const TickData& td)
     if (input != last_input)
     {
       Log::Detail log;
-      log << prefix.get() << input << endl;
+      log << prefix << input << endl;
       last_input = input;
     }
   });

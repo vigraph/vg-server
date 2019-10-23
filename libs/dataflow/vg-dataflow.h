@@ -307,7 +307,12 @@ public:
   Setting(const T& _value = T{}): value{_value} {}
 
   void set(const T& _value) { value = _value; }
+  Setting<T>& operator=(const T& _value) { value = _value; return *this; }
+
   T get() const { return value; }
+  operator T() const { return value; }
+  bool operator==(const T& o) const { return value == o; }
+  bool operator!=(const T& o) const { return value != o; }
 
   void set_from(const ElementSetting& setting) override
   {
@@ -640,7 +645,10 @@ public:
   virtual ~Module() {}
 };
 
+//--------------------------------------------------------------------------
 // Value type templates
+
+// Generic (non-)definition
 template<typename T> inline string get_module_type();
 template<typename T>
 inline void set_from_json(T& value, const JSON::Value& json);

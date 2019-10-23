@@ -143,11 +143,11 @@ public:
 // Setup
 void WebSocket::setup()
 {
-  if (port.get())
+  if (port)
   {
     Log::Summary log;
-    log << "Starting WebSocket display server at port " << port.get() << endl;
-    server.reset(new WebSocketDisplayServer(port.get(),
+    log << "Starting WebSocket display server at port " << port << endl;
+    server.reset(new WebSocketDisplayServer(port,
                            "ViGraph WebSocket display server"));
     server_thread.reset(new Net::TCPServerThread(*server));
   }

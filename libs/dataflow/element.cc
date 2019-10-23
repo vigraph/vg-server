@@ -33,7 +33,7 @@ bool Element::connect(const string& out_name,
         << b.get_id() << endl;
     return false;
   }
-  if (!o->connect({&b, i}))
+  if (!o->connect(this, {&b, i}))
     return false;
   b.notify_connection(in_name, *this, out_name);
   return true;

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph vector web-socket module
+#
+# Copyright (c) 2018-2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-vector-websocket
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-lib ot-web
+
+include_rules

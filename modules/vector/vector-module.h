@@ -29,6 +29,8 @@ struct Frame
   Frame(const Frame& o): points(o.points), timestamp(o.timestamp) {}
 };
 
+typedef shared_ptr<Frame> FramePtr;
+
 }}} //namespaces
 
 using namespace ViGraph::Module::Vector;

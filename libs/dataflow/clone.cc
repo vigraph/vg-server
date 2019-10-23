@@ -217,7 +217,6 @@ void Clone::accept(WriteVisitor& visitor,
   {
     case Path::PartType::attribute:
       {
-        auto& module = get_module();
         auto s = module.get_setting(part.name);
         if (s)
         {

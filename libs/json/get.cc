@@ -38,12 +38,11 @@ void GetVisitor::visit(const Dataflow::Graph& graph,
   }
 }
 
-void GetVisitor::visit(const Dataflow::Clone& clone,
+void GetVisitor::visit(const Dataflow::Clone&,
                        const Dataflow::Path&, unsigned)
 {
   const auto& module = Dataflow::clone_module;
   json.set("type", module.get_full_type());
-  json.set("number", clone.number.get());
 }
 
 unique_ptr<Dataflow::ReadVisitor>

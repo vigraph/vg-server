@@ -165,7 +165,22 @@ void Clone::accept(ReadVisitor& visitor,
   if (!clones.empty())
     clones.front().graph->accept(visitor, path, path_index);
   if (path.reached(path_index))
+  {
     visitor.visit(*this, path, path_index);
+
+    if (module.has_settings())
+    {
+      module.for_each_setting([this, &visitor, &path, &path_index]
+                            (const string& id,
+                             const SettingMember& setting)
+      {
+        auto iv = visitor.get_element_setting_visitor(*this, id,
+                                                      path, path_index);
+        if (iv)
+          setting.accept(*iv, path, path_index + 1, *this);
+      });
+    }
+  }
 }
 
 void Clone::accept(WriteVisitor& visitor,
@@ -174,6 +189,21 @@ void Clone::accept(WriteVisitor& visitor,
   if (path.reached(path_index))
   {
     visitor.visit(*this, path, path_index);
+
+    if (module.has_settings())
+    {
+      module.for_each_setting([this, &visitor, &path, &path_index]
+                            (const string& id,
+                             const SettingMember& setting)
+      {
+        auto iv = visitor.get_element_setting_visitor(*this, id,
+                                                      path, path_index);
+        if (iv)
+          setting.accept(*iv, path, path_index + 1, *this);
+      });
+    }
+    setup();
+
     auto cv = visitor.get_sub_clone_visitor(*this, get_id(), path, path_index);
     if (cv)
       for (auto& graph: clones)

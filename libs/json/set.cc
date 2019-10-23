@@ -134,9 +134,6 @@ void SetVisitor::visit(Dataflow::Clone& clone,
   if (!path.reached(path_index))
     return;
   clone.shutdown();
-  auto number = json["number"].as_int();
-  clone.number.set(number);
-  clone.setup();
 }
 
 unique_ptr<Dataflow::WriteVisitor>

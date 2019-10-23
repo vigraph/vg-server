@@ -22,11 +22,9 @@ namespace ViGraph { namespace Module { namespace Vector {
 struct Frame
 {
   vector<Point> points;
-  timestamp_t timestamp;
 
-  Frame(): timestamp(0) {}
-  Frame(timestamp_t t): timestamp(t) {}
-  Frame(const Frame& o): points(o.points), timestamp(o.timestamp) {}
+  Frame() {}
+  Frame(const Frame& o): points(o.points) {}
 };
 
 typedef shared_ptr<Frame> FramePtr;
@@ -47,7 +45,6 @@ template<> inline void set_from_json(Frame& frame,
 {
   if (json.type == JSON::Value::OBJECT)
   {
-    frame.timestamp = json["timestamp"].as_float();
     for(const JSON::Value& jp: json["points"].a)
     {
       frame.points.push_back(Point(jp["x"].as_float(),
@@ -61,8 +58,6 @@ template<> inline void set_from_json(Frame& frame,
 template<> inline JSON::Value get_as_json(const Frame& frame)
 {
   JSON::Value value{JSON::Value::OBJECT};
-  value.set("timestamp", frame.timestamp);
-
   JSON::Value& points = value.put("points", JSON::Value::ARRAY);
   for(const auto& p: frame.points)
   {

@@ -96,12 +96,10 @@ void SVGSource::setup()
 // Generate a frame
 void SVGSource::tick(const TickData& td)
 {
-  // All 'samples' are the same, but timestamp can vary
-  auto count{0};
+  // All 'samples' are the same
   sample_iterate(td.nsamples, {}, {}, tie(output),
                  [&](Frame& output)
   {
-    output.timestamp = td.timestamp + count++/td.sample_rate;
     output.points = points;
   });
 }

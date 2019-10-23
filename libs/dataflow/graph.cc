@@ -193,8 +193,6 @@ void Graph::remove_output_pin(const string& id)
 // Final setup for elements and calculate topology
 void Graph::setup()
 {
-  for(const auto& it: elements)
-    it.second->setup();
 }
 
 //------------------------------------------------------------------------
@@ -210,46 +208,47 @@ GraphElement *Graph::get_element(const string& id)
 
 //--------------------------------------------------------------------------
 // Accept visitors
-template<class G, class V>
-inline void accept_visitor(G& graph, V& visitor,
-                           const Path& path, unsigned path_index)
+void Graph::accept(ReadVisitor& visitor,
+                   const Path& path, unsigned path_index) const
 {
   if (path.reached(path_index))
   {
-    if (!visitor.visit(graph, path, path_index))
-      return;
+    visitor.visit(*this, path, path_index);
 
-    auto& module = graph.get_module();
+    auto& module = get_module();
     if (module.has_inputs())
     {
-      module.for_each_input([&graph, &visitor, &path, &path_index]
+      module.for_each_input([this, &visitor, &path, &path_index]
                             (const string& id,
                              const InputMember& input)
       {
-        auto iv = visitor.get_element_input_visitor(id, true);
+        auto iv = visitor.get_element_input_visitor(*this, id,
+                                                    path, path_index);
         if (iv)
-          input.accept(*iv, path, ++path_index, graph);
+          input.accept(*iv, path, path_index + 1, *this);
       });
     }
 
     if (module.has_outputs())
     {
-      module.for_each_output([&graph, &visitor, &path, &path_index]
+      module.for_each_output([this, &visitor, &path, &path_index]
                              (const string& id,
                               const OutputMember& output)
       {
-        auto ov = visitor.get_element_output_visitor(id, true);
+        auto ov = visitor.get_element_output_visitor(*this, id,
+                                                     path, path_index);
         if (ov)
-          output.accept(*ov, path, ++path_index, graph);
+          output.accept(*ov, path, path_index + 1, *this);
       });
     }
 
-    auto& elements = graph.get_elements();
+    auto& elements = get_elements();
     for (auto& eit: elements)
     {
-      auto sv = visitor.get_sub_element_visitor(eit.first, true, graph);
+      auto sv = visitor.get_sub_element_visitor(*this, eit.first,
+                                                path, path_index);
       if (sv)
-        eit.second->accept(*sv, path, ++path_index);
+        eit.second->accept(*sv, path, path_index + 1);
     }
   }
   else
@@ -260,35 +259,39 @@ inline void accept_visitor(G& graph, V& visitor,
     {
       case Path::PartType::attribute:
         {
-          auto& module = graph.get_module();
+          auto& module = get_module();
           auto s = module.get_setting(part.name);
           if (s)
           {
-            auto sv = visitor.get_element_setting_visitor(part.name, false);
+            auto sv = visitor.get_element_setting_visitor(*this, part.name,
+                                                          path, path_index);
             if (sv)
-              s->accept(*sv, path, ++path_index, graph);
+              s->accept(*sv, path, path_index + 1, *this);
           }
           else
           {
             auto i = module.get_input(part.name);
             if (i)
             {
-              auto iv = visitor.get_element_input_visitor(part.name, false);
+              auto iv = visitor.get_element_input_visitor(*this, part.name,
+                                                          path, path_index);
               if (iv)
-                i->accept(*iv, path, ++path_index, graph);
+                i->accept(*iv, path, path_index + 1, *this);
             }
             else
             {
               auto o = module.get_output(part.name);
               if (o)
               {
-                auto ov = visitor.get_element_output_visitor(part.name, false);
+                auto ov = visitor.get_element_output_visitor(*this, part.name,
+                                                             path, path_index);
                 if (ov)
-                  o->accept(*ov, path, ++path_index, graph);
+                  o->accept(*ov, path, path_index + 1, *this);
               }
               else
               {
-                visitor.visit_graph_input_or_output(graph, part.name, true);
+                visitor.visit_graph_input_or_output(*this, part.name,
+                                                    path, path_index);
               }
             }
           }
@@ -296,12 +299,124 @@ inline void accept_visitor(G& graph, V& visitor,
         break;
       case Path::PartType::element:
         {
-          auto& elements = graph.get_elements();
+          auto& elements = get_elements();
+          auto eit = elements.find(part.name);
+          auto exists = (eit != elements.end());
+          if (!exists)
+            throw(runtime_error{"Element not found: " + part.name});
+          auto sv = visitor.get_sub_element_visitor(*this, part.name,
+                                                    path, path_index);
+          if (sv)
+            eit->second->accept(*sv, path, ++path_index);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+void Graph::accept(WriteVisitor& visitor,
+                   const Path& path, unsigned path_index)
+{
+  if (path.reached(path_index))
+  {
+    visitor.visit(*this, path, path_index);
+
+    auto& module = get_module();
+    if (module.has_inputs())
+    {
+      module.for_each_input([this, &visitor, &path, &path_index]
+                            (const string& id,
+                             const InputMember& input)
+      {
+        auto iv = visitor.get_element_input_visitor(*this, id,
+                                                    path, path_index);
+        if (iv)
+          input.accept(*iv, path, path_index + 1, *this);
+      });
+    }
+
+    if (module.has_outputs())
+    {
+      module.for_each_output([this, &visitor, &path, &path_index]
+                             (const string& id,
+                              const OutputMember& output)
+      {
+        auto ov = visitor.get_element_output_visitor(*this, id,
+                                                     path, path_index);
+        if (ov)
+          output.accept(*ov, path, path_index + 1, *this);
+      });
+    }
+
+    auto& elements = get_elements();
+    for (auto& eit: elements)
+    {
+      auto sv = visitor.get_sub_element_visitor(*this, eit.first,
+                                                path, path_index);
+      if (sv)
+        eit.second->accept(*sv, path, path_index + 1);
+    }
+  }
+  else
+  {
+    auto part = path.get(path_index);
+
+    switch (part.type)
+    {
+      case Path::PartType::attribute:
+        {
+          auto& module = get_module();
+          auto s = module.get_setting(part.name);
+          if (s)
+          {
+            auto sv = visitor.get_element_setting_visitor(*this, part.name,
+                                                          path, path_index);
+            if (sv)
+            {
+              s->accept(*sv, path, path_index + 1, *this);
+              setup();
+            }
+          }
+          else
+          {
+            auto i = module.get_input(part.name);
+            if (i)
+            {
+              auto iv = visitor.get_element_input_visitor(*this, part.name,
+                                                          path, path_index);
+              if (iv)
+                i->accept(*iv, path, path_index + 1, *this);
+            }
+            else
+            {
+              auto o = module.get_output(part.name);
+              if (o)
+              {
+                auto ov = visitor.get_element_output_visitor(*this, part.name,
+                                                             path, path_index);
+                if (ov)
+                  o->accept(*ov, path, path_index + 1, *this);
+              }
+              else
+              {
+                visitor.visit_graph_input_or_output(*this, part.name,
+                                                    path, path_index);
+              }
+            }
+          }
+        }
+        break;
+      case Path::PartType::element:
+        {
+          auto& elements = get_elements();
           auto eit = elements.find(part.name);
           auto exists = (eit != elements.end());
           if (!exists && !path.reached(path_index + 1))
             throw(runtime_error{"Element not found: " + part.name});
-          auto sv = visitor.get_sub_element_visitor(part.name, false, graph);
+          auto sv = visitor.get_sub_element_visitor(*this, part.name,
+                                                    path, path_index);
           if (sv)
           {
             if (!exists)
@@ -318,18 +433,6 @@ inline void accept_visitor(G& graph, V& visitor,
         break;
     }
   }
-}
-
-void Graph::accept(ReadVisitor& visitor,
-                   const Path& path, unsigned path_index) const
-{
-  accept_visitor(*this, visitor, path, path_index);
-}
-
-void Graph::accept(WriteVisitor& visitor,
-                   const Path& path, unsigned path_index)
-{
-  accept_visitor(*this, visitor, path, path_index);
 }
 
 //------------------------------------------------------------------------

@@ -10,64 +10,69 @@
 
 namespace ViGraph { namespace JSON {
 
-bool DeleteVisitor::visit(Dataflow::Engine&,
+void DeleteVisitor::visit(Dataflow::Engine&,
                           const Dataflow::Path&, unsigned)
 {
-  return true;
 }
 
-unique_ptr<Dataflow::WriteVisitor> DeleteVisitor::get_root_graph_visitor()
+unique_ptr<Dataflow::WriteVisitor> DeleteVisitor::get_root_graph_visitor(
+                          const Dataflow::Path&, unsigned)
 {
   return make_unique<DeleteVisitor>(engine, "root", &engine.get_graph());
 }
 
-bool DeleteVisitor::visit(Dataflow::Graph& graph,
+void DeleteVisitor::visit(Dataflow::Graph& graph,
                           const Dataflow::Path&, unsigned)
 {
   graph.shutdown();
   if (scope_graph)
     scope_graph->remove(id);
-  return false;
 }
 
-bool DeleteVisitor::visit(Dataflow::Clone& clone,
+void DeleteVisitor::visit(Dataflow::Clone& clone,
                           const Dataflow::Path&, unsigned)
 {
   clone.shutdown();
   if (scope_graph)
     scope_graph->remove(id);
-  return false;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_sub_element_visitor(const string& id, bool,
-                                           Dataflow::Graph &scope)
+    DeleteVisitor::get_sub_element_visitor(Dataflow::Graph& graph,
+                                           const string& id,
+                                           const Dataflow::Path&,
+                                           unsigned)
 {
-  return make_unique<DeleteVisitor>(engine, id, &scope);
+  return make_unique<DeleteVisitor>(engine, id, &graph);
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_sub_clone_visitor(Dataflow::Clone &)
+    DeleteVisitor::get_sub_clone_visitor(Dataflow::Clone &,
+                                         const string&,
+                                         const Dataflow::Path&,
+                                         unsigned)
 {
   return make_unique<DeleteVisitor>(engine, id, nullptr);
 }
 
-bool DeleteVisitor::visit(Dataflow::Element& element,
+void DeleteVisitor::visit(Dataflow::Element& element,
                           const Dataflow::Path&, unsigned)
 {
   element.shutdown();
   if (scope_graph)
     scope_graph->remove(id);
-  return false;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_setting_visitor(const string& id, bool)
+    DeleteVisitor::get_element_setting_visitor(Dataflow::GraphElement&,
+                                               const string& id,
+                                               const Dataflow::Path&,
+                                               unsigned)
 {
   return make_unique<DeleteVisitor>(engine, id, scope_graph);
 }
 
-bool DeleteVisitor::visit(Dataflow::GraphElement&,
+void DeleteVisitor::visit(Dataflow::GraphElement&,
                           const Dataflow::SettingMember&,
                           const Dataflow::Path&, unsigned)
 {
@@ -75,12 +80,15 @@ bool DeleteVisitor::visit(Dataflow::GraphElement&,
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_input_visitor(const string& id, bool)
+    DeleteVisitor::get_element_input_visitor(Dataflow::GraphElement&,
+                                             const string& id,
+                                             const Dataflow::Path&,
+                                             unsigned)
 {
   return make_unique<DeleteVisitor>(engine, id, scope_graph);
 }
 
-bool DeleteVisitor::visit(Dataflow::GraphElement& element,
+void DeleteVisitor::visit(Dataflow::GraphElement& element,
                           const Dataflow::InputMember&,
                           const Dataflow::Path&, unsigned)
 {
@@ -88,16 +96,18 @@ bool DeleteVisitor::visit(Dataflow::GraphElement& element,
   if (!g)
     throw(runtime_error{"Cannot delete an input on an element"});
   g->remove_input_pin(id);
-  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_output_visitor(const string& id, bool)
+    DeleteVisitor::get_element_output_visitor(Dataflow::GraphElement&,
+                                              const string& id,
+                                              const Dataflow::Path&,
+                                              unsigned)
 {
   return make_unique<DeleteVisitor>(engine, id, scope_graph);
 }
 
-bool DeleteVisitor::visit(Dataflow::GraphElement& element,
+void DeleteVisitor::visit(Dataflow::GraphElement& element,
                           const Dataflow::OutputMember&,
                           const Dataflow::Path&, unsigned)
 {
@@ -105,14 +115,13 @@ bool DeleteVisitor::visit(Dataflow::GraphElement& element,
   if (!g)
     throw(runtime_error{"Cannot delete an output on an element"});
   g->remove_output_pin(id);
-  return true;
 }
 
-bool DeleteVisitor::visit_graph_input_or_output(Dataflow::Graph&,
+void DeleteVisitor::visit_graph_input_or_output(Dataflow::Graph&,
                                                 const string&,
-                                                bool)
+                                                const Dataflow::Path&,
+                                                unsigned)
 {
-  return true;
 }
 
 }} // namespaces

@@ -182,36 +182,46 @@ public:
 class ReadVisitor
 {
 public:
-  virtual bool visit(const Engine& engine,
+  virtual void visit(const Engine& engine,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_root_graph_visitor() = 0;
-  virtual bool visit(const Graph& graph,
+  virtual unique_ptr<ReadVisitor> get_root_graph_visitor(
                      const Path& path, unsigned path_index) = 0;
-  virtual bool visit(const Clone& clone,
+  virtual void visit(const Graph& graph,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_sub_element_visitor(const string& id,
-                                                          bool visit,
-                                                     const Graph &scope) = 0;
-  virtual bool visit(const Element& element,
+  virtual void visit(const Clone& clone,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_setting_visitor(const string& id,
-                                                              bool visit)
-          = 0;
-  virtual bool visit(const GraphElement& element, const SettingMember& setting,
+  virtual unique_ptr<ReadVisitor> get_sub_element_visitor(
+                                                    const Graph &graph,
+                                                    const string& id,
+                                                    const Path& path,
+                                                    unsigned path_index) = 0;
+  virtual void visit(const Element& element,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_input_visitor(const string& id,
-                                                            bool visit)
-          = 0;
-  virtual bool visit(const GraphElement& element, const InputMember& input,
+  virtual unique_ptr<ReadVisitor> get_element_setting_visitor(
+                                              const GraphElement& element,
+                                              const string& id,
+                                              const Path& path,
+                                              unsigned path_index) = 0;
+  virtual void visit(const GraphElement& element, const SettingMember& setting,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_output_visitor(const string& id,
-                                                             bool visit)
-          = 0;
-  virtual bool visit(const GraphElement& element, const OutputMember& output,
+  virtual unique_ptr<ReadVisitor> get_element_input_visitor(
+                                              const GraphElement& element,
+                                              const string& id,
+                                              const Path& path,
+                                              unsigned path_index) = 0;
+  virtual void visit(const GraphElement& element, const InputMember& input,
                      const Path& path, unsigned path_index) = 0;
-  virtual bool visit_graph_input_or_output(const Graph& graph,
+  virtual unique_ptr<ReadVisitor> get_element_output_visitor(
+                                              const GraphElement& element,
+                                              const string& id,
+                                              const Path& path,
+                                              unsigned path_index) = 0;
+  virtual void visit(const GraphElement& element, const OutputMember& output,
+                     const Path& path, unsigned path_index) = 0;
+  virtual void visit_graph_input_or_output(const Graph& graph,
                                            const string& id,
-                                           bool visit) = 0;
+                                           const Path& path,
+                                           unsigned path_index) = 0;
 
   virtual ~ReadVisitor() {}
 };
@@ -221,37 +231,51 @@ public:
 class WriteVisitor
 {
 public:
-  virtual bool visit(Engine& engine,
+  virtual void visit(Engine& engine,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_root_graph_visitor() = 0;
-  virtual bool visit(Graph& graph,
+  virtual unique_ptr<WriteVisitor> get_root_graph_visitor(
                      const Path& path, unsigned path_index) = 0;
-  virtual bool visit(Clone& clone,
+  virtual void visit(Graph& graph,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_sub_element_visitor(const string& id,
-                                                           bool visit,
-                                                           Graph& scope) = 0;
-  virtual unique_ptr<WriteVisitor> get_sub_clone_visitor(Clone& clone) = 0;
-  virtual bool visit(Element& element,
+  virtual void visit(Clone& clone,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_setting_visitor(const string& id,
-                                                               bool visit)
-          = 0;
-  virtual bool visit(GraphElement& element, const SettingMember& setting,
+  virtual unique_ptr<WriteVisitor> get_sub_element_visitor(
+                                                    Graph &graph,
+                                                    const string& id,
+                                                    const Path& path,
+                                                    unsigned path_index) = 0;
+  virtual unique_ptr<WriteVisitor> get_sub_clone_visitor(
+                                                    Clone& clone,
+                                                    const string& id,
+                                                    const Path& path,
+                                                    unsigned path_index) = 0;
+  virtual void visit(Element& element,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_input_visitor(const string& id,
-                                                             bool visit)
-          = 0;
-  virtual bool visit(GraphElement& element, const InputMember& input,
+  virtual unique_ptr<WriteVisitor> get_element_setting_visitor(
+                                              GraphElement& element,
+                                              const string& id,
+                                              const Path& path,
+                                              unsigned path_index) = 0;
+  virtual void visit(GraphElement& element, const SettingMember& setting,
                      const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_output_visitor(const string& id,
-                                                              bool visit)
-          = 0;
-  virtual bool visit(GraphElement& element, const OutputMember& output,
+  virtual unique_ptr<WriteVisitor> get_element_input_visitor(
+                                              GraphElement& element,
+                                              const string& id,
+                                              const Path& path,
+                                              unsigned path_index) = 0;
+  virtual void visit(GraphElement& element, const InputMember& input,
                      const Path& path, unsigned path_index) = 0;
-  virtual bool visit_graph_input_or_output(Graph& graph,
+  virtual unique_ptr<WriteVisitor> get_element_output_visitor(
+                                              GraphElement& element,
+                                              const string& id,
+                                              const Path& path,
+                                              unsigned path_index) = 0;
+  virtual void visit(GraphElement& element, const OutputMember& output,
+                     const Path& path, unsigned path_index) = 0;
+  virtual void visit_graph_input_or_output(Graph& graph,
                                            const string& id,
-                                           bool visit) = 0;
+                                           const Path& path,
+                                           unsigned path_index) = 0;
 
   virtual ~WriteVisitor() {}
 };
@@ -1055,6 +1079,11 @@ class DynamicModule: public SimpleModule
 public:
   using SimpleModule::SimpleModule;
 
+  auto num_inputs() const
+  {
+    return inputs.size();
+  }
+
   void clear_inputs()
   {
     inputs.clear();
@@ -1069,6 +1098,11 @@ public:
   void erase_input(const string& name)
   {
     inputs.erase(name);
+  }
+
+  auto num_outputs() const
+  {
+    return outputs.size();
   }
 
   void clear_outputs()

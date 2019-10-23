@@ -165,21 +165,111 @@ void Clone::accept(ReadVisitor& visitor,
   if (!clones.empty())
     clones.front().graph->accept(visitor, path, path_index);
   if (path.reached(path_index))
-    if (!visitor.visit(*this, path, path_index))
-      return;
+  {
+    visitor.visit(*this, path, path_index);
+
+    if (module.has_settings())
+    {
+      module.for_each_setting([this, &visitor, &path, &path_index]
+                            (const string& id,
+                             const SettingMember& setting)
+      {
+        auto iv = visitor.get_element_setting_visitor(*this, id,
+                                                      path, path_index);
+        if (iv)
+          setting.accept(*iv, path, path_index + 1, *this);
+      });
+    }
+  }
 }
 
 void Clone::accept(WriteVisitor& visitor,
                    const Path& path, unsigned path_index)
 {
   if (path.reached(path_index))
-    if (!visitor.visit(*this, path, path_index))
-      return;
-  auto cv = visitor.get_sub_clone_visitor(*this);
-  if (!cv)
+  {
+    visitor.visit(*this, path, path_index);
+
+    if (module.has_settings())
+    {
+      module.for_each_setting([this, &visitor, &path, &path_index]
+                            (const string& id,
+                             const SettingMember& setting)
+      {
+        auto iv = visitor.get_element_setting_visitor(*this, id,
+                                                      path, path_index);
+        if (iv)
+          setting.accept(*iv, path, path_index + 1, *this);
+      });
+    }
+    setup();
+
+    auto cv = visitor.get_sub_clone_visitor(*this, get_id(), path, path_index);
+    if (cv)
+      for (auto& graph: clones)
+        graph.graph->accept(*cv, path, path_index);
     return;
-  for (auto& graph: clones)
-    graph.graph->accept(*cv, path, path_index);
+  }
+
+  auto part = path.get(path_index);
+
+  switch (part.type)
+  {
+    case Path::PartType::attribute:
+      {
+        auto& module = get_module();
+        auto s = module.get_setting(part.name);
+        if (s)
+        {
+          auto sv = visitor.get_element_setting_visitor(*this, part.name,
+                                                        path, path_index);
+          if (sv)
+          {
+            s->accept(*sv, path, path_index + 1, *this);
+            setup();
+          }
+        }
+        else
+        {
+          auto i = module.get_input(part.name);
+          if (i)
+          {
+            auto iv = visitor.get_element_input_visitor(*this, part.name,
+                                                        path, path_index);
+            if (iv)
+              i->accept(*iv, path, path_index + 1, *this);
+          }
+          else
+          {
+            auto o = module.get_output(part.name);
+            if (o)
+            {
+              auto ov = visitor.get_element_output_visitor(*this, part.name,
+                                                           path, path_index);
+              if (ov)
+                o->accept(*ov, path, path_index + 1, *this);
+            }
+            else
+            {
+              throw(runtime_error{"No such attribute: " + part.name});
+            }
+          }
+        }
+      }
+      break;
+    case Path::PartType::element:
+      {
+        auto cv = visitor.get_sub_clone_visitor(*this, part.name,
+                                                path, path_index);
+        if (!cv)
+          return;
+        for (auto& graph: clones)
+          graph.graph->accept(*cv, path, path_index);
+      }
+      break;
+    default:
+      break;
+  }
 }
 
 //--------------------------------------------------------------------------

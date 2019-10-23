@@ -10,13 +10,13 @@
 
 namespace ViGraph { namespace JSON {
 
-bool SetVisitor::visit(Dataflow::Engine&,
+void SetVisitor::visit(Dataflow::Engine&,
                        const Dataflow::Path&, unsigned)
 {
-  return true;
 }
 
-unique_ptr<Dataflow::WriteVisitor> SetVisitor::get_root_graph_visitor()
+unique_ptr<Dataflow::WriteVisitor> SetVisitor::get_root_graph_visitor(
+                       const Dataflow::Path&, unsigned)
 {
   return make_unique<SetVisitor>(engine, json, "root", &engine.get_graph());
 }
@@ -82,7 +82,7 @@ void create_element(const Dataflow::Engine& engine, Dataflow::Graph& graph,
   }
 }
 
-bool SetVisitor::visit(Dataflow::Graph& graph,
+void SetVisitor::visit(Dataflow::Graph& graph,
                        const Dataflow::Path&, unsigned)
 {
   graph.shutdown();
@@ -126,54 +126,57 @@ bool SetVisitor::visit(Dataflow::Graph& graph,
       graph.add_output_pin(oid, oid, "output");
     }
   }
-  return true;
 }
 
-bool SetVisitor::visit(Dataflow::Clone& clone,
-                       const Dataflow::Path&, unsigned)
+void SetVisitor::visit(Dataflow::Clone& clone,
+                       const Dataflow::Path& path, unsigned path_index)
 {
+  if (!path.reached(path_index))
+    return;
   clone.shutdown();
-  auto number = json["number"].as_int();
-  clone.number.set(number);
-  clone.setup();
-  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_sub_element_visitor(const string& id,
-                                        bool visit,
-                                        Dataflow::Graph &scope)
+    SetVisitor::get_sub_element_visitor(Dataflow::Graph& graph,
+                                        const string& id,
+                                        const Dataflow::Path& path,
+                                        unsigned path_index)
 {
   // If this is for a non-existant element, assume it is being created
-  const auto& elements = scope.get_elements();
+  const auto& elements = graph.get_elements();
   if (elements.find(id) == elements.end())
-    create_element(engine, scope, clone, id, json, sub_element_json);
+    create_element(engine, graph, clone, id, json, sub_element_json);
 
-  if (!visit) // Assume the json should not be traversed
-    return make_unique<SetVisitor>(engine, json, id, &scope);
+  if (!path.reached(path_index)) // Assume the json should not be traversed
+    return make_unique<SetVisitor>(engine, json, id, &graph);
 
   auto it = sub_element_json.find(id);
   if (it == sub_element_json.end())
     return {};
-  return make_unique<SetVisitor>(engine, *it->second, id, &scope);
+  return make_unique<SetVisitor>(engine, *it->second, id, &graph);
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_sub_clone_visitor(Dataflow::Clone &clone)
+    SetVisitor::get_sub_clone_visitor(Dataflow::Clone &clone,
+                                      const string&,
+                                      const Dataflow::Path&,
+                                      unsigned)
 {
   return make_unique<SetVisitor>(engine, json, id, scope_graph, &clone);
 }
 
-bool SetVisitor::visit(Dataflow::Element&,
+void SetVisitor::visit(Dataflow::Element&,
                        const Dataflow::Path&, unsigned)
 {
-  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_setting_visitor(const string& id, bool visit)
+    SetVisitor::get_element_setting_visitor(Dataflow::GraphElement&,
+                                            const string& id,
+                                            const Dataflow::Path& path,
+                                            unsigned path_index)
 {
-  if (!visit) // Assume the json should not be traversed
+  if (!path.reached(path_index)) // Assume the json should not be traversed
     return make_unique<SetVisitor>(engine, json, id, scope_graph);
 
   const auto& settingsj = json.get("settings");
@@ -188,26 +191,39 @@ unique_ptr<Dataflow::WriteVisitor>
   return make_unique<SetVisitor>(engine, settingj, id, scope_graph);
 }
 
-bool SetVisitor::visit(Dataflow::GraphElement& element,
+void SetVisitor::visit(Dataflow::GraphElement& element,
                        const Dataflow::SettingMember& setting,
                        const Dataflow::Path&, unsigned)
 {
   const auto& valuej = json.get("value");
   if (!valuej)
-    return true;
+    return;
   setting.set_json(element, valuej);
-  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_input_visitor(const string& id, bool visit)
+    SetVisitor::get_element_input_visitor(Dataflow::GraphElement&,
+                                          const string& id,
+                                          const Dataflow::Path& path,
+                                          unsigned path_index)
 {
-  if (!visit) // Assume the json should not be traversed
+  if (!path.reached(path_index)) // Assume the json should not be traversed
     return make_unique<SetVisitor>(engine, json, id, scope_graph);
 
   const auto& inputsj = json.get("inputs");
   if (!inputsj || inputsj.type != Value::Type::OBJECT)
-    return nullptr;
+  {
+    // Try settings
+    const auto& settingsj = json.get("settings");
+    if (!settingsj || settingsj.type != Value::Type::OBJECT)
+      return nullptr;
+
+    const auto& settingj = settingsj.get(id);
+    if (!settingj)
+      return nullptr;
+
+    return make_unique<SetVisitor>(engine, settingj, id, scope_graph);
+  }
 
   const auto& inputj = inputsj.get(id);
   if (!inputj)
@@ -216,21 +232,23 @@ unique_ptr<Dataflow::WriteVisitor>
   return make_unique<SetVisitor>(engine, inputj, id, scope_graph);
 }
 
-bool SetVisitor::visit(Dataflow::GraphElement& element,
+void SetVisitor::visit(Dataflow::GraphElement& element,
                        const Dataflow::InputMember& input,
                        const Dataflow::Path&, unsigned)
 {
   const auto& valuej = json.get("value");
   if (!valuej)
-    return true;
+    return;
   input.set_json(element, valuej);
-  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_output_visitor(const string& id, bool visit)
+    SetVisitor::get_element_output_visitor(Dataflow::GraphElement&,
+                                           const string& id,
+                                           const Dataflow::Path& path,
+                                           unsigned path_index)
 {
-  if (!visit) // Assume the json should not be traversed
+  if (!path.reached(path_index)) // Assume the json should not be traversed
     return make_unique<SetVisitor>(engine, json, id, scope_graph);
 
   const auto& outputsj = json.get("outputs");
@@ -244,16 +262,16 @@ unique_ptr<Dataflow::WriteVisitor>
   return make_unique<SetVisitor>(engine, outputj, id, scope_graph);
 }
 
-bool SetVisitor::visit(Dataflow::GraphElement& element,
+void SetVisitor::visit(Dataflow::GraphElement& element,
                        const Dataflow::OutputMember& output,
                        const Dataflow::Path&, unsigned)
 {
   if (!scope_graph)
-    return true; // Can't make connections without a scope
+    return; // Can't make connections without a scope
 
   const auto& connectionsj = json.get("connections");
   if (!connectionsj || connectionsj.type != Value::Type::ARRAY)
-    return true;
+    return;
 
   // Disconnect any existing connections
   auto& op = output.get(element);
@@ -290,15 +308,15 @@ bool SetVisitor::visit(Dataflow::GraphElement& element,
          << scope_graph->get_id() << ")" << endl;
 #endif
   }
-  return true;
 }
 
-bool SetVisitor::visit_graph_input_or_output(Dataflow::Graph& graph,
+void SetVisitor::visit_graph_input_or_output(Dataflow::Graph& graph,
                                              const string& id,
-                                             bool visit)
+                                             const Dataflow::Path& path,
+                                             unsigned path_index)
 {
-  if (!visit)
-    return true;
+  if (!path.reached(path_index))
+    return;
 
   const auto& dir = json.get("direction").as_str();
   if (dir == "in")
@@ -321,7 +339,6 @@ bool SetVisitor::visit_graph_input_or_output(Dataflow::Graph& graph,
   {
     throw(runtime_error{"Graph in/out direction missing"});
   }
-  return true;
 }
 
 }} // namespaces

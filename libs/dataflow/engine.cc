@@ -109,9 +109,8 @@ void Engine::accept(ReadVisitor& visitor,
 {
   MT::RWReadLock lock{graph_mutex};
   if (path.reached(path_index))
-    if (!visitor.visit(*this, path, path_index))
-      return;
-  auto sv = visitor.get_root_graph_visitor();
+    visitor.visit(*this, path, path_index);
+  auto sv = visitor.get_root_graph_visitor(path, path_index);
   if (sv)
     graph->accept(*sv, path, path_index);
 }
@@ -120,9 +119,9 @@ void Engine::accept(WriteVisitor& visitor,
                     const Path& path, unsigned path_index)
 {
   MT::RWWriteLock lock{graph_mutex};
-  if (!visitor.visit(*this, path, path_index))
-    return;
-  auto sv = visitor.get_root_graph_visitor();
+  if (path.reached(path_index))
+    visitor.visit(*this, path, path_index);
+  auto sv = visitor.get_root_graph_visitor(path, path_index);
   if (sv)
     graph->accept(*sv, path, path_index);
   update_elements();

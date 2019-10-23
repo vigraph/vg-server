@@ -318,8 +318,18 @@ public:
 class ElementInput: public ElementSetting
 {
 public:
+  struct Connection
+  {
+    GraphElement *element = nullptr;
+    ElementOutput *output = nullptr;
+    Connection() {}
+    Connection(GraphElement *_element, ElementOutput *_output):
+      element{_element}, output{_output}
+    {}
+  };
   virtual bool ready() const = 0;
   virtual void reset() = 0;
+  virtual vector<Connection> get_connections() const = 0;
   virtual void disconnect() = 0;
 };
 
@@ -337,7 +347,7 @@ public:
       element{_element}, input{_input}
     {}
   };
-  virtual bool connect(const Connection&) = 0;
+  virtual bool connect(GraphElement *, const Connection&) = 0;
   virtual vector<Connection> get_connections() const = 0;
   virtual void disconnect() = 0;
 
@@ -355,6 +365,7 @@ private:
   friend class Output<T>;
   struct Data
   {
+    GraphElement *element = nullptr;
     vector<T> data;
     bool ready = false;
   };
@@ -450,6 +461,14 @@ public:
     }
   }
 
+  vector<Connection> get_connections() const override
+  {
+    auto result = vector<Connection>{};
+    for (const auto& id: input_data)
+      result.emplace_back(id.second.element, id.first);
+    return result;
+  }
+
   // Disconnect everything
   void disconnect() override
   {
@@ -491,19 +510,22 @@ private:
   Input<T> *primary_data = nullptr;
 
 public:
-  void connect(GraphElement *element, Input<T>& to)
+  void connect(GraphElement *from_element,
+               GraphElement *to_element, Input<T>& to)
   {
-    output_data[&to] = {element, &to.input_data[this]};
+    auto& id = to.input_data[this];
+    id.element = from_element;
+    output_data[&to] = {to_element, &id};
     if (!primary_data)
       primary_data = &to;
   }
 
-  bool connect(const Connection& connection) override
+  bool connect(GraphElement *element, const Connection& connection) override
   {
     auto ito = dynamic_cast<Input<T> *>(connection.input);
     if (!ito)
       return false;
-    connect(connection.element, *ito);
+    connect(element, connection.element, *ito);
     return true;
   }
 
@@ -632,6 +654,8 @@ public:
 
   virtual string get_input_id(GraphElement& element,
                               ElementInput& input) const = 0;
+  virtual string get_output_id(GraphElement& element,
+                               ElementOutput& output) const = 0;
 
   virtual ~Module() {}
 };
@@ -1070,6 +1094,15 @@ public:
         return i.first;
     return "[invalid]";
   }
+
+  string get_output_id(GraphElement& element,
+                       ElementOutput& output) const override
+  {
+    for (const auto& o: outputs)
+      if (&o.second.get(element) == &output)
+        return o.first;
+    return "[invalid]";
+  }
 };
 
 //==========================================================================
@@ -1491,6 +1524,15 @@ public:
     for (const auto& i: inputs)
       if (&i.second.get(element) == &input)
         return i.first;
+    return "[invalid]";
+  }
+
+  string get_output_id(GraphElement& element,
+                       ElementOutput& output) const override
+  {
+    for (const auto& o: outputs)
+      if (&o.second.get(element) == &output)
+        return o.first;
     return "[invalid]";
   }
 };

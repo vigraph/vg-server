@@ -98,7 +98,7 @@ Graph *Graph::clone() const
     g->add_output_pin(op.first, op.second.element, op.second.connection);
   }
 
-  // Element connections
+  // Element connections (including outbound external)
   for (auto& els: pairs)
   {
     auto orig = els.first;
@@ -125,7 +125,24 @@ Graph *Graph::clone() const
     }
   }
 
-  // !!! TODO: connections to/from graph
+  // Connect inputs to graph
+  auto& module = get_module();
+  for (const auto &ip: input_pins)
+  {
+    auto im = module.get_input(ip.first);
+    if (im)
+    {
+      auto& i = im->get(*this);
+      const auto conns = i.get_connections();
+      for (auto& conn: conns)
+      {
+        const auto& emodule = conn.element->get_module();
+        const auto& eoutput = emodule.get_output_id(*conn.element,
+                                                    *conn.output);
+        conn.element->connect(eoutput, *g, ip.first);
+      }
+    }
+  }
 
   return g;
 }

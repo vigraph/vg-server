@@ -8,11 +8,12 @@ NAME     = vg-modules-vector
 TYPE     = package
 DEPENDS  = vg-module-vector-translate    \
            vg-module-vector-scale        \
-           vg-module-vector-rotate
+           vg-module-vector-rotate       \
+           vg-module-vector-svg          \
+           vg-module-vector-websocket
 
 #           vg-module-vector-source-test \
 #           vg-module-vector-source-figure \
-#           vg-module-vector-source-svg \
 #           vg-module-vector-source-text \
 #           vg-module-vector-source-receive \
 #           vg-module-vector-control-velocity \
@@ -25,7 +26,6 @@ DEPENDS  = vg-module-vector-translate    \
 #           vg-module-vector-filter-sum \
 #           vg-module-vector-filter-combine \
 #           vg-module-vector-filter-perspective \
-#           vg-module-vector-filter-websocket \
 #           vg-module-vector-filter-collision-detect \
 #           vg-module-vector-filter-send \
 #           vg-module-vector-service-collision-detector \

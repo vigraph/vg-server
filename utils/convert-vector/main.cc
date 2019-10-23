@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     return 2;
   }
 
-  double precision = SVG::Path::default_precision;
+  double precision = SVG::default_precision;
   double max_distance = 0;
   double max_angle = -1;
   int vertex_repeats = 0;

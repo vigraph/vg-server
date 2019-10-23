@@ -652,6 +652,21 @@ inline JSON::Value get_as_json(const string& value)
   return {value};
 }
 
+template<>
+inline string get_module_type<bool>() { return "boolean"; }
+
+template<>
+inline void set_from_json(bool& value, const JSON::Value& json)
+{
+  value = (json.type == JSON::Value::TRUE_);
+}
+
+template<>
+inline JSON::Value get_as_json(const bool& value)
+{
+  return {value ? JSON::Value::TRUE_ : JSON::Value::FALSE_};
+}
+
 class SimpleModule: public Module
 {
 protected:

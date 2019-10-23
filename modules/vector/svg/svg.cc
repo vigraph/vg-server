@@ -1,26 +1,20 @@
 //==========================================================================
-// ViGraph dataflow module: vector/sources/svg/svg.cc
+// ViGraph dataflow module: vector/svg/svg.cc
 //
 // SVG frame source
 //
-// Copyright (c) 2018 Paul Clark.  All rights reserved
+// Copyright (c) 2018-2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../vector-module.h"
+#include "../vector-module.h"
 #include "vg-svg.h"
 
 namespace {
 
 //==========================================================================
 // SVG source
-class SVGSource: public Source
+class SVGSource: public SimpleElement
 {
-public:
-  string path_data;
-  string file;
-  double precision = SVG::Path::default_precision;
-  bool normalise = true;
-
 private:
   SVG::Path path;
   vector<Point> points;
@@ -29,8 +23,23 @@ private:
   void setup() override;
   void tick(const TickData& td) override;
 
+  // Clone
+  SVGSource *create_clone() const override
+  {
+    return new SVGSource{module};
+  }
+
 public:
-  using Source::Source;
+  using SimpleElement::SimpleElement;
+
+  // Settings
+  Setting<string> path_data;
+  Setting<string> file;
+  Setting<double> precision{SVG::default_precision};
+  Setting<bool>   normalise{true};
+
+  // Output
+  Output<Frame> output;
 };
 
 //--------------------------------------------------------------------------
@@ -41,20 +50,20 @@ void SVGSource::setup()
 
   try
   {
-    if (!path_data.empty())
+    if (!path_data.get().empty())
     {
-      path.read(path_data);
+      path.read(path_data.get());
     }
     else
     {
       // Look for file
-      if (file.empty())
+      if (file.get().empty())
       {
-        log.error << "No path or file in <svg>\n";
+        log.error << "No path or file in 'svg'\n";
         return;
       }
 
-      File::Path fpath(file);
+      File::Path fpath(file.get());
       XML::Configuration cfg(fpath.str(), log.error);
       if (!cfg.read())
       {
@@ -75,11 +84,11 @@ void SVGSource::setup()
 
   log.summary << "Loaded SVG animation with "
               << path.segments.size() << " segments\n";
-  log.detail << "Curve precision: " << precision << endl;
-  if (!normalise) log.detail << "No normalisation\n";
+  log.detail << "Curve precision: " << precision.get() << endl;
+  if (!normalise.get()) log.detail << "No normalisation\n";
 
   // Render to points immediately, since it doesn't change
-  path.render(points, precision, normalise);
+  path.render(points, precision.get(), normalise.get());
   log.detail << "SVG generated " << points.size() << " points\n";
 }
 
@@ -87,31 +96,33 @@ void SVGSource::setup()
 // Generate a frame
 void SVGSource::tick(const TickData& td)
 {
-  Frame *frame = new Frame(td.t);
-  frame->points = points;
-  send(frame);
+  // All 'samples' are the same, but timestamp can vary
+  auto count{0};
+  sample_iterate(td.nsamples, {}, {}, tie(output),
+                 [&](Frame& output)
+  {
+    output.timestamp = td.timestamp + count++/td.sample_rate;
+    output.points = points;
+  });
 }
 
 //--------------------------------------------------------------------------
 // Module definition
-Dataflow::Module module
+Dataflow::SimpleModule module
 {
   "svg",
   "SVG image",
-  "SVG vector graphic image",
   "vector",
   {
-    { "path", { "SVG path data (as if in <path d=...>)", Value::Type::text,
-                &SVGSource::path_data, false } },
-    { "file", { "Filename of SVG file", Value::Type::file,
-                &SVGSource::file, false } },
-    { "precision", { "Curve precision", Value::Type::number,
-                     &SVGSource::precision, false } },
-    { "normalise", { "Scale to unit square", Value::Type::boolean,
-                     &SVGSource::normalise, false } },
+    { "path",      &SVGSource::path_data },
+    { "file",      &SVGSource::file      },
+    { "precision", &SVGSource::precision },
+    { "normalise", &SVGSource::normalise }
   },
-  {}, // no inputs
-  { "VectorFrame" }
+  {},
+  {
+    { "output",    &SVGSource::output    }
+  }
 };
 
 } // anon

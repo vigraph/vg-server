@@ -20,6 +20,8 @@ using namespace std;
 using namespace ObTools;
 using namespace ViGraph::Geometry;
 
+const double default_precision{0.1};  // 10 points
+
 // -------------------------------------------------------------------------
 // Path
 class Path
@@ -88,7 +90,6 @@ class Path
   // Render to points
   // precision is currently the increment of 't', hence 1/number of points
   // !!! Use adaptive fitting and make precision the tolerance
-  static constexpr double default_precision{0.1};  // 10 points
   void render(vector<Point>& points, double precision = default_precision,
               bool normalise = false);
 };

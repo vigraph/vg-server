@@ -1,11 +1,11 @@
 #===========================================================================
 # Tupfile for Vigraph SVG source module
 #
-# Copyright (c) 2018 Paul Clark. All rights reserved
+# Copyright (c) 2018-2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-vector-source-svg
+NAME    = vg-module-vector-svg
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-log vg-svg
+DEPENDS = vg-dataflow vg-geometry ot-log ot-lib vg-svg
 
 include_rules

@@ -72,7 +72,7 @@ void Beat::tick(const TickData& td)
 
     output = 0;
 
-    const auto sample_time = td.timestamp + count++/td.sample_rate;
+    const auto sample_time = td.timestamp_at(count++);
     if (active)
     {
       if (!synchronised)

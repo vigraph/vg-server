@@ -49,6 +49,10 @@ struct TickData
            unsigned long _nsamples):
     timestamp{_timestamp}, sample_rate{_sample_rate}, nsamples{_nsamples}
   {}
+
+  // Get timestamp for a given sample number
+  timestamp_t timestamp_at(int index) const
+  { return timestamp + index/sample_rate; }
 };
 
 // forward declarations
@@ -636,13 +640,14 @@ public:
   virtual ~Module() {}
 };
 
+// Value type templates
 template<typename T> inline string get_module_type();
 template<typename T>
 inline void set_from_json(T& value, const JSON::Value& json);
 template<typename T>
 inline JSON::Value get_as_json(const T& value);
 
-
+// Specialisation for <double>
 template<>
 inline string get_module_type<double>() { return "number"; }
 
@@ -661,6 +666,7 @@ inline JSON::Value get_as_json(const double& value)
   return {value};
 }
 
+// Specialisation for <string>
 template<>
 inline string get_module_type<string>() { return "text"; }
 
@@ -676,6 +682,26 @@ inline JSON::Value get_as_json(const string& value)
   return {value};
 }
 
+// Specialisation for <int>
+template<>
+inline string get_module_type<int>() { return "integer"; }
+
+template<>
+inline void set_from_json(int& value, const JSON::Value& json)
+{
+  if (json.type == JSON::Value::NUMBER)
+    value = json.f;
+  else
+    value = json.n;
+}
+
+template<>
+inline JSON::Value get_as_json(const int& value)
+{
+  return {value};
+}
+
+// Specialisation for <bool>
 template<>
 inline string get_module_type<bool>() { return "boolean"; }
 

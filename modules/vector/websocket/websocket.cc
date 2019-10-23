@@ -111,21 +111,20 @@ void WebSocketDisplayServer::handle_websocket(
 
 //==========================================================================
 // WebSocket filter
-class WebSocketFilter: public SimpleElement
+class WebSocket: public SimpleElement
 {
 private:
   unique_ptr<WebSocketDisplayServer> server;
   unique_ptr<Net::TCPServerThread> server_thread;
-  bool frame_seen{false};
 
   // Element virtuals
   void setup() override;
   void tick(const TickData& td) override;
 
   // Clone
-  WebSocketFilter *create_clone() const override
+  WebSocket *create_clone() const override
   {
-    return new WebSocketFilter{module};
+    return new WebSocket{module};
   }
 
   void shutdown() override;
@@ -134,7 +133,7 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<double> port{default_port};
+  Setting<int> port{default_port};
 
   // Input
   Input<Frame> input;
@@ -142,23 +141,21 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void WebSocketFilter::setup()
+void WebSocket::setup()
 {
-  auto iport = static_cast<int>(port.get());
-  if (iport)
+  if (port.get())
   {
     Log::Summary log;
-    log << "Starting WebSocket display server at port " << iport << endl;
-    server.reset(new WebSocketDisplayServer(iport,
+    log << "Starting WebSocket display server at port " << port.get() << endl;
+    server.reset(new WebSocketDisplayServer(port.get(),
                            "ViGraph WebSocket display server"));
     server_thread.reset(new Net::TCPServerThread(*server));
-    frame_seen = false;
   }
 }
 
 //--------------------------------------------------------------------------
 // Tick data
-void WebSocketFilter::tick(const TickData& td)
+void WebSocket::tick(const TickData& td)
 {
   sample_iterate(td.nsamples, {}, tie(input), {},
                  [&](const Frame& input)
@@ -173,7 +170,7 @@ void WebSocketFilter::tick(const TickData& td)
 
 //--------------------------------------------------------------------------
 // Shut down
-void WebSocketFilter::shutdown()
+void WebSocket::shutdown()
 {
   Log::Detail log;
   log << "Shutting down WebSocket display server\n";
@@ -198,14 +195,14 @@ Dataflow::SimpleModule module
   "WebSocket Display",
   "vector",
   {
-    { "port",  &WebSocketFilter::port }
+    { "port",  &WebSocket::port }
   },
   {
-    { "input", &WebSocketFilter::input }
+    { "input", &WebSocket::input }
   },
   {}
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(WebSocketFilter, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(WebSocket, module)

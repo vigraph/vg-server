@@ -73,7 +73,7 @@ void Envelope::tick(const TickData& td)
                      double& output, double& finished)
   {
     // Get current sample time
-    const auto sample_time = td.timestamp + count++/td.sample_rate;
+    const auto sample_time = td.timestamp_at(count++);
     if (reset)
     {
       state = State::off;

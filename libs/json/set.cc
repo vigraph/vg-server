@@ -300,13 +300,6 @@ void SetVisitor::visit(Dataflow::GraphElement& element,
           << " to " << ielement->get_id() << "." << iinput << endl;
       continue;
     }
-
-#if OBTOOLS_LOG_DEBUG
-    Log::Debug dlog;
-    dlog << "CONNECT " << element.get_id() << ":" << id << " to "
-         << iid << ":" << iinput << " (scope: "
-         << scope_graph->get_id() << ")" << endl;
-#endif
   }
 }
 

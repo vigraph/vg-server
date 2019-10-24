@@ -35,6 +35,13 @@ bool Element::connect(const string& out_name,
   }
   if (!o->connect(this, {&b, i}))
     return false;
+
+#if OBTOOLS_LOG_DEBUG
+  Log::Debug dlog;
+  dlog << "CONNECT " << get_id() << " (" << this << "):" << out_name << " to "
+       << b.get_id() << " (" << &b << "):" << in_name << endl;
+#endif
+
   b.notify_connection(in_name, *this, out_name);
   return true;
 }

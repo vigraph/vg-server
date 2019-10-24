@@ -28,6 +28,8 @@ void GetVisitor::visit(const Dataflow::Graph& graph,
     return;
   auto& module = graph.get_module();
   json.put("type", module.get_full_type());
+  json.set("dynamic", module.is_dynamic() ? Value::Type::TRUE_
+                                          : Value::Type::FALSE_);
   if (module.has_outputs())
   {
     module.for_each_output([this]
@@ -43,6 +45,8 @@ void GetVisitor::visit(const Dataflow::Clone&,
 {
   const auto& module = Dataflow::clone_module;
   json.set("type", module.get_full_type());
+  json.set("dynamic", module.is_dynamic() ? Value::Type::TRUE_
+                                          : Value::Type::FALSE_);
 }
 
 unique_ptr<Dataflow::ReadVisitor>
@@ -68,6 +72,8 @@ void GetVisitor::visit(const Dataflow::Element& element,
 {
   auto& module = element.get_module();
   json.put("type", module.get_full_type());
+  json.set("dynamic", module.is_dynamic() ? Value::Type::TRUE_
+                                          : Value::Type::FALSE_);
 }
 
 unique_ptr<Dataflow::ReadVisitor>

@@ -14,6 +14,8 @@ Value get_module_metadata(const Dataflow::Module& module)
 {
   auto json = Value{Value::OBJECT};
   json.set("name", module.get_name());
+  json.set("dynamic", module.is_dynamic() ? Value::Type::TRUE_
+                                          : Value::Type::FALSE_);
 
   // Settings
   if (module.has_settings())

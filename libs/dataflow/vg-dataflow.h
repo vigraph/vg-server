@@ -624,6 +624,7 @@ public:
   virtual string get_full_type() const { return get_section() +
                                                 namespace_separator +
                                                 get_id(); }
+  virtual bool is_dynamic() const { return false; }
   ElementSetting *get_setting(GraphElement& element, const string& name) const
   {
     auto s = get_setting(name);
@@ -1146,6 +1147,8 @@ class DynamicModule: public SimpleModule
 public:
   using SimpleModule::SimpleModule;
 
+  bool is_dynamic() const override { return true; }
+
   auto num_inputs() const
   {
     return inputs.size();
@@ -1508,6 +1511,7 @@ public:
   string get_id() const override { return id; }
   string get_name() const override { return name; }
   string get_section() const override { return section; }
+  bool is_dynamic() const override { return true; }
 
   const SettingMember *get_setting( const string&) const override
   {
@@ -1695,7 +1699,17 @@ public:
 class CloneInfo;
 
 //==========================================================================
-// Dataflow graph structure
+// Clone module
+class CloneModule: public SimpleModule
+{
+public:
+  using SimpleModule::SimpleModule;
+
+  bool is_dynamic() const override { return true; }
+};
+
+//==========================================================================
+// Dataflow clone structure
 class Clone: public GraphElement
 {
 private:
@@ -1711,7 +1725,7 @@ private:
     {}
   };
   vector<CloneGraph> clones;
-  const SimpleModule& module;
+  const CloneModule& module;
 
   // Update CloneInfo objects
   void update_clone_infos();
@@ -1719,7 +1733,7 @@ private:
 public:
   //------------------------------------------------------------------------
   // Constructors
-  Clone(const SimpleModule& _module):
+  Clone(const CloneModule& _module):
     module{_module}
   {
     clones.emplace_back();
@@ -1771,7 +1785,7 @@ public:
 
 //==========================================================================
 // Clone Module
-const Dataflow::SimpleModule clone_module
+const Dataflow::CloneModule clone_module
 {
   "clone",
   "Clone",

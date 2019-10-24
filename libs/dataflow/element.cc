@@ -221,7 +221,8 @@ void Element::accept(WriteVisitor& visitor,
 {
   if (path.reached(path_index))
   {
-    visitor.visit(*this, path, path_index);
+    if (!visitor.visit(*this, path, path_index))
+      return; // element does not exist
 
     auto& module = get_module();
     if (module.has_settings())

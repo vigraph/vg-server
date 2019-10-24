@@ -188,7 +188,8 @@ void Clone::accept(WriteVisitor& visitor,
 {
   if (path.reached(path_index))
   {
-    visitor.visit(*this, path, path_index);
+    if (!visitor.visit(*this, path, path_index))
+      return; // clone does not exist
 
     if (module.has_settings())
     {

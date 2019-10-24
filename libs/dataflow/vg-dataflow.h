@@ -239,9 +239,9 @@ public:
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_root_graph_visitor(
                      const Path& path, unsigned path_index) = 0;
-  virtual void visit(Graph& graph,
+  virtual bool visit(Graph& graph,
                      const Path& path, unsigned path_index) = 0;
-  virtual void visit(Clone& clone,
+  virtual bool visit(Clone& clone,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_sub_element_visitor(
                                                     Graph &graph,
@@ -253,7 +253,7 @@ public:
                                                     const string& id,
                                                     const Path& path,
                                                     unsigned path_index) = 0;
-  virtual void visit(Element& element,
+  virtual bool visit(Element& element,
                      const Path& path, unsigned path_index) = 0;
   virtual unique_ptr<WriteVisitor> get_element_setting_visitor(
                                               GraphElement& element,

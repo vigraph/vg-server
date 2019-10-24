@@ -82,7 +82,7 @@ void create_element(const Dataflow::Engine& engine, Dataflow::Graph& graph,
   }
 }
 
-void SetVisitor::visit(Dataflow::Graph& graph,
+bool SetVisitor::visit(Dataflow::Graph& graph,
                        const Dataflow::Path&, unsigned)
 {
   graph.shutdown();
@@ -126,14 +126,16 @@ void SetVisitor::visit(Dataflow::Graph& graph,
       graph.add_output_pin(oid, oid, "output");
     }
   }
+  return true;
 }
 
-void SetVisitor::visit(Dataflow::Clone& clone,
+bool SetVisitor::visit(Dataflow::Clone& clone,
                        const Dataflow::Path& path, unsigned path_index)
 {
   if (!path.reached(path_index))
-    return;
+    return true;
   clone.shutdown();
+  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
@@ -165,9 +167,10 @@ unique_ptr<Dataflow::WriteVisitor>
   return make_unique<SetVisitor>(engine, json, id, scope_graph, &clone);
 }
 
-void SetVisitor::visit(Dataflow::Element&,
+bool SetVisitor::visit(Dataflow::Element&,
                        const Dataflow::Path&, unsigned)
 {
+  return true;
 }
 
 unique_ptr<Dataflow::WriteVisitor>

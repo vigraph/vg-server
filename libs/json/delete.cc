@@ -21,20 +21,26 @@ unique_ptr<Dataflow::WriteVisitor> DeleteVisitor::get_root_graph_visitor(
   return make_unique<DeleteVisitor>(engine, "root", &engine.get_graph());
 }
 
-void DeleteVisitor::visit(Dataflow::Graph& graph,
-                          const Dataflow::Path&, unsigned)
+bool DeleteVisitor::visit(Dataflow::Graph& graph,
+                          const Dataflow::Path& path, unsigned path_index)
 {
+  if (!path.reached(path_index))
+    return true;
   graph.shutdown();
   if (scope_graph)
     scope_graph->remove(id);
+  return false;
 }
 
-void DeleteVisitor::visit(Dataflow::Clone& clone,
-                          const Dataflow::Path&, unsigned)
+bool DeleteVisitor::visit(Dataflow::Clone& clone,
+                          const Dataflow::Path& path, unsigned path_index)
 {
+  if (!path.reached(path_index))
+    return true;
   clone.shutdown();
   if (scope_graph)
     scope_graph->remove(id);
+  return false;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
@@ -55,12 +61,15 @@ unique_ptr<Dataflow::WriteVisitor>
   return make_unique<DeleteVisitor>(engine, id, nullptr);
 }
 
-void DeleteVisitor::visit(Dataflow::Element& element,
-                          const Dataflow::Path&, unsigned)
+bool DeleteVisitor::visit(Dataflow::Element& element,
+                          const Dataflow::Path& path, unsigned path_index)
 {
+  if (!path.reached(path_index))
+    return true;
   element.shutdown();
   if (scope_graph)
     scope_graph->remove(id);
+  return false;
 }
 
 unique_ptr<Dataflow::WriteVisitor>
@@ -74,8 +83,10 @@ unique_ptr<Dataflow::WriteVisitor>
 
 void DeleteVisitor::visit(Dataflow::GraphElement&,
                           const Dataflow::SettingMember&,
-                          const Dataflow::Path&, unsigned)
+                          const Dataflow::Path& path, unsigned path_index)
 {
+  if (!path.reached(path_index))
+    return;
   throw(runtime_error{"Cannot delete a setting"});
 }
 
@@ -90,8 +101,10 @@ unique_ptr<Dataflow::WriteVisitor>
 
 void DeleteVisitor::visit(Dataflow::GraphElement& element,
                           const Dataflow::InputMember&,
-                          const Dataflow::Path&, unsigned)
+                          const Dataflow::Path& path, unsigned path_index)
 {
+  if (!path.reached(path_index))
+    return;
   auto g = dynamic_cast<Dataflow::Graph *>(&element);
   if (!g)
     throw(runtime_error{"Cannot delete an input on an element"});
@@ -109,8 +122,10 @@ unique_ptr<Dataflow::WriteVisitor>
 
 void DeleteVisitor::visit(Dataflow::GraphElement& element,
                           const Dataflow::OutputMember&,
-                          const Dataflow::Path&, unsigned)
+                          const Dataflow::Path& path, unsigned path_index)
 {
+  if (!path.reached(path_index))
+    return;
   auto g = dynamic_cast<Dataflow::Graph *>(&element);
   if (!g)
     throw(runtime_error{"Cannot delete an output on an element"});

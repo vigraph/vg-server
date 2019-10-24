@@ -106,9 +106,9 @@ public:
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_root_graph_visitor(
              const Dataflow::Path& path, unsigned path_index) override;
-  void visit(Dataflow::Graph& graph,
+  bool visit(Dataflow::Graph& graph,
              const Dataflow::Path& path, unsigned path_index) override;
-  void visit(Dataflow::Clone& clone,
+  bool visit(Dataflow::Clone& clone,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_sub_element_visitor(
                                             Dataflow::Graph& scope,
@@ -120,7 +120,7 @@ public:
                                             const string& id,
                                             const Dataflow::Path& path,
                                             unsigned path_index) override;
-  void visit(Dataflow::Element& element,
+  bool visit(Dataflow::Element& element,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_element_setting_visitor(
                                               Dataflow::GraphElement& element,
@@ -171,9 +171,9 @@ public:
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_root_graph_visitor(
              const Dataflow::Path& path, unsigned path_index) override;
-  void visit(Dataflow::Graph& graph,
+  bool visit(Dataflow::Graph& graph,
              const Dataflow::Path& path, unsigned path_index) override;
-  void visit(Dataflow::Clone& clone,
+  bool visit(Dataflow::Clone& clone,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_sub_element_visitor(
                                             Dataflow::Graph& scope,
@@ -185,7 +185,7 @@ public:
                                             const string& id,
                                             const Dataflow::Path& path,
                                             unsigned path_index) override;
-  void visit(Dataflow::Element& element,
+  bool visit(Dataflow::Element& element,
              const Dataflow::Path& path, unsigned path_index) override;
   unique_ptr<WriteVisitor> get_element_setting_visitor(
                                               Dataflow::GraphElement& element,

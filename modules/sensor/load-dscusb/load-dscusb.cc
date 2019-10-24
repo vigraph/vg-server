@@ -76,7 +76,7 @@ void Sensor::setup()
   Log::Streams log;
   log.summary << "DSCUSB load sensor connecting to " << device << endl;
 
-  if (!tty.open(device.get()))
+  if (!tty.open(device))
   {
     log.error << "Failed to open TTY at " << device << endl;
     return;
@@ -114,7 +114,7 @@ void Sensor::run()
     if (tty.get_line(input, timeout) == Serial::TTY::GetLineResult::ok)
       last_value = Text::stof(input);
 
-    this_thread::sleep_for(chrono::duration<double>{interval.get()});
+    this_thread::sleep_for(chrono::duration<double>{interval});
   }
 }
 

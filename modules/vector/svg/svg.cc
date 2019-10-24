@@ -52,7 +52,7 @@ void SVGSource::setup()
   {
     if (!path_data.get().empty())
     {
-      path.read(path_data.get());
+      path.read(path_data);
     }
     else
     {
@@ -63,7 +63,7 @@ void SVGSource::setup()
         return;
       }
 
-      File::Path fpath(file.get());
+      File::Path fpath(file);
       XML::Configuration cfg(fpath.str(), log.error);
       if (!cfg.read())
       {
@@ -84,11 +84,11 @@ void SVGSource::setup()
 
   log.summary << "Loaded SVG animation with "
               << path.segments.size() << " segments\n";
-  log.detail << "Curve precision: " << precision.get() << endl;
-  if (!normalise.get()) log.detail << "No normalisation\n";
+  log.detail << "Curve precision: " << precision << endl;
+  if (!normalise) log.detail << "No normalisation\n";
 
   // Render to points immediately, since it doesn't change
-  path.render(points, precision.get(), normalise.get());
+  path.render(points, precision, normalise);
   log.detail << "SVG generated " << points.size() << " points\n";
 }
 

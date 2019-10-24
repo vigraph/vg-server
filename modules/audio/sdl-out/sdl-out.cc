@@ -155,13 +155,13 @@ void SDLSink::setup()
     SDL_memset(&want, 0, sizeof(want));
     want.freq = sample_rate;
     want.format = AUDIO_F32SYS;
-    want.channels = nchannels.get();
-    want.samples = buffer_size.get();
+    want.channels = nchannels;
+    want.samples = buffer_size;
     want.userdata = this;
     want.callback = ::callback;
 
     // Open audio device
-    dev = SDL_OpenAudioDevice(device.get() == default_device
+    dev = SDL_OpenAudioDevice(device == default_device
                               ? nullptr : device.get().c_str(),
                               0, &want, &have, 0);
     if (!dev)
@@ -212,7 +212,7 @@ void SDLSink::tick(const TickData& td)
   {
     SDL_LockAudioDevice(dev);
     auto bpos = output_buffer.size();
-    const auto channels = nchannels.get();
+    const auto channels = nchannels;
     output_buffer.resize(bpos + td.nsamples * channels);
     sample_iterate(td.nsamples, {},
                    tie(channel1, channel2, channel3,

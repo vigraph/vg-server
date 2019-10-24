@@ -1,12 +1,12 @@
 //==========================================================================
-// ViGraph dataflow module: laser/filters/idn-transmit/idn-transmit.cc
+// ViGraph dataflow module: laser/idn-out/idn-out.cc
 //
 // Filter to output display to an IDN stream (UDP)
 //
-// Copyright (c) 2017 Paul Clark.  All rights reserved
+// Copyright (c) 2017-2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../../vector/vector-module.h"
+#include "../../vector/vector-module.h"
 #include "vg-idn.h"
 
 namespace {
@@ -17,18 +17,9 @@ const double default_config_interval = 0.1;
 const auto default_source_address = "0.0.0.0";
 
 //==========================================================================
-// IDNTransmit filter
-class IDNTransmitFilter: public FrameSink
+// IDNOut filter
+class IDNOut: public SimpleElement
 {
-public:
-  // Config
-  string host_address;
-  int host_port = IDN::Hello::default_port;
-  int packet_size = default_packet_size;
-  double config_interval = default_config_interval;
-  bool intensity_enabled = false;
-  string source_address = default_source_address;
-
 private:
   Net::EndPoint source, destination;
 
@@ -36,24 +27,40 @@ private:
   unique_ptr<Net::UDPSocket> socket;
   Time::Stamp last_config_sent;
   uint16_t message_sequence{0};
-  bool frame_seen{false};
 
-  // Source/Element virtuals
+  // Element virtuals
   void setup() override;
-  void accept(FramePtr frame) override;
-  void post_tick(const TickData&) override;
+  void tick(const TickData& td) override;
+
+  // Clone
+  IDNOut *create_clone() const override
+  {
+    return new IDNOut{module};
+  }
+
   void shutdown() override;
 
   // Internal
-  void transmit(FramePtr frame);
+  void transmit(const Frame& frame, timestamp_t timestamp, double sample_rate);
 
 public:
-  using FrameSink::FrameSink;
+  using SimpleElement::SimpleElement;
+
+  // Settings
+  Setting<string> host_address;
+  Setting<int> host_port{IDN::Hello::default_port};
+  Setting<int> packet_size{default_packet_size};
+  Setting<double> config_interval{default_config_interval};
+  Setting<bool> intensity_enabled{false};
+  Setting<string> source_address{default_source_address};
+
+  // Input
+  Input<Frame> input;
 };
 
 //--------------------------------------------------------------------------
 // Setup after config
-void IDNTransmitFilter::setup()
+void IDNOut::setup()
 {
   Log::Streams log;
 
@@ -72,16 +79,21 @@ void IDNTransmitFilter::setup()
 }
 
 //--------------------------------------------------------------------------
-// Process some data
-void IDNTransmitFilter::accept(FramePtr frame)
+// Tick data
+void IDNOut::tick(const TickData& td)
 {
-  transmit(frame);
-  frame_seen = true;
+  auto count{0};
+  sample_iterate(td.nsamples, {}, tie(input), {},
+                 [&](const Frame& input)
+  {
+    transmit(input, td.timestamp_at(count++), td.sample_rate);
+  });
 }
 
 //--------------------------------------------------------------------------
 // Transmit a frame
-void IDNTransmitFilter::transmit(FramePtr frame)
+void IDNOut::transmit(const Frame& frame, timestamp_t timestamp,
+                      double sample_rate)
 {
   if (!socket) return;
 
@@ -89,11 +101,8 @@ void IDNTransmitFilter::transmit(FramePtr frame)
   IDN::Message message(IDN::Message::ChunkType::laser_frame_samples_entire);
 
   // Timestamp and duration in microseconds, wrapping every ~4000 sec
-  message.timestamp = static_cast<uint32_t>(frame->timestamp * 1000000.0);
-  auto& engine = graph->get_engine();
-  auto duration = static_cast<uint32_t>(engine.get_tick_interval().seconds()
-                                           * 1000000.0);
-  message.set_data_header(duration);
+  message.timestamp = timestamp * 1000000;
+  message.set_data_header(1000000/sample_rate);
 
   // Add configuration periodically
   Time::Stamp now = Time::Stamp::now();
@@ -117,9 +126,9 @@ void IDNTransmitFilter::transmit(FramePtr frame)
   }
 
   // If not blank, add a blank point the same as the start
-  if (!frame->points.empty())
+  if (!frame.points.empty())
   {
-    const auto& p = frame->points[0];
+    const auto& p = frame.points[0];
     message.add_data16(static_cast<uint16_t>(p.x*65535));
     message.add_data16(static_cast<uint16_t>(p.y*65535));
     message.add_data(0);  // r,g,b blank
@@ -131,7 +140,7 @@ void IDNTransmitFilter::transmit(FramePtr frame)
   // Loop, possibly fragmenting - first time, allow empty packets if
   // config not already sent
   for (size_t point_index=0;
-       point_index<frame->points.size()+(point_index?0:1);)
+       point_index<frame.points.size()+(point_index?0:1);)
   {
     // Check size before adding the rest of the data, to see if we need
     // to fragment
@@ -147,12 +156,12 @@ void IDNTransmitFilter::transmit(FramePtr frame)
     size_t data_space = packet_size-size;
     size_t bytes_per_point = intensity_enabled?8:7;
     size_t points_this_message =
-      min(data_space / bytes_per_point, frame->points.size()-point_index);
+      min(data_space / bytes_per_point, frame.points.size()-point_index);
 
     if (!point_index)
     {
       // Do we need to fragment?
-      if (points_this_message != frame->points.size())
+      if (points_this_message != frame.points.size())
       {
         // Change the chunk type
         message.chunk_type = IDN::Message::ChunkType::laser_frame_samples_first;
@@ -161,13 +170,13 @@ void IDNTransmitFilter::transmit(FramePtr frame)
     else
     {
       // Subsequent fragment - change CCLF for last fragment
-      message.cclf = point_index+points_this_message >= frame->points.size();
+      message.cclf = point_index+points_this_message >= frame.points.size();
     }
 
     // Add data
     for(size_t i=0; i<points_this_message; i++)
     {
-      const auto& p = frame->points[point_index+i];
+      const auto& p = frame.points[point_index+i];
       message.add_data16(static_cast<uint16_t>(p.x*65535));
       message.add_data16(static_cast<uint16_t>(p.y*65535));
       message.add_data(static_cast<uint8_t>(p.c.r*255));
@@ -215,56 +224,36 @@ void IDNTransmitFilter::transmit(FramePtr frame)
 }
 
 //--------------------------------------------------------------------------
-// Post-tick flush
-void IDNTransmitFilter::post_tick(const TickData& td)
-{
-  // Send an empty frame if none seen since last tick
-  if (!frame_seen)
-  {
-    FramePtr frame(new Frame(td.t));
-    transmit(frame);
-  }
-  frame_seen = false;
-}
-
-//--------------------------------------------------------------------------
 // Shut down
-void IDNTransmitFilter::shutdown()
+void IDNOut::shutdown()
 {
   Log::Detail log;
-  log << "Shutting down IDNTransmit server\n";
+  log << "Shutting down IDN transmit server\n";
   socket.reset();
 }
 
 //--------------------------------------------------------------------------
 // Module definition
-Dataflow::Module module
+Dataflow::SimpleModule module
 {
-  "idn-transmit",
-  "IDN Transmitter",
-  "ILDA Digital Network (IDN) UDP transmitter",
+  "idn-out",
+  "IDN Output",
   "laser",
   {
-    { "packet.size", { "UDP packet size in bytes", Value::Type::number,
-                       &IDNTransmitFilter::packet_size } },
-    { "config.interval", { "Interval between configuration packets in sec",
-                           Value::Type::number,
-                           &IDNTransmitFilter::config_interval } },
-    { "intensity.enabled", { "Whether to send overall intensity values",
-                             Value::Type::boolean,
-                             &IDNTransmitFilter::intensity_enabled } },
-    { "host.address", { "Destination host (IP or hostname)", Value::Type::text,
-                        &IDNTransmitFilter::host_address } },
-    { "host.port", { "Destination port", Value::Type::number,
-                     &IDNTransmitFilter::host_port } },
-    { "source.address", { "Source address to bind to", Value::Type::text,
-                          &IDNTransmitFilter::source_address } }
+    { "packet-size",     &IDNOut::packet_size       },
+    { "config-interval", &IDNOut::config_interval   },
+    { "intensity",       &IDNOut::intensity_enabled },
+    { "address",         &IDNOut::host_address      },
+    { "port",            &IDNOut::host_port         },
+    { "source=address",  &IDNOut::source_address    }
   },
-  { "VectorFrame" }, // inputs
-  { }  // outputs
+  {
+    { "input",           &IDNOut::input }
+  },
+  {}
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(IDNTransmitFilter, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(IDNOut, module)
 

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph time series web fetch module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-time-series-web-fetch
+TYPE    = shared
+DEPENDS = vg-dataflow ot-log ot-lib ot-web
+
+include_rules

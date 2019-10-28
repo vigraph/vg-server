@@ -285,17 +285,12 @@ void Clone::shutdown()
 
 //--------------------------------------------------------------------------
 // Tick
-void CloneInfo::tick(const TickData& td)
+void CloneInfo::tick(const TickData&)
 {
-  sample_iterate(td.nsamples, {}, {},
-                 tie(number, total, fraction),
-                 [&](double& number, double& total, double& fraction)
-  {
-    number = clone_number;
-    total = clone_total;
-    fraction = clone_total ? (clone_number - 1) / clone_total : 0;
-  });
-
+  number.get_buffer().data.push_back(clone_number);
+  total.get_buffer().data.push_back(clone_total);
+  const auto f = clone_total ? (clone_number - 1.0) / clone_total : 0.0;
+  fraction.get_buffer().data.push_back(f);
 }
 
 }} // namespaces

@@ -9,29 +9,34 @@
 #include "../vector-module.h"
 #include "../../module-test.h"
 
-ModuleLoader loader;
+class RotateTest: public GraphTester
+{
+public:
+  RotateTest()
+  {
+    loader.load("./vg-module-vector-rotate.so");
+  }
+};
 
 const auto sample_rate = 1;
 
-TEST(RotateTest, TestDefaultRotateHasNoEffect)
+TEST_F(RotateTest, TestDefaultRotateHasNoEffect)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
-
-  auto& trans = tester.add("vector/rotate");
+  auto& trans = add("vector/rotate");
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
   for(auto i=0u; i<50; i++)
     fr.points.push_back(Point(i, i*2, i*3, Colour::white));
 
-  auto& frs = tester.add_source(fr_data);
+  auto& frs = add_source(fr_data);
   frs.connect("output", trans, "input");
 
-  tester.capture_from(trans, "output");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  trans.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -46,26 +51,24 @@ TEST(RotateTest, TestDefaultRotateHasNoEffect)
   }
 }
 
-TEST(RotateTest, TestRotateX)
+TEST_F(RotateTest, TestRotateX)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
-
-  auto& trans = tester.add("vector/rotate")
-                      .set("x", 0.5);
+  auto& trans = add("vector/rotate")
+                .set("x", 0.5);
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
   for(auto i=0u; i<50; i++)
     fr.points.push_back(Point(i, i*2, i*3, Colour::red));
 
-  auto& frs = tester.add_source(fr_data);
+  auto& frs = add_source(fr_data);
   frs.connect("output", trans, "input");
 
-  tester.capture_from(trans, "output");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  trans.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -80,26 +83,24 @@ TEST(RotateTest, TestRotateX)
   }
 }
 
-TEST(RotateTest, TestRotateY)
+TEST_F(RotateTest, TestRotateY)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
-
-  auto& trans = tester.add("vector/rotate")
-                      .set("y", 0.5);
+  auto& trans = add("vector/rotate")
+                .set("y", 0.5);
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
   for(auto i=0u; i<50; i++)
     fr.points.push_back(Point(i, i*2, i*3, Colour::red));
 
-  auto& frs = tester.add_source(fr_data);
+  auto& frs = add_source(fr_data);
   frs.connect("output", trans, "input");
 
-  tester.capture_from(trans, "output");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  trans.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -114,26 +115,24 @@ TEST(RotateTest, TestRotateY)
   }
 }
 
-TEST(RotateTest, TestRotateZ)
+TEST_F(RotateTest, TestRotateZ)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
-
-  auto& trans = tester.add("vector/rotate")
-                      .set("z", 0.5);
+  auto& trans = add("vector/rotate")
+                .set("z", 0.5);
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
   for(auto i=0u; i<50; i++)
     fr.points.push_back(Point(i, i*2, i*3, Colour::red));
 
-  auto& frs = tester.add_source(fr_data);
+  auto& frs = add_source(fr_data);
   frs.connect("output", trans, "input");
 
-  tester.capture_from(trans, "output");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  trans.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -151,6 +150,5 @@ TEST(RotateTest, TestRotateZ)
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-vector-rotate.so");
   return RUN_ALL_TESTS();
 }

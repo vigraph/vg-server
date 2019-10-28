@@ -37,7 +37,8 @@ public:
 // Generate a fragment
 void SubtractFilter::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {}, tie(input, offset), tie(output),
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(nsamples, {}, tie(input, offset), tie(output),
                  [&](double input, double offset, double& o)
   {
     o = input - offset;

@@ -43,7 +43,8 @@ public:
 // Tick
 void Wrap::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {},
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(nsamples, {},
                  tie(min, max, input),
                  tie(output),
                  [&](double min, double max, double input, double& output)

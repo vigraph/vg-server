@@ -56,7 +56,10 @@ public:
 // Generate a fragment
 void OscillatorSource::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {}, tie(waveform, freq, pulse_width, start, stop),
+  const auto sample_rate = max(output.get_sample_rate(),
+                               control.get_sample_rate());
+  const auto nsamples = td.samples_in_tick(sample_rate);
+  sample_iterate(nsamples, {}, tie(waveform, freq, pulse_width, start, stop),
                  tie(output, control),
                  [&](Waveform::Type wf, double f, double pw,
                      double _start, double _stop,
@@ -82,7 +85,7 @@ void OscillatorSource::tick(const TickData& td)
       case State::completing:
         o = Waveform::get_value(wf, pw, theta);
         c = (o + 1) / 2;
-        theta += f / td.sample_rate;
+        theta += f / sample_rate;
         if (theta >= 1)
         {
           theta -= floor(theta); // Wrap to 0..1

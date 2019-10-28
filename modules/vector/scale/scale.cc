@@ -44,7 +44,8 @@ public:
 // Tick data
 void Scale::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {}, tie(x, y, z, input), tie(output),
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(nsamples, {}, tie(x, y, z, input), tie(output),
                  [&](double x, double y, double z, const Frame& input,
                      Frame& output)
   {

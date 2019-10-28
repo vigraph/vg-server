@@ -41,18 +41,32 @@ typedef double timestamp_t; // Relative timestamp
 // Tick data - data that is passed for each tick
 struct TickData
 {
-  timestamp_t timestamp;
-  double sample_rate = 0;
-  unsigned long nsamples = 0;
+  timestamp_t start = 0;
+  timestamp_t end = 0;
 
-  TickData(timestamp_t _timestamp, double _sample_rate,
-           unsigned long _nsamples):
-    timestamp{_timestamp}, sample_rate{_sample_rate}, nsamples{_nsamples}
+  TickData(timestamp_t _start, timestamp_t _end):
+    start{_start}, end{_end}
   {}
 
-  // Get timestamp for a given sample number
-  timestamp_t timestamp_at(int index) const
-  { return timestamp + index/sample_rate; }
+  timestamp_t sample_duration(double sample_rate) const
+  {
+    return 1.0 / sample_rate;
+  }
+
+  timestamp_t first_sample_at(double sample_rate) const
+  {
+    const auto sd = sample_duration(sample_rate);
+    const auto offset = fmod(start, sd);
+    if (offset)
+      return start - offset + sd;
+    else
+      return start;
+  }
+
+  auto samples_in_tick(double sample_rate) const
+  {
+    return sample_rate * (end - first_sample_at(sample_rate));
+  }
 };
 
 // forward declarations

@@ -62,13 +62,7 @@ void Engine::tick(Time::Stamp t)
 
     try
     {
-      const auto sample_rate = get_sample_rate();
-      const auto last_tick_total = static_cast<unsigned long>(
-        floor(tick_interval.seconds() * tick_number * sample_rate));
-      const auto tick_total = static_cast<unsigned long>(
-        floor(tick_interval.seconds() * (tick_number + 1) * sample_rate));
-      const auto nsamples = tick_total - last_tick_total;
-      const auto td = TickData{timestamp, sample_rate, nsamples};
+      const auto td = TickData{timestamp, timestamp + tick_interval.seconds()};
 
       // Tick the graph
       MT::RWReadLock lock(graph_mutex);

@@ -9,29 +9,34 @@
 #include "../vector-module.h"
 #include "../../module-test.h"
 
-ModuleLoader loader;
+class ScaleTest: public GraphTester
+{
+public:
+  ScaleTest()
+  {
+    loader.load("./vg-module-vector-scale.so");
+  }
+};
 
 const auto sample_rate = 1;
 
-TEST(ScaleTest, TestDefaultScaleHasNoEffect)
+TEST_F(ScaleTest, TestDefaultScaleHasNoEffect)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
-
-  auto& trans = tester.add("vector/scale");
+  auto& trans = add("vector/scale");
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
   for(auto i=0u; i<50; i++)
     fr.points.push_back(Point(i, i*2, i*3, Colour::white));
 
-  auto& frs = tester.add_source(fr_data);
+  auto& frs = add_source(fr_data);
   frs.connect("output", trans, "input");
 
-  tester.capture_from(trans, "output");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  trans.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -46,28 +51,26 @@ TEST(ScaleTest, TestDefaultScaleHasNoEffect)
   }
 }
 
-TEST(ScaleTest, TestScaleXYZ)
+TEST_F(ScaleTest, TestScaleXYZ)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
-
-  auto& trans = tester.add("vector/scale")
-                      .set("x", 1.0)
-                      .set("y", 2.0)
-                      .set("z", 3.0);
+  auto& trans = add("vector/scale")
+                .set("x", 1.0)
+                .set("y", 2.0)
+                .set("z", 3.0);
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
   for(auto i=0u; i<50; i++)
     fr.points.push_back(Point(i, i*2, i*3, Colour::red));
 
-  auto& frs = tester.add_source(fr_data);
+  auto& frs = add_source(fr_data);
   frs.connect("output", trans, "input");
 
-  tester.capture_from(trans, "output");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  trans.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -85,6 +88,5 @@ TEST(ScaleTest, TestScaleXYZ)
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-vector-scale.so");
   return RUN_ALL_TESTS();
 }

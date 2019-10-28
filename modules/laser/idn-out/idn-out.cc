@@ -82,11 +82,15 @@ void IDNOut::setup()
 // Tick data
 void IDNOut::tick(const TickData& td)
 {
-  auto count{0};
-  sample_iterate(td.nsamples, {}, tie(input), {},
+  const auto sample_rate = input.get_buffer().size();
+  auto sample_time = td.first_sample_at(sample_rate);
+  const auto sample_duration = td.sample_duration(sample_rate);
+  const auto nsamples = td.samples_in_tick(sample_rate);
+  sample_iterate(nsamples, {}, tie(input), {},
                  [&](const Frame& input)
   {
-    transmit(input, td.timestamp_at(count++), td.sample_rate);
+    transmit(input, sample_time, sample_rate);
+    sample_time += sample_duration;
   });
 }
 

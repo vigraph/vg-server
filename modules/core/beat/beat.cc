@@ -52,8 +52,11 @@ public:
 // Tick
 void Beat::tick(const TickData& td)
 {
-  auto count{0};
-  sample_iterate(td.nsamples, {},
+  const auto sample_rate = output.get_sample_rate();
+  auto sample_time = td.first_sample_at(sample_rate);
+  const auto sample_duration = td.sample_duration(sample_rate);
+  const auto nsamples = td.samples_in_tick(sample_rate);
+  sample_iterate(nsamples, {},
                  tie(interval, offset, start, stop),
                  tie(output),
                  [&](double interval, double offset,
@@ -72,7 +75,6 @@ void Beat::tick(const TickData& td)
 
     output = 0;
 
-    const auto sample_time = td.timestamp_at(count++);
     if (active)
     {
       if (!synchronised)
@@ -87,6 +89,7 @@ void Beat::tick(const TickData& td)
         output = 1;
       }
     }
+    sample_time += sample_duration;
   });
 }
 

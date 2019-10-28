@@ -7,20 +7,26 @@
 //==========================================================================
 
 #include "../../module-test.h"
-ModuleLoader loader;
+
+class RandomTest: public GraphTester
+{
+public:
+  RandomTest()
+  {
+    loader.load("./vg-module-core-random.so");
+  }
+};
 
 const auto sample_rate = 100;
 
-TEST(RandomTest, TestRandomDefaultFreeRuns0to1)
+TEST_F(RandomTest, TestRandomDefaultFreeRuns0to1)
 {
-  GraphTester<double> tester{loader, sample_rate};
+  auto& rnd = add("random");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  rnd.connect("output", snk, "input");
 
-  auto& compare = tester.add("random");
-  tester.capture_from(compare, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples between 0..1
   ASSERT_EQ(sample_rate, output.size());
@@ -31,20 +37,18 @@ TEST(RandomTest, TestRandomDefaultFreeRuns0to1)
   }
 }
 
-TEST(RandomTest, TestRandomWithTriggerDoesntStartUntilTriggerAndHolds)
+TEST_F(RandomTest, TestRandomWithTriggerDoesntStartUntilTriggerAndHolds)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& compare = tester.add("random");
+  auto& rnd = add("random");
   auto trigger_data = vector<double>(100);
   trigger_data[50] = 1.0;
-  auto& ts = tester.add_source(trigger_data);
-  ts.connect("output", compare, "trigger");
-  tester.capture_from(compare, "output");
+  auto& ts = add_source(trigger_data);
+  ts.connect("output", rnd, "trigger");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  rnd.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples between 0..1
   ASSERT_EQ(sample_rate, output.size());
@@ -66,18 +70,16 @@ TEST(RandomTest, TestRandomWithTriggerDoesntStartUntilTriggerAndHolds)
   }
 }
 
-TEST(RandomTest, TestRandomSpecifiedRange)
+TEST_F(RandomTest, TestRandomSpecifiedRange)
 {
-  GraphTester<double> tester{loader, sample_rate};
+  auto& rnd = add("random")
+              .set("min", 100.0)
+              .set("max", 200.0);
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  rnd.connect("output", snk, "input");
 
-  auto& compare = tester.add("random")
-                        .set("min", 100.0)
-                        .set("max", 200.0);
-  tester.capture_from(compare, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples between 100 and 200
   ASSERT_EQ(sample_rate, output.size());
@@ -97,7 +99,6 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-random.so");
   return RUN_ALL_TESTS();
 }
 

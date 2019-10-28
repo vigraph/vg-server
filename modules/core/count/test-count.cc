@@ -7,20 +7,26 @@
 //==========================================================================
 
 #include "../../module-test.h"
-ModuleLoader loader;
+
+class CountTest: public GraphTester
+{
+public:
+  CountTest()
+  {
+    loader.load("./vg-module-core-count.so");
+  }
+};
 
 const auto sample_rate = 100;
 
-TEST(EnvelopeTest, TestQuiescentProducesZero)
+TEST_F(CountTest, TestQuiescentProducesZero)
 {
-  GraphTester<double> tester{loader, sample_rate};
+  auto& cnt = add("count");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  cnt.connect("output", snk, "input");
 
-  auto& count = tester.add("count");
-  tester.capture_from(count, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples at 0
   EXPECT_EQ(sample_rate, output.size());
@@ -28,30 +34,28 @@ TEST(EnvelopeTest, TestQuiescentProducesZero)
     EXPECT_EQ(0.0, output[i]);
 }
 
-TEST(EnvelopeTest, TestTriggerUpAndDown)
+TEST_F(CountTest, TestTriggerUpAndDown)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& count = tester.add("count");
+  auto& cnt = add("count");
 
   auto up_data = vector<double>(100);
   up_data[0] = 1.0;
   up_data[33]= 3.0;
   up_data[99]= 1.0;
-  auto& ups = tester.add_source(up_data);
-  ups.connect("output", count, "up");
+  auto& ups = add_source(up_data);
+  ups.connect("output", cnt, "up");
 
   auto down_data = vector<double>(100);
   down_data[5] = 1.0;
   down_data[33]= 1.0;  // Note same sample as up
-  auto& dns = tester.add_source(down_data);
-  dns.connect("output", count, "down");
+  auto& dns = add_source(down_data);
+  dns.connect("output", cnt, "down");
 
-  tester.capture_from(count, "output");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  cnt.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples at various steps
   EXPECT_EQ(sample_rate, output.size());
@@ -68,28 +72,26 @@ TEST(EnvelopeTest, TestTriggerUpAndDown)
   }
 }
 
-TEST(EnvelopeTest, TestDeltaUpDown)
+TEST_F(CountTest, TestDeltaUpDown)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& count = tester.add("count")
-                      .set("delta", 3.14);
+  auto& cnt = add("count")
+              .set("delta", 3.14);
 
   auto up_data = vector<double>(100);
   up_data[0] = 1.0;
-  auto& ups = tester.add_source(up_data);
-  ups.connect("output", count, "up");
+  auto& ups = add_source(up_data);
+  ups.connect("output", cnt, "up");
 
   auto down_data = vector<double>(100);
   down_data[50]= 1.0;
-  auto& dns = tester.add_source(down_data);
-  dns.connect("output", count, "down");
+  auto& dns = add_source(down_data);
+  dns.connect("output", cnt, "down");
 
-  tester.capture_from(count, "output");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  cnt.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 50 samples at 3.14, 50 at 0
   EXPECT_EQ(sample_rate, output.size());
@@ -102,27 +104,25 @@ TEST(EnvelopeTest, TestDeltaUpDown)
   }
 }
 
-TEST(EnvelopeTest, TestReset)
+TEST_F(CountTest, TestReset)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& count = tester.add("count");
+  auto& cnt = add("count");
 
   auto up_data = vector<double>(100);
   up_data[0] = 1.0;
-  auto& ups = tester.add_source(up_data);
-  ups.connect("output", count, "up");
+  auto& ups = add_source(up_data);
+  ups.connect("output", cnt, "up");
 
   auto reset_data = vector<double>(100);
   reset_data[50]= 1.0;
-  auto& res = tester.add_source(reset_data);
-  res.connect("output", count, "reset");
+  auto& res = add_source(reset_data);
+  res.connect("output", cnt, "reset");
 
-  tester.capture_from(count, "output");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  cnt.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 50 samples at 1.0, 50 at 0
   EXPECT_EQ(sample_rate, output.size());
@@ -144,6 +144,5 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-count.so");
   return RUN_ALL_TESTS();
 }

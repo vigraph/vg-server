@@ -11,20 +11,25 @@
 #include "vg-waveform.h"
 #include <cmath>
 
-ModuleLoader loader;
+class FigureTest: public GraphTester
+{
+public:
+  FigureTest()
+  {
+    loader.load("./vg-module-vector-figure.so");
+  }
+};
 
 const auto sample_rate = 1;
 
-TEST(FigureTest, TestNull)
+TEST_F(FigureTest, TestNull)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  auto& fig = tester.add("vector/figure");
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -39,54 +44,48 @@ TEST(FigureTest, TestNull)
   }
 }
 
-TEST(FigureTest, TestSpecifiedPoints)
+TEST_F(FigureTest, TestSpecifiedPoints)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("points", 33.0);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  auto& fig = tester.add("vector/figure")
-                    .set("points", 33.0);
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
   ASSERT_EQ(34, frame.points.size());
 }
 
-TEST(FigureTest, TestClosedAddsExtraPoint)
+TEST_F(FigureTest, TestClosedAddsExtraPoint)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("closed", 1.0);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  auto& fig = tester.add("vector/figure")
-                    .set("closed", 1.0);
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
   ASSERT_EQ(102, frame.points.size());
 }
 
-TEST(FigureTest, TestNullWithPosOffset)
+TEST_F(FigureTest, TestNullWithPosOffset)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-pos", 0.1)
+              .set("y-pos", 0.2)
+              .set("z-pos", 0.3);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-pos", 0.1)
-                    .set("y-pos", 0.2)
-                    .set("z-pos", 0.3);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -101,18 +100,16 @@ TEST(FigureTest, TestNullWithPosOffset)
   }
 }
 
-TEST(FigureTest, TestFlatline)
+TEST_F(FigureTest, TestFlatline)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::saw);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::saw);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -132,20 +129,18 @@ TEST(FigureTest, TestFlatline)
   }
 }
 
-TEST(FigureTest, TestSawXYZ)
+TEST_F(FigureTest, TestSawXYZ)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::saw)
+              .set("y-wave", Waveform::Type::saw)
+              .set("z-wave", Waveform::Type::saw);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::saw)
-                    .set("y-wave", Waveform::Type::saw)
-                    .set("z-wave", Waveform::Type::saw);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -166,23 +161,21 @@ TEST(FigureTest, TestSawXYZ)
   }
 }
 
-TEST(FigureTest, TestSawXYZScaled)
+TEST_F(FigureTest, TestSawXYZScaled)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::saw)
+              .set("x-scale", 2.0)
+              .set("y-wave", Waveform::Type::saw)
+              .set("y-scale", 4.0)
+              .set("z-wave", Waveform::Type::saw)
+              .set("z-scale", 6.0);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::saw)
-                    .set("x-scale", 2.0)
-                    .set("y-wave", Waveform::Type::saw)
-                    .set("y-scale", 4.0)
-                    .set("z-wave", Waveform::Type::saw)
-                    .set("z-scale", 6.0);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -203,23 +196,21 @@ TEST(FigureTest, TestSawXYZScaled)
   }
 }
 
-TEST(FigureTest, TestSawXYZPositioned)
+TEST_F(FigureTest, TestSawXYZPositioned)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::saw)
+              .set("x-pos", 1.0)
+              .set("y-wave", Waveform::Type::saw)
+              .set("y-pos", 2.0)
+              .set("z-wave", Waveform::Type::saw)
+              .set("z-pos", 3.0);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::saw)
-                    .set("x-pos", 1.0)
-                    .set("y-wave", Waveform::Type::saw)
-                    .set("y-pos", 2.0)
-                    .set("z-wave", Waveform::Type::saw)
-                    .set("z-pos", 3.0);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -238,23 +229,21 @@ TEST(FigureTest, TestSawXYZPositioned)
   }
 }
 
-TEST(FigureTest, TestSawXYZFrequencies)
+TEST_F(FigureTest, TestSawXYZFrequencies)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::saw)
+              .set("x-freq", 2.0)
+              .set("y-wave", Waveform::Type::saw)
+              .set("y-freq", 3.0)
+              .set("z-wave", Waveform::Type::saw)
+              .set("z-freq", 4.0);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::saw)
-                    .set("x-freq", 2.0)
-                    .set("y-wave", Waveform::Type::saw)
-                    .set("y-freq", 3.0)
-                    .set("z-wave", Waveform::Type::saw)
-                    .set("z-freq", 4.0);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -274,23 +263,21 @@ TEST(FigureTest, TestSawXYZFrequencies)
   }
 }
 
-TEST(FigureTest, TestSawXYZPhases)
+TEST_F(FigureTest, TestSawXYZPhases)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::saw)
+              .set("x-phase", 0.5)
+              .set("y-wave", Waveform::Type::saw)
+              .set("y-phase", -0.6)
+              .set("z-wave", Waveform::Type::saw)
+              .set("z-phase", 1.0);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::saw)
-                    .set("x-phase", 0.5)
-                    .set("y-wave", Waveform::Type::saw)
-                    .set("y-phase", -0.6)
-                    .set("z-wave", Waveform::Type::saw)
-                    .set("z-phase", 1.0);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -312,20 +299,18 @@ TEST(FigureTest, TestSawXYZPhases)
   }
 }
 
-TEST(FigureTest, TestSquareXYZ)
+TEST_F(FigureTest, TestSquareXYZ)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::square)
+              .set("y-wave", Waveform::Type::square)
+              .set("z-wave", Waveform::Type::square);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::square)
-                    .set("y-wave", Waveform::Type::square)
-                    .set("z-wave", Waveform::Type::square);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -345,20 +330,18 @@ TEST(FigureTest, TestSquareXYZ)
 }
 
 
-TEST(FigureTest, TestTriangleXYZ)
+TEST_F(FigureTest, TestTriangleXYZ)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::triangle)
+              .set("y-wave", Waveform::Type::triangle)
+              .set("z-wave", Waveform::Type::triangle);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::triangle)
-                    .set("y-wave", Waveform::Type::triangle)
-                    .set("z-wave", Waveform::Type::triangle);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -380,20 +363,18 @@ TEST(FigureTest, TestTriangleXYZ)
   }
 }
 
-TEST(FigureTest, TestSinXYZ)
+TEST_F(FigureTest, TestSinXYZ)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::sin)
+              .set("y-wave", Waveform::Type::sin)
+              .set("z-wave", Waveform::Type::sin);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::sin)
-                    .set("y-wave", Waveform::Type::sin)
-                    .set("z-wave", Waveform::Type::sin);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -413,20 +394,18 @@ TEST(FigureTest, TestSinXYZ)
   }
 }
 
-TEST(FigureTest, TestRandomXYZ)
+TEST_F(FigureTest, TestRandomXYZ)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& fig = add("vector/figure")
+              .set("x-wave", Waveform::Type::random)
+              .set("y-wave", Waveform::Type::random)
+              .set("z-wave", Waveform::Type::random);
 
-  auto& fig = tester.add("vector/figure")
-                    .set("x-wave", Waveform::Type::random)
-                    .set("y-wave", Waveform::Type::random)
-                    .set("z-wave", Waveform::Type::random);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  fig.connect("output", snk, "input");
 
-  tester.capture_from(fig, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -467,7 +446,5 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-vector-figure.so");
-  loader.add_default_section("vector");
   return RUN_ALL_TESTS();
 }

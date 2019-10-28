@@ -37,7 +37,8 @@ public:
 // Generate a fragment
 void MultiplyFilter::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {}, tie(input, factor), tie(output),
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(nsamples, {}, tie(input, factor), tie(output),
                  [&](double input, double factor, double& o)
   {
     o = input * factor;

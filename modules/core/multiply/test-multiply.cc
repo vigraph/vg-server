@@ -10,68 +10,66 @@
 #include "vg-waveform.h"
 #include <cmath>
 
-ModuleLoader loader;
-
-const auto waveform_size = 44100;
-
-TEST(MultiplyTest, TestSetOnlyInput)
+class MultiplyTest: public GraphTester
 {
-  GraphTester<double> tester{loader, waveform_size};
+public:
+  MultiplyTest()
+  {
+    loader.load("./vg-module-core-multiply.so");
+  }
+};
 
-  auto& osc = tester.add("multiply")
-                    .set("input", 42.0);
-  tester.capture_from(osc, "output");
+const auto nsamples = 100;
 
-  tester.run();
+TEST_F(MultiplyTest, TestSetOnlyInput)
+{
+  const auto expected = vector<double>(nsamples, 42.0);
+  auto actual = vector<double>{};
 
-  const auto waveform = tester.get_output();
+  auto& mlt = add("multiply")
+              .set("input", 42.0);
+  auto& snk = add_sink(actual, nsamples);
+  mlt.connect("output", snk, "input");
 
-  // Should be 44100 samples at 42
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(42.0, waveform[i]);
+
+  run();
+
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(MultiplyTest, TestSetOnlyFactor)
+TEST_F(MultiplyTest, TestSetOnlyFactor)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, 0.0);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("multiply")
-                    .set("factor", 10.0);
-  tester.capture_from(osc, "output");
+  auto& mlt = add("multiply")
+              .set("factor", 10.0);
+  auto& snk = add_sink(actual, nsamples);
+  mlt.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at 0.0
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(0.0, waveform[i]);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(MultiplyTest, TestSetBothInputAndFactor)
+TEST_F(MultiplyTest, TestSetBothInputAndFactor)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, 4.2);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("multiply")
-                    .set("input", 42.0)
-                    .set("factor", 0.1);
-  tester.capture_from(osc, "output");
+  auto& mlt = add("multiply")
+              .set("input", 42.0)
+              .set("factor", 0.1);
+  auto& snk = add_sink(actual, nsamples);
+  mlt.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at 4.2
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(4.2, waveform[i]);
+  EXPECT_EQ(expected, actual);
 }
 
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-multiply.so");
   return RUN_ALL_TESTS();
 }

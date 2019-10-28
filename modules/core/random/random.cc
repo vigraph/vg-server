@@ -45,7 +45,8 @@ public:
 // Tick
 void Random::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {},
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(nsamples, {},
                  tie(min, max, trigger),
                  tie(output),
                  [&](double min, double max, double _trigger, double& output)

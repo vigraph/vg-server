@@ -60,7 +60,8 @@ void AverageFilter::setup()
 // Tick data
 void AverageFilter::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {}, tie(input), tie(output),
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(nsamples, {}, tie(input), tie(output),
                  [&](double input, double& output)
   {
     sample_buffer.push(input);

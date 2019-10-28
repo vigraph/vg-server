@@ -63,8 +63,12 @@ public:
 // Tick
 void Envelope::tick(const TickData& td)
 {
-  auto count{0};
-  sample_iterate(td.nsamples, {},
+  const auto sample_rate = max(output.get_sample_rate(),
+                               finished.get_sample_rate());
+  auto sample_time = td.first_sample_at(sample_rate);
+  const auto sample_duration = td.sample_duration(sample_rate);
+  const auto nsamples = td.samples_in_tick(sample_rate);
+  sample_iterate(nsamples, {},
                  tie(attack, decay, sustain, release, start, stop, reset),
                  tie(output, finished),
                  [&](double attack, double decay,
@@ -72,8 +76,6 @@ void Envelope::tick(const TickData& td)
                      double start, double stop, double reset,
                      double& output, double& finished)
   {
-    // Get current sample time
-    const auto sample_time = td.timestamp_at(count++);
     if (reset)
     {
       state = State::off;
@@ -157,6 +159,7 @@ void Envelope::tick(const TickData& td)
         }
       break;
     }
+    sample_time += sample_duration;
   });
 }
 

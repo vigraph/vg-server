@@ -9,29 +9,34 @@
 #include "../vector-module.h"
 #include "../../module-test.h"
 
-ModuleLoader loader;
+class TranslateTest: public GraphTester
+{
+public:
+  TranslateTest()
+  {
+    loader.load("./vg-module-vector-translate.so");
+  }
+};
 
 const auto sample_rate = 1;
 
-TEST(TranslateTest, TestDefaultTranslateHasNoEffect)
+TEST_F(TranslateTest, TestDefaultTranslateHasNoEffect)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
-
-  auto& trans = tester.add("vector/translate");
+  auto& trans = add("vector/translate");
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
   for(auto i=0u; i<50; i++)
     fr.points.push_back(Point(i, i*2, i*3, Colour::white));
 
-  auto& frs = tester.add_source(fr_data);
+  auto& frs = add_source(fr_data);
   frs.connect("output", trans, "input");
 
-  tester.capture_from(trans, "output");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  trans.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -46,28 +51,26 @@ TEST(TranslateTest, TestDefaultTranslateHasNoEffect)
   }
 }
 
-TEST(TranslateTest, TestTranslateXYZ)
+TEST_F(TranslateTest, TestTranslateXYZ)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
-
-  auto& trans = tester.add("vector/translate")
-                      .set("x", 1.0)
-                      .set("y", 2.0)
-                      .set("z", 3.0);
+  auto& trans = add("vector/translate")
+                .set("x", 1.0)
+                .set("y", 2.0)
+                .set("z", 3.0);
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
   for(auto i=0u; i<50; i++)
     fr.points.push_back(Point(i, i*2, i*3, Colour::red));
 
-  auto& frs = tester.add_source(fr_data);
+  auto& frs = add_source(fr_data);
   frs.connect("output", trans, "input");
 
-  tester.capture_from(trans, "output");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  trans.connect("output", snk, "input");
 
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -85,6 +88,5 @@ TEST(TranslateTest, TestTranslateXYZ)
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-vector-translate.so");
   return RUN_ALL_TESTS();
 }

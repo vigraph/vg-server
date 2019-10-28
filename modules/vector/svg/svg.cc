@@ -96,8 +96,9 @@ void SVGSource::setup()
 // Generate a frame
 void SVGSource::tick(const TickData& td)
 {
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   // All 'samples' are the same
-  sample_iterate(td.nsamples, {}, {}, tie(output),
+  sample_iterate(nsamples, {}, {}, tie(output),
                  [&](Frame& output)
   {
     output.points = points;

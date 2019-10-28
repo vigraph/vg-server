@@ -11,7 +11,16 @@
 #include "vg-waveform.h"
 #include <cmath>
 
-ModuleLoader loader;
+class OscillatorTest: public GraphTester
+{
+public:
+  OscillatorTest()
+  {
+    loader.load("./vg-module-core-oscillator.so");
+  }
+};
+
+
 using namespace ViGraph::Geometry;
 
 const auto waveform_size = 44100;
@@ -19,16 +28,14 @@ const auto half_waveform_size = waveform_size / 2;
 const auto quarter_waveform_size = waveform_size / 4;
 const auto three_quarter_waveform_size = 3 * waveform_size / 4;
 
-TEST(OscillatorTest, TestNoWaveform)
+TEST_F(OscillatorTest, TestNoWaveform)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  auto& osc = add("oscillator");
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  auto& osc = tester.add("oscillator");
-  tester.capture_from(osc, "output");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples at 0
   EXPECT_EQ(waveform_size, waveform.size());
@@ -36,16 +43,14 @@ TEST(OscillatorTest, TestNoWaveform)
     EXPECT_EQ(0.0, waveform[i]);
 }
 
-TEST(OscillatorTest, TestNoWaveformControl)
+TEST_F(OscillatorTest, TestNoWaveformControl)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  auto& osc = add("oscillator");
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("control", snk, "input");
 
-  auto& osc = tester.add("oscillator");
-  tester.capture_from(osc, "control");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples at 0.5
   EXPECT_EQ(waveform_size, waveform.size());
@@ -53,18 +58,16 @@ TEST(OscillatorTest, TestNoWaveformControl)
     EXPECT_EQ(0.5, waveform[i]);
 }
 
-TEST(OscillatorTest, TestSquareWaveSingleCycle)
+TEST_F(OscillatorTest, TestSquareWaveSingleCycle)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::square)
+              .set("freq", 1.0);
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::square)
-                    .set("freq", 1.0);
-  tester.capture_from(osc, "output");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples at alternating -1, 1
   EXPECT_EQ(waveform_size, waveform.size());
@@ -77,18 +80,16 @@ TEST(OscillatorTest, TestSquareWaveSingleCycle)
   }
 }
 
-TEST(OscillatorTest, TestSquareWaveSingleCycleControl)
+TEST_F(OscillatorTest, TestSquareWaveSingleCycleControl)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::square)
+              .set("freq", 1.0);
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("control", snk, "input");
 
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::square)
-                    .set("freq", 1.0);
-  tester.capture_from(osc, "control");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples at alternating 0, 1
   EXPECT_EQ(waveform_size, waveform.size());
@@ -101,23 +102,19 @@ TEST(OscillatorTest, TestSquareWaveSingleCycleControl)
   }
 }
 
-TEST(OscillatorTest, TestSquareWaveStartConnectedButNotStarted)
+TEST_F(OscillatorTest, TestSquareWaveStartConnectedButNotStarted)
 {
-  GraphTester<double> tester{loader, waveform_size};
-
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::square)
-                    .set("freq", 1.0);
-
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::square)
+              .set("freq", 1.0);
   auto start_data = vector<double>(100);
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", osc, "start");
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  tester.capture_from(osc, "output");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples at 0
   EXPECT_EQ(waveform_size, waveform.size());
@@ -125,24 +122,21 @@ TEST(OscillatorTest, TestSquareWaveStartConnectedButNotStarted)
     EXPECT_EQ(0.0, waveform[i]) << i;
 }
 
-TEST(OscillatorTest, TestSquareWaveStartHalfWayThrough)
+TEST_F(OscillatorTest, TestSquareWaveStartHalfWayThrough)
 {
-  GraphTester<double> tester{loader, waveform_size};
-
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::square)
-                    .set("freq", 2.0);
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::square)
+              .set("freq", 2.0);
 
   auto start_data = vector<double>(waveform_size);
   start_data[half_waveform_size] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", osc, "start");
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  tester.capture_from(osc, "output");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples, half at 0, half at alternating 1.0, -1.0
   EXPECT_EQ(waveform_size, waveform.size());
@@ -157,33 +151,30 @@ TEST(OscillatorTest, TestSquareWaveStartHalfWayThrough)
   }
 }
 
-TEST(OscillatorTest, TestSquareWaveStopPartWayThrough)
+TEST_F(OscillatorTest, TestSquareWaveStopPartWayThrough)
 {
-  GraphTester<double> tester{loader, waveform_size};
-
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::square)
-                    .set("freq", 2.0);
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::square)
+              .set("freq", 2.0);
 
   // Note we have to connect and trigger start otherwise it will
   // retrigger automatically because not connected
   auto start_data = vector<double>(waveform_size);
   start_data[0] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", osc, "start");
 
   auto stop_data = vector<double>(waveform_size);
   // Note we set the stop half-way through the waveform, to test it is
   // properly run out to theta wrap
   stop_data[quarter_waveform_size] = 1.0;
-  auto& sos = tester.add_source(stop_data);
+  auto& sos = add_source(stop_data);
   sos.connect("output", osc, "stop");
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  tester.capture_from(osc, "output");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples, half at 0, half at alternating 1.0, -1.0
   EXPECT_EQ(waveform_size, waveform.size());
@@ -198,18 +189,16 @@ TEST(OscillatorTest, TestSquareWaveStopPartWayThrough)
   }
 }
 
-TEST(OscillatorTest, TestSquareWaveMultiCycle)
+TEST_F(OscillatorTest, TestSquareWaveMultiCycle)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::square)
+              .set("freq", 10.0);
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::square)
-                    .set("freq", 10.0);
-  tester.capture_from(osc, "output");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples at alternating 1, -1
   EXPECT_EQ(waveform_size, waveform.size());
@@ -222,18 +211,16 @@ TEST(OscillatorTest, TestSquareWaveMultiCycle)
   }
 }
 
-TEST(OscillatorTest, TestSawWaveSingleCycle)
+TEST_F(OscillatorTest, TestSawWaveSingleCycle)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::saw)
+              .set("freq", 1.0);
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::saw)
-                    .set("freq", 1.0);
-  tester.capture_from(osc, "output");
-
-  tester.run(2);
-
-  const auto waveform = tester.get_output();
+  run(2);
 
   // Should be 44100 samples linearly increasing
   EXPECT_EQ(waveform_size, waveform.size());
@@ -247,18 +234,16 @@ TEST(OscillatorTest, TestSawWaveSingleCycle)
   }
 }
 
-TEST(OscillatorTest, TestTriangleWaveSingleCycle)
+TEST_F(OscillatorTest, TestTriangleWaveSingleCycle)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::triangle)
+              .set("freq", 1.0);
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::triangle)
-                    .set("freq", 1.0);
-  tester.capture_from(osc, "output");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples linearly increasing up and down
   EXPECT_EQ(waveform_size, waveform.size());
@@ -280,18 +265,16 @@ TEST(OscillatorTest, TestTriangleWaveSingleCycle)
   }
 }
 
-TEST(OscillatorTest, TestSinWaveSingleCycle)
+TEST_F(OscillatorTest, TestSinWaveSingleCycle)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::sin)
+              .set("freq", 1.0);
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::sin)
-                    .set("freq", 1.0);
-  tester.capture_from(osc, "output");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples in sin -1..1
   EXPECT_EQ(waveform_size, waveform.size());
@@ -299,18 +282,16 @@ TEST(OscillatorTest, TestSinWaveSingleCycle)
     EXPECT_NEAR(sin(2*pi*(double)i/waveform.size()), waveform[i], 0.0001) << i;
 }
 
-TEST(OscillatorTest, TestRandomSingleCycle)
+TEST_F(OscillatorTest, TestRandomSingleCycle)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::random)
+              .set("freq", 1.0);
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
 
-  auto& osc = tester.add("oscillator")
-                    .set("wave", Waveform::Type::random)
-                    .set("freq", 1.0);
-  tester.capture_from(osc, "output");
-
-  tester.run();
-
-  const auto waveform = tester.get_output();
+  run();
 
   // Should be 44100 samples random between -1 and 1
   EXPECT_EQ(waveform_size, waveform.size());
@@ -324,6 +305,5 @@ TEST(OscillatorTest, TestRandomSingleCycle)
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-oscillator.so");
   return RUN_ALL_TESTS();
 }

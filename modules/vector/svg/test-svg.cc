@@ -9,23 +9,28 @@
 #include "../vector-module.h"
 #include "../../module-test.h"
 
-ModuleLoader loader;
+class SVGTest: public GraphTester
+{
+public:
+  SVGTest()
+  {
+    loader.load("./vg-module-vector-svg.so");
+  }
+};
 
 const auto sample_rate = 1;
 
-TEST(SVGTest, TestSimpleLineNotNormalised)
+TEST_F(SVGTest, TestSimpleLineNotNormalised)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& svg = add("vector/svg")
+              .set("path", string("M 0 0 L 2 1"))
+              .set("normalise", false);
 
-  auto& svg = tester.add("vector/svg")
-                    .set("path", string("M 0 0 L 2 1"))
-                    .set("normalise", false);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  svg.connect("output", snk, "input");
 
-  tester.capture_from(svg, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -44,18 +49,16 @@ TEST(SVGTest, TestSimpleLineNotNormalised)
   EXPECT_TRUE(p1.is_lit());
 }
 
-TEST(SVGTest, TestSimpleLineNormalised)
+TEST_F(SVGTest, TestSimpleLineNormalised)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& svg = add("vector/svg")
+              .set("path", string("M 0 0 L 2 1"));
 
-  auto& svg = tester.add("vector/svg")
-                    .set("path", string("M 0 0 L 2 1"));
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  svg.connect("output", snk, "input");
 
-  tester.capture_from(svg, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -74,63 +77,57 @@ TEST(SVGTest, TestSimpleLineNormalised)
   EXPECT_TRUE(p1.is_lit());
 }
 
-TEST(SVGTest, TestSmoothQuadraticWithDefaultPrecision)
+TEST_F(SVGTest, TestSmoothQuadraticWithDefaultPrecision)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& svg = add("vector/svg")
+              .set("path", string("M 0 0 T 2 1"));
 
-  auto& svg = tester.add("vector/svg")
-                    .set("path", string("M 0 0 T 2 1"));
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  svg.connect("output", snk, "input");
 
-  tester.capture_from(svg, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
   ASSERT_EQ(11, frame.points.size());
 }
 
-TEST(SVGTest, TestSmoothQuadraticWithReducedPrecision)
+TEST_F(SVGTest, TestSmoothQuadraticWithReducedPrecision)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
+  auto& svg = add("vector/svg")
+              .set("path", string("M 0 0 T 2 1"))
+              .set("precision", 0.2);
 
-  auto& svg = tester.add("vector/svg")
-                    .set("path", string("M 0 0 T 2 1"))
-                    .set("precision", 0.2);
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  svg.connect("output", snk, "input");
 
-  tester.capture_from(svg, "output");
-
-  tester.run();
-
-  const auto frames = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
   ASSERT_EQ(6, frame.points.size());
 }
 
-TEST(SVGTest, TestReadFromFile)
+TEST_F(SVGTest, TestReadFromFile)
 {
-  GraphTester<Frame> tester{loader, sample_rate};
-
   char templ[10] = "SVGXXXXXX";
   auto fd = mkstemp(templ);
   ASSERT_NE(-1, fd);
   File::Path tempfile(templ);
   tempfile.write_all("<svg><path d='M 0 0 L 2 1'/></svg>");
 
-  auto& svg = tester.add("vector/svg")
-                    .set("file", tempfile.str());
+  auto& svg = add("vector/svg")
+              .set("file", tempfile.str());
 
-  tester.capture_from(svg, "output");
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  svg.connect("output", snk, "input");
 
-  tester.run();
+  run();
   close(fd);
   tempfile.erase();
-
-  const auto frames = tester.get_output();
 
   ASSERT_EQ(sample_rate, frames.size());
   const auto& frame = frames[0];
@@ -146,6 +143,5 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-vector-svg.so");
   return RUN_ALL_TESTS();
 }

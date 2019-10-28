@@ -7,286 +7,261 @@
 //==========================================================================
 
 #include "../../module-test.h"
-ModuleLoader loader;
 
-const auto sample_rate = 100;
-
-TEST(EnvelopeTest, TestUnsetNotStartedProducesZero)
+class EnvelopeTest: public GraphTester
 {
-  GraphTester<double> tester{loader, sample_rate};
+public:
+  EnvelopeTest()
+  {
+    loader.load("./vg-module-core-envelope.so");
+  }
+};
 
-  auto& env = tester.add("envelope");
-  tester.capture_from(env, "output");
+const auto nsamples = 100;
 
-  tester.run();
+TEST_F(EnvelopeTest, TestUnsetNotStartedProducesZero)
+{
+  const auto expected = vector<double>(nsamples, 0.0);
+  auto actual = vector<double>{};
 
-  const auto output = tester.get_output();
+  auto& env = add("envelope");
+  auto& snk = add_sink(actual, nsamples);
+  env.connect("output", snk, "input");
 
-  // Should be 100 samples at 0
-  EXPECT_EQ(sample_rate, output.size());
-  for(auto i=0u; i<output.size(); i++)
-    EXPECT_EQ(0.0, output[i]);
+  run();
+
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(EnvelopeTest, TestUnsetStartedProduces1)
+TEST_F(EnvelopeTest, TestUnsetStartedProduces1)
 {
-  GraphTester<double> tester{loader, sample_rate};
+  const auto expected = vector<double>(nsamples, 1.0);
+  auto actual = vector<double>{};
 
-  auto& env = tester.add("envelope")
-                    .set("start", 1.0);
-  tester.capture_from(env, "output");
+  auto& env = add("envelope")
+              .set("start", 1.0);
+  auto& snk = add_sink(actual, nsamples);
+  env.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto output = tester.get_output();
-
-  // Should be 100 samples at 1.0
-  EXPECT_EQ(sample_rate, output.size());
-  for(auto i=0u; i<output.size(); i++)
-    EXPECT_EQ(1.0, output[i]);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(EnvelopeTest, TestSustainSetStartedProducesSustain)
+TEST_F(EnvelopeTest, TestSustainSetStartedProducesSustain)
 {
-  GraphTester<double> tester{loader, sample_rate};
+  const auto expected = vector<double>(nsamples, 0.75);
+  auto actual = vector<double>{};
 
-  auto& env = tester.add("envelope")
-                    .set("sustain", 0.75)
-                    .set("start", 1.0);
-  tester.capture_from(env, "output");
+  auto& env = add("envelope")
+              .set("sustain", 0.75)
+              .set("start", 1.0);
+  auto& snk = add_sink(actual, nsamples);
+  env.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto output = tester.get_output();
-
-  // Should be 100 samples at 0.75
-  EXPECT_EQ(sample_rate, output.size());
-  for(auto i=0u; i<output.size(); i++)
-    EXPECT_EQ(0.75, output[i]);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(EnvelopeTest, TestStartHalfWayThrough)
+TEST_F(EnvelopeTest, TestStartHalfWayThrough)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& env = tester.add("envelope");
+  auto& env = add("envelope");
 
   auto start_data = vector<double>(100);
   start_data[50] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, nsamples);
+  env.connect("output", snk, "input");
 
-  tester.capture_from(env, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 50 samples at 0.0, 50 at 1.0
-  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(nsamples, output.size());
   for(auto i=0u; i<output.size(); i++)
-    EXPECT_EQ((i<sample_rate/2)?0.0:1.0, output[i]) << i;
+    EXPECT_EQ((i<nsamples/2)?0.0:1.0, output[i]) << i;
 }
 
-TEST(EnvelopeTest, TestStartThenStopHalfWayThrough)
+TEST_F(EnvelopeTest, TestStartThenStopHalfWayThrough)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& env = tester.add("envelope");
+  auto& env = add("envelope");
 
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
 
   auto stop_data = vector<double>(100);
   stop_data[50] = 1.0;
-  auto& sos = tester.add_source(stop_data);
+  auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, nsamples);
+  env.connect("output", snk, "input");
 
-  tester.capture_from(env, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 50 samples at 1.0, 50 at 0.0
-  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(nsamples, output.size());
   for(auto i=0u; i<output.size(); i++)
-    EXPECT_EQ((i<sample_rate/2)?1.0:0.0, output[i]) << i;
+    EXPECT_EQ((i<nsamples/2)?1.0:0.0, output[i]) << i;
 }
 
-TEST(EnvelopeTest, TestAttack)
+TEST_F(EnvelopeTest, TestAttack)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& env = tester.add("envelope")
-                    .set("attack", 1.0);
+  auto& env = add("envelope")
+              .set("attack", 1.0);
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, nsamples);
+  env.connect("output", snk, "input");
 
-  tester.capture_from(env, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples, linearly increasing
-  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(nsamples, output.size());
   for(auto i=0u; i<output.size(); i++)
-    EXPECT_NEAR((double)i/sample_rate, output[i], 0.01) << i;
+    EXPECT_NEAR((double)i/nsamples, output[i], 0.01) << i;
 }
 
-TEST(EnvelopeTest, TestDecayToZero)
+TEST_F(EnvelopeTest, TestDecayToZero)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& env = tester.add("envelope")
-                    .set("decay", 1.0)
-                    .set("sustain", 0.0);
+  auto& env = add("envelope")
+              .set("decay", 1.0)
+              .set("sustain", 0.0);
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, nsamples);
+  env.connect("output", snk, "input");
 
-  tester.capture_from(env, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples, linearly decreasing
-  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(nsamples, output.size());
   for(auto i=0u; i<output.size(); i++)
-    EXPECT_NEAR(1.0-(double)i/sample_rate, output[i], 0.01) << i;
+    EXPECT_NEAR(1.0-(double)i/nsamples, output[i], 0.01) << i;
 }
 
-TEST(EnvelopeTest, TestDecayToSustain)
+TEST_F(EnvelopeTest, TestDecayToSustain)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& env = tester.add("envelope")
-                    .set("decay", 0.5)
-                    .set("sustain", 0.5);
+  auto& env = add("envelope")
+              .set("decay", 0.5)
+              .set("sustain", 0.5);
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, nsamples);
+  env.connect("output", snk, "input");
 
-  tester.capture_from(env, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples, linearly decreasing to 0.5, then stable
-  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(nsamples, output.size());
   for(auto i=0u; i<output.size(); i++)
   {
-    if (i < sample_rate/2)
-      EXPECT_NEAR(1.0-(double)i/sample_rate, output[i], 0.01) << i;
+    if (i < nsamples/2)
+      EXPECT_NEAR(1.0-(double)i/nsamples, output[i], 0.01) << i;
     else
       EXPECT_EQ(0.5, output[i]) << i;
   }
 }
 
-TEST(EnvelopeTest, TestRelease)
+TEST_F(EnvelopeTest, TestRelease)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& env = tester.add("envelope")
-                    .set("release", 0.5);
+  auto& env = add("envelope")
+              .set("release", 0.5);
 
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
 
   auto stop_data = vector<double>(100);
   stop_data[50] = 1.0;
-  auto& sos = tester.add_source(stop_data);
+  auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, nsamples);
+  env.connect("output", snk, "input");
 
-  tester.capture_from(env, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples, linearly decreasing
-  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(nsamples, output.size());
   for(auto i=0u; i<output.size(); i++)
   {
-    if (i < sample_rate/2)
+    if (i < nsamples/2)
       EXPECT_EQ(1.0, output[i]) << i;
     else
-      EXPECT_NEAR(1.0-2.0*(i-sample_rate/2)/sample_rate, output[i], 0.01) << i;
+      EXPECT_NEAR(1.0-2.0*(i-nsamples/2)/nsamples, output[i], 0.01) << i;
   }
 }
 
-TEST(EnvelopeTest, TestFinishedTriggeredAfterRelease)
+TEST_F(EnvelopeTest, TestFinishedTriggeredAfterRelease)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& env = tester.add("envelope")
-                    .set("release", 0.25);
+  auto& env = add("envelope")
+              .set("release", 0.25);
 
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
 
   auto stop_data = vector<double>(100);
   stop_data[50] = 1.0;
-  auto& sos = tester.add_source(stop_data);
+  auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, nsamples);
+  env.connect("finished", snk, "input");
 
-  tester.capture_from(env, "finished");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples, all 0 except #75 (=stop at 0.5 + 0.25 for release)
-  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(nsamples, output.size());
   for(auto i=0u; i<output.size(); i++)
     EXPECT_EQ((i==75)?1.0:0.0, output[i]) << i;
 }
 
-TEST(EnvelopeTest, TestReleaseStartsFromCurrentPositionInAttack)
+TEST_F(EnvelopeTest, TestReleaseStartsFromCurrentPositionInAttack)
 {
-  GraphTester<double> tester{loader, sample_rate};
-
-  auto& env = tester.add("envelope")
-                    .set("attack", 1.0)
-                    .set("release", 0.5);
+  auto& env = add("envelope")
+              .set("attack", 1.0)
+              .set("release", 0.5);
 
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
-  auto& sts = tester.add_source(start_data);
+  auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
 
   auto stop_data = vector<double>(100);
   stop_data[50] = 1.0;
-  auto& sos = tester.add_source(stop_data);
+  auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, nsamples);
+  env.connect("output", snk, "input");
 
-  tester.capture_from(env, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 100 samples, rising to 0.49 at 50, then decreasing to 0 again
-  EXPECT_EQ(sample_rate, output.size());
+  EXPECT_EQ(nsamples, output.size());
   for(auto i=0u; i<output.size(); i++)
   {
-    if (i < sample_rate/2)
-      EXPECT_NEAR((double)i/sample_rate, output[i], 0.01) << i;
+    if (i < nsamples/2)
+      EXPECT_NEAR((double)i/nsamples, output[i], 0.01) << i;
     else
-      EXPECT_NEAR(0.49-((double)i-sample_rate/2)/sample_rate, output[i], 0.01)
+      EXPECT_NEAR(0.49-((double)i-nsamples/2)/nsamples, output[i], 0.01)
         << i;
   }
 }
@@ -300,6 +275,5 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-envelope.so");
   return RUN_ALL_TESTS();
 }

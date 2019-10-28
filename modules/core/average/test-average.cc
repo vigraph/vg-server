@@ -10,22 +10,27 @@
 #include "vg-waveform.h"
 #include <cmath>
 
-ModuleLoader loader;
+class AverageTest: public GraphTester
+{
+public:
+  AverageTest()
+  {
+    loader.load("./vg-module-core-average.so");
+  }
+};
 
 const auto samples = 10;
 
-TEST(AverageTest, TestAverage)
+TEST_F(AverageTest, TestAverage)
 {
-  GraphTester<double> tester{loader, samples};
+  auto& avg = add("average")
+              .set("samples", samples)
+              .set("input", 42.0);
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, samples);
+  avg.connect("output", snk, "input");
 
-  auto& avg = tester.add("average")
-                    .set("samples", samples)
-                    .set("input", 42.0);
-  tester.capture_from(avg, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 10 samples at 42
   EXPECT_EQ(samples, output.size());
@@ -33,19 +38,17 @@ TEST(AverageTest, TestAverage)
     EXPECT_DOUBLE_EQ(42.0, output[i]);
 }
 
-TEST(AverageTest, TestRMSAverage)
+TEST_F(AverageTest, TestRMSAverage)
 {
-  GraphTester<double> tester{loader, samples};
+  auto& avg = add("average")
+              .set("samples", samples)
+              .set("rms", true)
+              .set("input", 42.0);
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, samples);
+  avg.connect("output", snk, "input");
 
-  auto& avg = tester.add("average")
-                    .set("samples", samples)
-                    .set("rms", true)
-                    .set("input", 42.0);
-  tester.capture_from(avg, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 10 samples at 42
   EXPECT_EQ(samples, output.size());
@@ -53,28 +56,25 @@ TEST(AverageTest, TestRMSAverage)
     EXPECT_DOUBLE_EQ(42.0, output[i]);
 }
 
-TEST(AverageTest, TestAverageForVariantData)
+TEST_F(AverageTest, TestAverageForVariantData)
 {
-  GraphTester<double> tester{loader, samples};
-
   auto input_data = vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   auto expected = vector<double>{1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5};
-  auto& src = tester.add_source(input_data);
-  auto& avg = tester.add("average")
-                    .set("samples", samples);
+  auto& src = add_source(input_data);
+  auto& avg = add("average")
+              .set("samples", samples);
   src.connect("output", avg, "input");
-  tester.capture_from(avg, "output");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, samples);
+  avg.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto output = tester.get_output();
   EXPECT_EQ(expected, output);
 }
 
-TEST(AverageTest, TestRMSAverageForVariantData)
+TEST_F(AverageTest, TestRMSAverageForVariantData)
 {
-  GraphTester<double> tester{loader, samples};
-
   auto input_data = vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   auto expected = vector<double>{
     1,
@@ -88,16 +88,17 @@ TEST(AverageTest, TestRMSAverageForVariantData)
     5.6273143387113773,
     6.2048368229954285
   };
-  auto& src = tester.add_source(input_data);
-  auto& avg = tester.add("average")
-                    .set("samples", samples)
-                    .set("rms", true);
+  auto& src = add_source(input_data);
+  auto& avg = add("average")
+              .set("samples", samples)
+              .set("rms", true);
   src.connect("output", avg, "input");
-  tester.capture_from(avg, "output");
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, samples);
+  avg.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto output = tester.get_output();
   EXPECT_EQ(expected.size(), output.size());
   for(auto i=0u; i<output.size(); i++)
     EXPECT_DOUBLE_EQ(expected[i], output[i]);
@@ -106,6 +107,5 @@ TEST(AverageTest, TestRMSAverageForVariantData)
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-average.so");
   return RUN_ALL_TESTS();
 }

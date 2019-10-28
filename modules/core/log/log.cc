@@ -39,9 +39,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Tick
-void LogControl::tick(const TickData& td)
+void LogControl::tick(const TickData&)
 {
-  sample_iterate(td.nsamples, {}, tie(input), {},
+  const auto nsamples = input.get_buffer().size();
+  sample_iterate(nsamples, {}, tie(input), {},
                  [&](double input)
   {
     if (input != last_input)

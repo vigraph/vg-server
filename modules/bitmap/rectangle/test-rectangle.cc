@@ -9,21 +9,26 @@
 #include "../bitmap-module.h"
 #include "../../module-test.h"
 
-ModuleLoader loader;
+class RectangleTest: public GraphTester
+{
+public:
+  RectangleTest()
+  {
+    loader.load("./vg-module-bitmap-rectangle.so");
+  }
+};
 
 const auto sample_rate = 1;
 
-TEST(RectangleTest, TestDefaultRectangleIs1x1White)
+TEST_F(RectangleTest, TestDefaultRectangleIs1x1White)
 {
-  GraphTester<Bitmap::Group> tester{loader, sample_rate};
+  auto& rct = add("bitmap/rectangle");
 
-  auto& rectangle = tester.add("bitmap/rectangle");
+  auto bitmaps = vector<Bitmap::Group>{};
+  auto& snk = add_sink(bitmaps, sample_rate);
+  rct.connect("output", snk, "input");
 
-  tester.capture_from(rectangle, "output");
-
-  tester.run();
-
-  const auto bitmaps = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, bitmaps.size());
   const auto& bitmap = bitmaps[0];
@@ -38,19 +43,17 @@ TEST(RectangleTest, TestDefaultRectangleIs1x1White)
   EXPECT_EQ(Colour::white, b0.rect(0,0));
 }
 
-TEST(RectangleTest, TestSpecifiedHeightAndWidth)
+TEST_F(RectangleTest, TestSpecifiedHeightAndWidth)
 {
-  GraphTester<Bitmap::Group> tester{loader, sample_rate};
+  auto& rct = add("bitmap/rectangle")
+              .set("width", 5.0)
+              .set("height", 3.0);
 
-  auto& rectangle = tester.add("bitmap/rectangle")
-                          .set("width", 5.0)
-                          .set("height", 3.0);
+  auto bitmaps = vector<Bitmap::Group>{};
+  auto& snk = add_sink(bitmaps, sample_rate);
+  rct.connect("output", snk, "input");
 
-  tester.capture_from(rectangle, "output");
-
-  tester.run();
-
-  const auto bitmaps = tester.get_output();
+  run();
 
   ASSERT_EQ(sample_rate, bitmaps.size());
   const auto& bitmap = bitmaps[0];
@@ -77,6 +80,5 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-bitmap-rectangle.so");
   return RUN_ALL_TESTS();
 }

@@ -10,106 +10,97 @@
 #include "vg-waveform.h"
 #include <cfloat>
 
-ModuleLoader loader;
-
-const auto waveform_size = 44100;
-
-TEST(DivideTest, TestSetOnlyInput)
+class DivideTest: public GraphTester
 {
-  GraphTester<double> tester{loader, waveform_size};
+public:
+  DivideTest()
+  {
+    loader.load("./vg-module-core-divide.so");
+  }
+};
 
-  auto& osc = tester.add("divide")
-                    .set("input", 42.0);
-  tester.capture_from(osc, "output");
+const auto nsamples = 100;
 
-  tester.run();
+TEST_F(DivideTest, TestSetOnlyInput)
+{
+  const auto expected = vector<double>(nsamples, 42.0);
+  auto actual = vector<double>{};
 
-  const auto waveform = tester.get_output();
+  auto& dvd = add("divide")
+              .set("input", 42.0);
+  auto& snk = add_sink(actual, nsamples);
+  dvd.connect("output", snk, "input");
 
-  // Should be 44100 samples at 42
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(42.0, waveform[i]);
+  run();
+
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(DivideTest, TestSetOnlyFactor)
+TEST_F(DivideTest, TestSetOnlyFactor)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, 0.0);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("divide")
-                    .set("factor", 10.0);
-  tester.capture_from(osc, "output");
+  auto& dvd = add("divide")
+              .set("factor", 10.0);
+  auto& snk = add_sink(actual, nsamples);
+  dvd.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at 0.0
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(0.0, waveform[i]);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(DivideTest, TestSetBothInputAndFactor)
+TEST_F(DivideTest, TestSetBothInputAndFactor)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, 4.2);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("divide")
-                    .set("input", 42.0)
-                    .set("factor", 10.0);
-  tester.capture_from(osc, "output");
+  auto& dvd = add("divide")
+              .set("input", 42.0)
+              .set("factor", 10.0);
+  auto& snk = add_sink(actual, nsamples);
+  dvd.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at 4.2
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_NEAR(4.2, waveform[i], 1e-6);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(DivideTest, TestSetDivideByZeroPositive)
+TEST_F(DivideTest, TestSetDivideByZeroPositive)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, DBL_MAX);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("divide")
-                    .set("input", 42.0)
-                    .set("factor", 0.0);
-  tester.capture_from(osc, "output");
+  auto& dvd = add("divide")
+              .set("input", 42.0)
+              .set("factor", 0.0);
+  auto& snk = add_sink(actual, nsamples);
+  dvd.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at DBL_MAX
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(DBL_MAX, waveform[i]);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(DivideTest, TestSetDivideByZeroNegative)
+TEST_F(DivideTest, TestSetDivideByZeroNegative)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, DBL_MIN);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("divide")
-                    .set("input", -42.0)
-                    .set("factor", 0.0);
-  tester.capture_from(osc, "output");
+  auto& dvd = add("divide")
+              .set("input", -42.0)
+              .set("factor", 0.0);
+  auto& snk = add_sink(actual, nsamples);
+  dvd.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at DBL_MIN
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(DBL_MIN, waveform[i]);
+  EXPECT_EQ(expected, actual);
 }
 
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-divide.so");
   return RUN_ALL_TESTS();
 }

@@ -44,7 +44,7 @@ bool Element::connect(const string& out_name,
 
   o->set_sample_rate(i->get_sample_rate());
   b.notify_connection(in_name, *this, out_name);
-  b.update_sample_rate();
+  update_sample_rate();
   return true;
 }
 
@@ -70,7 +70,9 @@ void Element::update_sample_rate()
   auto rate = double{};
   module.for_each_output([this, &rate](const string&, const OutputMember& om)
       {
-        rate = om.get(*this).get_sample_rate();
+        const auto r = om.get(*this).get_sample_rate();
+        if (r > rate) // pick the highest (and also ignore unconnected)
+          rate = r;
       });
   module.for_each_input([this, rate](const string&, const InputMember& im)
       {

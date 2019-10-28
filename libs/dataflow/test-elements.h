@@ -11,6 +11,8 @@ using namespace ObTools;
 using namespace ViGraph;
 using namespace ViGraph::Dataflow;
 
+const auto sample_rate = 1.0;
+
 //==========================================================================
 // Test Source
 class TestSource: public SimpleElement
@@ -33,8 +35,9 @@ public:
   void tick(const TickData& td) override
   {
     auto buffer = output.get_buffer();
-    for (auto i = 0u; i < td.nsamples; ++i)
-      buffer.data.push_back(td.timestamp + 1);
+    const auto nsamples = td.samples_in_tick(sample_rate);
+    for (auto i = 0u; i < nsamples; ++i)
+      buffer.data.push_back(td.start + 1);
     if (tick_order) *tick_order += get_id();
   }
 
@@ -171,7 +174,7 @@ public:
 
   void setup()
   {
-    engine.set_sample_rate(1);
+    engine.set_sample_rate(sample_rate);
     engine.set_tick_interval(Time::Duration{1.0});
     engine.get_graph().setup();
     engine.update_elements();

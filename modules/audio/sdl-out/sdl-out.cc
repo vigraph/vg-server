@@ -218,10 +218,11 @@ void SDLSink::tick(const TickData& td)
   if (dev)
   {
     SDL_LockAudioDevice(dev);
+    const auto nsamples = td.samples_in_tick(channel1.get_sample_rate());
     auto bpos = output_buffer.size();
     const auto channels = nchannels;
-    output_buffer.resize(bpos + td.nsamples * channels);
-    sample_iterate(td.nsamples, {},
+    output_buffer.resize(bpos + nsamples * channels);
+    sample_iterate(nsamples, {},
                    tie(channel1, channel2, channel3,
                        channel4, channel5, channel6), {},
                    [&](double c1, double c2, double c3,

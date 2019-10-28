@@ -69,7 +69,7 @@ private:
 
   TestSource<T> *create_clone() const override
   {
-    return new TestSource<T>{data, get_id()};
+    return new TestSource<T>{get_id(), data};
   }
 
   vector<T> data;
@@ -79,7 +79,7 @@ public:
   Output<T> output;
 
   // Construct
-  TestSource(const vector<T>& _data, const string& id):
+  TestSource(const string& id, const vector<T>& _data):
     SimpleElement(module_data), data{_data}
   {
     set_id(id);
@@ -87,7 +87,8 @@ public:
 
   void tick(const TickData& td) override
   {
-    sample_iterate(td.nsamples, {}, {}, tie(output),
+    const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+    sample_iterate(nsamples, {}, {}, tie(output),
                    [&](T& o)
     {
       if (data.empty())
@@ -104,54 +105,55 @@ public:
 
 // Test control - accepts any property and remembers it
 template<typename T>
-class TestTarget: public SimpleElement
+class TestSink: public SimpleElement
 {
 private:
   SimpleModule module_data =
   {
-    "test",
+    "test-sink",
     "Test",
     "test",
     {},
     {
-      { "input", &TestTarget::input },
+      { "input", &TestSink::input },
     },
     {}
   };
 
-  TestTarget<T> *create_clone() const override
+  TestSink<T> *create_clone() const override
   {
-    return new TestTarget<T>{};
+    return new TestSink<T>{get_id(), data, input.get_sample_rate()};
   }
+
+  vector<T>& data;
 
 public:
   Input<T> input;
-  vector<T> capture;
 
   // Construct
-  TestTarget():
-    SimpleElement(module_data)
+  TestSink(const string& id, vector<T>& _data, double sample_rate):
+    SimpleElement(module_data), data{_data}
   {
-    set_id("test");
+    set_id(id);
+    input.set_sample_rate(sample_rate);
   }
 
   void tick(const TickData&) override
   {
-    capture = input.get_buffer();
+    data = input.get_buffer();
   }
 };
 
 // Graph constructor
-template<typename T>
-class GraphTester
+class GraphTester: public ::testing::Test
 {
-  ModuleLoader& loader;
+private:
   int id_serial{0};
-  double sample_rate = 50;
 
- public:
-  TestTarget<T> *target = nullptr;
+protected:
+  ModuleLoader loader;
 
+public:
   // Add an element
   GraphElement& add(const string& name)
   {
@@ -163,11 +165,21 @@ class GraphTester
   }
 
   // Add a source
-  template<typename U>
-  GraphElement& add_source(const vector<U>& data)
+  template<typename T>
+  GraphElement& add_source(const vector<T>& data)
   {
     const auto id = "test-source" + Text::itos(++id_serial);
-    auto e = new TestSource<T>{data, id};
+    auto e = new TestSource<T>{id, data};
+    loader.engine.get_graph().add(e);
+    return *e;
+  }
+
+  // Add a sink
+  template<typename T>
+  GraphElement& add_sink(vector<T>& data, double sample_rate)
+  {
+    const auto id = "test-sink" + Text::itos(++id_serial);
+    auto e = new TestSink<T>{id, data, sample_rate};
     loader.engine.get_graph().add(e);
     return *e;
   }
@@ -178,7 +190,6 @@ class GraphTester
     auto& graph = loader.engine.get_graph();
     graph.setup();
     loader.engine.set_tick_interval(Time::Duration{1});
-    loader.engine.set_sample_rate(sample_rate);
     loader.engine.reset();
     loader.engine.update_elements();
 
@@ -186,24 +197,6 @@ class GraphTester
     {
       loader.engine.tick(i);
     }
-  }
-
-  GraphTester(ModuleLoader& _loader,
-              double _sample_rate = 50):
-  loader(_loader), sample_rate(_sample_rate)
-  {
-    target = new TestTarget<T>{};
-    loader.engine.get_graph().add(target);
-  }
-
-  bool capture_from(GraphElement& element, const string& output)
-  {
-    return element.connect(output, *target, "input");
-  }
-
-  const vector<T>& get_output()
-  {
-    return target->capture;
   }
 };
 

@@ -155,9 +155,10 @@ void WebSocket::setup()
 
 //--------------------------------------------------------------------------
 // Tick data
-void WebSocket::tick(const TickData& td)
+void WebSocket::tick(const TickData&)
 {
-  sample_iterate(td.nsamples, {}, tie(input), {},
+  const auto nsamples = input.get_buffer().size();
+  sample_iterate(nsamples, {}, tie(input), {},
                  [&](const Frame& input)
   {
     if (!!server)

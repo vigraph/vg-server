@@ -7,57 +7,59 @@
 //==========================================================================
 
 #include "../../module-test.h"
-ModuleLoader loader;
+
+class LimitTest: public GraphTester
+{
+public:
+  LimitTest()
+  {
+    loader.load("./vg-module-core-limit.so");
+  }
+};
 
 const auto sample_rate = 1;
 
-TEST(LimitTest, TestLimitDoesNothingInRange)
+TEST_F(LimitTest, TestLimitDoesNothingInRange)
 {
-  GraphTester<double> tester{loader, sample_rate};
+  auto& lmt = add("limit")
+              .set("input", 0.5);
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  lmt.connect("output", snk, "input");
 
-  auto& compare = tester.add("limit")
-                        .set("input", 0.5);
-  tester.capture_from(compare, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 1 samples at 0.5
   EXPECT_EQ(sample_rate, output.size());
   EXPECT_EQ(0.5, output[0]);
 }
 
-TEST(LimitTest, TestLimitCapsOverRange)
+TEST_F(LimitTest, TestLimitCapsOverRange)
 {
-  GraphTester<double> tester{loader, sample_rate};
+  auto& lmt = add("limit")
+              .set("max", 0.4)
+              .set("input", 0.5);
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  lmt.connect("output", snk, "input");
 
-  auto& compare = tester.add("limit")
-                        .set("max", 0.4)
-                        .set("input", 0.5);
-  tester.capture_from(compare, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 1 samples at 0.4
   EXPECT_EQ(sample_rate, output.size());
   EXPECT_EQ(0.4, output[0]);
 }
 
-TEST(LimitTest, TestLimitCollarsUnderRange)
+TEST_F(LimitTest, TestLimitCollarsUnderRange)
 {
-  GraphTester<double> tester{loader, sample_rate};
+  auto& lmt = add("limit")
+              .set("min", 0.6)
+              .set("input", 0.5);
+  auto output = vector<double>{};
+  auto& snk = add_sink(output, sample_rate);
+  lmt.connect("output", snk, "input");
 
-  auto& compare = tester.add("limit")
-                        .set("min", 0.6)
-                        .set("input", 0.5);
-  tester.capture_from(compare, "output");
-
-  tester.run();
-
-  const auto output = tester.get_output();
+  run();
 
   // Should be 1 samples at 0.6
   EXPECT_EQ(sample_rate, output.size());
@@ -73,6 +75,5 @@ int main(int argc, char **argv)
   }
 
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-limit.so");
   return RUN_ALL_TESTS();
 }

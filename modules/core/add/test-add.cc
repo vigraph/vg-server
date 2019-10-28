@@ -10,68 +10,65 @@
 #include "vg-waveform.h"
 #include <cmath>
 
-ModuleLoader loader;
-
-const auto waveform_size = 44100;
-
-TEST(AddTest, TestSetOnlyInput)
+class AddTest: public GraphTester
 {
-  GraphTester<double> tester{loader, waveform_size};
+public:
+  AddTest()
+  {
+    loader.load("./vg-module-core-add.so");
+  }
+};
 
-  auto& osc = tester.add("add")
-                    .set("input", 42.0);
-  tester.capture_from(osc, "output");
+const auto nsamples = 100;
 
-  tester.run();
+TEST_F(AddTest, TestSetOnlyInput)
+{
+  const auto expected = vector<double>(nsamples, 42.0);
+  auto actual = vector<double>{};
 
-  const auto waveform = tester.get_output();
+  auto& ad_ = add("add")
+              .set("input", 42.0);
+  auto& snk = add_sink(actual, nsamples);
+  ad_.connect("output", snk, "input");
 
-  // Should be 44100 samples at 42
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(42.0, waveform[i]);
+  run();
+
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(AddTest, TestSetOnlyOffset)
+TEST_F(AddTest, TestSetOnlyOffset)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, 10.0);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("add")
-                    .set("offset", 10.0);
-  tester.capture_from(osc, "output");
+  auto& ad_ = add("add")
+              .set("offset", 10.0);
+  auto& snk = add_sink(actual, nsamples);
+  ad_.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at 10.0
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(10.0, waveform[i]);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(AddTest, TestSetBothInputAndOffset)
+TEST_F(AddTest, TestSetBothInputAndOffset)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, 45.14);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("add")
-                    .set("input", 42.0)
-                    .set("offset", 3.14);
-  tester.capture_from(osc, "output");
+  auto& ad_ = add("add")
+              .set("input", 42.0)
+              .set("offset", 3.14);
+  auto& snk = add_sink(actual, nsamples);
+  ad_.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at 45.14
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(45.14, waveform[i]);
+  EXPECT_EQ(expected, actual);
 }
 
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-add.so");
   return RUN_ALL_TESTS();
 }

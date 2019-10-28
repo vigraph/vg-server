@@ -10,68 +10,65 @@
 #include "vg-waveform.h"
 #include <cmath>
 
-ModuleLoader loader;
-
-const auto waveform_size = 44100;
-
-TEST(SubtractTest, TestSetOnlyInput)
+class SubtractTest: public GraphTester
 {
-  GraphTester<double> tester{loader, waveform_size};
+public:
+  SubtractTest()
+  {
+    loader.load("./vg-module-core-subtract.so");
+  }
+};
 
-  auto& osc = tester.add("subtract")
-                    .set("input", 42.0);
-  tester.capture_from(osc, "output");
+const auto nsamples = 100;
 
-  tester.run();
+TEST_F(SubtractTest, TestSetOnlyInput)
+{
+  const auto expected = vector<double>(nsamples, 42.0);
+  auto actual = vector<double>{};
 
-  const auto waveform = tester.get_output();
+  auto& sub = add("subtract")
+              .set("input", 42.0);
+  auto& snk = add_sink(actual, nsamples);
+  sub.connect("output", snk, "input");
 
-  // Should be 44100 samples at 42
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(42.0, waveform[i]);
+  run();
+
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(SubtractTest, TestSetOnlyOffset)
+TEST_F(SubtractTest, TestSetOnlyOffset)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, -10.0);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("subtract")
-                    .set("offset", 10.0);
-  tester.capture_from(osc, "output");
+  auto& sub = add("subtract")
+              .set("offset", 10.0);
+  auto& snk = add_sink(actual, nsamples);
+  sub.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at -10.0
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(-10.0, waveform[i]);
+  EXPECT_EQ(expected, actual);
 }
 
-TEST(SubtractTest, TestSetBothInputAndOffset)
+TEST_F(SubtractTest, TestSetBothInputAndOffset)
 {
-  GraphTester<double> tester{loader, waveform_size};
+  const auto expected = vector<double>(nsamples, 38.86);
+  auto actual = vector<double>{};
 
-  auto& osc = tester.add("subtract")
-                    .set("input", 42.0)
-                    .set("offset", 3.14);
-  tester.capture_from(osc, "output");
+  auto& sub = add("subtract")
+              .set("input", 42.0)
+              .set("offset", 3.14);
+  auto& snk = add_sink(actual, nsamples);
+  sub.connect("output", snk, "input");
 
-  tester.run();
+  run();
 
-  const auto waveform = tester.get_output();
-
-  // Should be 44100 samples at 38.86
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_DOUBLE_EQ(38.86, waveform[i]);
+  EXPECT_EQ(expected, actual);
 }
 
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("./vg-module-core-subtract.so");
   return RUN_ALL_TESTS();
 }

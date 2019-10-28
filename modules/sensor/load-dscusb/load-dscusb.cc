@@ -124,7 +124,8 @@ void Sensor::tick(const TickData& td)
 {
   if (!tty) return;
 
-  sample_iterate(td.nsamples, {}, {}, tie(output),
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(nsamples, {}, {}, tie(output),
                  [&](double& output)
   {
     output = last_value;

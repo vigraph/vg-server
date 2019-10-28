@@ -39,7 +39,8 @@ public:
 // Generate a bitmap
 void RectangleSource::tick(const TickData& td)
 {
-  sample_iterate(td.nsamples, {}, tie(width, height), tie(output),
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(nsamples, {}, tie(width, height), tie(output),
                  [&](double width, double height,
                      Bitmap::Group& output)
   {

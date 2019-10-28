@@ -122,6 +122,7 @@ void GetVisitor::visit(const Dataflow::GraphElement& element,
 {
   json.set("type", input.get_type());
   json.set("value", input.get_json(element));
+  json.put("sample_rate", input.get_sample_rate(element));
 }
 
 unique_ptr<Dataflow::ReadVisitor>
@@ -147,6 +148,7 @@ void GetVisitor::visit(const Dataflow::GraphElement& element,
                        const Dataflow::Path&, unsigned)
 {
   json.put("type", output.get_type());
+  json.put("sample_rate", output.get_sample_rate(element));
   auto& op = output.get(element);
   const auto& conns = op.get_connections();
   if (conns.empty())

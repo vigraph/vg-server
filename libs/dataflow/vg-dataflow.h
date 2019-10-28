@@ -147,13 +147,12 @@ public:
 
 //==========================================================================
 // Member wrappers
-template<typename T>
-class Member
+class SettingMember
 {
 public:
   virtual string get_type() const = 0;
-  virtual const T& get(const GraphElement& b) const = 0;
-  virtual T& get(GraphElement& b) const = 0;
+  virtual const ElementSetting& get(const GraphElement& b) const = 0;
+  virtual ElementSetting& get(GraphElement& b) const = 0;
   virtual JSON::Value get_json(const GraphElement& b) const = 0;
   virtual void set_json(GraphElement& b, const JSON::Value& json) const = 0;
   virtual void accept(ReadVisitor& visitor,
@@ -162,10 +161,27 @@ public:
   virtual void accept(WriteVisitor& visitor,
                       const Path& path, unsigned path_index,
                       GraphElement& element) const = 0;
-  virtual ~Member() {}
+  virtual ~SettingMember() {}
 };
-using SettingMember = Member<ElementSetting>;
-using InputMember = Member<ElementInput>;
+
+class InputMember
+{
+public:
+  virtual string get_type() const = 0;
+  virtual const ElementInput& get(const GraphElement& b) const = 0;
+  virtual ElementInput& get(GraphElement& b) const = 0;
+  virtual JSON::Value get_json(const GraphElement& b) const = 0;
+  virtual void set_json(GraphElement& b, const JSON::Value& json) const = 0;
+  virtual void accept(ReadVisitor& visitor,
+                      const Path& path, unsigned path_index,
+                      const GraphElement& element) const = 0;
+  virtual void accept(WriteVisitor& visitor,
+                      const Path& path, unsigned path_index,
+                      GraphElement& element) const = 0;
+  virtual double get_sample_rate(const GraphElement& b) const = 0;
+  virtual ~InputMember() {}
+};
+
 class OutputMember
 {
 public:
@@ -178,6 +194,7 @@ public:
   virtual void accept(WriteVisitor& visitor,
                       const Path& path, unsigned path_index,
                       GraphElement& element) const = 0;
+  virtual double get_sample_rate(const GraphElement& b) const = 0;
   virtual ~OutputMember() {}
 };
 
@@ -327,6 +344,8 @@ public:
 class ElementInput: public ElementSetting
 {
 public:
+  virtual double get_sample_rate() const = 0;
+  virtual void set_sample_rate(double rate) = 0;
   struct Connection
   {
     GraphElement *element = nullptr;
@@ -347,6 +366,8 @@ public:
 class ElementOutput
 {
 public:
+  virtual double get_sample_rate() const = 0;
+  virtual void set_sample_rate(double rate) = 0;
   struct Connection
   {
     GraphElement *element = nullptr;
@@ -372,6 +393,8 @@ class Input: public Setting<T>, public virtual ElementInput
 {
 private:
   friend class Output<T>;
+
+  double sample_rate = 0.0;
   struct Data
   {
     GraphElement *element = nullptr;
@@ -417,6 +440,21 @@ public:
   void set_from(const ElementSetting& setting) override
   {
     Setting<T>::set_from(setting);
+  }
+
+  double get_sample_rate() const override
+  {
+    return sample_rate;
+  }
+
+  void set_sample_rate(double rate) override
+  {
+    sample_rate = rate;
+    for (auto& i: input_data)
+    {
+      i.first->set_sample_rate(rate);
+      i.second.element->update_sample_rate();
+    }
   }
 
   bool ready() const override
@@ -506,6 +544,8 @@ template<typename T>
 class Output: public ElementOutput
 {
 private:
+  double sample_rate = 0.0;
+
   struct OutputData
   {
     GraphElement *element = nullptr;
@@ -527,6 +567,16 @@ public:
     output_data[&to] = {to_element, &id};
     if (!primary_data)
       primary_data = &to;
+  }
+
+  double get_sample_rate() const override
+  {
+    return sample_rate;
+  }
+
+  void set_sample_rate(double rate) override
+  {
+    sample_rate = rate;
   }
 
   bool connect(GraphElement *element, const Connection& connection) override
@@ -924,6 +974,11 @@ protected:
         if (path.reached(path_index))
           visitor.visit(element, *this, path, path_index);
       }
+
+      double get_sample_rate(const GraphElement& b) const override
+      {
+        return (b.*member_pointer).get_sample_rate();
+      }
     };
     shared_ptr<InputMember> typed_member;
 
@@ -970,6 +1025,11 @@ protected:
                 GraphElement& element) const override
     {
       typed_member->accept(visitor, path, path_index, element);
+    }
+
+    double get_sample_rate(const GraphElement& b) const override
+    {
+      return typed_member->get_sample_rate(b);
     }
   };
   map<string, Input> inputs;
@@ -1020,6 +1080,11 @@ protected:
         if (path.reached(path_index))
           visitor.visit(element, *this, path, path_index);
       }
+
+      double get_sample_rate(const GraphElement& b) const override
+      {
+        return (b.*member_pointer).get_sample_rate();
+      }
     };
     shared_ptr<OutputMember> typed_member;
 
@@ -1056,6 +1121,11 @@ protected:
                 GraphElement& element) const override
     {
       typed_member->accept(visitor, path, path_index, element);
+    }
+
+    double get_sample_rate(const GraphElement& b) const override
+    {
+      return typed_member->get_sample_rate(b);
     }
   };
   map<string, Output> outputs;
@@ -1217,6 +1287,9 @@ public:
   virtual void notify_connection(const string& in_name,
                                  GraphElement& a, const string& out_name) = 0;
 
+  // Handle sample rate being changed
+  virtual void update_sample_rate() = 0;
+
   // Set a Setting/Input
   template<typename T>
   GraphElement& set(const string& setting, const T& value)
@@ -1325,6 +1398,9 @@ public:
   // Notify that connection has been made to input
   void notify_connection(const string& in_name,
                          GraphElement& a, const string& out_name) override;
+
+  // Handle sample rate change
+  void update_sample_rate() override;
 
   // Is ready to process tick
   bool ready() const;
@@ -1449,6 +1525,11 @@ private:
       if (path.reached(path_index))
         visitor.visit(element, *this, path, path_index);
     }
+
+    double get_sample_rate(const GraphElement&) const override
+    {
+      return module.get_sample_rate(pin);
+    }
   };
   class GraphOutputMember: public OutputMember
   {
@@ -1492,6 +1573,11 @@ private:
     {
       if (path.reached(path_index))
         visitor.visit(element, *this, path, path_index);
+    }
+
+    double get_sample_rate(const GraphElement&) const override
+    {
+      return module.get_sample_rate(pin);
     }
   };
   map<string, GraphInputMember> inputs;
@@ -1615,6 +1701,9 @@ public:
   // Notify that connection has been made to input
   void notify_connection(const string& in_name,
                          GraphElement& a, const string& out_name) override;
+
+  // Handle sample rate change
+  void update_sample_rate() override {}
 
   //------------------------------------------------------------------------
   // Get all elements (for inspection)
@@ -1752,6 +1841,9 @@ public:
   // Notify that connection has been made to input
   void notify_connection(const string& in_name,
                          GraphElement& a, const string& out_name) override;
+
+  // Handle sample rate change
+  void update_sample_rate() override {}
 
   //------------------------------------------------------------------------
   // Register a clone info

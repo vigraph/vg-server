@@ -42,7 +42,9 @@ bool Element::connect(const string& out_name,
        << b.get_id() << " (" << &b << "):" << in_name << endl;
 #endif
 
+  o->set_sample_rate(i->get_sample_rate());
   b.notify_connection(in_name, *this, out_name);
+  b.update_sample_rate();
   return true;
 }
 
@@ -58,6 +60,23 @@ void Element::notify_connection(const string& in_name,
   inputs.insert(i);
 }
 
+//--------------------------------------------------------------------------
+// Handle sample rate change
+void Element::update_sample_rate()
+{
+  auto& module = get_module();
+  if (!module.has_outputs())
+    return;
+  auto rate = double{};
+  module.for_each_output([this, &rate](const string&, const OutputMember& om)
+      {
+        rate = om.get(*this).get_sample_rate();
+      });
+  module.for_each_input([this, rate](const string&, const InputMember& im)
+      {
+        im.get(*this).set_sample_rate(rate);
+      });
+}
 
 //--------------------------------------------------------------------------
 // Clone element

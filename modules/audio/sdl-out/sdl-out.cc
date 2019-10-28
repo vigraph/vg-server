@@ -196,6 +196,13 @@ void SDLSink::setup()
     if (have.channels >= 6 && module.num_inputs() < 6)
       module.add_input("channel6", &SDLSink::channel6);
 
+    channel1.set_sample_rate(have.freq);
+    channel2.set_sample_rate(have.freq);
+    channel3.set_sample_rate(have.freq);
+    channel4.set_sample_rate(have.freq);
+    channel5.set_sample_rate(have.freq);
+    channel6.set_sample_rate(have.freq);
+
     log.detail << "Created SDL audio out\n";
   }
   catch (const runtime_error& e)

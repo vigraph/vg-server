@@ -1,0 +1,19 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow time series modules
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-time-series
+TYPE     = package
+DEPENDS  = vg-module-time-series-web-fetch
+
+PACKAGE  = $(NAME)
+VERSION  = 2.0.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

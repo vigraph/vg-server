@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph Figure source module
+# Tupfile for Vigraph time series web fetch module
 #
-# Copyright (c) 2018 Paul Clark. All rights reserved
+# Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-vector-source-figure
+NAME    = vg-module-time-series-web-fetch
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-lib
+DEPENDS = vg-dataflow ot-log ot-lib ot-web
 
 include_rules

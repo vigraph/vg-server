@@ -1,0 +1,13 @@
+Source: vg-modules-time-series
+Section: Video
+Priority: optional
+Maintainer:  ViGraph Support <support@vigraph.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: http://www.vigraph.com/
+
+Package: vg-modules-time-series
+Architecture: any
+Depends: ${shlibs:Depends}, vg-engine
+Description: ViGraph dataflow engine - time series modules
+ Modules for time series analysis for the dataflow engine.

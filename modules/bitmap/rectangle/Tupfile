@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph bitmap rectangle module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-bitmap-rectangle
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-log ot-lib vg-bitmap
+
+include_rules

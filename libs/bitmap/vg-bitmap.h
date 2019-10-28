@@ -17,6 +17,7 @@
 namespace ViGraph { namespace Bitmap {
 
 using namespace std;
+using namespace ViGraph::Geometry;
 
 //==========================================================================
 // Bitmap rectangle
@@ -61,6 +62,31 @@ public:
   string to_ascii();
 };
 
+//==========================================================================
+// Bitmap group - sparse set of bitmaps, with depth order
+class Group
+{
+public:
+  struct Item
+  {
+    Vector pos;
+    Rectangle rect;
+
+    Item(const Rectangle& _rect): rect(_rect) {}
+    Item(const Vector& _pos, const Rectangle& _rect):
+      pos(_pos), rect(_rect) {}
+  };
+
+  vector<Item> items;
+
+  // Add a rectangle at 0,0,0
+  void add(const Rectangle& rect)
+  { items.push_back(Item{rect}); }
+
+  // Add a rectangle at position
+  void add(const Vector& pos, const Rectangle& rect)
+  { items.push_back(Item{pos, rect}); }
+};
 
 //==========================================================================
 }} //namespaces

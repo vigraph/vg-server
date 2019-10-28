@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph bitmap graphics: test-bitmap.cc
+// ViGraph bitmap graphics: test-rect.cc
 //
-// Tests for bitmap library
+// Tests for bitmap rectangles
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -12,30 +12,31 @@
 namespace {
 
 using namespace ViGraph;
+using namespace ViGraph::Geometry;
 using namespace std;
 
 
-TEST(BitmapTest, TestDefaultConstructor)
+TEST(RectangleTest, TestDefaultConstructor)
 {
   Bitmap::Rectangle b;
-  EXPECT_EQ(1, b.get_width());
+  EXPECT_EQ(0, b.get_width());
   EXPECT_EQ(0, b.get_height());
 }
 
-TEST(BitmapTest, TestHWConstructor)
+TEST(RectangleTest, TestHWConstructor)
 {
   Bitmap::Rectangle b(3, 5);
   EXPECT_EQ(3, b.get_width());
   EXPECT_EQ(5, b.get_height());
 }
 
-TEST(BitmapTest, TestUnsetPixelsAreTransparent)
+TEST(RectangleTest, TestUnsetPixelsAreTransparent)
 {
   Bitmap::Rectangle b(3, 5);
   EXPECT_TRUE(b(0,0).is_transparent());
 }
 
-TEST(BitmapTest, TestSetPixel)
+TEST(RectangleTest, TestSetPixel)
 {
   Bitmap::Rectangle b(3, 5);
   Colour::RGBA c(Colour::red, 0.5);
@@ -43,7 +44,7 @@ TEST(BitmapTest, TestSetPixel)
   EXPECT_EQ(c, b.get(2,3));
 }
 
-TEST(BitmapTest, TestFill)
+TEST(RectangleTest, TestFill)
 {
   Bitmap::Rectangle b(3, 2);
   Colour::RGBA c(Colour::red, 0.5);
@@ -53,7 +54,7 @@ TEST(BitmapTest, TestFill)
       EXPECT_EQ(c, b.get(j,i));
 }
 
-TEST(BitmapTest, TestBlankToPPM)
+TEST(RectangleTest, TestBlankToPPM)
 {
   const string expected = R"(P3 3 2 255
 0 0 0  0 0 0  0 0 0
@@ -64,7 +65,7 @@ TEST(BitmapTest, TestBlankToPPM)
   EXPECT_EQ(expected, actual);
 }
 
-TEST(BitmapTest, TestSetToPPM)
+TEST(RectangleTest, TestSetToPPM)
 {
   const string expected = R"(P3 3 2 255
 255 255 255  0 0 0  255 0 0
@@ -79,7 +80,7 @@ TEST(BitmapTest, TestSetToPPM)
   EXPECT_EQ(expected, actual);
 }
 
-TEST(BitmapTest, TestReadFromPPM)
+TEST(RectangleTest, TestReadFromPPM)
 {
   const string ppm = R"(P3 3 2 255
 255 255 255  0 0 0  255 0 0
@@ -91,7 +92,7 @@ TEST(BitmapTest, TestReadFromPPM)
   EXPECT_EQ(ppm, actual);
 }
 
-TEST(BitmapTest, TestASCIITestOutput)
+TEST(RectangleTest, TestASCIITestOutput)
 {
   Bitmap::Rectangle b(3, 2);
   b.set(0,0, Colour::white);
@@ -107,7 +108,7 @@ _gb
   EXPECT_EQ(ascii, actual);
 }
 
-TEST(BitmapTest, TestFillSimplePolygon)
+TEST(RectangleTest, TestFillSimplePolygon)
 {
   Bitmap::Rectangle b(4, 4);
   Colour::RGBA c(Colour::red);
@@ -130,7 +131,7 @@ ____
   EXPECT_EQ(expected, actual);
 }
 
-TEST(BitmapTest, TestFillOffScreenPolygon)
+TEST(RectangleTest, TestFillOffScreenPolygon)
 {
   Bitmap::Rectangle b(4, 4);
   Colour::RGBA c(Colour::red);
@@ -153,7 +154,7 @@ ____
   EXPECT_EQ(expected, actual);
 }
 
-TEST(BitmapTest, TestFillTrianglePolygon)
+TEST(RectangleTest, TestFillTrianglePolygon)
 {
   Bitmap::Rectangle b(5, 5);
   Colour::RGBA c(Colour::white);
@@ -176,7 +177,7 @@ _____
   EXPECT_EQ(expected, actual);
 }
 
-TEST(BitmapTest, TestFillCombinedPolygon)
+TEST(RectangleTest, TestFillCombinedPolygon)
 {
   Bitmap::Rectangle b(5, 5);
   Colour::RGBA cr(Colour::red);
@@ -203,6 +204,57 @@ rrr__
 )";
   string actual = b.to_ascii();
   EXPECT_EQ(expected, actual);
+}
+
+TEST(RectangleTest, TestBlitSimple)
+{
+  Bitmap::Rectangle src(3, 2);
+  Colour::RGBA c(Colour::red, 1.0);
+  src.fill(c);
+
+  Bitmap::Rectangle dest(3, 2);
+  dest.fill(Colour::black);
+  src.blit(Vector(), dest);
+
+  for(int i=0; i<dest.get_height(); i++)
+    for(int j=0; j<dest.get_width(); j++)
+      EXPECT_EQ(c, dest.get(j,i));
+}
+
+TEST(RectangleTest, TestBlitOffset)
+{
+  Bitmap::Rectangle src(3, 2);
+  Colour::RGBA cs(Colour::red, 1.0);
+  src.fill(cs);
+
+  Bitmap::Rectangle dest(5, 3);
+  Colour::RGBA cd(Colour::blue, 1.0);
+  dest.fill(cd);
+
+  src.blit(Vector(2, 1), dest);
+
+  for(int i=0; i<dest.get_height(); i++)
+    for(int j=0; j<dest.get_width(); j++)
+      EXPECT_EQ((j<2 || i<1)?cd:cs, dest.get(j,i)) << j << "," << i;
+}
+
+TEST(RectangleTest, TestBlitAlpha)
+{
+  Bitmap::Rectangle src(3, 2);
+  Colour::RGBA cs(Colour::red, 0.5);
+  src.fill(cs);
+
+  Bitmap::Rectangle dest(3, 2);
+  Colour::RGBA cd(Colour::blue, 1.0);
+  dest.fill(cd);
+
+  src.blit(Vector(), dest);
+
+  Colour::RGBA combined(0.5, 0, 0.5, 1.0);
+
+  for(int i=0; i<dest.get_height(); i++)
+    for(int j=0; j<dest.get_width(); j++)
+      EXPECT_EQ(combined, dest.get(j,i));
 }
 
 } // anonymous namespace

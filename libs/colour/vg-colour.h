@@ -104,12 +104,21 @@ struct RGBA: public RGB
   { return RGB::operator!=(o) || a!=o.a; }
 
   // Blend between this and another colour
-  RGB blend_with(const RGB& o)
+  RGB blend_with(const RGB& o) const
   {
     double oa = 1-a;
     return RGB(r*a + o.r*oa,
                g*a + o.g*oa,
                b*a + o.b*oa);
+  }
+
+  // Same, in place
+  void blend_over(RGB& o) const
+  {
+    double oa = 1-a;
+    o.r = r*a + o.r*oa,
+    o.g = g*a + o.g*oa,
+    o.b = b*a + o.b*oa;
   }
 
   // Get as a string

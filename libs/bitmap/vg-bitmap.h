@@ -24,7 +24,7 @@ using namespace ViGraph::Geometry;
 class Rectangle
 {
 private:
-  int width{1};                 // Safe default
+  int width{0};                 // Safe default
   vector<Colour::RGBA> pixels;  // In raster order
 
 public:
@@ -35,7 +35,8 @@ public:
 
   // Accessors
   int get_width() const  { return width; }
-  int get_height() const { return pixels.size() / width; }
+  int get_height() const { return width ? pixels.size() / width : 0; }
+  Vector size() const { return Vector(width, get_height()); }
 
   // Pixel access
   Colour::RGBA get(int x, int y) const
@@ -53,6 +54,10 @@ public:
   // Fill a set of polygons
   // Closes polygons demarcated by blanked points, colour from final point
   void fill_polygons(vector<Geometry::Point>& points);
+
+  // Blit (copy) into the given (x,y) position in a destination rectangle
+  // The destination is assumed to already be sized to allow this
+  void blit(const Vector& pos, Rectangle& dest) const;
 
   // To/from PPM (P3 ASCII form)
   string to_ppm();
@@ -86,6 +91,13 @@ public:
   // Add a rectangle at position
   void add(const Vector& pos, const Rectangle& rect)
   { items.push_back(Item{pos, rect}); }
+
+  // Get the bounding box of all items
+  Geometry::Rectangle bounding_box() const;
+
+  // Flatten into a single Rectangle, which is prefilled with the given colour
+  // Sets the size of the rectangle to the group's bounding box, plus the origin
+  Rectangle compose(const Colour::RGB& background = Colour::black) const;
 };
 
 //==========================================================================

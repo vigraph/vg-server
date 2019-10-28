@@ -141,6 +141,27 @@ TEST(ColourTest, TestRGBABlend)
   EXPECT_DOUBLE_EQ(0.7, c.b);
 }
 
+TEST(ColourTest, TestRGBABlendOver)
+{
+  Colour::RGB a(0.2, 0.4, 0.6);
+  Colour::RGB b(0.4, 0.6, 0.8);
+  Colour::RGBA b0(b, 0);
+  Colour::RGBA b1(b, 1);
+
+  Colour::RGB da = a;
+  b0.blend_over(da);
+  EXPECT_EQ(a, da);
+  b1.blend_over(da);
+  EXPECT_EQ(b, da);
+
+  Colour::RGBA bm(0.4, 0.6, 0.8, 0.5);
+  da = a;
+  bm.blend_over(da);
+  EXPECT_DOUBLE_EQ(0.3, da.r);
+  EXPECT_DOUBLE_EQ(0.5, da.g);
+  EXPECT_DOUBLE_EQ(0.7, da.b);
+}
+
 } // anonymous namespace
 
 int main(int argc, char **argv)

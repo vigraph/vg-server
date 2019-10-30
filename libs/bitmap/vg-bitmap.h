@@ -54,7 +54,7 @@ public:
 
   // Fill a set of polygons
   // Closes polygons demarcated by blanked points, colour from final point
-  void fill_polygons(vector<Geometry::Point>& points);
+  void fill_polygons(const vector<Geometry::Point>& points);
 
   // Blit (copy) into the given (x,y) position in a destination rectangle
   // Clips to destination rectangle

@@ -1,0 +1,33 @@
+# Websocket bitmap test
+
+# From SVG
+vector/svg path="M 0 0 L 2 0 1 1 z" ->-
+bitmap/vector-fill width=10 height=10 ->-
+trans-1: bitmap/translate ->disp.-
+
+oscillator wave="sin" freq=0.1 ->-
+multiply factor=15 ->-
+add offset=15 -> trans-1.x
+
+oscillator wave="sin" freq=0.3 ->-
+multiply factor=15 ->-
+add offset=15 -> trans-1.y
+
+# Abstract
+vector/figure x-wave="sin" x-freq=1
+              y-wave="sin" y-freq=1 y-phase=0.25
+              closed=1 points=6
+              ->-
+bitmap/vector-fill width=10 height=10 ->-
+trans-2: bitmap/translate ->disp.-
+
+oscillator wave="sin" freq=1 ->-
+multiply factor=15 ->-
+add offset=15 -> trans-2.x
+
+oscillator wave="sin" freq=3 ->-
+multiply factor=15 ->-
+add offset=15 -> trans-2.y
+
+disp: bitmap/websocket-display width=30 height=30 frame-rate=25
+

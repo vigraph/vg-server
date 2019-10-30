@@ -100,7 +100,7 @@ string Rectangle::to_ascii()
 // Closes polygons demarcated by blanked points, colour from final point
 // Loosely based on Darel Rex Finley's PD C code at
 // https://alienryderflex.com/polygon_fill/
-void Rectangle::fill_polygons(vector<Geometry::Point>& points)
+void Rectangle::fill_polygons(const vector<Geometry::Point>& points)
 {
   int height = get_height();
   if (!height) return;

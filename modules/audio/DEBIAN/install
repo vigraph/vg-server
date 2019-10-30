@@ -1,4 +1,5 @@
 sdl-out/vg-module-audio-sdl-out.so /usr/lib/vigraph/modules
+wav-in/vg-module-audio-wav-in.so /usr/lib/vigraph/modules
 
 #filters/linux-alsa-out/vg-module-audio-filter-linux-alsa-out.so /usr/lib/vigraph/modules/
 #filters/amplitude/vg-module-audio-filter-amplitude.so /usr/lib/vigraph/modules
@@ -14,5 +15,4 @@ sdl-out/vg-module-audio-sdl-out.so /usr/lib/vigraph/modules
 #sources/linux-alsa-in/vg-module-audio-source-linux-alsa-in.so /usr/lib/vigraph/modules/
 #sources/sdl/vg-module-audio-source-sdl.so /usr/lib/vigraph/modules/
 #sources/vco/vg-module-audio-source-vco.so /usr/lib/vigraph/modules
-#sources/wav/vg-module-audio-source-wav.so /usr/lib/vigraph/modules
 #sources/receive/vg-module-audio-source-receive.so /usr/lib/vigraph/modules

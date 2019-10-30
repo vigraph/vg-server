@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-audio
 TYPE     = package
-DEPENDS  = vg-module-audio-sdl-out
+DEPENDS  = vg-module-audio-sdl-out \
+           vg-module-audio-wav-in
 
 #           vg-module-audio-filter-linux-alsa-out  \
 #           vg-module-audio-filter-amplitude       \
@@ -22,7 +23,6 @@ DEPENDS  = vg-module-audio-sdl-out
 #           vg-module-audio-source-linux-alsa-in   \
 #           vg-module-audio-source-sdl             \
 #           vg-module-audio-source-vco             \
-#           vg-module-audio-source-wav             \
 #           vg-module-audio-source-receive         \
 
 PACKAGE  = $(NAME)

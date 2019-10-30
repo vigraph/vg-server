@@ -238,6 +238,57 @@ TEST(RectangleTest, TestBlitOffset)
       EXPECT_EQ((j<2 || i<1)?cd:cs, dest.get(j,i)) << j << "," << i;
 }
 
+TEST(RectangleTest, TestBlitOffsetClippedBottomRight)
+{
+  Bitmap::Rectangle src(3, 2);
+  Colour::RGBA cs(Colour::red, 1.0);
+  src.fill(cs);
+
+  Bitmap::Rectangle dest(5, 3);
+  Colour::RGBA cd(Colour::blue, 1.0);
+  dest.fill(cd);
+
+  src.blit(Vector(3, 2), dest);
+
+  for(int i=0; i<dest.get_height(); i++)
+    for(int j=0; j<dest.get_width(); j++)
+      EXPECT_EQ((j<3 || i<2)?cd:cs, dest.get(j,i)) << j << "," << i;
+}
+
+TEST(RectangleTest, TestBlitOffsetClippedTopLeft)
+{
+  Bitmap::Rectangle src(3, 2);
+  Colour::RGBA cs(Colour::red, 1.0);
+  src.fill(cs);
+
+  Bitmap::Rectangle dest(5, 3);
+  Colour::RGBA cd(Colour::blue, 1.0);
+  dest.fill(cd);
+
+  src.blit(Vector(-1, -1), dest);
+
+  for(int i=0; i<dest.get_height(); i++)
+    for(int j=0; j<dest.get_width(); j++)
+      EXPECT_EQ((j>=2 || i>=1)?cd:cs, dest.get(j,i)) << j << "," << i;
+}
+
+TEST(RectangleTest, TestBlitOffsetClippedAllRound)
+{
+  Bitmap::Rectangle src(10, 10);
+  Colour::RGBA cs(Colour::red, 1.0);
+  src.fill(cs);
+
+  Bitmap::Rectangle dest(5, 3);
+  Colour::RGBA cd(Colour::blue, 1.0);
+  dest.fill(cd);
+
+  src.blit(Vector(-3, -3), dest);
+
+  for(int i=0; i<dest.get_height(); i++)
+    for(int j=0; j<dest.get_width(); j++)
+      EXPECT_EQ(cs, dest.get(j,i)) << j << "," << i;
+}
+
 TEST(RectangleTest, TestBlitAlpha)
 {
   Bitmap::Rectangle src(3, 2);

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph bitmap web-socket module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-bitmap-websocket
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib ot-web vg-bitmap
+
+include_rules

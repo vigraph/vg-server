@@ -39,6 +39,7 @@ public:
   Vector size() const { return Vector(width, get_height()); }
 
   // Pixel access
+  vector<Colour::RGBA>& get_pixels() { return pixels; }
   Colour::RGBA get(int x, int y) const
   { return pixels[y*width+x]; }
   Colour::RGBA operator()(int x, int y) const
@@ -56,7 +57,7 @@ public:
   void fill_polygons(vector<Geometry::Point>& points);
 
   // Blit (copy) into the given (x,y) position in a destination rectangle
-  // The destination is assumed to already be sized to allow this
+  // Clips to destination rectangle
   void blit(const Vector& pos, Rectangle& dest) const;
 
   // To/from PPM (P3 ASCII form)
@@ -95,9 +96,9 @@ public:
   // Get the bounding box of all items
   Geometry::Rectangle bounding_box() const;
 
-  // Flatten into a single Rectangle, which is prefilled with the given colour
-  // Sets the size of the rectangle to the group's bounding box, plus the origin
-  Rectangle compose(const Colour::RGB& background = Colour::black) const;
+  // Flatten into a single Rectangle
+  // Individual bitmaps will be clipped to the result's size
+  void compose(Rectangle& result) const;
 };
 
 //==========================================================================

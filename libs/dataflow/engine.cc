@@ -58,11 +58,12 @@ void Engine::tick(Time::Stamp t)
 
   while (t >= start_time + tick_interval * tick_number)
   {
-    const auto timestamp = tick_interval.seconds() * tick_number;
+    const auto tick_start = tick_interval.seconds() * tick_number;
+    const auto tick_end = tick_interval.seconds() * (tick_number + 1);
 
     try
     {
-      const auto td = TickData{timestamp, timestamp + tick_interval.seconds()};
+      const auto td = TickData{tick_start, tick_end};
 
       // Tick the graph
       MT::RWReadLock lock(graph_mutex);

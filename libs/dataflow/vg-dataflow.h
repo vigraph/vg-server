@@ -53,19 +53,24 @@ struct TickData
     return 1.0 / sample_rate;
   }
 
+  unsigned long samples_at(double sample_rate, timestamp_t t) const
+  {
+    return t * sample_rate;
+  }
+
   timestamp_t first_sample_at(double sample_rate) const
   {
     const auto sd = sample_duration(sample_rate);
     const auto offset = fmod(start, sd);
-    if (offset)
+    if (fabs(offset) > 1e-15)
       return start - offset + sd;
     else
       return start;
   }
 
-  auto samples_in_tick(double sample_rate) const
+  unsigned long samples_in_tick(double sample_rate) const
   {
-    return sample_rate * (end - first_sample_at(sample_rate));
+    return samples_at(sample_rate, end) - samples_at(sample_rate, start);
   }
 };
 

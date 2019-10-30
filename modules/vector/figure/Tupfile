@@ -7,6 +7,6 @@
 NAME    = vg-module-vector-figure
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry vg-waveform ot-lib
-CFLAGS  = -ftemplate-depth=301
+CFLAGS  = -ftemplate-depth=512
 
 include_rules

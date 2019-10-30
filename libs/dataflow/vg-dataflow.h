@@ -426,7 +426,7 @@ private:
 
   // Combine for types which addition is valid for
   // Second arg is for disambiguation, always pass true
-  template<typename U = T, class = decltype(declval<U>() + declval<U>())>
+  template<typename U = T, class = decltype(declval<U&>() += declval<U>())>
   void combine(decltype(input_data.begin()) it, bool)
   {
     for (auto i = input_data.begin(); i != input_data.end(); ++i)

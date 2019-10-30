@@ -436,7 +436,7 @@ private:
       auto c = it->second.data.begin();
       for (const auto& b: i->second.data)
       {
-        *c += b;
+        *c = *c + b;
         if (++c == it->second.data.end())
           break;
       }

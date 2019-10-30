@@ -15,6 +15,7 @@ using namespace ViGraph::Dataflow;
 const int default_packet_size = 1472;  // Max to avoid fragmentation
 const double default_config_interval = 0.1;
 const auto default_source_address = "0.0.0.0";
+const auto default_frame_rate = 50;
 
 //==========================================================================
 // IDNOut filter
@@ -53,6 +54,7 @@ public:
   Setting<double> config_interval{default_config_interval};
   Setting<bool> intensity_enabled{false};
   Setting<string> source_address{default_source_address};
+  Setting<double> frame_rate{default_frame_rate};
 
   // Input
   Input<Frame> input;
@@ -76,13 +78,15 @@ void IDNOut::setup()
 
   source = socket->local();
   log.detail << "IDN transmitter bound to local address " << source << endl;
+
+  input.set_sample_rate(frame_rate);
 }
 
 //--------------------------------------------------------------------------
 // Tick data
 void IDNOut::tick(const TickData& td)
 {
-  const auto sample_rate = input.get_buffer().size();
+  const auto sample_rate = frame_rate;
   auto sample_time = td.first_sample_at(sample_rate);
   const auto sample_duration = td.sample_duration(sample_rate);
   const auto nsamples = td.samples_in_tick(sample_rate);

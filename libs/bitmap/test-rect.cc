@@ -54,6 +54,18 @@ TEST(RectangleTest, TestFill)
       EXPECT_EQ(c, b.get(j,i));
 }
 
+TEST(RectangleTest, TestFade)
+{
+  Bitmap::Rectangle b(3, 2);
+  Colour::RGBA c(Colour::red, 0.5);
+  b.fill(c);
+  b.fade(0.5);
+  Colour::RGBA c2(Colour::red, 0.25);
+  for(int i=0; i<b.get_height(); i++)
+    for(int j=0; j<b.get_width(); j++)
+      EXPECT_EQ(c2, b.get(j,i));
+}
+
 TEST(RectangleTest, TestBlankToPPM)
 {
   const string expected = R"(P3 3 2 255

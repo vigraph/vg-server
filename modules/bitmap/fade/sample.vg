@@ -1,0 +1,12 @@
+# Bitmap fade test
+
+# From SVG
+bitmap/rectangle width=10 height=10 ->-
+fader: bitmap/fade ->-
+bitmap/translate x=10 y=10 ->-
+bitmap/websocket-display width=30 height=30 frame-rate=25
+
+oscillator wave="sin" freq=0.2 ->-
+multiply factor=0.5 ->-
+add offset=0.5 ->fader.alpha
+

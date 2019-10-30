@@ -52,6 +52,10 @@ public:
   void fill(const Colour::RGBA& c)
   { for(auto& p: pixels) p=c; }
 
+  // Fade to an alpha (combines with existing)
+  void fade(double alpha)
+  { for(auto& p: pixels) p.a *= alpha; }
+
   // Fill a set of polygons
   // Closes polygons demarcated by blanked points, colour from final point
   void fill_polygons(const vector<Geometry::Point>& points);

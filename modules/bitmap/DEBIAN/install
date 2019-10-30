@@ -2,3 +2,4 @@ rectangle/vg-module-bitmap-rectangle.so /usr/lib/vigraph/modules/
 translate/vg-module-bitmap-translate.so /usr/lib/vigraph/modules/
 websocket/vg-module-bitmap-websocket.so /usr/lib/vigraph/modules/
 vector-fill/vg-module-bitmap-vector-fill.so /usr/lib/vigraph/modules/
+fade/vg-module-bitmap-fade.so /usr/lib/vigraph/modules/

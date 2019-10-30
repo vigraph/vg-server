@@ -6,7 +6,10 @@
 
 NAME     = vg-modules-bitmap
 TYPE     = package
-DEPENDS  = vg-module-bitmap-rectangle
+DEPENDS  = vg-module-bitmap-rectangle \
+           vg-module-bitmap-translate \
+           vg-module-bitmap-websocket \
+           vg-module-bitmap-vector-fill
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

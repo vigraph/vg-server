@@ -214,7 +214,8 @@ Dataflow::SimpleModule module
   {
     { "port",   &WebSocket::port   },
     { "width",  &WebSocket::width  },
-    { "height", &WebSocket::height }
+    { "height", &WebSocket::height },
+    { "frame-rate",  &WebSocket::frame_rate }
   },
   {
     { "input", &WebSocket::input }

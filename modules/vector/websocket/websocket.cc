@@ -202,7 +202,8 @@ Dataflow::SimpleModule module
   "WebSocket Display",
   "vector",
   {
-    { "port",  &WebSocket::port }
+    { "port",  &WebSocket::port },
+    { "frame-rate",  &WebSocket::frame_rate }
   },
   {
     { "input", &WebSocket::input }

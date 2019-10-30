@@ -1,4 +1,12 @@
 # Websocket bitmap test
 bitmap/rectangle width=5 height=3 ->-
+trans: bitmap/translate ->-
 bitmap/websocket-display width=10 height=10
 
+oscillator wave="sin" freq=0.1 ->-
+multiply factor=5 ->-
+add offset=5 -> trans.x
+
+oscillator wave="sin" freq=0.1 phase=0.25 ->-
+multiply factor=5 ->-
+add offset=5 -> trans.y

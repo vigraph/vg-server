@@ -13,6 +13,8 @@ namespace {
 
 const auto default_port = 33383;
 const auto default_frame_rate = 50;
+const auto default_width = 10;
+const auto default_height = 10;
 
 typedef shared_ptr<Bitmap::Rectangle> FramePtr;
 
@@ -140,6 +142,8 @@ public:
   // Settings
   Setting<int> port{default_port};
   Setting<double> frame_rate{default_frame_rate};
+  Setting<int> width{default_width};
+  Setting<int> height{default_height};
 
   // Input
   Input<Bitmap::Group> input;
@@ -168,12 +172,13 @@ void WebSocket::setup()
 void WebSocket::tick(const TickData&)
 {
   const auto nsamples = frame_rate;
-  sample_iterate(nsamples, {}, tie(input), {},
-                 [&](const Bitmap::Group& input)
+  sample_iterate(nsamples, tie(width, height), tie(input), {},
+                 [&](int width, int height, const Bitmap::Group& input)
   {
     if (!!server)
     {
-      FramePtr frame{new Bitmap::Rectangle()};
+      FramePtr frame{new Bitmap::Rectangle(width, height)};
+      frame->fill(Colour::black);
       input.compose(*frame.get());
       server->queue(frame);
     }
@@ -207,7 +212,9 @@ Dataflow::SimpleModule module
   "WebSocket Display",
   "bitmap",
   {
-    { "port",  &WebSocket::port }
+    { "port",   &WebSocket::port   },
+    { "width",  &WebSocket::width  },
+    { "height", &WebSocket::height }
   },
   {
     { "input", &WebSocket::input }

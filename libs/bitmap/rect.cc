@@ -165,15 +165,24 @@ void Rectangle::fill_polygons(vector<Geometry::Point>& points)
 
 // -------------------------------------------------------------------
 // Blit (copy) into the given (x,y) position in a destination rectangle
-// The destination is assumed to already be sized to allow this
+// Clips to destination rectangle
 void Rectangle::blit(const Vector& pos, Rectangle& dest) const
 {
-  const auto src_height = get_height();
-  auto src_i{0};
-  auto dest_i{pos.x + pos.y*dest.width};
-  for(auto y=0; y<src_height; y++)
+  const auto height = get_height();
+  auto src_start_x = -min(0, (int)pos.x);
+  auto src_start_y = -min(0, (int)pos.y);
+  auto src_i{src_start_x + src_start_y*width};
+
+  auto dest_start_x = max(0, (int)pos.x);
+  auto dest_start_y = max(0, (int)pos.y);
+  auto dest_i{dest_start_x + dest_start_y*dest.width};
+
+  auto usable_width = min(width-src_start_x, dest.width-dest_start_x);
+  auto usable_height = min(height-src_start_y, dest.get_height()-dest_start_y);
+
+  for(auto y=0; y<usable_height; y++)
   {
-    for(auto x=0; x<width; x++)
+    for(auto x=0; x<usable_width; x++)
       pixels[src_i+x].blend_over(dest.pixels[dest_i+x]);
     src_i += width;
     dest_i += dest.width;

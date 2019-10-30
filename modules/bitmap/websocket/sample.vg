@@ -1,0 +1,4 @@
+# Websocket bitmap test
+bitmap/rectangle width=5 height=3 ->-
+bitmap/websocket-display
+

@@ -37,10 +37,10 @@ Geometry::Rectangle Group::bounding_box() const
 // -------------------------------------------------------------------
 // Flatten into a single Rectangle, which is prefilled with the given colour
 // Sets the size of the rectangle to the group's bounding box, plus the origin
-Rectangle Group::compose(const Colour::RGB& background) const
+void Group::compose(Rectangle& result, const Colour::RGB& background) const
 {
   const auto bb = bounding_box();
-  Rectangle result(bb.p1.x, bb.p1.y);  // Include origin
+  result = Rectangle(bb.p1.x, bb.p1.y);  // Include origin
   result.fill(background);
 
   // Create vector of pointers to sort
@@ -56,8 +56,6 @@ Rectangle Group::compose(const Colour::RGB& background) const
   // Blit them back to front
   for(const auto item: sort_items)
     item->rect.blit(item->pos, result);
-
-  return result;
 }
 
 }} // namespaces

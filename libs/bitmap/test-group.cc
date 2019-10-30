@@ -59,7 +59,8 @@ TEST(GroupTest, TestBoundingBoxOfSingleRectNotAtOrigin)
 TEST(GroupTest, TestCompositionOfEmptyGroup)
 {
   Bitmap::Group group;
-  Bitmap::Rectangle comp = group.compose();
+  Bitmap::Rectangle comp;
+  group.compose(comp);
   EXPECT_EQ(0, comp.get_width());
   EXPECT_EQ(0, comp.get_height());
 }
@@ -70,7 +71,8 @@ TEST(GroupTest, TestCompositionWithSingleRectAtOrigin)
   Bitmap::Rectangle rect(5, 3);
   rect.fill(Colour::white);
   group.add(rect);
-  Bitmap::Rectangle comp = group.compose();
+  Bitmap::Rectangle comp;
+  group.compose(comp);
   EXPECT_EQ(5, comp.get_width());
   EXPECT_EQ(3, comp.get_height());
   for(int i=0; i<comp.get_height(); i++)
@@ -84,7 +86,8 @@ TEST(GroupTest, TestCompositionWithSingleRectOffset)
   Bitmap::Rectangle rect(3, 2);
   rect.fill(Colour::white);
   group.add(Vector(2, 1), rect);
-  Bitmap::Rectangle comp = group.compose();
+  Bitmap::Rectangle comp;
+  group.compose(comp);
   EXPECT_EQ(5, comp.get_width());
   EXPECT_EQ(3, comp.get_height());
   for(int i=0; i<comp.get_height(); i++)
@@ -99,7 +102,8 @@ TEST(GroupTest, TestCompositionWithSingleRectAlphaToSetBackground)
   Bitmap::Rectangle rect(5, 3);
   rect.fill(Colour::RGBA(Colour::red, 0.5));
   group.add(rect);
-  Bitmap::Rectangle comp = group.compose(Colour::blue);
+  Bitmap::Rectangle comp;
+  group.compose(comp, Colour::blue);
   EXPECT_EQ(5, comp.get_width());
   EXPECT_EQ(3, comp.get_height());
 
@@ -121,7 +125,8 @@ TEST(GroupTest, TestCompositionWithMultipleRectsZOrdered)
   rect2.fill(Colour::black);
   group.add(Vector(0,0,0), rect2);  // Note background, needs reorder
 
-  Bitmap::Rectangle comp = group.compose(Colour::blue); // Shouldn't be seen
+  Bitmap::Rectangle comp;
+  group.compose(comp, Colour::blue); // Shouldn't be seen
   EXPECT_EQ(5, comp.get_width());
   EXPECT_EQ(3, comp.get_height());
 

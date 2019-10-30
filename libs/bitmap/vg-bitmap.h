@@ -39,6 +39,7 @@ public:
   Vector size() const { return Vector(width, get_height()); }
 
   // Pixel access
+  vector<Colour::RGBA>& get_pixels() { return pixels; }
   Colour::RGBA get(int x, int y) const
   { return pixels[y*width+x]; }
   Colour::RGBA operator()(int x, int y) const
@@ -97,7 +98,8 @@ public:
 
   // Flatten into a single Rectangle, which is prefilled with the given colour
   // Sets the size of the rectangle to the group's bounding box, plus the origin
-  Rectangle compose(const Colour::RGB& background = Colour::black) const;
+  void compose(Rectangle& result,
+               const Colour::RGB& background = Colour::black) const;
 };
 
 //==========================================================================

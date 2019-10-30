@@ -1,18 +1,20 @@
 //==========================================================================
-// ViGraph dataflow module: vector/websocket/websocket.cc
+// ViGraph dataflow module: bitmap/websocket/websocket.cc
 //
 // Filter to output display to a client WebSocket
 //
 // Copyright (c) 2017-2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../vector-module.h"
+#include "../bitmap-module.h"
 #include "ot-web.h"
 
 namespace {
 
-const auto default_port = 33382;
+const auto default_port = 33383;
 const auto default_frame_rate = 50;
+
+typedef shared_ptr<Bitmap::Rectangle> FramePtr;
 
 //==========================================================================
 // WebSocket display server
@@ -87,19 +89,21 @@ void WebSocketDisplayServer::handle_websocket(
       break;
     }
 
+    auto rect = fqe.frame.get();
+
     // Construct realtime message
     string msg;
     Channel::StringWriter writer(msg);
-    writer.write_byte(0x01);                   // Version
-    writer.write_byte(0x01);                   // Vector frame
+    writer.write_byte(0x03);                   // Version including bitmap
+    writer.write_byte(0x04);                   // Bitmap frame
     writer.write_nbo_64(fqe.timestamp.ntp());  // Timestamp
-    for(const auto& p: fqe.frame->points)
+    writer.write_nbo_32(rect->get_width());
+    writer.write_nbo_32(rect->get_height());
+    for(const auto& p: rect->get_pixels())
     {
-      writer.write_nbo_16(static_cast<uint16_t>(p.x*65535+32768));
-      writer.write_nbo_16(static_cast<uint16_t>(p.y*65535+32768));
-      writer.write_nbo_16(static_cast<uint16_t>(p.c.r*65535));
-      writer.write_nbo_16(static_cast<uint16_t>(p.c.g*65535));
-      writer.write_nbo_16(static_cast<uint16_t>(p.c.b*65535));
+      writer.write_byte(static_cast<uint8_t>(p.r*255));
+      writer.write_byte(static_cast<uint8_t>(p.g*255));
+      writer.write_byte(static_cast<uint8_t>(p.b*255));
     }
 
     if (!ws.write_binary(msg))
@@ -138,7 +142,7 @@ public:
   Setting<double> frame_rate{default_frame_rate};
 
   // Input
-  Input<Frame> input;
+  Input<Bitmap::Group> input;
 };
 
 //--------------------------------------------------------------------------
@@ -165,11 +169,12 @@ void WebSocket::tick(const TickData&)
 {
   const auto nsamples = frame_rate;
   sample_iterate(nsamples, {}, tie(input), {},
-                 [&](const Frame& input)
+                 [&](const Bitmap::Group& input)
   {
     if (!!server)
     {
-      FramePtr frame{new Frame{input}};
+      FramePtr frame{new Bitmap::Rectangle()};
+      input.compose(*frame.get());
       server->queue(frame);
     }
   });
@@ -200,7 +205,7 @@ Dataflow::SimpleModule module
 {
   "websocket-display",
   "WebSocket Display",
-  "vector",
+  "bitmap",
   {
     { "port",  &WebSocket::port }
   },

@@ -61,13 +61,21 @@ void create_element(const Dataflow::Engine& engine, Dataflow::Graph& graph,
         auto setting = module.get_setting(name);
         if (!setting)
         {
-          Log::Error log;
-          log << "Unknown setting '" << name << "' on element "
-              << element->get_id() << endl;
-          continue;
-        }
+          auto input = module.get_input(name);
+          if (!input)
+          {
+            Log::Error log;
+            log << "Unknown setting '" << name << "' on element "
+                << element->get_id() << endl;
+            continue;
+          }
 
-        setting->set_json(*element, value);
+          input->set_json(*element, value);
+        }
+        else
+        {
+          setting->set_json(*element, value);
+        }
       }
     }
 

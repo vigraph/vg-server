@@ -12,7 +12,7 @@
 namespace {
 
 const auto default_port = 33382;
-const auto default_frame_rate = 50;
+const auto default_frame_rate = 25;
 
 //==========================================================================
 // WebSocket display server

@@ -12,7 +12,7 @@
 namespace {
 
 const auto default_port = 33383;
-const auto default_frame_rate = 50;
+const auto default_frame_rate = 25;
 const auto default_width = 10;
 const auto default_height = 10;
 

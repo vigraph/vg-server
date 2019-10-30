@@ -122,6 +122,20 @@ TEST(GroupTest, TestCompositionWithMultipleRectsZOrdered)
                 comp.get(j,i)) << j << "," << i;
 }
 
+TEST(GroupTest, TestCombineWithPlusEqual)
+{
+  Bitmap::Group group1;
+  Bitmap::Rectangle rect1;
+  group1.add(rect1);
+
+  Bitmap::Group group2;
+  Bitmap::Rectangle rect2;
+  group2.add(rect2);
+
+  group1 += group2;
+  ASSERT_EQ(2, group1.items.size());
+}
+
 } // anonymous namespace
 
 int main(int argc, char **argv)

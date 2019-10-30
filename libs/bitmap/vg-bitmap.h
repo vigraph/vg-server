@@ -99,6 +99,10 @@ public:
   // Flatten into a single Rectangle
   // Individual bitmaps will be clipped to the result's size
   void compose(Rectangle& result) const;
+
+  // Combine with another one
+  Group& operator+=(const Group& o)
+  { items.insert(items.end(), o.items.begin(), o.items.end()); return *this; }
 };
 
 //==========================================================================

@@ -52,6 +52,10 @@ public:
   void fill(const Colour::RGBA& c)
   { for(auto& p: pixels) p=c; }
 
+  // Set all pixels to a colour, maintaining existing alpha
+  void colourise(const Colour::RGB& c)
+  { for(auto& p: pixels) { p.r=c.r; p.g=c.g; p.b=c.b; } }
+
   // Fade to an alpha (combines with existing)
   void fade(double alpha)
   { for(auto& p: pixels) p.a *= alpha; }

@@ -1,6 +1,5 @@
 # Bitmap fade test
 
-# From SVG
 bitmap/rectangle width=10 height=10 ->-
 fader: bitmap/fade ->-
 bitmap/translate x=10 y=10 ->-

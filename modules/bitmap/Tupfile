@@ -10,7 +10,8 @@ DEPENDS  = vg-module-bitmap-rectangle \
            vg-module-bitmap-translate \
            vg-module-bitmap-websocket \
            vg-module-bitmap-vector-fill \
-           vg-module-bitmap-fade
+           vg-module-bitmap-fade \
+           vg-module-bitmap-hsl
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

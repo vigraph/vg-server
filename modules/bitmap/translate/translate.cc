@@ -31,6 +31,7 @@ public:
   // Configuration
   Input<double> x{0.0};
   Input<double> y{0.0};
+  Input<double> z{0.0};
 
   // Input
   Input<Bitmap::Group> input;
@@ -44,11 +45,11 @@ public:
 void Translate::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(x, y, input), tie(output),
-                 [&](double x, double y, const Bitmap::Group& input,
+  sample_iterate(nsamples, {}, tie(x, y, z, input), tie(output),
+                 [&](double x, double y, double z, const Bitmap::Group& input,
                      Bitmap::Group& output)
   {
-    Vector v(x, y);
+    Vector v(x, y, z);
     output = input;
     for(auto& item: output.items)
       item.pos += v;
@@ -66,6 +67,7 @@ Dataflow::SimpleModule module
   {
     { "x",     &Translate::x     },
     { "y",     &Translate::y     },
+    { "z",     &Translate::z     },
     { "input", &Translate::input }
   },
   {

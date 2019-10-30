@@ -12,6 +12,7 @@
 namespace {
 
 const auto default_port = 33382;
+const auto default_frame_rate = 50;
 
 //==========================================================================
 // WebSocket display server
@@ -134,6 +135,7 @@ public:
 
   // Settings
   Setting<int> port{default_port};
+  Setting<double> frame_rate{default_frame_rate};
 
   // Input
   Input<Frame> input;
@@ -150,6 +152,8 @@ void WebSocket::setup()
     server.reset(new WebSocketDisplayServer(port,
                            "ViGraph WebSocket display server"));
     server_thread.reset(new Net::TCPServerThread(*server));
+
+    input.set_sample_rate(frame_rate);
   }
 }
 
@@ -157,7 +161,7 @@ void WebSocket::setup()
 // Tick data
 void WebSocket::tick(const TickData&)
 {
-  const auto nsamples = input.get_buffer().size();
+  const auto nsamples = frame_rate;
   sample_iterate(nsamples, {}, tie(input), {},
                  [&](const Frame& input)
   {

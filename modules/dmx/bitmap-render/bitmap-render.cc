@@ -31,8 +31,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<double> width{1};
-  Setting<double> height{1};
+  Setting<int> width{1};
+  Setting<int> height{1};
+  Setting<int> pad_every{0};
+  Setting<int> pad_extra{0};
 
   // Input
   Input<Bitmap::Group> input;
@@ -47,7 +49,7 @@ void BitmapRender::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(nsamples, tie(width, height), tie(input), tie(output),
-                 [&](double width, double height,
+                 [&](int width, int height,
                      const Bitmap::Group& input,
                      DMXState& output)
   {
@@ -55,11 +57,18 @@ void BitmapRender::tick(const TickData& td)
     bitmap.fill(Colour::black);
     input.compose(bitmap);
 
+    auto count = 0;
     for(const auto& pixel: bitmap.get_pixels())
     {
       output.channels.push_back(pixel.r * 255.0);
       output.channels.push_back(pixel.g * 255.0);
       output.channels.push_back(pixel.b * 255.0);
+
+      if (pad_every && ++count >= pad_every)
+      {
+        output.channels.resize(output.channels.size()+pad_extra*3);
+        count = 0;
+      }
     }
   });
 }
@@ -73,7 +82,9 @@ Dataflow::SimpleModule module
   "dmx",
   {
     { "width",  &BitmapRender::width  },
-    { "width",  &BitmapRender::height }
+    { "height", &BitmapRender::height },
+    { "pad-every", &BitmapRender::pad_every },
+    { "pad-extra", &BitmapRender::pad_extra }
   },
   {
     { "input",  &BitmapRender::input  }

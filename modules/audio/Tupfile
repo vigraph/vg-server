@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-audio
 TYPE     = package
-DEPENDS  = vg-module-audio-sdl-out \
+DEPENDS  = vg-module-audio-pitch-shift \
+           vg-module-audio-sdl-out \
            vg-module-audio-wav-in
 
 #           vg-module-audio-filter-linux-alsa-out  \
@@ -18,7 +19,6 @@ DEPENDS  = vg-module-audio-sdl-out \
 #           vg-module-audio-filter-filter          \
 #           vg-module-audio-filter-position        \
 #           vg-module-audio-filter-reverb          \
-#           vg-module-audio-filter-shift           \
 #           vg-module-audio-filter-send            \
 #           vg-module-audio-source-linux-alsa-in   \
 #           vg-module-audio-source-sdl             \

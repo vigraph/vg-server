@@ -7,15 +7,7 @@ hsl: bitmap/hsl ->-
 bitmap/translate x=10 y=10 ->-
 bitmap/websocket-display width=30 height=30 frame-rate=25
 
-oscillator wave="sin" freq=0.2 ->-
-multiply factor=0.5 ->-
-add offset=0.5 ->hsl.h
-
-oscillator wave="sin" freq=0.05 ->-
-multiply factor=0.5 ->-
-add offset=0.5 ->hsl.s
-
-oscillator wave="saw" freq=1 ->-
-multiply factor=0.5 ->-
-add offset=0.5 ->rot.z
+oscillator wave="sin" freq=0.2 control>hsl.h
+oscillator wave="sin" freq=0.05 control>hsl.s
+oscillator wave="saw" freq=1 control>rot.z
 

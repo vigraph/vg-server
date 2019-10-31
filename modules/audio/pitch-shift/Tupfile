@@ -1,0 +1,13 @@
+#===========================================================================
+# Tupfile for Vigraph Audio pitch shift module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-module-audio-pitch-shift
+TYPE      = shared
+DEPENDS   = vg-dataflow
+LINUX-DEPENDS = ext-pkg-soundtouch
+WINDOWS-DEPENDS = ext-SoundTouch_x64
+
+include_rules

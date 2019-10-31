@@ -86,7 +86,7 @@ void ArtNetOut::tick(const TickData& td)
     for(int u=universe; ;u++)
     {
       auto& sequence = universe_sequences[u];
-      if (!sequence) sequences++;  // Avoid 0
+      if (!sequence) sequence++;  // Avoid 0
       ArtNet::DMXPacket dmx_packet(sequence++, u);
 
       auto start_chan = u*512ul;

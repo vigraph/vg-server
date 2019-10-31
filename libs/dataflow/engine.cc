@@ -52,9 +52,19 @@ void Engine::update_elements()
 
 //--------------------------------------------------------------------------
 // Tick the engine
-void Engine::tick(Time::Stamp t)
+void Engine::tick(const Time::Duration& t)
 {
   if (!start_time) start_time = t;
+
+  const auto latest_tick_number = static_cast<unsigned long>((t - start_time)
+                                                             / tick_interval);
+  if (latest_tick_number > tick_number + 2)
+  {
+    Log::Error elog;
+    const auto skip = latest_tick_number - tick_number - 2;
+    elog << "Skipping " << skip << " ticks due to lag" << endl;
+    tick_number += skip;
+  }
 
   while (t >= start_time + tick_interval * tick_number)
   {

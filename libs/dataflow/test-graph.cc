@@ -30,9 +30,9 @@ TEST_F(GraphTest, TestGraphTickAndFiltering)
   auto sink = graph.get<TestSink>("SINK");
   ASSERT_NE(nullptr, sink);
 
-  ASSERT_NO_THROW(engine.tick(1));
+  ASSERT_NO_THROW(engine.tick(Time::Duration{1}));
   EXPECT_EQ(6, sink->received_data);
-  ASSERT_NO_THROW(engine.tick(2));
+  ASSERT_NO_THROW(engine.tick(Time::Duration{2}));
   EXPECT_EQ(18, sink->received_data);
 }
 
@@ -52,9 +52,9 @@ TEST_F(GraphTest, TestGraphTickAndMultipleSources)
   auto sink = graph.get<TestSink>("SINK");
   ASSERT_NE(nullptr, sink);
 
-  ASSERT_NO_THROW(engine.tick(1));
+  ASSERT_NO_THROW(engine.tick(Time::Duration{1}));
   EXPECT_EQ(4, sink->received_data);
-  ASSERT_NO_THROW(engine.tick(2));
+  ASSERT_NO_THROW(engine.tick(Time::Duration{2}));
   EXPECT_EQ(12, sink->received_data);
 }
 
@@ -83,7 +83,7 @@ TEST_F(GraphTest, TestGraphSimpleTickOrdering)
   ASSERT_NE(nullptr, sink);
   sink->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(engine.tick(1));
+  ASSERT_NO_THROW(engine.tick(Time::Duration{1}));
   EXPECT_EQ("Sfs", tick_order);
 }
 
@@ -104,7 +104,7 @@ TEST_F(GraphTest, TestGraphTickOrderingWithoutRouting)
   ASSERT_NE(nullptr, source1);
   source2->tick_order = &tick_order;
 
-  ASSERT_NO_THROW(engine.tick(1));
+  ASSERT_NO_THROW(engine.tick(Time::Duration{1}));
   EXPECT_EQ("S1S2", tick_order);
 }
 

@@ -2057,7 +2057,7 @@ class Engine
   list<Element *> tick_elements;
   Time::Duration tick_interval = default_tick_interval;
   double sample_rate = default_sample_rate;
-  Time::Stamp start_time;
+  Time::Duration start_time;
   uint64_t tick_number{0};
   list<string> default_sections;  // Note: ordered
 
@@ -2102,7 +2102,7 @@ class Engine
 
   //------------------------------------------------------------------------
   // Tick the graph
-  void tick(Time::Stamp t);
+  void tick(const Time::Duration& t);
 
   //------------------------------------------------------------------------
   // Accept visitors

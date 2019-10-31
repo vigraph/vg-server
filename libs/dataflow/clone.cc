@@ -112,7 +112,7 @@ Clone *Clone::clone() const
 // Final setup for elements and calculate topology
 void Clone::setup()
 {
-  auto n = number.get();
+  auto n = copies.get();
   if (n < 1)
     return;
 

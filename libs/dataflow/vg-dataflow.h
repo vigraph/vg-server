@@ -1847,7 +1847,7 @@ public:
     clones.emplace_back();
   }
 
-  Setting<double> number;
+  Setting<double> copies;
 
   void set_id(const string& _id) override;
 
@@ -1902,7 +1902,7 @@ const Dataflow::CloneModule clone_module
   "Clone",
   "core",
   {
-    { "number", &Clone::number }
+    { "copies", &Clone::copies }
   },
   {},
   {}

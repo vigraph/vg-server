@@ -91,7 +91,7 @@ int Server::pre_run()
 // Main loop tick
 int Server::tick()
 {
-  Time::Stamp now = Time::Stamp::now();
+  Time::Duration now = Time::Duration::clock();
   engine.tick(now);
   return 0;
 }

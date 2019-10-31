@@ -25,7 +25,7 @@ private:
 
   // State
   unique_ptr<Net::UDPSocket> socket;
-  uint8_t sequence{0};
+  map<int, uint8_t> universe_sequences;
 
   // Element virtuals
   void setup() override;
@@ -82,28 +82,41 @@ void ArtNetOut::tick(const TickData& td)
   sample_iterate(nsamples, {}, tie(input), {},
                  [&](const DMXState& input)
   {
-    if (!sequence) sequence++;  // Avoid 0
-    ArtNet::DMXPacket dmx_packet(sequence++, universe);
-    dmx_packet.data = input.channels;
-
-    auto size = dmx_packet.length();
-
-    // Create a packet
-    vector<unsigned char> packet;
-    packet.resize(size);
-    Channel::BlockWriter bw(packet.data(), size);
-    dmx_packet.write(bw);
-
-    // Send it
-    try
+    // Can spread over multiple Universes
+    for(int u=universe; ;u++)
     {
-      socket->sendto(packet.data(), size, 0, destination);
-    }
-    catch (Net::SocketError e)
-    {
-      Log::Error log;
-      log << "ArtNet transmit socket error: " << e.get_string() << endl;
-      return;
+      auto& sequence = universe_sequences[u];
+      if (!sequence) sequences++;  // Avoid 0
+      ArtNet::DMXPacket dmx_packet(sequence++, u);
+
+      auto start_chan = u*512ul;
+      auto this_length = min(512ul, input.channels.size()-start_chan);
+      dmx_packet.data.resize(this_length);
+      copy(input.channels.begin()+start_chan,
+           input.channels.begin()+start_chan+this_length,
+           dmx_packet.data.begin());
+
+      auto size = dmx_packet.length();
+
+      // Create a packet
+      vector<unsigned char> packet;
+      packet.resize(size);
+      Channel::BlockWriter bw(packet.data(), size);
+      dmx_packet.write(bw);
+
+      // Send it
+      try
+      {
+        socket->sendto(packet.data(), size, 0, destination);
+      }
+      catch (Net::SocketError e)
+      {
+        Log::Error log;
+        log << "ArtNet transmit socket error: " << e.get_string() << endl;
+        return;
+      }
+
+      if (start_chan + this_length >= input.channels.size()) break;
     }
   });
 }

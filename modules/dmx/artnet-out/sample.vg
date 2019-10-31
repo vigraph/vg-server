@@ -6,7 +6,7 @@ colour: bitmap/hsl h=0 ->out.-
 bitmap/rectangle width=5 height=2 ->-
 trans: bitmap/translate z=1 ->out.-
 
-out: dmx/bitmap-render width=150 height=2 ->-
+out: dmx/bitmap-render width=150 height=2 reverse-every=150 ->-
 dmx/artnet-out address="10.77.84.158"
 
 oscillator wave="saw" freq=0.2 control>colour.h

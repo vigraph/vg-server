@@ -46,6 +46,7 @@ TEST(ArtNetPacketWriterTest, TestBaseDMXPacket)
   packet.data.push_back(0x55);
   packet.data.push_back(0xaa);
   packet.data.push_back(0xff);
+  EXPECT_EQ(22, packet.length());
 
   ostringstream oss;
   Channel::StreamWriter writer(oss);

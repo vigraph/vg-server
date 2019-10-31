@@ -126,6 +126,9 @@ struct DMXPacket: public Packet
 
   // Write to a channel
   void write(Channel::Writer& writer);
+
+  // Get packet length
+  size_t length() { return 18u + data.size(); }
 };
 
 //==========================================================================

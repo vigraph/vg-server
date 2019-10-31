@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph DMX Artnet output module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-dmx-artnet-out
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry vg-artnet
+
+include_rules

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph DMX Bitmap render module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-dmx-bitmap-render
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry vg-bitmap
+
+include_rules

@@ -8,6 +8,7 @@ NAME     = vg-modules-core
 TYPE     = package
 DEPENDS  = vg-module-core-clone       \
            vg-module-core-clone-info  \
+           vg-module-core-filter      \
            vg-module-core-graph       \
            vg-module-core-number-pin  \
            vg-module-core-oscillator  \

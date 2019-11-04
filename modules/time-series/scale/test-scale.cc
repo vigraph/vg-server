@@ -25,22 +25,26 @@ TEST_F(ScaleTest, TestNoChange)
 {
   auto& scale = add("time-series/scale");
 
-  auto datas = vector<DataSet>(1);
-  auto& data = datas[0];
+  auto datacs = vector<DataCollection>(1);
+  auto& datac = datacs[0];
+  DataSet data;
   for(auto i=0u; i<50; i++)
     data.add(2000+i, i/50.0);
+  datac.add(data);
 
-  auto& ds = add_source(datas);
+  auto& ds = add_source(datacs);
   ds.connect("output", scale, "input");
 
-  auto rdatas = vector<DataSet>{};
-  auto& sink = add_sink(rdatas, sample_rate);
+  auto rdatacs = vector<DataCollection>{};
+  auto& sink = add_sink(rdatacs, sample_rate);
   scale.connect("output", sink, "input");
 
   run();
 
-  ASSERT_EQ(sample_rate, rdatas.size());
-  const auto& rdata = rdatas[0];
+  ASSERT_EQ(sample_rate, rdatacs.size());
+  const auto& rdatac = rdatacs[0];
+  ASSERT_EQ(1, rdatac.datasets.size());
+  const auto& rdata = rdatac.datasets[0];
   ASSERT_EQ(50, rdata.samples.size());
   for(auto i=0u; i<rdata.samples.size(); i++)
   {
@@ -55,22 +59,26 @@ TEST_F(ScaleTest, TestWithChange)
   auto& scale = add("time-series/scale")
                    .set("factor", 10.0);
 
-  auto datas = vector<DataSet>(1);
-  auto& data = datas[0];
+  auto datacs = vector<DataCollection>(1);
+  auto& datac = datacs[0];
+  DataSet data;
   for(auto i=0u; i<50; i++)
     data.add(2000+i, i/50.0);
+  datac.add(data);
 
-  auto& ds = add_source(datas);
+  auto& ds = add_source(datacs);
   ds.connect("output", scale, "input");
 
-  auto rdatas = vector<DataSet>{};
-  auto& sink = add_sink(rdatas, sample_rate);
+  auto rdatacs = vector<DataCollection>{};
+  auto& sink = add_sink(rdatacs, sample_rate);
   scale.connect("output", sink, "input");
 
   run();
 
-  ASSERT_EQ(sample_rate, rdatas.size());
-  const auto& rdata = rdatas[0];
+  ASSERT_EQ(sample_rate, rdatacs.size());
+  const auto& rdatac = rdatacs[0];
+  ASSERT_EQ(1, rdatac.datasets.size());
+  const auto& rdata = rdatac.datasets[0];
   ASSERT_EQ(50, rdata.samples.size());
   for(auto i=0u; i<rdata.samples.size(); i++)
   {

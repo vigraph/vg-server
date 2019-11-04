@@ -1,6 +1,0 @@
-# Sample demonstrating temperature audibly!
-time-series/web-fetch url="http://woodfortrees.org/data/wti" ->-
-multiply factor=440 ->-
-add offset=440 ->freq
-oscillator wave="sin" ->channel1 ->channel2
-audio/sdl-out

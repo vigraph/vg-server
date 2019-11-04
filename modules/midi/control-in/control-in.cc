@@ -30,7 +30,7 @@ public:
   using SimpleElement::SimpleElement;
 
   Input<double> channel{-1};
-  Input<double> key{-1};
+  Input<double> control{-1};
   Input<MIDI::Event> input;
   Output<double> output;
 };
@@ -40,10 +40,10 @@ public:
 void ControlIn::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(channel, key, input), tie(output),
-                 [&](double c, double k, const MIDI::Event& i, double& o)
+  sample_iterate(nsamples, {}, tie(channel, control, input), tie(output),
+                 [&](double c, double co, const MIDI::Event& i, double& o)
   {
-    if ((c < 0 || i.channel == c) && (k < 0 || i.key == k))
+    if ((c < 0 || i.channel == c) && (co < 0 || i.key == co))
       o = last_output = (i.value / 128.0);
     else
       o = last_output;
@@ -58,7 +58,7 @@ Dataflow::SimpleModule module
   {},
   {
     { "channel",  &ControlIn::channel },
-    { "key",      &ControlIn::key },
+    { "control",  &ControlIn::control },
     { "input",    &ControlIn::input },
   },
   {

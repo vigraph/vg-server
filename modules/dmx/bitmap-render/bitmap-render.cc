@@ -31,8 +31,11 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<double> width{1};
-  Setting<double> height{1};
+  Setting<int> width{1};
+  Setting<int> height{1};
+  Setting<int> pad_every{0};
+  Setting<int> pad_extra{0};
+  Setting<int> reverse_every{0};
 
   // Input
   Input<Bitmap::Group> input;
@@ -47,7 +50,7 @@ void BitmapRender::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(nsamples, tie(width, height), tie(input), tie(output),
-                 [&](double width, double height,
+                 [&](int width, int height,
                      const Bitmap::Group& input,
                      DMXState& output)
   {
@@ -55,11 +58,30 @@ void BitmapRender::tick(const TickData& td)
     bitmap.fill(Colour::black);
     input.compose(bitmap);
 
-    for(const auto& pixel: bitmap.get_pixels())
+    const auto& pixels = bitmap.get_pixels();
+    for(auto count=0u; count<pixels.size(); count++)
     {
+      auto i = count;
+
+      // Allow reversal
+      if (reverse_every)
+      {
+        const auto section = i/reverse_every;
+        const auto section_start = section * reverse_every;
+        if (!(section % 2)) // every other section
+          i = section_start+reverse_every-(i-section_start);
+      }
+
+      const auto& pixel = pixels[i];
       output.channels.push_back(pixel.r * 255.0);
       output.channels.push_back(pixel.g * 255.0);
       output.channels.push_back(pixel.b * 255.0);
+
+      if (pad_every && ++count >= (unsigned)pad_every)
+      {
+        output.channels.resize(output.channels.size()+pad_extra*3);
+        count = 0;
+      }
     }
   });
 }
@@ -73,7 +95,10 @@ Dataflow::SimpleModule module
   "dmx",
   {
     { "width",  &BitmapRender::width  },
-    { "width",  &BitmapRender::height }
+    { "height", &BitmapRender::height },
+    { "pad-every", &BitmapRender::pad_every },
+    { "pad-extra", &BitmapRender::pad_extra },
+    { "reverse-every", &BitmapRender::reverse_every }
   },
   {
     { "input",  &BitmapRender::input  }

@@ -17,6 +17,15 @@
 struct DMXState
 {
   vector<uint8_t> channels;
+
+  // Combine with another one
+  DMXState& operator+=(const DMXState& o)
+  {
+    // Highest Takes Priority - max of either side
+    for(auto i=0u; i<min(channels.size(), o.channels.size()); i++)
+      channels[i] = max(channels[i], o.channels[i]);
+    return *this;
+  }
 };
 
 typedef shared_ptr<DMXState> DMXStatePtr;

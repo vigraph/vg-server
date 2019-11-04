@@ -1,14 +1,15 @@
 # Bitmap to Artnet test
 
-bitmap/rectangle width=300 height=2 ->-
-colour: bitmap/hsl h=0 ->out.-
+bitmap/rectangle width=150 height=2 ->-
+colour: bitmap/hsl h=0 ->-
+dmx/bitmap-render width=150 height=2 reverse-every=150 ->artnet.-
 
 bitmap/rectangle width=5 height=2 ->-
-trans: bitmap/translate ->out.-
+trans: bitmap/translate ->-
+dmx/bitmap-render width=150 height=2 reverse-every=150 ->artnet.-
 
-out: dmx/bitmap-render width=300 height=1 ->-
-dmx/artnet-out address="10.77.84.158"
+artnet: dmx/artnet-out address="10.77.84.158"
 
 oscillator wave="saw" freq=0.2 control>colour.h
 oscillator wave="sin" freq=0.1 control>-
-multiply factor=300 ->trans.x
+multiply factor=150 ->trans.x

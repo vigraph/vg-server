@@ -167,16 +167,13 @@ void ALSAIn::tick(const TickData& td)
     if (events.empty())
       return;
 
-    const auto& t = events.front().t;
-    if (t > last_tick_end)
+    if (events.front().t > last_tick_end)
       return;
-    if (t < earliest + sample_duration)
+
+    while (!events.empty() && events.front().t < earliest + sample_duration)
     {
-      if (t >= earliest || events.size() == 1)
-      {
-        const auto& e = events.front().e;
-        o = e;
-      }
+      if (events.front().t >= earliest || events.size() == 1)
+        o = events.front().e;
       events.pop();
     }
     earliest += sample_duration;

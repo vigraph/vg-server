@@ -43,7 +43,8 @@ void ControlIn::tick(const TickData& td)
   sample_iterate(nsamples, {}, tie(channel, control, input), tie(output),
                  [&](double c, double co, const MIDI::Event& i, double& o)
   {
-    if ((c < 0 || i.channel == c) && (co < 0 || i.key == co))
+    if (i.type == MIDI::Event::Type::control_change &&
+        (c < 0 || i.channel == c) && (co < 0 || i.key == co))
       o = last_output = (i.value / 128.0);
     else
       o = last_output;

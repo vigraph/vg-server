@@ -6,7 +6,7 @@
 // Copyright (c) 2018-2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../module.h"
+#include "../time-series-module.h"
 #include "ot-web.h"
 
 namespace {
@@ -19,9 +19,7 @@ const auto fetch_timeout{5};
 class WebFetch: public SimpleElement
 {
 private:
-  vector<double> data;
-  double _from;
-  double _interval;
+  DataSet data;
 
   // Source/Element virtuals
   void setup() override;
@@ -38,11 +36,10 @@ public:
 
   // Settings
   Setting<string> url;
+  Setting<string> name;
 
   // Output
-  Output<double> output;
-  Output<double> from;
-  Output<double> interval;
+  Output<DataSet> output;
 };
 
 //--------------------------------------------------------------------------
@@ -62,6 +59,9 @@ void WebFetch::setup()
     return;
   }
 
+  data.source = url;
+  data.name = name;
+
   // !WoodForTrees format only at the moment
   // Line comments with '#'
   // Time and value data pair on each line
@@ -71,7 +71,7 @@ void WebFetch::setup()
   Lex::Analyser lex(iss);
   lex.add_line_comment_symbol("#");
 
-  _from = -1.0;
+  auto from = -1.0;
   auto t{0.0};
   for(;;)
   {
@@ -80,31 +80,34 @@ void WebFetch::setup()
     if (token.type == Lex::Token::NUMBER)
     {
       t = Text::stof(token.value);
-      if (_from < 0) _from = t;
+      if (from < 0) from = t;
 
       token = lex.read_token();
       if (token.type == Lex::Token::END) break;
       if (token.type == Lex::Token::NUMBER)
       {
         double v = Text::stof(token.value);
-        data.push_back(v);
+        data.add(t, v);
       }
     }
   }
 
-  if (data.size()>1) _interval = (t-_from)/(data.size()-1);
+  auto interval = (data.samples.size()>1)?(t-from)/(data.samples.size()-1):0;
 
-  log.detail << "Read " << data.size() << " values from " << _from
-             << " at interval " << _interval << endl;
+  log.detail << "Read " << data.samples.size() << " values from " << from
+             << " at interval " << interval << endl;
 }
 
 //--------------------------------------------------------------------------
 // Generate a frame
-void WebFetch::tick(const TickData&)
+void WebFetch::tick(const TickData& td)
 {
-  output.get_buffer().data = data;
-  from.get_buffer().data.push_back(_from);
-  interval.get_buffer().data.push_back(_interval);
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(nsamples, {}, {}, tie(output),
+                 [&](DataSet& output)
+  {
+    output = data;
+  });
 }
 
 //--------------------------------------------------------------------------
@@ -116,12 +119,11 @@ Dataflow::SimpleModule module
   "time-series",
   {
     { "url",      &WebFetch::url     },
+    { "name",     &WebFetch::name    }
   },
   {},
   {
-    { "output",   &WebFetch::output   },
-    { "from",     &WebFetch::from     },
-    { "interval", &WebFetch::interval }
+    { "output",   &WebFetch::output   }
   }
 };
 

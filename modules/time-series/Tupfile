@@ -6,7 +6,12 @@
 
 NAME     = vg-modules-time-series
 TYPE     = package
-DEPENDS  = vg-module-time-series-web-fetch
+DEPENDS  = vg-module-time-series-web-fetch \
+           vg-module-time-series-offset \
+           vg-module-time-series-scale \
+           vg-module-time-series-last \
+           vg-module-time-series-average \
+           vg-module-time-series-plot
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

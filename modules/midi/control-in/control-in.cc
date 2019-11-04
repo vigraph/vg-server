@@ -45,7 +45,7 @@ void ControlIn::tick(const TickData& td)
   {
     if (i.type == MIDI::Event::Type::control_change &&
         (c < 0 || i.channel == c) && (co < 0 || i.key == co))
-      o = last_output = (i.value / 128.0);
+      o = last_output = (i.value / 127.0);
     else
       o = last_output;
   });

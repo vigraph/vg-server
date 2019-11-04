@@ -1,0 +1,6 @@
+# Basic graph
+
+time-series/web-fetch url="http://woodfortrees.org/data/wti" ->-
+time-series/plot points=500 ->-
+vector/websocket-display
+

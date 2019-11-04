@@ -1,0 +1,14 @@
+# Graph with averaging
+
+time-series/web-fetch url="http://woodfortrees.org/data/wti" ->-
+time-series/offset amount=1 ->-
+time-series/average samples=12 ->plot.-
+
+time-series/web-fetch url="http://woodfortrees.org/data/esrl-co2" ->-
+time-series/offset amount=-300 ->-
+time-series/scale factor=0.01 ->-
+time-series/average samples=12 ->plot.-
+
+plot: time-series/plot points=500 ->-
+vector/websocket-display
+

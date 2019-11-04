@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph time-series average module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-time-series-average
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib
+
+include_rules

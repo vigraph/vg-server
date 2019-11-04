@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/offset/offset.cc
+// ViGraph dataflow module: time-series/offset/offset.cc
 //
 // Add an offset to time series values
 //

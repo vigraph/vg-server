@@ -48,7 +48,7 @@ struct DataCollection
   // Combine with another one
   DataCollection& operator+=(const DataCollection& o)
   {
-    copy(o.datasets.begin(), o.datasets.end(), datasets.end());
+    datasets.insert(datasets.end(), o.datasets.begin(), o.datasets.end());
     return *this;
   }
 };

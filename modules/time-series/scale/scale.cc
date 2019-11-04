@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/scale/scale.cc
+// ViGraph dataflow module: time-series/scale/scale.cc
 //
 // Scale time series values
 //

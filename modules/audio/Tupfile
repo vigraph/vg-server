@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-audio
 TYPE     = package
-DEPENDS  = vg-module-audio-pitch-shift \
+DEPENDS  = vg-module-audio-alsa-out \
+           vg-module-audio-pitch-shift \
            vg-module-audio-sdl-out \
            vg-module-audio-wav-in
 

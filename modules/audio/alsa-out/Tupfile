@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph ALSA audio out module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-module-audio-alsa-out
+TYPE      = shared
+DEPENDS   = vg-dataflow ext-asound
+
+include_rules

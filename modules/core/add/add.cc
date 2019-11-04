@@ -1,7 +1,7 @@
 //==========================================================================
 // ViGraph dataflow module: core/add/add.cc
 //
-// Multiplier module (=attenuator for audio)
+// Adder module
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================

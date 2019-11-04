@@ -24,6 +24,8 @@ private:
     return new KeyIn{module};
   }
 
+  double last_velocity{0.0};
+
 public:
   using SimpleElement::SimpleElement;
 
@@ -48,12 +50,13 @@ void KeyIn::tick(const TickData& td)
                  [&](double c, double co, const MIDI::Event& i,
                      double& v, double& _start, double& _stop)
   {
+    v = last_velocity;
     if (i.type != MIDI::Event::Type::note_on &&
         i.type != MIDI::Event::Type::note_off)
       return;
     if ((c < 0 || i.channel == c) && (co < 0 || i.key == co))
     {
-      v = i.value;
+      v = last_velocity = i.value / 127.0;
       _start = i.type == MIDI::Event::Type::note_on;
       _stop = i.type == MIDI::Event::Type::note_off;
     }

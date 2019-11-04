@@ -8,7 +8,8 @@ NAME     = vg-modules-midi
 TYPE     = package
 DEPENDS  = vg-module-midi-alsa-in \
            vg-module-midi-control-in \
-           vg-module-midi-key-in
+           vg-module-midi-key-in \
+           vg-module-midi-keyboard-in
 #           vg-module-midi-service-distributor \
 #           vg-module-midi-control-linux-alsa \
 #           vg-module-midi-control-key-in \

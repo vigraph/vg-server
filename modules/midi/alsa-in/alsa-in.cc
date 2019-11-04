@@ -45,6 +45,7 @@ private:
   // Source/Element virtuals
   void setup() override;
   void tick(const TickData& td) override;
+  void shutdown() override;
 
   // Clone
   ALSAIn *create_clone() const override
@@ -178,6 +179,20 @@ void ALSAIn::tick(const TickData& td)
     }
     earliest += sample_duration;
   });
+}
+
+//--------------------------------------------------------------------------
+// Shut down
+void ALSAIn::shutdown()
+{
+  Log::Detail log;
+  log << "Shutting down ALSA MIDI input\n";
+
+  running = false;
+  if (thread) thread->join();
+
+  if (midi_in) snd_rawmidi_close(midi_in);
+  midi_in = nullptr;
 }
 
 //--------------------------------------------------------------------------

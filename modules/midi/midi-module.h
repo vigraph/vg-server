@@ -30,9 +30,22 @@ template<> inline void set_from_json(MIDI::Event& event,
     event.type = MIDI::Event::Type::control_change;
   else
     event.type = MIDI::Event::Type::none;
-  event.channel = json["channel"].as_int();
-  event.key = json["key"].as_int();
-  event.value = json["value"].as_int();
+  switch (event.type)
+  {
+    case MIDI::Event::Type::note_on:
+    case MIDI::Event::Type::note_off:
+      event.channel = json["channel"].as_int();
+      event.key = json["key"].as_int();
+      event.value = json["velocity"].as_int();
+      break;
+    case MIDI::Event::Type::control_change:
+      event.channel = json["channel"].as_int();
+      event.key = json["control"].as_int();
+      event.value = json["value"].as_int();
+      break;
+    case MIDI::Event::Type::none:
+      break;
+  }
 }
 
 template<> inline JSON::Value get_as_json(const MIDI::Event& event)
@@ -41,21 +54,23 @@ template<> inline JSON::Value get_as_json(const MIDI::Event& event)
   switch (event.type)
   {
     case MIDI::Event::Type::note_on:
-      json.put("type", "note-on");
-      break;
     case MIDI::Event::Type::note_off:
-      json.put("type", "note-off");
+      json.put("type", event.type == MIDI::Event::Type::note_on ? "note-on"
+                                                                : "note-off");
+      json.put("channel", event.channel);
+      json.put("key", event.key);
+      json.put("velocity", event.value);
       break;
     case MIDI::Event::Type::control_change:
       json.put("type", "control-change");
+      json.put("channel", event.channel);
+      json.put("control", event.key);
+      json.put("value", event.value);
       break;
     case MIDI::Event::Type::none:
       json.put("type", "none");
       break;
   }
-  json.put("channel", event.channel);
-  json.put("key", event.key);
-  json.put("value", event.value);
   return json;
 }
 

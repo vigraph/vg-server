@@ -36,7 +36,7 @@ public:
   using SimpleElement::SimpleElement;
 
   // Setting
-  Setting<double> on_change;
+  Setting<bool> on_change;
 
   // Configuration
   Input<double> value{0.0};
@@ -62,7 +62,7 @@ void Compare::tick(const TickData& td)
                  tie(on_change),
                  tie(value, input),
                  tie(lower, equal, higher),
-                 [&](double on_change,
+                 [&](bool on_change,
                      double value, double input,
                      double& lower, double& equal, double& higher)
   {

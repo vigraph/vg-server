@@ -171,7 +171,7 @@ TEST_F(CompareTest, TestDefaultCompareLowerWithOnChangeTriggersLowerOnlyOnce)
 {
   auto& cmp = add("compare")
               .set("input", -1.0)
-              .set("on-change", 1.0);
+              .set("on-change", true);
   auto output = vector<double>{};
   auto& snk = add_sink(output, 2);
   cmp.connect("lower", snk, "input");
@@ -188,7 +188,7 @@ TEST_F(CompareTest, TestDefaultCompareEqualWithOnChangeTriggersEqualOnlyOnce)
 {
   auto& cmp = add("compare")
               .set("input", 0.0)
-              .set("on-change", 1.0);
+              .set("on-change", true);
   auto output = vector<double>{};
   auto& snk = add_sink(output, 2);
   cmp.connect("equal", snk, "input");
@@ -205,7 +205,7 @@ TEST_F(CompareTest, TestDefaultCompareHigherWithOnChangeTriggersHigherOnlyOnce)
 {
   auto& cmp = add("compare")
               .set("input", 0.5)
-              .set("on-change", 1.0);
+              .set("on-change", true);
   auto output = vector<double>{};
   auto& snk = add_sink(output, 2);
   cmp.connect("higher", snk, "input");

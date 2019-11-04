@@ -39,7 +39,7 @@ public:
   Setting<string> name;
 
   // Output
-  Output<DataSet> output;
+  Output<DataCollection> output;
 };
 
 //--------------------------------------------------------------------------
@@ -104,9 +104,9 @@ void WebFetch::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(nsamples, {}, {}, tie(output),
-                 [&](DataSet& output)
+                 [&](DataCollection& output)
   {
-    output = data;
+    output.add(data);
   });
 }
 

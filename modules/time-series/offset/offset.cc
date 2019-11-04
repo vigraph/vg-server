@@ -28,9 +28,9 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<DataSet> input;
+  Input<DataCollection> input;
   Input<double> amount{0.0};
-  Output<DataSet> output;
+  Output<DataCollection> output;
 };
 
 //--------------------------------------------------------------------------
@@ -39,12 +39,13 @@ void OffsetFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(nsamples, {}, tie(input, amount), tie(output),
-                 [&](const DataSet& input, double amount,
-                     DataSet& output)
+                 [&](const DataCollection& input, double amount,
+                     DataCollection& output)
   {
     output = input;
-    for(auto& s: output.samples)
-      s.value += amount;
+    for(auto& ds: output.datasets)
+      for(auto& s: ds.samples)
+        s.value += amount;
   });
 }
 

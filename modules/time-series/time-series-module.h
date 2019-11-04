@@ -15,7 +15,7 @@
 namespace ViGraph { namespace Module { namespace TimeSeries {
 
 //==========================================================================
-// Animation frame
+// Single dataset
 struct DataSet
 {
   struct Sample
@@ -36,7 +36,24 @@ struct DataSet
   void add(double at, double value) { samples.push_back({ at, value }); }
 };
 
-typedef shared_ptr<DataSet> DataSetPtr;
+//==========================================================================
+// Multiple datasets
+struct DataCollection
+{
+  vector<DataSet> datasets;
+
+  // Add a dataset
+  void add(const DataSet& ds) { datasets.push_back(ds); }
+
+  // Combine with another one
+  DataCollection& operator+=(const DataCollection& o)
+  {
+    copy(o.datasets.begin(), o.datasets.end(), datasets.end());
+    return *this;
+  }
+};
+
+typedef shared_ptr<DataCollection> DataCollectionPtr;
 
 }}} //namespaces
 
@@ -47,37 +64,45 @@ using namespace ViGraph::Module::TimeSeries;
 namespace ViGraph { namespace Dataflow {
 
 template<> inline
-string get_module_type<DataSet>() { return "dataset"; }
+string get_module_type<DataCollection>() { return "dataset"; }
 
-template<> inline void set_from_json(DataSet& dataset,
+template<> inline void set_from_json(DataCollection& datac,
                                      const JSON::Value& json)
 {
-  if (json.type == JSON::Value::OBJECT)
+  if (json.type == JSON::Value::ARRAY)
   {
-    for(const JSON::Value& js: json["samples"].a)
+    for (const auto& dsj: json.a)
     {
-      dataset.samples.push_back(DataSet::Sample(js["at"].as_float(),
-                                                js["value"].as_float()));
-    }
+      DataSet dataset;
+      if (dsj.type == JSON::Value::OBJECT)
+      {
+        for(const JSON::Value& js: dsj["samples"].a)
+          dataset.add(js["at"].as_float(), js["value"].as_float());
 
-    dataset.name = json["name"].as_str();
-    dataset.source = json["source"].as_str();
+        dataset.name = json["name"].as_str();
+        dataset.source = json["source"].as_str();
+      }
+      datac.add(dataset);
+    }
   }
 }
 
-template<> inline JSON::Value get_as_json(const DataSet& dataset)
+template<> inline JSON::Value get_as_json(const DataCollection& datac)
 {
-  JSON::Value value{JSON::Value::OBJECT};
-  JSON::Value& samples = value.put("samples", JSON::Value::ARRAY);
-  for(const auto& s: dataset.samples)
+  JSON::Value value{JSON::Value::ARRAY};
+  for(const auto& dataset: datac.datasets)
   {
-    JSON::Value &js = samples.add(JSON::Value::OBJECT);
-    js.set("at", s.at).set("value", s.value);
+    auto& dsj = value.add(JSON::Value::OBJECT);
+    JSON::Value& samples = dsj.put("samples", JSON::Value::ARRAY);
+    for(const auto& s: dataset.samples)
+    {
+      JSON::Value &js = samples.add(JSON::Value::OBJECT);
+      js.set("at", s.at).set("value", s.value);
+    }
+
+    dsj.set("name", dataset.name);
+    dsj.set("source", dataset.source);
   }
-
-  value.set("name", dataset.name);
-  value.set("source", dataset.source);
-
   return value;
 }
 

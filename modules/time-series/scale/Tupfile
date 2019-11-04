@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph time-series scale module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-time-series-scale
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib
+
+include_rules

@@ -24,12 +24,6 @@ using namespace ViGraph;
 // MIDI event
 struct Event
 {
-  enum class Direction
-  {
-    in,
-    out
-  };
-
   enum class Type
   {
     none,
@@ -38,7 +32,6 @@ struct Event
     control_change
   };
 
-  Direction direction{Direction::in};
   Type type{Type::none};
   uint8_t channel{0}; // Note, from 1 when valid
   uint8_t key{0};     // Key number or controller number (from 0)
@@ -46,10 +39,9 @@ struct Event
 
   // Constructor
   Event() {}
-  Event(Direction _direction, Type _type, uint8_t _channel,
+  Event(Type _type, uint8_t _channel,
         uint8_t _key, uint16_t _value):
-    direction(_direction), type(_type),
-    channel(_channel), key(_key), value(_value) {}
+    type(_type), channel(_channel), key(_key), value(_value) {}
 };
 
 //==========================================================================

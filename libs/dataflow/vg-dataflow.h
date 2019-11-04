@@ -48,6 +48,11 @@ struct TickData
     start{_start}, end{_end}
   {}
 
+  timestamp_t duration() const
+  {
+    return end - start;
+  }
+
   timestamp_t sample_duration(double sample_rate) const
   {
     return 1.0 / sample_rate;

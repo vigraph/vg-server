@@ -161,18 +161,27 @@ void ALSAIn::tick(const TickData& td)
   else
     last_tick_end = event_last_read;
   auto earliest = last_tick_end - tick_duration;
+  auto i = 0u;
   sample_iterate(nsamples, {}, {},
                  tie(output),
                  [&](MIDI::Event& o)
   {
     o = MIDI::Event{};
-    while (!events.empty() && events.front().t < earliest + sample_duration)
+    bool wrote = false;
+    while (!events.empty() && events.front().t < earliest + sample_duration
+           && (!wrote || (events.size() > (nsamples - i))))
     {
-      if (events.front().t >= earliest || events.size() == 1)
-        o = events.front().e;
+      if (wrote)
+      {
+        Log::Error log;
+        log << "Supressing MIDI event (sample rate may be too low)" << endl;
+      }
+      o = events.front().e;
       events.pop();
+      wrote = true;
     }
     earliest += sample_duration;
+    ++i;
   });
 }
 

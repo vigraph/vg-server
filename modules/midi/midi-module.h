@@ -16,7 +16,7 @@
 namespace ViGraph { namespace Dataflow {
 
 template<> inline
-string get_module_type<MIDI::Event>() { return "midi-event"; }
+string get_module_type<MIDI::Event>() { return "midi"; }
 
 template<> inline void set_from_json(MIDI::Event& event,
                                      const JSON::Value& json)

@@ -165,12 +165,7 @@ void ALSAIn::tick(const TickData& td)
                  tie(output),
                  [&](MIDI::Event& o)
   {
-    if (events.empty())
-      return;
-
-    if (events.front().t > last_tick_end)
-      return;
-
+    o = MIDI::Event{};
     while (!events.empty() && events.front().t < earliest + sample_duration)
     {
       if (events.front().t >= earliest || events.size() == 1)

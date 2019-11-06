@@ -54,6 +54,8 @@ void KeyboardIn::tick(const TickData& td)
   {
     f = last_frequency;
     v = last_velocity;
+    _start = 0;
+    _stop = 0;
     if (i.type != MIDI::Event::Type::note_on &&
         i.type != MIDI::Event::Type::note_off)
       return;

@@ -29,7 +29,7 @@ bool Element::connect(const string& out_name,
   if (!i)
   {
     Log::Error log;
-    log << "Unknown input '" << out_name << "' on element "
+    log << "Unknown input '" << in_name << "' on element "
         << b.get_id() << endl;
     return false;
   }

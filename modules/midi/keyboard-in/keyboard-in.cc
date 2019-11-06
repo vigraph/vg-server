@@ -31,6 +31,7 @@ public:
   using SimpleElement::SimpleElement;
 
   Input<double> channel{-1};
+  Input<double> voice{-1};
   Input<MIDI::Event> input;
   Output<double> frequency;
   Output<double> velocity;
@@ -47,9 +48,9 @@ void KeyboardIn::tick(const TickData& td)
                                    max(start.get_sample_rate(),
                                        stop.get_sample_rate())));
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, {}, tie(channel, input),
+  sample_iterate(nsamples, {}, tie(channel, voice, input),
                  tie(frequency, velocity, start, stop),
-                 [&](double c, const MIDI::Event& i,
+                 [&](double c, double voice, const MIDI::Event& i,
                      double& f, double& v, double& _start, double& _stop)
   {
     f = last_frequency;
@@ -59,7 +60,7 @@ void KeyboardIn::tick(const TickData& td)
     if (i.type != MIDI::Event::Type::note_on &&
         i.type != MIDI::Event::Type::note_off)
       return;
-    if (c < 0 || i.channel == c)
+    if ((c < 0 || i.channel == c) && (voice < 0 || i.voice == voice))
     {
       f = last_frequency = MIDI::get_midi_frequency(i.key);
       if (i.type == MIDI::Event::Type::note_on)
@@ -78,6 +79,7 @@ Dataflow::SimpleModule module
   {},
   {
     { "channel",    &KeyboardIn::channel },
+    { "voice",      &KeyboardIn::voice },
     { "input",      &KeyboardIn::input },
   },
   {

@@ -52,6 +52,22 @@ bool Graph::connect(const string& out_name,
 }
 
 //--------------------------------------------------------------------------
+// Get connection inputs
+vector<ElementInput *> Graph::get_connection_inputs(const string& name)
+{
+  auto& module = get_module();
+  auto i = module.get_input(*this, name);
+  if (!i)
+  {
+    Log::Error log;
+    log << "Unknown input '" << name << "' on element " << get_id() << endl;
+    return {};
+  }
+
+  return vector<ElementInput *>{i};
+}
+
+//--------------------------------------------------------------------------
 // Notify of a connection
 void Graph::notify_connection(const string& in_name,
                               GraphElement& a, const string& out_name)

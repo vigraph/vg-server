@@ -1307,6 +1307,9 @@ public:
   virtual bool connect(const string& out_name,
                        GraphElement& b, const string &in_name) = 0;
 
+  // Get connection inputs
+  virtual vector<ElementInput *> get_connection_inputs(const string& name) = 0;
+
   // Notify that connection has been made to input
   virtual void notify_connection(const string& in_name,
                                  GraphElement& a, const string& out_name) = 0;
@@ -1418,6 +1421,9 @@ public:
   // Connect an element
   bool connect(const string& out_name,
                GraphElement& b, const string &in_name) override;
+
+  // Get connection inputs
+  vector<ElementInput *> get_connection_inputs(const string& name) override;
 
   // Notify that connection has been made to input
   void notify_connection(const string& in_name,
@@ -1722,6 +1728,9 @@ public:
   bool connect(const string& out_name,
                GraphElement& b, const string &in_name) override;
 
+  // Get connection inputs
+  vector<ElementInput *> get_connection_inputs(const string& name) override;
+
   // Notify that connection has been made to input
   void notify_connection(const string& in_name,
                          GraphElement& a, const string& out_name) override;
@@ -1861,6 +1870,9 @@ public:
   // Connect an element
   bool connect(const string& out_name,
                GraphElement& b, const string &in_name) override;
+
+  // Get connection inputs
+  vector<ElementInput *> get_connection_inputs(const string& name) override;
 
   // Notify that connection has been made to input
   void notify_connection(const string& in_name,

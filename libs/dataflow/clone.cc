@@ -64,6 +64,19 @@ bool Clone::connect(const string& out_name,
 }
 
 //--------------------------------------------------------------------------
+// Get connection inputs
+vector<ElementInput *> Clone::get_connection_inputs(const string& name)
+{
+  auto inputs = vector<ElementInput *>{};
+  for (auto& graph: clones)
+  {
+    const auto gi = graph.graph->get_connection_inputs(name);
+    inputs.insert(inputs.end(), gi.begin(), gi.end());
+  }
+  return inputs;
+}
+
+//--------------------------------------------------------------------------
 // Notify of a connection
 void Clone::notify_connection(const string& /*in_name*/,
                               GraphElement& /*a*/, const string& /*out_name*/)
@@ -112,7 +125,7 @@ Clone *Clone::clone() const
 // Final setup for elements and calculate topology
 void Clone::setup()
 {
-  auto n = copies.get();
+  const auto n = copies.get();
   if (n < 1)
     return;
 

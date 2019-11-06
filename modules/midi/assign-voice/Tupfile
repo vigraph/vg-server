@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph MIDI key in module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-midi-key-in
+TYPE    = shared
+DEPENDS = vg-dataflow vg-midi ot-lib
+
+include_rules

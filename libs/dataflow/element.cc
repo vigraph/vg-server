@@ -24,28 +24,39 @@ bool Element::connect(const string& out_name,
         << get_id() << endl;
     return false;
   }
-  auto& bmodule = b.get_module();
-  auto i = bmodule.get_input(b, in_name);
+  auto inputs = b.get_connection_inputs(in_name);
+  for (auto& i: inputs)
+  {
+    if (!o->connect(this, {&b, i}))
+      return false;
+
+#if OBTOOLS_LOG_DEBUG
+    Log::Debug dlog;
+    dlog << "CONNECT " << get_id() << " (" << this << "):" << out_name << " to "
+         << b.get_id() << " (" << &b << "):" << in_name << endl;
+#endif
+
+    o->set_sample_rate(i->get_sample_rate());
+    b.notify_connection(in_name, *this, out_name);
+    update_sample_rate();
+  }
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Get connection inputs
+vector<ElementInput *> Element::get_connection_inputs(const string& name)
+{
+  auto& module = get_module();
+  auto i = module.get_input(*this, name);
   if (!i)
   {
     Log::Error log;
-    log << "Unknown input '" << in_name << "' on element "
-        << b.get_id() << endl;
-    return false;
+    log << "Unknown input '" << name << "' on element " << get_id() << endl;
+    return {};
   }
-  if (!o->connect(this, {&b, i}))
-    return false;
 
-#if OBTOOLS_LOG_DEBUG
-  Log::Debug dlog;
-  dlog << "CONNECT " << get_id() << " (" << this << "):" << out_name << " to "
-       << b.get_id() << " (" << &b << "):" << in_name << endl;
-#endif
-
-  o->set_sample_rate(i->get_sample_rate());
-  b.notify_connection(in_name, *this, out_name);
-  update_sample_rate();
-  return true;
+  return vector<ElementInput *>{i};
 }
 
 //--------------------------------------------------------------------------

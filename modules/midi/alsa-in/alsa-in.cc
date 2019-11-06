@@ -81,6 +81,7 @@ public:
 void ALSAIn::setup()
 {
   Log::Streams log;
+  shutdown();
 
   log.summary << "Opening MIDI input on ALSA device '" << device << "'\n";
   log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;

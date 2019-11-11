@@ -143,218 +143,61 @@ void Element::reset()
 }
 
 //--------------------------------------------------------------------------
-// Accept visitors
-void Element::accept(ReadVisitor& visitor,
-                     const Path& path, unsigned path_index) const
+// Pathing
+vector<ConstVisitorAcceptorInfo> Element::get_visitor_acceptors(
+                                                  const Path& path,
+                                                  unsigned path_index,
+                                                  const Graph *graph,
+                                                  const Clone *clone) const
 {
   if (path.reached(path_index))
-  {
-    visitor.visit(*this, path, path_index);
+    return {{get_id(), this, graph, clone}};
+  if (path.type(path_index) != Path::PartType::attribute)
+    return {};
+  const auto& name = path.name(path_index);
+  const auto& module = get_module();
 
-    auto& module = get_module();
-    if (module.has_settings())
-    {
-      module.for_each_setting([this, &visitor, &path, &path_index]
-                              (const string& id,
-                               const SettingMember& setting)
-      {
-        auto sv = visitor.get_element_setting_visitor(*this, id,
-                                                      path, path_index);
-        if (sv)
-          setting.accept(*sv, path, path_index + 1, *this);
-      });
-    }
+  const auto s = module.get_setting(name);
+  if (s)
+    return {{name, s, this, graph}};
 
-    if (module.has_inputs())
-    {
-      module.for_each_input([this, &visitor, &path, &path_index]
-                            (const string& id,
-                             const InputMember& input)
-      {
-        auto iv = visitor.get_element_input_visitor(*this, id,
-                                                    path, path_index);
-        if (iv)
-          input.accept(*iv, path, path_index + 1, *this);
-      });
-    }
+  const auto i = module.get_input(name);
+  if (i)
+    return {{name, i, this, graph}};
 
-    if (module.has_outputs())
-    {
-      module.for_each_output([this, &visitor, &path, &path_index]
-                             (const string& id,
-                              const OutputMember& output)
-      {
-        auto ov = visitor.get_element_output_visitor(*this, id,
-                                                     path, path_index);
-        if (ov)
-          output.accept(*ov, path, path_index + 1, *this);
-      });
-    }
-  }
-  else
-  {
-    auto part = path.get(path_index);
+  const auto o = module.get_output(name);
+  if (o)
+    return {{name, o, this, graph}};
 
-    switch (part.type)
-    {
-      case Path::PartType::attribute:
-        {
-          auto& module = get_module();
-          auto s = module.get_setting(part.name);
-          if (s)
-          {
-            auto sv = visitor.get_element_setting_visitor(*this, part.name,
-                                                          path, path_index);
-            if (sv)
-              s->accept(*sv, path, path_index + 1, *this);
-          }
-          else
-          {
-            auto i = module.get_input(part.name);
-            if (i)
-            {
-              auto iv = visitor.get_element_input_visitor(*this, part.name,
-                                                          path, path_index);
-              if (iv)
-                i->accept(*iv, path, path_index + 1, *this);
-            }
-            else
-            {
-              auto o = module.get_output(part.name);
-              if (o)
-              {
-                auto ov = visitor.get_element_output_visitor(*this, part.name,
-                                                             path, path_index);
-                if (ov)
-                  o->accept(*ov, path, path_index + 1, *this);
-              }
-              else
-              {
-                throw(runtime_error{"Attribute not found: " + part.name});
-              }
-            }
-          }
-        }
-        break;
-      case Path::PartType::element:
-        {
-          auto& module = get_module();
-          throw(runtime_error{module.get_full_type() + "has no sub-elements"});
-        }
-        break;
-      default:
-        break;
-    }
-  }
+  return {};
 }
 
-void Element::accept(WriteVisitor& visitor,
-                     const Path& path, unsigned path_index)
+vector<VisitorAcceptorInfo> Element::get_visitor_acceptors(
+                                                  const Path& path,
+                                                  unsigned path_index,
+                                                  Graph *graph,
+                                                  Clone *clone)
 {
   if (path.reached(path_index))
-  {
-    if (!visitor.visit(*this, path, path_index))
-      return; // element does not exist
+    return {{get_id(), this, graph, clone}};
+  if (path.type(path_index) != Path::PartType::attribute)
+    return {};
+  const auto& name = path.name(path_index);
+  const auto& module = get_module();
 
-    auto& module = get_module();
-    if (module.has_settings())
-    {
-      module.for_each_setting([this, &visitor, &path, &path_index]
-                              (const string& id,
-                               const SettingMember& setting)
-      {
-        auto sv = visitor.get_element_setting_visitor(*this, id,
-                                                      path, path_index);
-        if (sv)
-          setting.accept(*sv, path, path_index + 1, *this);
-      });
-    }
-    setup();
+  const auto s = module.get_setting(name);
+  if (s)
+    return {{name, s, this, graph, true}};
 
-    if (module.has_inputs())
-    {
-      module.for_each_input([this, &visitor, &path, &path_index]
-                            (const string& id,
-                             const InputMember& input)
-      {
-        auto iv = visitor.get_element_input_visitor(*this, id,
-                                                    path, path_index);
-        if (iv)
-          input.accept(*iv, path, path_index + 1, *this);
-      });
-    }
+  const auto i = module.get_input(name);
+  if (i)
+    return {{name, i, this, graph}};
 
-    if (module.has_outputs())
-    {
-      module.for_each_output([this, &visitor, &path, &path_index]
-                             (const string& id,
-                              const OutputMember& output)
-      {
-        auto ov = visitor.get_element_output_visitor(*this, id,
-                                                     path, path_index);
-        if (ov)
-          output.accept(*ov, path, path_index + 1, *this);
-      });
-    }
-  }
-  else
-  {
-    auto part = path.get(path_index);
+  const auto o = module.get_output(name);
+  if (o)
+    return {{name, o, this, graph}};
 
-    switch (part.type)
-    {
-      case Path::PartType::attribute:
-        {
-          auto& module = get_module();
-          auto s = module.get_setting(part.name);
-          if (s)
-          {
-            auto sv = visitor.get_element_setting_visitor(*this, part.name,
-                                                          path, path_index);
-            if (sv)
-            {
-              s->accept(*sv, path, path_index + 1, *this);
-              setup();
-            }
-          }
-          else
-          {
-            auto i = module.get_input(part.name);
-            if (i)
-            {
-              auto iv = visitor.get_element_input_visitor(*this, part.name,
-                                                          path, path_index);
-              if (iv)
-                i->accept(*iv, path, path_index + 1, *this);
-            }
-            else
-            {
-              auto o = module.get_output(part.name);
-              if (o)
-              {
-                auto ov = visitor.get_element_output_visitor(*this, part.name,
-                                                             path, path_index);
-                if (ov)
-                  o->accept(*ov, path, path_index + 1, *this);
-              }
-              else
-              {
-                throw(runtime_error{"Attribute not found: " + part.name});
-              }
-            }
-          }
-        }
-        break;
-      case Path::PartType::element:
-        {
-          auto& module = get_module();
-          throw(runtime_error{module.get_full_type() + "has no sub-elements"});
-        }
-        break;
-      default:
-        break;
-    }
-  }
+  return {};
 }
 
 }} // namespaces

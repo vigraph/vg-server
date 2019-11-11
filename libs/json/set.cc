@@ -10,21 +10,56 @@
 
 namespace ViGraph { namespace JSON {
 
-void SetVisitor::visit(Dataflow::Engine&,
-                       const Dataflow::Path&, unsigned)
+class SetVisitor: public Dataflow::WriteVisitor
 {
-}
+public:
+  enum class Phase
+  {
+    setup,
+    connection
+  };
+private:
+  Dataflow::Engine& engine;
+  const Value& json;
+  Phase phase = Phase::setup;
+  const string id;
+  Dataflow::Graph *graph = nullptr;
+  Dataflow::Clone *clone = nullptr;
+  Dataflow::GraphElement *element = nullptr;
 
-unique_ptr<Dataflow::WriteVisitor> SetVisitor::get_root_graph_visitor(
-                       const Dataflow::Path&, unsigned)
-{
-  return make_unique<SetVisitor>(engine, json, "root", &engine.get_graph());
-}
+public:
+  // Top level
+  SetVisitor(Dataflow::Engine& _engine, const Value& _json, Phase _phase,
+             const string& _id):
+    engine{_engine}, json{_json}, phase{_phase}, id{_id}
+  {}
+  // Element visitor
+  SetVisitor(Dataflow::Engine& _engine, const Value& _json,
+             Phase _phase, const string& _id, Dataflow::Graph *_graph,
+             Dataflow::Clone *_clone):
+    engine{_engine}, json{_json}, phase{_phase}, id{_id}, graph{_graph},
+    clone{_clone}
+  {}
+  // Attribute visitor
+  SetVisitor(Dataflow::Engine& _engine, const Value& _json,
+             Phase _phase, const string& _id,
+             Dataflow::GraphElement *_element, Dataflow::Graph *_graph):
+    engine{_engine}, json{_json}, phase{_phase}, id{_id},
+    graph{_graph}, element{_element}
+  {}
+  void visit(Dataflow::Engine& engine) override;
+  void visit(Dataflow::Graph& graph) override;
+  void visit(Dataflow::Clone& clone) override;
+  void visit(Dataflow::Element& element) override;
+  void visit(const Dataflow::SettingMember& setting) override;
+  void visit(const Dataflow::InputMember& input) override;
+  void visit(const Dataflow::OutputMember& output) override;
+};
 
-void create_element(const Dataflow::Engine& engine, Dataflow::Graph& graph,
+Dataflow::GraphElement *create_element(
+                    Dataflow::Engine& engine, Dataflow::Graph& graph,
                     Dataflow::Clone *clone,
-                    const string& id, const Value& json,
-                    map<string, const Value *>& sub_element_json)
+                    const string& id, const Value& json)
 {
   if (id.empty())
     throw runtime_error("Graph element requires an 'id'");
@@ -48,41 +83,10 @@ void create_element(const Dataflow::Engine& engine, Dataflow::Graph& graph,
         clone->register_info(graph, info);
     }
 
-    // Setup element
-    auto& module = element->get_module();
-    auto it = json.o.find("settings");
-    if (it != json.o.end() && it->second.type == Value::Type::OBJECT)
-    {
-      for (const auto sit: it->second.o)
-      {
-        const auto& name = sit.first;
-        const auto& value = sit.second;
-
-        auto setting = module.get_setting(name);
-        if (!setting)
-        {
-          auto input = module.get_input(name);
-          if (!input)
-          {
-            Log::Error log;
-            log << "Unknown setting '" << name << "' on element "
-                << element->get_id() << endl;
-            continue;
-          }
-
-          input->set_json(*element, value);
-        }
-        else
-        {
-          setting->set_json(*element, value);
-        }
-      }
-    }
-
-    element->setup();
-
-    // Add to our element cache for later visiting
-    sub_element_json[id] = &json;
+    auto visitor = SetVisitor{engine, json, SetVisitor::Phase::setup,
+                              id, &graph, clone};
+    element->accept(visitor);
+    return element;
   }
   else
   {
@@ -90,194 +94,305 @@ void create_element(const Dataflow::Engine& engine, Dataflow::Graph& graph,
   }
 }
 
-bool SetVisitor::visit(Dataflow::Graph& graph,
-                       const Dataflow::Path&, unsigned)
+void set(Dataflow::Engine& engine, const Value& json,
+         const Dataflow::Path& path)
 {
-  graph.shutdown();
+  auto lock = engine.get_write_lock();
 
-  // Contained elements
-  auto& elements = json.get("elements");
-  if (!!elements)
+  auto acceptors = engine.get_visitor_acceptors(path, 0);
+  if (acceptors.empty())
+    throw runtime_error("Path not found");
+
+  for (auto& a: acceptors)
   {
-    for (const auto& it: elements.o)
+    // Setup
+    if (a.create)
+      a.acceptor = create_element(engine, *a.graph, a.clone, a.id, json);
+
+    if (a.acceptor)
     {
-      const auto& id = it.first;
-      const auto& elementj = it.second;
-      create_element(engine, graph, clone, id, elementj, sub_element_json);
+      auto visitor = SetVisitor{engine, json, SetVisitor::Phase::setup,
+                                a.id, a.graph, a.clone};
+      a.acceptor->accept(visitor);
+    }
+    else
+    {
+      auto visitor = SetVisitor{engine, json, SetVisitor::Phase::setup,
+                                a.id, a.element, a.graph};
+      a.member_acceptor->accept(visitor);
+    }
+    if (a.setting)
+      a.element->setup();
+
+    // Connection
+    if (a.acceptor)
+    {
+      auto visitor = SetVisitor{engine, json, SetVisitor::Phase::connection,
+                                a.id, a.graph, a.clone};
+      a.acceptor->accept(visitor);
+    }
+    else
+    {
+      auto visitor = SetVisitor{engine, json, SetVisitor::Phase::connection,
+                                a.id, a.element, a.graph};
+      a.member_acceptor->accept(visitor);
     }
   }
 
-  // Inputs
-  auto& inputsj = json.get("inputs");
-  if (!!inputsj && inputsj.type == Value::Type::OBJECT)
+  engine.update_elements();
+}
+
+void SetVisitor::visit(Dataflow::Engine& engine)
+{
+  engine.get_graph().accept(*this);
+}
+
+void SetVisitor::visit(Dataflow::Graph& graph)
+{
+  switch (phase)
   {
-    for (const auto& iit: inputsj.o)
-    {
-      const auto& iid = iit.first;
-      if (iid.empty())
-        throw runtime_error("Graph input pin requires an 'id'");
+    case Phase::setup:
+      {
+        graph.shutdown();
 
-      graph.add_input_pin(iid, iid, "input");
-    }
+        // Contained elements
+        auto& elementsj = json.get("elements");
+        if (!!elementsj && elementsj.type == Value::Type::OBJECT)
+        {
+          for (const auto& it: elementsj.o)
+          {
+            const auto& id = it.first;
+            const auto& elementj = it.second;
+
+            create_element(engine, graph, clone, id, elementj);
+          }
+        }
+
+        // Graph Inputs
+        auto& inputsj = json.get("inputs");
+        if (!!inputsj && inputsj.type == Value::Type::OBJECT)
+        {
+          for (const auto& iit: inputsj.o)
+          {
+            const auto& iid = iit.first;
+            if (iid.empty())
+              throw runtime_error("Graph input pin requires an 'id'");
+
+            graph.add_input_pin(iid, iid, "input");
+          }
+        }
+
+        // Graph Outputs
+        auto& outputsj = json.get("outputs");
+        if (!!outputsj && outputsj.type == Value::Type::OBJECT)
+        {
+          for (const auto& oit: outputsj.o)
+          {
+            const auto& oid = oit.first;
+            if (oid.empty())
+              throw runtime_error("Graph output pin requires an 'id'");
+
+            graph.add_output_pin(oid, oid, "output");
+          }
+        }
+      }
+      break;
+
+    case Phase::connection:
+      {
+        // Connect sub-elements
+        auto& elementsj = json.get("elements");
+        if (!!elementsj && elementsj.type == Value::Type::OBJECT)
+        {
+          for (const auto& it: elementsj.o)
+          {
+            const auto& id = it.first;
+            const auto& elementj = it.second;
+            auto element = graph.get_element(id);
+            if (element)
+            {
+              auto visitor = SetVisitor{engine, elementj, phase, id,
+                                        &graph, clone};
+              element->accept(visitor);
+            }
+          }
+        }
+        // Connect graph's outputs
+        const auto& module = graph.get_module();
+        const auto& outputsj = json.get("outputs");
+        if (!!outputsj && outputsj.type == Value::Type::OBJECT)
+        {
+          for (const auto& oit: outputsj.o)
+          {
+            const auto& id = oit.first;
+            const auto o = module.get_output(id);
+            if (o)
+            {
+              const auto& oj = oit.second;
+              auto visitor = SetVisitor{engine, oj, phase, id,
+                                        &graph, this->graph};
+              o->accept(visitor);
+            }
+          }
+        }
+      }
+      break;
   }
+}
 
-  // Outputs
-  auto& outputsj = json.get("outputs");
-  if (!!outputsj && outputsj.type == Value::Type::OBJECT)
+void SetVisitor::visit(Dataflow::Clone& clone)
+{
+  switch (phase)
   {
-    for (const auto& oit: outputsj.o)
-    {
-      const auto& oid = oit.first;
-      if (oid.empty())
-        throw runtime_error("Graph output pin requires an 'id'");
+    case Phase::setup:
+      {
+        clone.shutdown();
+        // Settings
+        const auto& module = Dataflow::clone_module;
+        auto& settingsj = json.get("settings");
+        if (!!settingsj && settingsj.type == Value::Type::OBJECT)
+        {
+          for (const auto& sit: settingsj.o)
+          {
+            const auto& sid = sit.first;
+            auto s = module.get_setting(sid);
+            if (s)
+            {
+              auto visitor = SetVisitor{engine, sit.second, phase, id, &clone,
+                                        graph};
+              s->accept(visitor);
+            }
+            else
+            {
+              Log::Error elog;
+              elog << clone.get_id() << ": Unknown setting '"
+                   << sid << "'" << endl;
+            }
+          }
+        }
+        clone.setup();
+      }
+      // Fall through
 
-      graph.add_output_pin(oid, oid, "output");
-    }
+    case Phase::connection:
+      {
+        const auto& graphs = clone.get_graphs();
+        auto visitor = SetVisitor{engine, json, phase, id, graph, &clone};
+        for (auto& g: graphs)
+          g->accept(visitor);
+      }
+      break;
   }
-  return true;
 }
 
-bool SetVisitor::visit(Dataflow::Clone& clone,
-                       const Dataflow::Path& path, unsigned path_index)
+void SetVisitor::visit(Dataflow::Element& element)
 {
-  if (!path.reached(path_index))
-    return true;
-  clone.shutdown();
-  return true;
+  switch (phase)
+  {
+    case Phase::setup:
+      {
+        const auto& module = element.get_module();
+        // Settings
+        auto& settingsj = json.get("settings");
+        if (!!settingsj && settingsj.type == Value::Type::OBJECT)
+        {
+          for (const auto& sit: settingsj.o)
+          {
+            const auto& sid = sit.first;
+            const auto s = module.get_setting(sid);
+            if (s)
+            {
+              auto visitor = SetVisitor{engine, sit.second, phase, id,
+                                        &element, graph};
+              s->accept(visitor);
+            }
+            else
+            {
+              // Try inputs
+              const auto i = module.get_input(sid);
+              if (i)
+              {
+                auto visitor = SetVisitor{engine, sit.second, phase, id,
+                                          &element, graph};
+                i->accept(visitor);
+              }
+              else
+              {
+                Log::Error elog;
+                elog << element.get_id() << ": Unknown setting '"
+                     << sid << "'" << endl;
+              }
+            }
+          }
+        }
+        // Inputs
+        auto& inputsj = json.get("inputs");
+        if (!!inputsj && inputsj.type == Value::Type::OBJECT)
+        {
+          for (const auto& iit: inputsj.o)
+          {
+            const auto& iid = iit.first;
+            const auto i = module.get_input(iid);
+            if (i)
+            {
+              auto visitor = SetVisitor{engine, iit.second, phase, id,
+                                        &element, graph};
+              i->accept(visitor);
+            }
+            else
+            {
+              Log::Error elog;
+              elog << element.get_id() << ": Unknown input '"
+                   << iid << "'" << endl;
+            }
+          }
+        }
+        element.setup();
+      }
+      break;
+    case Phase::connection:
+      {
+        // Connect graph's outputs
+        const auto& module = element.get_module();
+        const auto& outputsj = json.get("outputs");
+        if (!!outputsj && outputsj.type == Value::Type::OBJECT)
+        {
+          for (const auto& oit: outputsj.o)
+          {
+            const auto& id = oit.first;
+            const auto o = module.get_output(id);
+            if (o)
+            {
+              const auto& oj = oit.second;
+              auto visitor = SetVisitor{engine, oj, phase, id, &element, graph};
+              o->accept(visitor);
+            }
+          }
+        }
+      }
+      break;
+  }
 }
 
-unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_sub_element_visitor(Dataflow::Graph& graph,
-                                        const string& id,
-                                        const Dataflow::Path& path,
-                                        unsigned path_index)
-{
-  // If this is for a non-existant element, assume it is being created
-  const auto& elements = graph.get_elements();
-  if (elements.find(id) == elements.end())
-    create_element(engine, graph, clone, id, json, sub_element_json);
-
-  if (!path.reached(path_index)) // Assume the json should not be traversed
-    return make_unique<SetVisitor>(engine, json, id, &graph);
-
-  auto it = sub_element_json.find(id);
-  if (it == sub_element_json.end())
-    return {};
-  return make_unique<SetVisitor>(engine, *it->second, id, &graph);
-}
-
-unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_sub_clone_visitor(Dataflow::Clone &clone,
-                                      const string&,
-                                      const Dataflow::Path&,
-                                      unsigned)
-{
-  return make_unique<SetVisitor>(engine, json, id, scope_graph, &clone);
-}
-
-bool SetVisitor::visit(Dataflow::Element&,
-                       const Dataflow::Path&, unsigned)
-{
-  return true;
-}
-
-unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_setting_visitor(Dataflow::GraphElement&,
-                                            const string& id,
-                                            const Dataflow::Path& path,
-                                            unsigned path_index)
-{
-  if (!path.reached(path_index)) // Assume the json should not be traversed
-    return make_unique<SetVisitor>(engine, json, id, scope_graph);
-
-  const auto& settingsj = json.get("settings");
-
-  if (!settingsj || settingsj.type != Value::Type::OBJECT)
-    return nullptr;
-
-  const auto& settingj = settingsj.get(id);
-  if (!settingj)
-    return nullptr;
-
-  return make_unique<SetVisitor>(engine, settingj, id, scope_graph);
-}
-
-void SetVisitor::visit(Dataflow::GraphElement& element,
-                       const Dataflow::SettingMember& setting,
-                       const Dataflow::Path&, unsigned)
+void SetVisitor::visit(const Dataflow::SettingMember& setting)
 {
   const auto& valuej = json.get("value");
   if (!valuej)
     return;
-  setting.set_json(element, valuej);
+  setting.set_json(*element, valuej);
 }
 
-unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_input_visitor(Dataflow::GraphElement&,
-                                          const string& id,
-                                          const Dataflow::Path& path,
-                                          unsigned path_index)
-{
-  if (!path.reached(path_index)) // Assume the json should not be traversed
-    return make_unique<SetVisitor>(engine, json, id, scope_graph);
-
-  const auto& inputsj = json.get("inputs");
-  if (!inputsj || inputsj.type != Value::Type::OBJECT)
-  {
-    // Try settings
-    const auto& settingsj = json.get("settings");
-    if (!settingsj || settingsj.type != Value::Type::OBJECT)
-      return nullptr;
-
-    const auto& settingj = settingsj.get(id);
-    if (!settingj)
-      return nullptr;
-
-    return make_unique<SetVisitor>(engine, settingj, id, scope_graph);
-  }
-
-  const auto& inputj = inputsj.get(id);
-  if (!inputj)
-    return nullptr;
-
-  return make_unique<SetVisitor>(engine, inputj, id, scope_graph);
-}
-
-void SetVisitor::visit(Dataflow::GraphElement& element,
-                       const Dataflow::InputMember& input,
-                       const Dataflow::Path&, unsigned)
+void SetVisitor::visit(const Dataflow::InputMember& input)
 {
   const auto& valuej = json.get("value");
   if (!valuej)
     return;
-  input.set_json(element, valuej);
+  input.set_json(*element, valuej);
 }
 
-unique_ptr<Dataflow::WriteVisitor>
-    SetVisitor::get_element_output_visitor(Dataflow::GraphElement&,
-                                           const string& id,
-                                           const Dataflow::Path& path,
-                                           unsigned path_index)
+void SetVisitor::visit(const Dataflow::OutputMember& output)
 {
-  if (!path.reached(path_index)) // Assume the json should not be traversed
-    return make_unique<SetVisitor>(engine, json, id, scope_graph);
-
-  const auto& outputsj = json.get("outputs");
-  if (!outputsj || outputsj.type != Value::Type::OBJECT)
-    return nullptr;
-
-  const auto& outputj = outputsj.get(id);
-  if (!outputj)
-    return nullptr;
-
-  return make_unique<SetVisitor>(engine, outputj, id, scope_graph);
-}
-
-void SetVisitor::visit(Dataflow::GraphElement& element,
-                       const Dataflow::OutputMember& output,
-                       const Dataflow::Path&, unsigned)
-{
-  if (!scope_graph)
+  if (!graph || phase != Phase::connection)
     return; // Can't make connections without a scope
 
   const auto& connectionsj = json.get("connections");
@@ -285,63 +400,31 @@ void SetVisitor::visit(Dataflow::GraphElement& element,
     return;
 
   // Disconnect any existing connections
-  auto& op = output.get(element);
+  auto& op = output.get(*element);
   op.disconnect();
 
   for (const auto& connectionj: connectionsj.a)
   {
     const auto& iid = connectionj["element"].as_str();
     const auto& iinput = connectionj["input"].as_str();
-    auto ielement = (iid == scope_graph->get_id()
-                     ? scope_graph : scope_graph->get_element(iid));
+    auto ielement = (iid == graph->get_id() ? graph : graph->get_element(iid));
     if (!ielement)
     {
       Log::Error log;
       log << "Unknown element '" << iid << "' for element '"
-          << element.get_id() << "' output connection on '" << id
-          << "' in scope of '" << scope_graph->get_id() << "'"
+          << element->get_id() << "' output connection on '" << id
+          << "' in scope of '" << graph->get_id() << "'"
           << endl;
       continue;
     }
 
-    if (!element.connect(id, *ielement, iinput))
+    if (!element->connect(id, *ielement, iinput))
     {
       Log::Error log;
-      log << "Could not connect " << element.get_id() << "." << id
+      log << "Could not connect " << element->get_id() << "." << id
           << " to " << ielement->get_id() << "." << iinput << endl;
       continue;
     }
-  }
-}
-
-void SetVisitor::visit_graph_input_or_output(Dataflow::Graph& graph,
-                                             const string& id,
-                                             const Dataflow::Path& path,
-                                             unsigned path_index)
-{
-  if (!path.reached(path_index))
-    return;
-
-  const auto& dir = json.get("direction").as_str();
-  if (dir == "in")
-  {
-    graph.add_input_pin(id, id, "input");
-  }
-  else if (dir == "out")
-  {
-    graph.add_output_pin(id, id, "output");
-    // Visit it for possible connections
-    const auto& module = graph.get_module();
-    auto o = module.get_output(id);
-    if (o)
-    {
-      auto v = make_unique<SetVisitor>(engine, json, id, scope_graph);
-      v->visit(graph, *o, Dataflow::Path{""}, 0);
-    }
-  }
-  else
-  {
-    throw(runtime_error{"Graph in/out direction missing"});
   }
 }
 

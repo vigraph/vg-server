@@ -122,6 +122,18 @@ Clone *Clone::clone() const
 }
 
 //--------------------------------------------------------------------------
+// Get graphs
+vector<Graph *> Clone::get_graphs() const
+{
+  auto graphs = vector<Graph *>{};
+  for (const auto& graph: clones)
+  {
+    graphs.push_back(graph.graph.get());
+  }
+  return graphs;
+}
+
+//--------------------------------------------------------------------------
 // Final setup for elements and calculate topology
 void Clone::setup()
 {
@@ -171,126 +183,87 @@ void Clone::collect_elements(list<Element *>& els)
 }
 
 //--------------------------------------------------------------------------
-// Accept visitors
-void Clone::accept(ReadVisitor& visitor,
-                   const Path& path, unsigned path_index) const
-{
-  if (!clones.empty())
-    clones.front().graph->accept(visitor, path, path_index);
-  if (path.reached(path_index))
-  {
-    visitor.visit(*this, path, path_index);
-
-    if (module.has_settings())
-    {
-      module.for_each_setting([this, &visitor, &path, &path_index]
-                            (const string& id,
-                             const SettingMember& setting)
-      {
-        auto iv = visitor.get_element_setting_visitor(*this, id,
-                                                      path, path_index);
-        if (iv)
-          setting.accept(*iv, path, path_index + 1, *this);
-      });
-    }
-  }
-}
-
-void Clone::accept(WriteVisitor& visitor,
-                   const Path& path, unsigned path_index)
-{
-  if (path.reached(path_index))
-  {
-    if (!visitor.visit(*this, path, path_index))
-      return; // clone does not exist
-
-    if (module.has_settings())
-    {
-      module.for_each_setting([this, &visitor, &path, &path_index]
-                            (const string& id,
-                             const SettingMember& setting)
-      {
-        auto iv = visitor.get_element_setting_visitor(*this, id,
-                                                      path, path_index);
-        if (iv)
-          setting.accept(*iv, path, path_index + 1, *this);
-      });
-    }
-    setup();
-
-    auto cv = visitor.get_sub_clone_visitor(*this, get_id(), path, path_index);
-    if (cv)
-      for (auto& graph: clones)
-        graph.graph->accept(*cv, path, path_index);
-    return;
-  }
-
-  auto part = path.get(path_index);
-
-  switch (part.type)
-  {
-    case Path::PartType::attribute:
-      {
-        auto s = module.get_setting(part.name);
-        if (s)
-        {
-          auto sv = visitor.get_element_setting_visitor(*this, part.name,
-                                                        path, path_index);
-          if (sv)
-          {
-            s->accept(*sv, path, path_index + 1, *this);
-            setup();
-          }
-        }
-        else
-        {
-          auto i = module.get_input(part.name);
-          if (i)
-          {
-            auto iv = visitor.get_element_input_visitor(*this, part.name,
-                                                        path, path_index);
-            if (iv)
-              i->accept(*iv, path, path_index + 1, *this);
-          }
-          else
-          {
-            auto o = module.get_output(part.name);
-            if (o)
-            {
-              auto ov = visitor.get_element_output_visitor(*this, part.name,
-                                                           path, path_index);
-              if (ov)
-                o->accept(*ov, path, path_index + 1, *this);
-            }
-            else
-            {
-              throw(runtime_error{"No such attribute: " + part.name});
-            }
-          }
-        }
-      }
-      break;
-    case Path::PartType::element:
-      {
-        auto cv = visitor.get_sub_clone_visitor(*this, part.name,
-                                                path, path_index);
-        if (!cv)
-          return;
-        for (auto& graph: clones)
-          graph.graph->accept(*cv, path, path_index);
-      }
-      break;
-    default:
-      break;
-  }
-}
-
-//--------------------------------------------------------------------------
 // Shutdown all elements
 void Clone::shutdown()
 {
   for (auto& graph: clones)
     graph.graph->shutdown();
+}
+
+//--------------------------------------------------------------------------
+// Pathing
+vector<ConstVisitorAcceptorInfo> Clone::get_visitor_acceptors(
+                                                  const Path& path,
+                                                  unsigned path_index,
+                                                  const Graph *graph,
+                                                  const Clone *) const
+{
+  if (path.reached(path_index))
+    return {{get_id(), this, graph, this}};
+
+  if (path.type(path_index) == Path::PartType::attribute)
+  {
+    const auto& name = path.name(path_index);
+
+    const auto s = module.get_setting(name);
+    if (s)
+      return {{name, s, this, graph}};
+
+    const auto i = module.get_input(name);
+    if (i)
+      return {{name, i, this, graph}};
+
+    const auto o = module.get_output(name);
+    if (o)
+      return {{name, o, this, graph}};
+  }
+
+  auto graphs = vector<ConstVisitorAcceptorInfo>{};
+  for (const auto& c: clones)
+  {
+    const auto& sub = c.graph->get_visitor_acceptors(path, path_index,
+                                                     graph, this);
+    for (const auto& s: sub)
+      graphs.emplace_back(s);
+  }
+  return graphs;
+}
+
+vector<VisitorAcceptorInfo> Clone::get_visitor_acceptors(
+                                                  const Path& path,
+                                                  unsigned path_index,
+                                                  Graph *graph,
+                                                  Clone *)
+{
+  if (path.reached(path_index))
+    return {{get_id(), this, graph, this}};
+
+  if (path.type(path_index) == Path::PartType::attribute)
+  {
+    const auto& name = path.name(path_index);
+
+    const auto s = module.get_setting(name);
+    if (s)
+      return {{name, s, this, graph, true}};
+
+    const auto i = module.get_input(name);
+    if (i)
+      return {{name, i, this, graph}};
+
+    const auto o = module.get_output(name);
+    if (o)
+      return {{name, o, this, graph}};
+  }
+
+  auto graphs = vector<VisitorAcceptorInfo>{};
+  for (const auto& c: clones)
+  {
+    const auto& sub = c.graph->get_visitor_acceptors(path, path_index,
+                                                     graph, this);
+    for (const auto& s: sub)
+      graphs.emplace_back(s);
+  }
+  return graphs;
 }
 
 //==========================================================================

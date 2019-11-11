@@ -158,6 +158,28 @@ public:
       return PartType::none;
   }
 
+  PartType type() const
+  {
+    if (parts.empty())
+      return PartType::none;
+    return parts.back().type;
+  }
+
+  Path parent() const
+  {
+    auto p = *this;
+    if (!p.parts.empty())
+      p.parts.pop_back();
+    return p;
+  }
+
+  string leaf() const
+  {
+    if (parts.empty())
+      return {};
+    return parts.back().name;
+  }
+
   auto size() const
   {
     return parts.size();
@@ -170,8 +192,65 @@ public:
 };
 
 //==========================================================================
+// Visitor Acceptor
+class VisitorAcceptor
+{
+public:
+  virtual void accept(ReadVisitor& visitor) const = 0;
+  virtual void accept(WriteVisitor& visitor) = 0;
+  // const write acceptor for Setting/Input/Output Members
+  virtual void accept(WriteVisitor& visitor) const = 0;
+  virtual ~VisitorAcceptor() {}
+};
+
+//==========================================================================
+// Visitor Acceptor Info
+struct ConstVisitorAcceptorInfo
+{
+  const string id;
+  const VisitorAcceptor *acceptor = nullptr;
+  const Graph *graph = nullptr;
+  const Clone *clone = nullptr;
+  const GraphElement *element = nullptr;
+  ConstVisitorAcceptorInfo(const string& _id,
+      const VisitorAcceptor *_acceptor,
+      const Graph *_graph, const Clone *_clone):
+    id{_id}, acceptor{_acceptor}, graph{_graph}, clone{_clone}
+  {}
+  ConstVisitorAcceptorInfo(const string& _id,
+      const VisitorAcceptor *_acceptor,
+      const GraphElement *_element, const Graph *_graph):
+    id{_id}, acceptor{_acceptor}, graph{_graph}, element{_element}
+  {}
+};
+struct VisitorAcceptorInfo
+{
+  bool create = false;
+  const string id;
+  VisitorAcceptor *acceptor = nullptr;
+  const VisitorAcceptor *member_acceptor = nullptr;
+  bool setting = false;
+  Graph *graph = nullptr;
+  Clone *clone = nullptr;
+  GraphElement *element = nullptr;
+  VisitorAcceptorInfo(const string& _id,
+      VisitorAcceptor *_acceptor, Graph *_graph, Clone *_clone):
+    id{_id}, acceptor{_acceptor}, graph{_graph}, clone{_clone}
+  {}
+  VisitorAcceptorInfo(const string& _id, Graph *_graph, Clone *_clone):
+    create{true}, id{_id}, graph{_graph}, clone{_clone}
+  {}
+  VisitorAcceptorInfo(const string& _id,
+      const VisitorAcceptor *_acceptor,
+      GraphElement *_element, Graph *_graph, bool _setting = false):
+    id{_id}, member_acceptor{_acceptor}, setting{_setting},
+    graph{_graph}, element{_element}
+  {}
+};
+
+//==========================================================================
 // Member wrappers
-class SettingMember
+class SettingMember: public VisitorAcceptor
 {
 public:
   virtual string get_type() const = 0;
@@ -179,45 +258,27 @@ public:
   virtual ElementSetting& get(GraphElement& b) const = 0;
   virtual JSON::Value get_json(const GraphElement& b) const = 0;
   virtual void set_json(GraphElement& b, const JSON::Value& json) const = 0;
-  virtual void accept(ReadVisitor& visitor,
-                      const Path& path, unsigned path_index,
-                      const GraphElement& element) const = 0;
-  virtual void accept(WriteVisitor& visitor,
-                      const Path& path, unsigned path_index,
-                      GraphElement& element) const = 0;
   virtual ~SettingMember() {}
 };
 
-class InputMember
+class InputMember: public VisitorAcceptor
 {
 public:
   virtual string get_type() const = 0;
   virtual const ElementInput& get(const GraphElement& b) const = 0;
   virtual ElementInput& get(GraphElement& b) const = 0;
   virtual JSON::Value get_json(const GraphElement& b) const = 0;
-  virtual void set_json(GraphElement& b, const JSON::Value& json) const = 0;
-  virtual void accept(ReadVisitor& visitor,
-                      const Path& path, unsigned path_index,
-                      const GraphElement& element) const = 0;
-  virtual void accept(WriteVisitor& visitor,
-                      const Path& path, unsigned path_index,
-                      GraphElement& element) const = 0;
   virtual double get_sample_rate(const GraphElement& b) const = 0;
+  virtual void set_json(GraphElement& b, const JSON::Value& json) const = 0;
   virtual ~InputMember() {}
 };
 
-class OutputMember
+class OutputMember: public VisitorAcceptor
 {
 public:
   virtual string get_type() const = 0;
   virtual const ElementOutput& get(const GraphElement& b) const = 0;
   virtual ElementOutput& get(GraphElement& b) const = 0;
-  virtual void accept(ReadVisitor& visitor,
-                      const Path& path, unsigned path_index,
-                      const GraphElement& element) const = 0;
-  virtual void accept(WriteVisitor& visitor,
-                      const Path& path, unsigned path_index,
-                      GraphElement& element) const = 0;
   virtual double get_sample_rate(const GraphElement& b) const = 0;
   virtual ~OutputMember() {}
 };
@@ -227,47 +288,13 @@ public:
 class ReadVisitor
 {
 public:
-  virtual void visit(const Engine& engine,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_root_graph_visitor(
-                     const Path& path, unsigned path_index) = 0;
-  virtual void visit(const Graph& graph,
-                     const Path& path, unsigned path_index) = 0;
-  virtual void visit(const Clone& clone,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_sub_element_visitor(
-                                                    const Graph &graph,
-                                                    const string& id,
-                                                    const Path& path,
-                                                    unsigned path_index) = 0;
-  virtual void visit(const Element& element,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_setting_visitor(
-                                              const GraphElement& element,
-                                              const string& id,
-                                              const Path& path,
-                                              unsigned path_index) = 0;
-  virtual void visit(const GraphElement& element, const SettingMember& setting,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_input_visitor(
-                                              const GraphElement& element,
-                                              const string& id,
-                                              const Path& path,
-                                              unsigned path_index) = 0;
-  virtual void visit(const GraphElement& element, const InputMember& input,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<ReadVisitor> get_element_output_visitor(
-                                              const GraphElement& element,
-                                              const string& id,
-                                              const Path& path,
-                                              unsigned path_index) = 0;
-  virtual void visit(const GraphElement& element, const OutputMember& output,
-                     const Path& path, unsigned path_index) = 0;
-  virtual void visit_graph_input_or_output(const Graph& graph,
-                                           const string& id,
-                                           const Path& path,
-                                           unsigned path_index) = 0;
-
+  virtual void visit(const Engine& engine) = 0;
+  virtual void visit(const Graph& graph) = 0;
+  virtual void visit(const Clone& clone) = 0;
+  virtual void visit(const Element& element) = 0;
+  virtual void visit(const SettingMember& setting) = 0;
+  virtual void visit(const InputMember& input) = 0;
+  virtual void visit(const OutputMember& output) = 0;
   virtual ~ReadVisitor() {}
 };
 
@@ -276,52 +303,13 @@ public:
 class WriteVisitor
 {
 public:
-  virtual void visit(Engine& engine,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_root_graph_visitor(
-                     const Path& path, unsigned path_index) = 0;
-  virtual bool visit(Graph& graph,
-                     const Path& path, unsigned path_index) = 0;
-  virtual bool visit(Clone& clone,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_sub_element_visitor(
-                                                    Graph &graph,
-                                                    const string& id,
-                                                    const Path& path,
-                                                    unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_sub_clone_visitor(
-                                                    Clone& clone,
-                                                    const string& id,
-                                                    const Path& path,
-                                                    unsigned path_index) = 0;
-  virtual bool visit(Element& element,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_setting_visitor(
-                                              GraphElement& element,
-                                              const string& id,
-                                              const Path& path,
-                                              unsigned path_index) = 0;
-  virtual void visit(GraphElement& element, const SettingMember& setting,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_input_visitor(
-                                              GraphElement& element,
-                                              const string& id,
-                                              const Path& path,
-                                              unsigned path_index) = 0;
-  virtual void visit(GraphElement& element, const InputMember& input,
-                     const Path& path, unsigned path_index) = 0;
-  virtual unique_ptr<WriteVisitor> get_element_output_visitor(
-                                              GraphElement& element,
-                                              const string& id,
-                                              const Path& path,
-                                              unsigned path_index) = 0;
-  virtual void visit(GraphElement& element, const OutputMember& output,
-                     const Path& path, unsigned path_index) = 0;
-  virtual void visit_graph_input_or_output(Graph& graph,
-                                           const string& id,
-                                           const Path& path,
-                                           unsigned path_index) = 0;
-
+  virtual void visit(Engine& engine) = 0;
+  virtual void visit(Graph& graph) = 0;
+  virtual void visit(Clone& clone) = 0;
+  virtual void visit(Element& element) = 0;
+  virtual void visit(const SettingMember& setting) = 0;
+  virtual void visit(const InputMember& input) = 0;
+  virtual void visit(const OutputMember& output) = 0;
   virtual ~WriteVisitor() {}
 };
 
@@ -875,20 +863,19 @@ protected:
         (b.*member_pointer).set(v);
       }
 
-      void accept(ReadVisitor& visitor,
-                  const Path& path, unsigned path_index,
-                  const GraphElement& element) const override
+      void accept(ReadVisitor& visitor) const override
       {
-        if (path.reached(path_index))
-          visitor.visit(element, *this, path, path_index);
+        visitor.visit(*this);
       }
 
-      void accept(WriteVisitor& visitor,
-                  const Path& path, unsigned path_index,
-                  GraphElement& element) const override
+      void accept(WriteVisitor& visitor) override
       {
-        if (path.reached(path_index))
-          visitor.visit(element, *this, path, path_index);
+        visitor.visit(*this);
+      }
+
+      void accept(WriteVisitor& visitor) const override
+      {
+        visitor.visit(*this);
       }
     };
     shared_ptr<SettingMember> typed_member;
@@ -924,18 +911,19 @@ protected:
       typed_member->set_json(b, json);
     }
 
-    void accept(ReadVisitor& visitor,
-                const Path& path, unsigned path_index,
-                const GraphElement& element) const override
+    void accept(ReadVisitor& visitor) const override
     {
-      typed_member->accept(visitor, path, path_index, element);
+      typed_member->accept(visitor);
     }
 
-    void accept(WriteVisitor& visitor,
-                const Path& path, unsigned path_index,
-                GraphElement& element) const override
+    void accept(WriteVisitor& visitor) override
     {
-      typed_member->accept(visitor, path, path_index, element);
+      typed_member->accept(visitor);
+    }
+
+    void accept(WriteVisitor& visitor) const override
+    {
+      typed_member->accept(visitor);
     }
   };
   map<string, Setting> settings;
@@ -983,25 +971,24 @@ protected:
         (b.*member_pointer).set(v);
       }
 
-      void accept(ReadVisitor& visitor,
-                  const Path& path, unsigned path_index,
-                  const GraphElement& element) const override
-      {
-        if (path.reached(path_index))
-          visitor.visit(element, *this, path, path_index);
-      }
-
-      void accept(WriteVisitor& visitor,
-                  const Path& path, unsigned path_index,
-                  GraphElement& element) const override
-      {
-        if (path.reached(path_index))
-          visitor.visit(element, *this, path, path_index);
-      }
-
       double get_sample_rate(const GraphElement& b) const override
       {
         return (b.*member_pointer).get_sample_rate();
+      }
+
+      void accept(ReadVisitor& visitor) const override
+      {
+        visitor.visit(*this);
+      }
+
+      void accept(WriteVisitor& visitor) override
+      {
+        visitor.visit(*this);
+      }
+
+      void accept(WriteVisitor& visitor) const override
+      {
+        visitor.visit(*this);
       }
     };
     shared_ptr<InputMember> typed_member;
@@ -1037,23 +1024,24 @@ protected:
       typed_member->set_json(b, json);
     }
 
-    void accept(ReadVisitor& visitor,
-                const Path& path, unsigned path_index,
-                const GraphElement& element) const override
-    {
-      typed_member->accept(visitor, path, path_index, element);
-    }
-
-    void accept(WriteVisitor& visitor,
-                const Path& path, unsigned path_index,
-                GraphElement& element) const override
-    {
-      typed_member->accept(visitor, path, path_index, element);
-    }
-
     double get_sample_rate(const GraphElement& b) const override
     {
       return typed_member->get_sample_rate(b);
+    }
+
+    void accept(ReadVisitor& visitor) const override
+    {
+      typed_member->accept(visitor);
+    }
+
+    void accept(WriteVisitor& visitor) override
+    {
+      typed_member->accept(visitor);
+    }
+
+    void accept(WriteVisitor& visitor) const override
+    {
+      typed_member->accept(visitor);
     }
   };
   map<string, Input> inputs;
@@ -1089,25 +1077,24 @@ protected:
         return b.*member_pointer;
       }
 
-      void accept(ReadVisitor& visitor,
-                  const Path& path, unsigned path_index,
-                  const GraphElement& element) const override
-      {
-        if (path.reached(path_index))
-          visitor.visit(element, *this, path, path_index);
-      }
-
-      void accept(WriteVisitor& visitor,
-                  const Path& path, unsigned path_index,
-                  GraphElement& element) const override
-      {
-        if (path.reached(path_index))
-          visitor.visit(element, *this, path, path_index);
-      }
-
       double get_sample_rate(const GraphElement& b) const override
       {
         return (b.*member_pointer).get_sample_rate();
+      }
+
+      void accept(ReadVisitor& visitor) const override
+      {
+        visitor.visit(*this);
+      }
+
+      void accept(WriteVisitor& visitor) override
+      {
+        visitor.visit(*this);
+      }
+
+      void accept(WriteVisitor& visitor) const override
+      {
+        visitor.visit(*this);
       }
     };
     shared_ptr<OutputMember> typed_member;
@@ -1133,23 +1120,24 @@ protected:
       return typed_member->get(b);
     }
 
-    void accept(ReadVisitor& visitor,
-                const Path& path, unsigned path_index,
-                const GraphElement& element) const override
-    {
-      typed_member->accept(visitor, path, path_index, element);
-    }
-
-    void accept(WriteVisitor& visitor,
-                const Path& path, unsigned path_index,
-                GraphElement& element) const override
-    {
-      typed_member->accept(visitor, path, path_index, element);
-    }
-
     double get_sample_rate(const GraphElement& b) const override
     {
       return typed_member->get_sample_rate(b);
+    }
+
+    void accept(ReadVisitor& visitor) const override
+    {
+      typed_member->accept(visitor);
+    }
+
+    void accept(WriteVisitor& visitor) override
+    {
+      typed_member->accept(visitor);
+    }
+
+    void accept(WriteVisitor& visitor) const override
+    {
+      typed_member->accept(visitor);
     }
   };
   map<string, Output> outputs;
@@ -1221,7 +1209,7 @@ public:
     for (const auto& i: inputs)
       if (&i.second.get(element) == &input)
         return i.first;
-    return "[invalid]";
+    return "";
   }
 
   string get_output_id(GraphElement& element,
@@ -1230,7 +1218,7 @@ public:
     for (const auto& o: outputs)
       if (&o.second.get(element) == &output)
         return o.first;
-    return "[invalid]";
+    return "";
   }
 };
 
@@ -1288,7 +1276,7 @@ public:
 
 //==========================================================================
 // Graph element - just has an ID
-class GraphElement
+class GraphElement: public VisitorAcceptor
 {
 private:
   string id;
@@ -1351,14 +1339,20 @@ public:
   // Collect list of all elements
   virtual void collect_elements(list<Element *>& elements) = 0;
 
-  // Accept visitors
-  virtual void accept(ReadVisitor& visitor,
-                      const Path& path, unsigned path_index) const = 0;
-  virtual void accept(WriteVisitor& visitor,
-                      const Path& path, unsigned path_index) = 0;
-
   // Clone element
   virtual GraphElement *clone() const = 0;
+
+  // Pathing
+  virtual vector<ConstVisitorAcceptorInfo> get_visitor_acceptors(
+                                              const Path& path,
+                                              unsigned path_index,
+                                              const Graph *graph,
+                                              const Clone *clone) const = 0;
+  virtual vector<VisitorAcceptorInfo> get_visitor_acceptors(
+                                              const Path& path,
+                                              unsigned path_index,
+                                              Graph *graph,
+                                              Clone *clone) = 0;
 
   // Clean shutdown
   virtual void shutdown() {}
@@ -1451,10 +1445,28 @@ public:
   Element *clone() const override;
 
   // Accept visitors
-  void accept(ReadVisitor& visitor,
-              const Path& path, unsigned path_index) const override;
-  void accept(WriteVisitor& visitor,
-              const Path& path, unsigned path_index) override;
+  vector<ConstVisitorAcceptorInfo> get_visitor_acceptors(
+                                          const Path& path,
+                                          unsigned path_index,
+                                          const Graph *graph,
+                                          const Clone *clone) const override;
+  vector<VisitorAcceptorInfo> get_visitor_acceptors(
+                                          const Path& path,
+                                          unsigned path_index,
+                                          Graph *graph,
+                                          Clone *clone) override;
+  void accept(ReadVisitor& visitor) const override
+  {
+    visitor.visit(*this);
+  }
+  void accept(WriteVisitor& visitor) override
+  {
+    visitor.visit(*this);
+  }
+  void accept(WriteVisitor&) const override
+  {
+    throw(runtime_error{"const write visit on element"});
+  }
 };
 
 //==========================================================================
@@ -1540,25 +1552,24 @@ private:
       return module.set_json(pin, json);
     }
 
-    void accept(ReadVisitor& visitor,
-                const Path& path, unsigned path_index,
-                const GraphElement& element) const override
-    {
-      if (path.reached(path_index))
-        visitor.visit(element, *this, path, path_index);
-    }
-
-    void accept(WriteVisitor& visitor,
-                const Path& path, unsigned path_index,
-                GraphElement& element) const override
-    {
-      if (path.reached(path_index))
-        visitor.visit(element, *this, path, path_index);
-    }
-
     double get_sample_rate(const GraphElement&) const override
     {
       return module.get_sample_rate(pin);
+    }
+
+    void accept(ReadVisitor& visitor) const override
+    {
+      visitor.visit(*this);
+    }
+
+    void accept(WriteVisitor& visitor) override
+    {
+      visitor.visit(*this);
+    }
+
+    void accept(WriteVisitor& visitor) const override
+    {
+      visitor.visit(*this);
     }
   };
   class GraphOutputMember: public OutputMember
@@ -1589,25 +1600,24 @@ private:
       return module.get(pin);
     }
 
-    void accept(ReadVisitor& visitor,
-                const Path& path, unsigned path_index,
-                const GraphElement& element) const override
-    {
-      if (path.reached(path_index))
-        visitor.visit(element, *this, path, path_index);
-    }
-
-    void accept(WriteVisitor& visitor,
-                const Path& path, unsigned path_index,
-                GraphElement& element) const override
-    {
-      if (path.reached(path_index))
-        visitor.visit(element, *this, path, path_index);
-    }
-
     double get_sample_rate(const GraphElement&) const override
     {
       return module.get_sample_rate(pin);
+    }
+
+    void accept(ReadVisitor& visitor) const override
+    {
+      visitor.visit(*this);
+    }
+
+    void accept(WriteVisitor& visitor) override
+    {
+      visitor.visit(*this);
+    }
+
+    void accept(WriteVisitor& visitor) const override
+    {
+      visitor.visit(*this);
     }
   };
   map<string, GraphInputMember> inputs;
@@ -1678,7 +1688,7 @@ public:
     for (const auto& i: inputs)
       if (&i.second.get(element) == &input)
         return i.first;
-    return "[invalid]";
+    return "";
   }
 
   string get_output_id(GraphElement& element,
@@ -1687,7 +1697,7 @@ public:
     for (const auto& o: outputs)
       if (&o.second.get(element) == &output)
         return o.first;
-    return "[invalid]";
+    return "";
   }
 };
 
@@ -1766,6 +1776,13 @@ public:
   void remove_output_pin(const string& id);
 
   //------------------------------------------------------------------------
+  // Is an output pin?
+  bool is_output_pin(const string& id) const
+  {
+    return output_pins.find(id) != output_pins.end();
+  }
+
+  //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
   void setup() override;
 
@@ -1808,10 +1825,28 @@ public:
 
   //------------------------------------------------------------------------
   // Accept visitors
-  void accept(ReadVisitor& visitor,
-              const Path& path, unsigned path_index) const override;
-  void accept(WriteVisitor& visitor,
-              const Path& path, unsigned path_index) override;
+  vector<ConstVisitorAcceptorInfo> get_visitor_acceptors(
+                                          const Path& path,
+                                          unsigned path_index,
+                                          const Graph *graph,
+                                          const Clone *clone) const override;
+  vector<VisitorAcceptorInfo> get_visitor_acceptors(
+                                          const Path& path,
+                                          unsigned path_index,
+                                          Graph *graph,
+                                          Clone *clone) override;
+  void accept(ReadVisitor& visitor) const override
+  {
+    visitor.visit(*this);
+  }
+  void accept(WriteVisitor& visitor) override
+  {
+    visitor.visit(*this);
+  }
+  void accept(WriteVisitor&) const override
+  {
+    throw(runtime_error{"const write visit on graph"});
+  }
 
   //------------------------------------------------------------------------
   // Shutdown all elements
@@ -1896,15 +1931,36 @@ public:
   // Collect list of all elements
   void collect_elements(list<Element *>& els) override;
 
+  // Get graphs
+  vector<Graph *> get_graphs() const;
+
   // Clone element
   Clone *clone() const override;
 
   //------------------------------------------------------------------------
   // Accept visitors
-  void accept(ReadVisitor& visitor,
-              const Path& path, unsigned path_index) const override;
-  void accept(WriteVisitor& visitor,
-              const Path& path, unsigned path_index) override;
+  vector<ConstVisitorAcceptorInfo> get_visitor_acceptors(
+                                          const Path& path,
+                                          unsigned path_index,
+                                          const Graph *graph,
+                                          const Clone *clone) const override;
+  vector<VisitorAcceptorInfo> get_visitor_acceptors(
+                                          const Path& path,
+                                          unsigned path_index,
+                                          Graph *graph,
+                                          Clone *clone) override;
+  void accept(ReadVisitor& visitor) const override
+  {
+    visitor.visit(*this);
+  }
+  void accept(WriteVisitor& visitor) override
+  {
+    visitor.visit(*this);
+  }
+  void accept(WriteVisitor&) const override
+  {
+    throw(runtime_error{"const write visit on clone"});
+  }
 
   //------------------------------------------------------------------------
   // Shutdown all elements
@@ -2066,7 +2122,7 @@ public:
 
 //==========================================================================
 // Engine class - wrapper containing Graph tree and Element registry
-class Engine
+class Engine: public VisitorAcceptor
 {
   // Graph structure
   mutable MT::RWMutex graph_mutex;
@@ -2078,7 +2134,7 @@ class Engine
   uint64_t tick_number{0};
   list<string> default_sections;  // Note: ordered
 
- public:
+public:
   Registry element_registry;
 
   //------------------------------------------------------------------------
@@ -2123,10 +2179,32 @@ class Engine
 
   //------------------------------------------------------------------------
   // Accept visitors
-  void accept(ReadVisitor& visitor,
-              const Path& path, unsigned path_index) const;
-  void accept(WriteVisitor& visitor,
-              const Path& path, unsigned path_index);
+  unique_ptr<MT::RWReadLock> get_read_lock() const
+  {
+    return make_unique<MT::RWReadLock>(graph_mutex);
+  }
+  unique_ptr<MT::RWWriteLock> get_write_lock()
+  {
+    return make_unique<MT::RWWriteLock>(graph_mutex);
+  }
+  vector<ConstVisitorAcceptorInfo> get_visitor_acceptors(
+                                          const Path& path,
+                                          unsigned path_index) const;
+  vector<VisitorAcceptorInfo> get_visitor_acceptors(
+                                          const Path& path,
+                                          unsigned path_index);
+  void accept(ReadVisitor& visitor) const override
+  {
+    visitor.visit(*this);
+  }
+  void accept(WriteVisitor& visitor) override
+  {
+    visitor.visit(*this);
+  }
+  void accept(WriteVisitor&) const override
+  {
+    throw(runtime_error{"const write visit on engine"});
+  }
 
   //------------------------------------------------------------------------
   // Reset

@@ -10,133 +10,91 @@
 
 namespace ViGraph { namespace JSON {
 
-void DeleteVisitor::visit(Dataflow::Engine&,
-                          const Dataflow::Path&, unsigned)
+class DeleteVisitor: public Dataflow::WriteVisitor
 {
+private:
+  const string id;
+  const Dataflow::Path::PartType type;
+public:
+  DeleteVisitor(const string& _id, Dataflow::Path::PartType _type):
+    id{_id}, type{_type}
+  {}
+  void visit(Dataflow::Engine& engine) override;
+  void visit(Dataflow::Graph& graph) override;
+  void visit(Dataflow::Clone& clone) override;
+  void visit(Dataflow::Element& element) override;
+  void visit(const Dataflow::SettingMember& setting) override;
+  void visit(const Dataflow::InputMember& input) override;
+  void visit(const Dataflow::OutputMember& output) override;
+};
+
+void del(Dataflow::Engine& engine, const Dataflow::Path& path)
+{
+  auto lock = engine.get_write_lock();
+
+  const auto parent = path.parent();
+  const auto id = path.leaf();
+  const auto type = path.type();
+  auto acceptors = engine.get_visitor_acceptors(parent, 0);
+  if (acceptors.empty())
+    throw runtime_error("Path not found");
+
+  auto visitor = DeleteVisitor{id, type};
+  for (auto& a: acceptors)
+  {
+    if (!a.acceptor)
+      throw runtime_error("Path not found");
+    a.acceptor->accept(visitor);
+  }
+
+  engine.update_elements();
 }
 
-unique_ptr<Dataflow::WriteVisitor> DeleteVisitor::get_root_graph_visitor(
-                          const Dataflow::Path&, unsigned)
+
+void DeleteVisitor::visit(Dataflow::Engine&)
 {
-  return make_unique<DeleteVisitor>(engine, "root", &engine.get_graph());
+  throw(runtime_error{"Cannot delete"});
 }
 
-bool DeleteVisitor::visit(Dataflow::Graph& graph,
-                          const Dataflow::Path& path, unsigned path_index)
+void DeleteVisitor::visit(Dataflow::Graph& graph)
 {
-  if (!path.reached(path_index))
-    return true;
-  graph.shutdown();
-  if (scope_graph)
-    scope_graph->remove(id);
-  return false;
+  switch (type)
+  {
+    case Dataflow::Path::PartType::element:
+      graph.remove(id);
+      break;
+    case Dataflow::Path::PartType::attribute:
+      graph.remove_input_pin(id);
+      graph.remove_output_pin(id);
+      break;
+    default:
+      break;
+  }
 }
 
-bool DeleteVisitor::visit(Dataflow::Clone& clone,
-                          const Dataflow::Path& path, unsigned path_index)
+void DeleteVisitor::visit(Dataflow::Clone&)
 {
-  if (!path.reached(path_index))
-    return true;
-  clone.shutdown();
-  if (scope_graph)
-    scope_graph->remove(id);
-  return false;
+  throw(runtime_error{"Cannot delete"});
 }
 
-unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_sub_element_visitor(Dataflow::Graph& graph,
-                                           const string& id,
-                                           const Dataflow::Path&,
-                                           unsigned)
+void DeleteVisitor::visit(Dataflow::Element&)
 {
-  return make_unique<DeleteVisitor>(engine, id, &graph);
+  throw(runtime_error{"Cannot delete"});
 }
 
-unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_sub_clone_visitor(Dataflow::Clone &,
-                                         const string&,
-                                         const Dataflow::Path&,
-                                         unsigned)
+void DeleteVisitor::visit(const Dataflow::SettingMember&)
 {
-  return make_unique<DeleteVisitor>(engine, id, nullptr);
+  throw(runtime_error{"Cannot delete"});
 }
 
-bool DeleteVisitor::visit(Dataflow::Element& element,
-                          const Dataflow::Path& path, unsigned path_index)
+void DeleteVisitor::visit(const Dataflow::InputMember&)
 {
-  if (!path.reached(path_index))
-    return true;
-  element.shutdown();
-  if (scope_graph)
-    scope_graph->remove(id);
-  return false;
+  throw(runtime_error{"Cannot delete"});
 }
 
-unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_setting_visitor(Dataflow::GraphElement&,
-                                               const string& id,
-                                               const Dataflow::Path&,
-                                               unsigned)
+void DeleteVisitor::visit(const Dataflow::OutputMember&)
 {
-  return make_unique<DeleteVisitor>(engine, id, scope_graph);
-}
-
-void DeleteVisitor::visit(Dataflow::GraphElement&,
-                          const Dataflow::SettingMember&,
-                          const Dataflow::Path& path, unsigned path_index)
-{
-  if (!path.reached(path_index))
-    return;
-  throw(runtime_error{"Cannot delete a setting"});
-}
-
-unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_input_visitor(Dataflow::GraphElement&,
-                                             const string& id,
-                                             const Dataflow::Path&,
-                                             unsigned)
-{
-  return make_unique<DeleteVisitor>(engine, id, scope_graph);
-}
-
-void DeleteVisitor::visit(Dataflow::GraphElement& element,
-                          const Dataflow::InputMember&,
-                          const Dataflow::Path& path, unsigned path_index)
-{
-  if (!path.reached(path_index))
-    return;
-  auto g = dynamic_cast<Dataflow::Graph *>(&element);
-  if (!g)
-    throw(runtime_error{"Cannot delete an input on an element"});
-  g->remove_input_pin(id);
-}
-
-unique_ptr<Dataflow::WriteVisitor>
-    DeleteVisitor::get_element_output_visitor(Dataflow::GraphElement&,
-                                              const string& id,
-                                              const Dataflow::Path&,
-                                              unsigned)
-{
-  return make_unique<DeleteVisitor>(engine, id, scope_graph);
-}
-
-void DeleteVisitor::visit(Dataflow::GraphElement& element,
-                          const Dataflow::OutputMember&,
-                          const Dataflow::Path& path, unsigned path_index)
-{
-  if (!path.reached(path_index))
-    return;
-  auto g = dynamic_cast<Dataflow::Graph *>(&element);
-  if (!g)
-    throw(runtime_error{"Cannot delete an output on an element"});
-  g->remove_output_pin(id);
-}
-
-void DeleteVisitor::visit_graph_input_or_output(Dataflow::Graph&,
-                                                const string&,
-                                                const Dataflow::Path&,
-                                                unsigned)
-{
+  throw(runtime_error{"Cannot delete"});
 }
 
 }} // namespaces

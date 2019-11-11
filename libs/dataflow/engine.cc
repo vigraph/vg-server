@@ -108,37 +108,30 @@ void Engine::tick(const Time::Duration& t)
 }
 
 //--------------------------------------------------------------------------
-// Accept visitors
-void Engine::accept(ReadVisitor& visitor,
-                    const Path& path, unsigned path_index) const
-{
-  MT::RWReadLock lock{graph_mutex};
-  if (path.reached(path_index))
-    visitor.visit(*this, path, path_index);
-  auto sv = visitor.get_root_graph_visitor(path, path_index);
-  if (sv)
-    graph->accept(*sv, path, path_index);
-}
-
-void Engine::accept(WriteVisitor& visitor,
-                    const Path& path, unsigned path_index)
-{
-  MT::RWWriteLock lock{graph_mutex};
-  if (path.reached(path_index))
-    visitor.visit(*this, path, path_index);
-  auto sv = visitor.get_root_graph_visitor(path, path_index);
-  if (sv)
-    graph->accept(*sv, path, path_index);
-  update_elements();
-}
-
-//--------------------------------------------------------------------------
 // Shut down the graph
 void Engine::shutdown()
 {
   // Shut down graph
   MT::RWWriteLock lock(graph_mutex);
   graph->shutdown();
+}
+
+//--------------------------------------------------------------------------
+// Pathing
+vector<ConstVisitorAcceptorInfo> Engine::get_visitor_acceptors(
+                                                  const Path& path,
+                                                  unsigned path_index) const
+{
+  return const_cast<const Graph *>(graph.get())->get_visitor_acceptors(path,
+                                                                 path_index,
+                                                                 nullptr,
+                                                                 nullptr);
+}
+vector<VisitorAcceptorInfo> Engine::get_visitor_acceptors(
+                                                  const Path& path,
+                                                  unsigned path_index)
+{
+  return graph->get_visitor_acceptors(path, path_index, nullptr, nullptr);
 }
 
 }} // namespaces

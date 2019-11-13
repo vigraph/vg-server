@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph Number switch module
+# Tupfile for Vigraph Switch module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-number-switch
+NAME    = vg-module-core-switch
 TYPE    = shared
 DEPENDS = vg-dataflow ot-lib vg-waveform
 

@@ -225,6 +225,7 @@ struct ConstVisitorAcceptorInfo
 };
 struct VisitorAcceptorInfo
 {
+  bool attribute = false;
   bool create = false;
   const string id;
   VisitorAcceptor *acceptor = nullptr;
@@ -243,7 +244,12 @@ struct VisitorAcceptorInfo
   VisitorAcceptorInfo(const string& _id,
       const VisitorAcceptor *_acceptor,
       GraphElement *_element, Graph *_graph, bool _setting = false):
-    id{_id}, member_acceptor{_acceptor}, setting{_setting},
+    attribute{true}, id{_id}, member_acceptor{_acceptor}, setting{_setting},
+    graph{_graph}, element{_element}
+  {}
+  VisitorAcceptorInfo(const string& _id,
+      GraphElement *_element, Graph *_graph, bool _setting = false):
+    attribute{true}, create{true}, id{_id}, setting{_setting},
     graph{_graph}, element{_element}
   {}
 };

@@ -179,7 +179,7 @@ vector<VisitorAcceptorInfo> Element::get_visitor_acceptors(
                                                   Clone *clone)
 {
   if (path.reached(path_index))
-    return {{get_id(), this, graph, clone}};
+    return {{get_id(), static_cast<VisitorAcceptor *>(this), graph, clone}};
   if (path.type(path_index) != Path::PartType::attribute)
     return {};
   const auto& name = path.name(path_index);

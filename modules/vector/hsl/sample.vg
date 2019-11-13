@@ -1,0 +1,10 @@
+# Vector HSL colour test
+
+vector/figure x-wave="sin" x-freq=1
+              y-wave="sin" y-freq=1 y-phase=0.25 ->-
+hsl: vector/hsl ->-
+vector/websocket-display
+
+oscillator wave="sin" freq=0.2 control>hsl.h
+oscillator wave="sin" freq=0.05 control>hsl.s
+

@@ -9,25 +9,19 @@ TYPE     = package
 DEPENDS  = vg-module-vector-translate    \
            vg-module-vector-scale        \
            vg-module-vector-rotate       \
+           vg-module-vector-clip         \
+           vg-module-vector-hsl          \
+           vg-module-vector-rgb          \
            vg-module-vector-svg          \
+           vg-module-vector-figure       \
            vg-module-vector-websocket
 
-#           vg-module-vector-source-test \
-#           vg-module-vector-source-figure \
-#           vg-module-vector-source-text \
-#           vg-module-vector-source-receive \
-#           vg-module-vector-control-velocity \
-#           vg-module-vector-control-polar-velocity \
 #           vg-module-vector-filter-depth-fade \
-#           vg-module-vector-filter-colour \
 #           vg-module-vector-filter-pattern \
 #           vg-module-vector-filter-fade \
-#           vg-module-vector-filter-clip \
 #           vg-module-vector-filter-sum \
-#           vg-module-vector-filter-combine \
 #           vg-module-vector-filter-perspective \
 #           vg-module-vector-filter-collision-detect \
-#           vg-module-vector-filter-send \
 #           vg-module-vector-service-collision-detector \
 #           vg-module-vector-sink-extract-rgb
 

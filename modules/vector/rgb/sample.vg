@@ -1,0 +1,11 @@
+# Vector RGB colour test
+
+vector/figure x-wave="sin" x-freq=1
+              y-wave="sin" y-freq=1 y-phase=0.25 ->-
+rgb: vector/rgb ->-
+vector/websocket-display
+
+oscillator wave="sin" freq=0.2 control>rgb.r
+oscillator wave="sin" freq=0.05 control>rgb.g
+oscillator wave="sin" freq=0.3 control>rgb.b
+

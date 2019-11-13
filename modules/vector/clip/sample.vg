@@ -1,0 +1,10 @@
+# Basic scaled circle, with clipping
+
+vector/figure x-wave="sin" x-freq=1
+              y-wave="sin" y-freq=1 y-phase=0.25 ->-
+scale: vector/scale ->-
+vector/clip min-x=-0.3 max-x=0.3 min-y=-0.2 max-y=0.2 ->-
+vector/websocket-display
+
+# Control
+oscillator wave="sin" freq=0.2 control>scale.x control>scale.y

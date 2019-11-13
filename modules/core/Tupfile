@@ -6,23 +6,24 @@
 
 NAME     = vg-modules-core
 TYPE     = package
-DEPENDS  = vg-module-core-clone       \
-           vg-module-core-clone-info  \
-           vg-module-core-filter      \
-           vg-module-core-graph       \
-           vg-module-core-number-pin  \
-           vg-module-core-oscillator  \
-           vg-module-core-multiply    \
-           vg-module-core-divide      \
-           vg-module-core-add         \
-           vg-module-core-subtract    \
-           vg-module-core-compare     \
-           vg-module-core-count       \
-           vg-module-core-limit       \
-           vg-module-core-wrap        \
-           vg-module-core-random      \
-           vg-module-core-beat        \
-           vg-module-core-envelope    \
+DEPENDS  = vg-module-core-clone         \
+           vg-module-core-clone-info    \
+           vg-module-core-filter        \
+           vg-module-core-graph         \
+           vg-module-core-number-pin    \
+           vg-module-core-number-switch \
+           vg-module-core-oscillator    \
+           vg-module-core-multiply      \
+           vg-module-core-divide        \
+           vg-module-core-add           \
+           vg-module-core-subtract      \
+           vg-module-core-compare       \
+           vg-module-core-count         \
+           vg-module-core-limit         \
+           vg-module-core-wrap          \
+           vg-module-core-random        \
+           vg-module-core-beat          \
+           vg-module-core-envelope      \
            vg-module-core-log
 
 #           vg-module-core-source-selector \

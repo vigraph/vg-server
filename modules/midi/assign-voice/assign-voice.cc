@@ -25,8 +25,22 @@ private:
     return new AssignVoice{module};
   }
 
-  vector<int> voice_map;
-
+  map<int, int> key_to_voice;
+  struct Voice
+  {
+    int voice = -1;
+    timestamp_t last_used = 0;
+    Voice(int _voice, timestamp_t _last_used):
+      voice{_voice}, last_used{_last_used}
+    {}
+    bool operator<(const Voice& b) const
+    {
+      if (last_used == b.last_used)
+        return voice < b.voice;
+      return last_used < b.last_used;
+    }
+  };
+  std::set<Voice> available;
 
 public:
   using SimpleElement::SimpleElement;
@@ -41,7 +55,41 @@ public:
 // Setup
 void AssignVoice::setup()
 {
-  voice_map = vector<int>(voices, -1);
+  auto max = 0;
+
+  // Remove entries higher than number of voices
+  for (auto it = key_to_voice.begin(); it != key_to_voice.end();)
+  {
+    if (it->second > voices)
+    {
+      it = key_to_voice.erase(it);
+    }
+    else
+    {
+      if (it->second > max)
+        max = it->second;
+      ++it;
+    }
+  }
+  for (auto it = available.begin(); it != available.end();)
+  {
+    if (it->voice > voices)
+    {
+      it = available.erase(it);
+    }
+    else
+    {
+      if (it->voice > max)
+        max = it->voice;
+      ++it;
+    }
+  }
+
+  // Add new voices to available pool
+  for (auto i = max + 1; i < voices; ++i)
+  {
+    available.emplace(i, 0);
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -49,6 +97,8 @@ void AssignVoice::setup()
 void AssignVoice::tick(const TickData& td)
 {
   const auto sample_rate = output.get_sample_rate();
+  auto t = td.first_sample_at(sample_rate);
+  const auto sample_duration = td.sample_duration(sample_rate);
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(nsamples, {}, tie(channel, input), tie(output),
                  [&](double c, const MIDI::Event& i, MIDI::Event& o)
@@ -60,38 +110,28 @@ void AssignVoice::tick(const TickData& td)
       {
         case MIDI::Event::Type::note_on:
           {
-            auto v = 0;
-            for (auto j = 0u; j < voice_map.size(); ++j)
+            auto it = key_to_voice.find(i.key);
+            if (it != key_to_voice.end())
             {
-              if (voice_map[j] == i.key)
-              {
-                v = j + 1;
-                break;
-              }
+              o.voice = it->second;
             }
-            if (!v)
+            else if (!available.empty())
             {
-              for (auto j = 0u; j < voice_map.size(); ++j)
-              {
-                if (voice_map[j] == -1)
-                {
-                  v = j + 1;
-                  voice_map[j] = i.key;
-                  break;
-                }
-              }
+              auto at = available.begin();
+              o.voice = at->voice;
+              available.erase(at);
+              key_to_voice.emplace(i.key, o.voice);
             }
-            o.voice = v;
           }
           break;
         case MIDI::Event::Type::note_off:
-          for (auto j = 0u; j < voice_map.size(); ++j)
           {
-            if (voice_map[j] == i.key)
+            auto it = key_to_voice.find(i.key);
+            if (it != key_to_voice.end())
             {
-              o.voice = j + 1;
-              voice_map[j] = -1;
-              break;
+              o.voice = it->second;
+              key_to_voice.erase(it);
+              available.emplace(o.voice, t);
             }
           }
           break;
@@ -99,6 +139,7 @@ void AssignVoice::tick(const TickData& td)
           break;
       }
     }
+    t += sample_duration;
   });
 }
 

@@ -107,7 +107,32 @@ void set(Dataflow::Engine& engine, const Value& json,
   {
     // Setup
     if (a.create)
-      a.acceptor = create_element(engine, *a.graph, a.clone, a.id, json);
+    {
+      if (a.attribute)
+      {
+        // Graph input/output
+        const auto& dir = json["direction"].as_str();
+        auto graph = dynamic_cast<Dataflow::Graph *>(a.element);
+        if (graph)
+        {
+          if (dir == "in")
+            graph->add_input_pin(a.id, a.id, "input");
+          else if (dir == "out")
+            graph->add_output_pin(a.id, a.id, "output");
+          else
+            throw(runtime_error{"Direction is required"});
+        }
+        else
+        {
+          throw(runtime_error{"Path not found"});
+        }
+        continue;
+      }
+      else
+      {
+        a.acceptor = create_element(engine, *a.graph, a.clone, a.id, json);
+      }
+    }
 
     if (a.acceptor)
     {

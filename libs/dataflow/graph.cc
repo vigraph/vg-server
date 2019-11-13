@@ -318,7 +318,7 @@ vector<VisitorAcceptorInfo> Graph::get_visitor_acceptors(
                                                   Clone *clone)
 {
   if (path.reached(path_index))
-    return {{get_id(), this, graph, clone}};
+    return {{get_id(), static_cast<VisitorAcceptor *>(this), graph, clone}};
 
   const auto& n = path.name(path_index);
 
@@ -338,7 +338,7 @@ vector<VisitorAcceptorInfo> Graph::get_visitor_acceptors(
     if (o)
       return {{n, o, this, graph}};
 
-    throw(runtime_error{"Attribute " + n + " not found"});
+    return {{n, this, graph}}; // create pin
   }
 
   auto it = elements.find(n);

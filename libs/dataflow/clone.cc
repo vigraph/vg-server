@@ -236,7 +236,7 @@ vector<VisitorAcceptorInfo> Clone::get_visitor_acceptors(
                                                   Clone *)
 {
   if (path.reached(path_index))
-    return {{get_id(), this, graph, this}};
+    return {{get_id(), static_cast<VisitorAcceptor *>(this), graph, this}};
 
   if (path.type(path_index) == Path::PartType::attribute)
   {

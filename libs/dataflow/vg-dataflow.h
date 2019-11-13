@@ -1232,6 +1232,217 @@ public:
 // Dyanmic module information
 class DynamicModule: public SimpleModule
 {
+private:
+  class Input: public InputMember
+  {
+  private:
+    template<typename T>
+    class TypedMember: public InputMember
+    {
+    private:
+      Dataflow::Input<T> *pointer = nullptr;
+
+    public:
+      TypedMember(Dataflow::Input<T> *_pointer):
+        pointer{_pointer}
+      {}
+
+      string get_type() const override
+      {
+        return get_module_type<T>();
+      }
+
+      const ElementInput& get(const GraphElement&) const override
+      {
+        return *pointer;
+      }
+
+      ElementInput& get(GraphElement&) const override
+      {
+        return *pointer;
+      }
+
+      JSON::Value get_json(const GraphElement&) const override
+      {
+        return get_as_json(pointer->get());
+      }
+
+      void set_json(GraphElement&, const JSON::Value& json) const override
+      {
+        auto v = T{};
+        set_from_json(v, json);
+        pointer->set(v);
+      }
+
+      double get_sample_rate(const GraphElement&) const override
+      {
+        return pointer->get_sample_rate();
+      }
+
+      void accept(ReadVisitor& visitor) const override
+      {
+        visitor.visit(*this);
+      }
+
+      void accept(WriteVisitor& visitor) override
+      {
+        visitor.visit(*this);
+      }
+
+      void accept(WriteVisitor& visitor) const override
+      {
+        visitor.visit(*this);
+      }
+    };
+    shared_ptr<InputMember> typed_member;
+
+  public:
+    template<typename T>
+    Input(Dataflow::Input<T> *i):
+      typed_member{new TypedMember<T>{i}}
+    {}
+
+    string get_type() const override
+    {
+      return typed_member->get_type();
+    }
+
+    const ElementInput& get(const GraphElement& b) const override
+    {
+      return typed_member->get(b);
+    }
+
+    ElementInput& get(GraphElement& b) const override
+    {
+      return typed_member->get(b);
+    }
+
+    JSON::Value get_json(const GraphElement& b) const override
+    {
+      return typed_member->get_json(b);
+    }
+
+    void set_json(GraphElement& b, const JSON::Value& json) const override
+    {
+      typed_member->set_json(b, json);
+    }
+
+    double get_sample_rate(const GraphElement& b) const override
+    {
+      return typed_member->get_sample_rate(b);
+    }
+
+    void accept(ReadVisitor& visitor) const override
+    {
+      typed_member->accept(visitor);
+    }
+
+    void accept(WriteVisitor& visitor) override
+    {
+      typed_member->accept(visitor);
+    }
+
+    void accept(WriteVisitor& visitor) const override
+    {
+      typed_member->accept(visitor);
+    }
+  };
+  map<string, Input> dynamic_inputs;
+
+  class Output: public OutputMember
+  {
+  private:
+    template<typename T>
+    class TypedMember: public OutputMember
+    {
+    private:
+      Dataflow::Output<T> *pointer = nullptr;
+
+    public:
+      TypedMember(Dataflow::Output<T> *_pointer):
+        pointer{_pointer}
+      {}
+
+      string get_type() const override
+      {
+        return get_module_type<T>();
+      }
+
+      const ElementOutput& get(const GraphElement&) const override
+      {
+        return *pointer;
+      }
+
+      ElementOutput& get(GraphElement&) const override
+      {
+        return *pointer;
+      }
+
+      double get_sample_rate(const GraphElement&) const override
+      {
+        return pointer->get_sample_rate();
+      }
+
+      void accept(ReadVisitor& visitor) const override
+      {
+        visitor.visit(*this);
+      }
+
+      void accept(WriteVisitor& visitor) override
+      {
+        visitor.visit(*this);
+      }
+
+      void accept(WriteVisitor& visitor) const override
+      {
+        visitor.visit(*this);
+      }
+    };
+    shared_ptr<OutputMember> typed_member;
+
+  public:
+    template<typename T>
+    Output(Dataflow::Output<T> *o):
+      typed_member{new TypedMember<T>{o}}
+    {}
+
+    string get_type() const override
+    {
+      return typed_member->get_type();
+    }
+
+    const ElementOutput& get(const GraphElement& b) const override
+    {
+      return typed_member->get(b);
+    }
+
+    ElementOutput& get(GraphElement& b) const override
+    {
+      return typed_member->get(b);
+    }
+
+    double get_sample_rate(const GraphElement& b) const override
+    {
+      return typed_member->get_sample_rate(b);
+    }
+
+    void accept(ReadVisitor& visitor) const override
+    {
+      typed_member->accept(visitor);
+    }
+
+    void accept(WriteVisitor& visitor) override
+    {
+      typed_member->accept(visitor);
+    }
+
+    void accept(WriteVisitor& visitor) const override
+    {
+      typed_member->accept(visitor);
+    }
+  };
+  map<string, Output> dynamic_outputs;
+
 public:
   using SimpleModule::SimpleModule;
 
@@ -1239,12 +1450,13 @@ public:
 
   auto num_inputs() const
   {
-    return inputs.size();
+    return inputs.size() + dynamic_inputs.size();
   }
 
   void clear_inputs()
   {
     inputs.clear();
+    dynamic_inputs.clear();
   }
 
   template<typename T, typename C>
@@ -1253,19 +1465,51 @@ public:
     inputs.emplace(name, i);
   }
 
+  template<typename T>
+  void add_input(const string& name, Dataflow::Input<T> *i)
+  {
+    dynamic_inputs.emplace(name, i);
+  }
+
+  const InputMember *get_input(const string& name) const override
+  {
+    const auto i = SimpleModule::get_input(name);
+    if (i)
+      return i;
+
+    auto iit = dynamic_inputs.find(name);
+    if (iit == dynamic_inputs.end())
+      return nullptr;
+    return &iit->second;
+  }
+
+  bool has_inputs() const override
+  {
+    return SimpleModule::has_inputs() || !dynamic_inputs.empty();
+  }
+  void for_each_input(const function<void(const string&,
+                                    const InputMember&)>& func) const override
+  {
+    SimpleModule::for_each_input(func);
+    for (const auto& iit: dynamic_inputs)
+      func(iit.first, iit.second);
+  }
+
   void erase_input(const string& name)
   {
     inputs.erase(name);
+    dynamic_inputs.erase(name);
   }
 
   auto num_outputs() const
   {
-    return outputs.size();
+    return outputs.size() + dynamic_outputs.size();
   }
 
   void clear_outputs()
   {
     outputs.clear();
+    dynamic_outputs.clear();
   }
 
   template<typename T, typename C>
@@ -1274,9 +1518,64 @@ public:
     outputs.emplace(name, o);
   }
 
+  template<typename T>
+  void add_output(const string& name, Dataflow::Output<T> *o)
+  {
+    dynamic_outputs.emplace(name, o);
+  }
+
+  const OutputMember *get_output(const string& name) const override
+  {
+    const auto o = SimpleModule::get_output(name);
+    if (o)
+      return o;
+
+    auto oit = dynamic_outputs.find(name);
+    if (oit == dynamic_outputs.end())
+      return nullptr;
+    return &oit->second;
+  }
+
+  bool has_outputs() const override
+  {
+    return SimpleModule::has_outputs() || !dynamic_outputs.empty();
+  }
+  void for_each_output(const function<void(const string&,
+                                   const OutputMember&)>& func) const override
+  {
+    SimpleModule::for_each_output(func);
+    for (const auto& oit: dynamic_outputs)
+      func(oit.first, oit.second);
+  }
+
   void erase_output(const string& name)
   {
     outputs.erase(name);
+    dynamic_outputs.erase(name);
+  }
+
+  string get_input_id(GraphElement& element,
+                      ElementInput& input) const override
+  {
+    const auto& id = SimpleModule::get_input_id(element, input);
+    if (!id.empty())
+      return id;
+    for (const auto& i: dynamic_inputs)
+      if (&i.second.get(element) == &input)
+        return i.first;
+    return "";
+  }
+
+  string get_output_id(GraphElement& element,
+                       ElementOutput& output) const override
+  {
+    const auto& id = SimpleModule::get_output_id(element, output);
+    if (!id.empty())
+      return id;
+    for (const auto& o: dynamic_outputs)
+      if (&o.second.get(element) == &output)
+        return o.first;
+    return "";
   }
 };
 
@@ -2056,14 +2355,6 @@ public:
   using SimpleElement::SimpleElement;
   Input<T> input;
   Output<T> output;
-};
-
-//==========================================================================
-// Generic singleton service - no inputs or outputs
-class Service: public Element
-{
- public:
-  using Element::Element;
 };
 
 //==========================================================================

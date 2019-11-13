@@ -7,6 +7,7 @@ rgb/vg-module-vector-rgb.so /usr/lib/vigraph/modules/
 svg/vg-module-vector-svg.so /usr/lib/vigraph/modules/
 figure/vg-module-vector-figure.so /usr/lib/vigraph/modules/
 switch/vg-module-vector-switch.so /usr/lib/vigraph/modules/
+pin/vg-module-vector-pin.so /usr/lib/vigraph/modules/
 websocket/vg-module-vector-websocket.so /usr/lib/vigraph/modules/
 
 #filters/collision-detect/vg-module-vector-filter-collision-detect.so /usr/lib/vigraph/modules/

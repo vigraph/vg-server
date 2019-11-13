@@ -285,6 +285,37 @@ e2: splat
   EXPECT_EQ("e1", o2e1.s);
 }
 
+TEST(ParserTest, TestClone)
+{
+  string input(R"(
+clone copies=10
+[
+  foo
+]
+)");
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  JSON::Value v;
+  ASSERT_NO_THROW(v = parser.get_json());
+  ASSERT_EQ(JSON::Value::OBJECT, v.type);
+  const JSON::Value& clone = v["clone1"];
+  ASSERT_EQ(JSON::Value::OBJECT, clone.type);
+
+  const JSON::Value& settings = clone["settings"];
+  ASSERT_EQ(JSON::Value::OBJECT, settings.type);
+
+  const JSON::Value& c = settings["copies"];
+  ASSERT_EQ(JSON::Value::OBJECT, c.type);
+  const JSON::Value& cv = c["value"];
+  ASSERT_EQ(JSON::Value::INTEGER, cv.type);
+  EXPECT_EQ(10, cv.n);
+
+  const JSON::Value& elements = clone["elements"];
+  ASSERT_EQ(JSON::Value::OBJECT, elements.type);
+  const JSON::Value& foo = elements["foo1"];
+  ASSERT_EQ(JSON::Value::OBJECT, foo.type);
+}
+
 TEST(ParserTest, TestSanityCheckFailsOnDanglingOutputs)
 {
   string input("foo ->-");

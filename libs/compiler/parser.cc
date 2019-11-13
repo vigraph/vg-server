@@ -23,6 +23,8 @@ Parser::Parser(istream& input): lex(input)
   lex.add_symbol("-");
   lex.add_symbol(":");
   lex.add_symbol("/");
+  lex.add_symbol("[");
+  lex.add_symbol("]");
   lex.add_line_comment_symbol("#");
   lex.allow_dashed_names();
 }
@@ -34,9 +36,15 @@ void Parser::read_settings(JSON::Value& element)
 {
   for(;;) // Looping on settings
   {
-    // Read ahead another name
+    // Read ahead another name or [
     auto token = lex.read_token();
-    if (token.type != Lex::Token::NAME)
+    if (token.type == Lex::Token::SYMBOL && token.value == "[")
+    {
+      // Open sub-graph - note reads until ]
+      element.put("elements", get_json());
+      break;
+    }
+    else if (token.type != Lex::Token::NAME)
     {
       lex.put_back(token);
       break;
@@ -200,7 +208,8 @@ JSON::Value Parser::get_json()
     for(;;) // Looping on elements
     {
       auto token = lex.read_token();
-      if (token.type == Lex::Token::END) break;
+      if (token.type == Lex::Token::END
+       || (token.type == Lex::Token::SYMBOL && token.value == "]")) break;
 
       if (token.type != Lex::Token::NAME)
         throw Exception("Expected a name");

@@ -10,6 +10,7 @@ DEPENDS  = vg-module-vector-translate    \
            vg-module-vector-scale        \
            vg-module-vector-rotate       \
            vg-module-vector-svg          \
+           vg-module-vector-switch       \
            vg-module-vector-websocket
 
 #           vg-module-vector-source-test \

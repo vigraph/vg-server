@@ -25,6 +25,12 @@ struct Frame
 
   Frame() {}
   Frame(const Frame& o): points(o.points) {}
+
+  Frame& operator+=(const Frame& o)
+  {
+    points.insert(points.begin(), o.points.begin(), o.points.end());
+    return *this;
+  }
 };
 
 typedef shared_ptr<Frame> FramePtr;

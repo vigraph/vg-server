@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph Switch module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-core-switch
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib vg-waveform
+
+include_rules

@@ -2,6 +2,7 @@ translate/vg-module-vector-translate.so /usr/lib/vigraph/modules/
 scale/vg-module-vector-scale.so /usr/lib/vigraph/modules/
 rotate/vg-module-vector-rotate.so /usr/lib/vigraph/modules/
 svg/vg-module-vector-svg.so /usr/lib/vigraph/modules/
+switch/vg-module-vector-switch.so /usr/lib/vigraph/modules/
 websocket/vg-module-vector-websocket.so /usr/lib/vigraph/modules/
 
 #controls/polar-velocity/vg-module-vector-control-polar-velocity.so /usr/lib/vigraph/modules/

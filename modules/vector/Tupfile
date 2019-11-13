@@ -14,6 +14,7 @@ DEPENDS  = vg-module-vector-translate    \
            vg-module-vector-rgb          \
            vg-module-vector-svg          \
            vg-module-vector-figure       \
+           vg-module-vector-switch       \
            vg-module-vector-websocket
 
 #           vg-module-vector-filter-depth-fade \

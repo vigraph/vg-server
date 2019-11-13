@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph bitmap pin module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-bitmap-pin
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib vg-bitmap
+
+include_rules

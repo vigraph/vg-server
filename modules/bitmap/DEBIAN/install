@@ -4,4 +4,5 @@ websocket/vg-module-bitmap-websocket.so /usr/lib/vigraph/modules/
 vector-fill/vg-module-bitmap-vector-fill.so /usr/lib/vigraph/modules/
 fade/vg-module-bitmap-fade.so /usr/lib/vigraph/modules/
 hsl/vg-module-bitmap-hsl.so /usr/lib/vigraph/modules/
+rgb/vg-module-bitmap-rgb.so /usr/lib/vigraph/modules/
 pin/vg-module-bitmap-pin.so /usr/lib/vigraph/modules/

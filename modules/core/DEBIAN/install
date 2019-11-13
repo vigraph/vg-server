@@ -17,6 +17,7 @@ limit/vg-module-core-limit.so /usr/lib/vigraph/modules/
 wrap/vg-module-core-wrap.so /usr/lib/vigraph/modules/
 random/vg-module-core-random.so /usr/lib/vigraph/modules/
 log/vg-module-core-log.so /usr/lib/vigraph/modules/
+timer/vg-module-core-timer.so /usr/lib/vigraph/modules/
 
 #controls/interpolate/vg-module-core-control-interpolate.so /usr/lib/vigraph/modules/
 #controls/round/vg-module-core-control-round.so /usr/lib/vigraph/modules/

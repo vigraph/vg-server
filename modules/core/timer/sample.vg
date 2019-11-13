@@ -1,0 +1,19 @@
+# Circle falling under gravity
+
+vector/figure x-wave="sin" x-freq=1
+              y-wave="sin" y-freq=1 y-phase=0.25 ->-
+vector/scale x=0.1 y=0.1 ->-
+tx: vector/translate ->-
+vector/websocket-display
+
+# Control
+beat interval=10 ->start ->t2.start
+timer ->- ->factor
+multiply ->-
+multiply factor=-0.005 ->-
+add offset=0.25 ->tx.y
+
+t2: timer ->-
+multiply factor=0.08 ->-
+add offset=-0.4 ->tx.x
+

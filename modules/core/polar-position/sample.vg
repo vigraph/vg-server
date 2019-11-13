@@ -1,0 +1,17 @@
+# Circle moving in a random polar direction
+
+vector/figure x-wave="sin" x-freq=1
+              y-wave="sin" y-freq=1 y-phase=0.25 ->-
+vector/scale x=0.1 y=0.1 ->-
+tx: vector/translate ->-
+vector/websocket-display
+
+# Control
+beat interval=1 ->start ->r.trigger
+timer ->-
+multiply factor=0.4 ->distance
+pp: polar-position angle=0.1 x>tx.x y>tx.y
+
+r: random ->pp.angle
+
+

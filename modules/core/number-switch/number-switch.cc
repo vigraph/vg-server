@@ -9,6 +9,12 @@
 #include "../core-module.h"
 #include "../../switch.h"
 
+template<>
+inline double switch_fade(const double& value, double factor)
+{
+  return value * factor;
+}
+
 namespace {
 
 class NumberSwitch: public Switch<double>

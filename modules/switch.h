@@ -17,7 +17,7 @@ using namespace ObTools;
 using namespace ViGraph;
 using namespace ViGraph::Dataflow;
 
-template<typename T> void fade(T& value, double factor);
+template<typename T> inline T switch_fade(const T& value, double factor);
 
 //==========================================================================
 // Switch class template
@@ -25,6 +25,20 @@ template<typename T>
 class Switch: public DynamicElement
 {
 private:
+  vector<shared_ptr<Input<T>>> input_list;
+  struct State
+  {
+    enum class Fade
+    {
+      in,
+      full,
+      out,
+    } fade;
+    double factor = 0;
+  };
+  map<int, State> states;
+  int active = -1;
+
   void setup() override
   {
     const auto ninputs = static_cast<unsigned>(max(inputs.get(), 2));
@@ -47,14 +61,30 @@ private:
   void tick(const TickData& td) override
   {
     const auto sample_rate = output.get_sample_rate();
-//    const auto sample_duration = td.sample_duration(sample_rate);
+    const auto sample_duration = td.sample_duration(sample_rate);
+    const auto fade_in_inc = fade_in_time ? sample_duration / fade_in_time
+                                          : 1.0;
+    const auto fade_out_dec = fade_out_time ? sample_duration / fade_out_time
+                                            : 1.0;
     const auto nsamples = td.samples_in_tick(sample_rate);
 
     auto out = output.get_buffer();
 
-    map<int, const vector<T> *> input_buffers;
-    if (active >= 0)
-      input_buffers[active] = &input_list[active]->get_buffer();
+    struct InputData
+    {
+      const vector<T> *data = nullptr;
+      State *state = nullptr;
+      InputData(const vector<T> *_data, State *_state):
+        data{_data}, state{_state}
+      {}
+    };
+    map<int, InputData> id;
+    for (const auto& p: states)
+    {
+      id.emplace(p.first,
+                 InputData{&input_list[p.first]->get_buffer(),
+                           &states[p.first]});
+    }
 
     for (auto i = 0u; i < nsamples; ++i)
     {
@@ -76,32 +106,70 @@ private:
       }
       if (active != n)
       {
+        if (active >= 0)
+          states[active].fade = State::Fade::out;
         active = n;
         if (active >= 0)
-          input_buffers[active] = &input_list[active]->get_buffer();
+        {
+          states[active].fade = State::Fade::in;
+          if (id.find(active) == id.end())
+            id.emplace(active,
+                       InputData{&input_list[active]->get_buffer(),
+                                 &states[active]});
+        }
       }
 
-      auto v = (active >= 0)
-                ? (i <= input_buffers[active]->size()
-                   ? (*input_buffers[active])[i] : T{})
-                : T{};
+      auto v = T{};
+      for (auto idit = id.begin(); idit != id.end();)
+      {
+        auto n = idit->first;
+        auto& b = *idit->second.data;
+        auto& s = *idit->second.state;
+        auto removed = false;
+        switch (s.fade)
+        {
+          case State::Fade::in:
+            s.factor += fade_in_inc;
+            if (s.factor >= 1)
+            {
+              s.factor = 1;
+              s.fade = State::Fade::full;
+            }
+            if (i < b.size())
+              v += switch_fade(b[i], s.factor);
+            break;
+
+          case State::Fade::full:
+            if (i < b.size())
+              v += b[i];
+            break;
+
+          case State::Fade::out:
+            {
+              auto complete = false;
+              s.factor -= fade_out_dec;
+              if (s.factor <= 0)
+              {
+                s.factor = 0;
+                complete = true;
+              }
+              if (i < b.size())
+                v += switch_fade(b[i], s.factor);
+              if (complete)
+              {
+                states.erase(n);
+                idit = id.erase(idit);
+                removed = true;
+              }
+            }
+            break;
+        }
+        if (!removed)
+          ++idit;
+      }
       out.data.emplace_back(v);
     }
   }
-
-  vector<shared_ptr<Input<T>>> input_list;
-  struct State
-  {
-    enum class Fade
-    {
-      in,
-      none,
-      out,
-    } fade;
-    double factor = 0;
-  };
-  map<int, State> states;
-  int active = -1;
 
 public:
   using DynamicElement::DynamicElement;

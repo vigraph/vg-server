@@ -24,6 +24,7 @@ DEPENDS  = vg-module-core-clone         \
            vg-module-core-random        \
            vg-module-core-beat          \
            vg-module-core-timer         \
+           vg-module-core-interpolator  \
            vg-module-core-log
 
 #           vg-module-core-source-selector \

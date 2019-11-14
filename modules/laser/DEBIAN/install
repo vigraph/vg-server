@@ -1,10 +1,11 @@
 show-blanking/vg-module-laser-show-blanking.so /usr/lib/vigraph/modules/
 idn-transmit/vg-module-laser-idn-out.so /usr/lib/vigraph/modules/
+reorder-segments/vg-module-laser-reorder-segments.so /usr/lib/vigraph/modules/
 
 #sources/ilda/vg-module-laser-source-ilda.so /usr/lib/vigraph/modules/
 #filters/beamify/vg-module-laser-filter-beamify.so /usr/lib/vigraph/modules/
 #filters/add-blanking-anchors/vg-module-laser-filter-add-blanking-anchors.so /usr/lib/vigraph/modules/
 #filters/add-vertex-repeats/vg-module-laser-filter-add-vertex-repeats.so /usr/lib/vigraph/modules/
 #filters/infill-lines/vg-module-laser-filter-infill-lines.so /usr/lib/vigraph/modules/
-#filters/reorder-segments/vg-module-laser-filter-reorder-segments.so /usr/lib/vigraph/modules/
+
 

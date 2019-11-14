@@ -433,8 +433,6 @@ void SetVisitor::visit(const Dataflow::OutputMember& output)
     const auto& iid = connectionj["element"].as_str();
     const auto& iinput = connectionj["input"].as_str();
     auto ielement = graph->get_element(iid);
-    if (!ielement && iid == graph->get_id())
-      ielement = graph;
     if (!ielement)
     {
       Log::Error log;

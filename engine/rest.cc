@@ -36,7 +36,8 @@ namespace
 class GraphURLHandler: public Web::URLHandler
 {
   Dataflow::Engine& engine;
-  bool handle_get(const string& path, Web::HTTPMessage& response);
+  bool handle_get(const string& path, const Web::HTTPMessage& request,
+                  Web::HTTPMessage& response);
   bool handle_put(const string& path, const Web::HTTPMessage& request,
                    Web::HTTPMessage& response);
   bool handle_post(const string& path, const Web::HTTPMessage& request,
@@ -57,6 +58,7 @@ public:
 // Handle a GET request
 // Returns whether request was valid
 bool GraphURLHandler::handle_get(const string& path,
+                                 const Web::HTTPMessage& request,
                                  Web::HTTPMessage& response)
 {
   Log::Streams log;
@@ -65,7 +67,8 @@ bool GraphURLHandler::handle_get(const string& path,
   try
   {
     auto json = JSON::Value{JSON::Value::Type::OBJECT};
-    JSON::get(engine, json, path);
+    JSON::get(engine, json, path,
+              !request.url.get_query_parameter("transient").empty());
     if (!json)
     {
       response.code = 404;
@@ -199,7 +202,7 @@ bool GraphURLHandler::handle_request(const Web::HTTPMessage& request,
 
   if (request.method == "GET")
   {
-    if (!handle_get(path, response))
+    if (!handle_get(path, request, response))
     {
       response.code = 400;
       response.reason = "Bad request";

@@ -27,7 +27,7 @@ Value get_module_metadata(const Dataflow::Module& module);
 //--------------------------------------------------------------------------
 // Get JSON
 void get(const Dataflow::Engine& engine, Value& json,
-         const Dataflow::Path& path);
+         const Dataflow::Path& path, bool show_transient_values);
 
 //--------------------------------------------------------------------------
 // Set from JSON

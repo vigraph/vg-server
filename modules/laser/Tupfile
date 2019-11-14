@@ -8,12 +8,12 @@ NAME     = vg-modules-laser
 TYPE     = package
 DEPENDS  =  vg-module-laser-show-blanking \
             vg-module-laser-idn-out \
-            vg-module-laser-reorder-segments 
+            vg-module-laser-reorder-segments \
+            vg-module-laser-add-vertex-repeats
 
 #           vg-module-laser-filter-beamify \
 #           vg-module-laser-source-ilda \
 #           vg-module-laser-filter-add-blanking-anchors \
-#           vg-module-laser-filter-add-vertex-repeats \
 #           vg-module-laser-filter-infill-lines \
 
 

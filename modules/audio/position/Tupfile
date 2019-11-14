@@ -1,12 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph audio position filter module
+# Tupfile for Vigraph Audio position module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-audio-filter-position
-TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry \
-          vg-module-audio-source-vco
+NAME      = vg-module-audio-position
+TYPE      = shared
+DEPENDS   = vg-dataflow ot-lib vg-waveform
 
 include_rules

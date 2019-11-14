@@ -8,23 +8,9 @@ NAME     = vg-modules-audio
 TYPE     = package
 DEPENDS  = vg-module-audio-alsa-out \
            vg-module-audio-pitch-shift \
+           vg-module-audio-position \
            vg-module-audio-sdl-out \
            vg-module-audio-wav-in
-
-#           vg-module-audio-filter-linux-alsa-out  \
-#           vg-module-audio-filter-amplitude       \
-#           vg-module-audio-filter-attenuator      \
-#           vg-module-audio-filter-audio-to-vector \
-#           vg-module-audio-filter-combine         \
-#           vg-module-audio-filter-delay           \
-#           vg-module-audio-filter-filter          \
-#           vg-module-audio-filter-position        \
-#           vg-module-audio-filter-reverb          \
-#           vg-module-audio-filter-send            \
-#           vg-module-audio-source-linux-alsa-in   \
-#           vg-module-audio-source-sdl             \
-#           vg-module-audio-source-vco             \
-#           vg-module-audio-source-receive         \
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

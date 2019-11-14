@@ -78,8 +78,22 @@ void Engine::tick(const Time::Duration& t)
       // Tick the graph
       MT::RWReadLock lock(graph_mutex);
       auto ticked = list<Element *>{};
+      auto last_count = tick_elements.size() + 1;
       while (!tick_elements.empty())
       {
+        if (tick_elements.size() == last_count)
+        {
+          Log::Error elog;
+          elog << "Deadlock detected in tick. Remaining elements:" << endl;
+          for (const auto& e: tick_elements)
+          {
+            elog << "  " << e->get_id() << endl;
+            e->reset();
+            ticked.push_back(e);
+          }
+          break;
+        }
+        last_count = tick_elements.size();
         for (auto it = tick_elements.begin(); it != tick_elements.end();)
         {
           if ((*it)->ready())

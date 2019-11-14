@@ -12,6 +12,7 @@ DEPENDS  = vg-module-vector-translate    \
            vg-module-vector-clip         \
            vg-module-vector-hsl          \
            vg-module-vector-rgb          \
+           vg-module-vector-fade         \
            vg-module-vector-svg          \
            vg-module-vector-figure       \
            vg-module-vector-switch       \

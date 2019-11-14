@@ -4,6 +4,7 @@ rotate/vg-module-vector-rotate.so /usr/lib/vigraph/modules/
 clip/vg-module-vector-clip.so /usr/lib/vigraph/modules/
 hsl/vg-module-vector-hsl.so /usr/lib/vigraph/modules/
 rgb/vg-module-vector-rgb.so /usr/lib/vigraph/modules/
+fade/vg-module-vector-fade.so /usr/lib/vigraph/modules/
 svg/vg-module-vector-svg.so /usr/lib/vigraph/modules/
 figure/vg-module-vector-figure.so /usr/lib/vigraph/modules/
 switch/vg-module-vector-switch.so /usr/lib/vigraph/modules/

@@ -1,0 +1,9 @@
+# Fade test
+
+vector/figure x-wave="sin" x-freq=1
+              y-wave="sin" y-freq=1 y-phase=0.25 ->-
+fade: vector/fade ->-
+vector/websocket-display
+
+oscillator wave="sin" freq=0.2 control>fade.alpha
+

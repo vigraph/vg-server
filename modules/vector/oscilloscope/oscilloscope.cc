@@ -185,6 +185,7 @@ Dataflow::SimpleModule module
   {
     { "slope",        &Oscilloscope::slope },
     { "max-points",   &Oscilloscope::max_points },
+    { "level",        &Oscilloscope::level },
     { "input",        &Oscilloscope::input },
   },
   {

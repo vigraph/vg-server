@@ -1,13 +1,12 @@
 # Fireworks example
 
+vector/svg path="M -1 0 L 1 0 M 0 -1 L 0 1" ->-
+vector/scale x=0.02 y=0.02 z=0.02 ->-
+
 clone copies=5
 [
-  vector/figure x-wave="sin" x-freq=1
-                y-wave="sin" y-freq=1 y-phase=0.25
-                closed=1 points=10 ->-
-  vector/scale x=0.02 y=0.02 z=0.02 ->-
-
-  inner: clone copies=25
+  input: vector/pin ->-
+  inner:clone copies=25
   [
     input: vector/pin ->-
     t: vector/translate ->-
@@ -28,7 +27,7 @@ clone copies=5
     acc_y: multiply ->-
     multiply factor=-0.02 ->-
     add offset=0.25 ->t.y
-    ryv: random min=-5 max=2 ->vel_y.offset
+    ryv: random min=-3 max=3 ->vel_y.offset
 
     # Random colour
     rc: random min=0 max=0.2 ->c.h

@@ -23,7 +23,6 @@ DEPENDS  = vg-module-core-clone         \
            vg-module-core-wrap          \
            vg-module-core-random        \
            vg-module-core-beat          \
-           vg-module-core-envelope      \
            vg-module-core-timer         \
            vg-module-core-log
 

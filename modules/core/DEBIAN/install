@@ -11,7 +11,6 @@ multiply/vg-module-core-multiply.so /usr/lib/vigraph/modules/
 divide/vg-module-core-divide.so /usr/lib/vigraph/modules/
 beat/vg-module-core-beat.so /usr/lib/vigraph/modules/
 compare/vg-module-core-compare.so /usr/lib/vigraph/modules/
-envelope/vg-module-core-envelope.so /usr/lib/vigraph/modules/
 count/vg-module-core-count.so /usr/lib/vigraph/modules/
 limit/vg-module-core-limit.so /usr/lib/vigraph/modules/
 wrap/vg-module-core-wrap.so /usr/lib/vigraph/modules/

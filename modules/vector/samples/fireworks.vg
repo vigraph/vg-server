@@ -31,7 +31,7 @@ clone copies=25
   rc: random min=0 max=0.2 ->c.h
 
   # Fading
-  fade: envelope decay=4 sustain=0 ->-
+  fade: audio/envelope decay=4 sustain=0 ->-
   twinkle: multiply ->f.alpha
   random min=0.2 max=1 ->twinkle.factor
 

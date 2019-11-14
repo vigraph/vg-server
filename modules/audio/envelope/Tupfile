@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph <envelope> core module
+# Tupfile for Vigraph <envelope> audio module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-envelope
+NAME    = vg-module-audio-envelope
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-lib
 

@@ -10,11 +10,11 @@ DEPENDS  =  vg-module-laser-show-blanking \
             vg-module-laser-idn-out \
             vg-module-laser-reorder-segments \
             vg-module-laser-add-vertex-repeats \
-            vg-module-laser-add-blanking-anchors
+            vg-module-laser-add-blanking-anchors \
+            vg-module-laser-infill-lines
 
 #           vg-module-laser-filter-beamify \
 #           vg-module-laser-source-ilda \
-#           vg-module-laser-filter-infill-lines \
 
 
 PACKAGE  = $(NAME)

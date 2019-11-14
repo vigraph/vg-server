@@ -4,8 +4,8 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-switch
+NAME    = vg-module-vector-switch
 TYPE    = shared
-DEPENDS = vg-dataflow ot-lib vg-waveform
+DEPENDS = vg-dataflow ot-lib vg-geometry
 
 include_rules

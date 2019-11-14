@@ -1,7 +1,7 @@
 clone/vg-module-core-clone.so /usr/lib/vigraph/modules/
 filter/vg-module-core-filter.so /usr/lib/vigraph/modules/
 graph/vg-module-core-graph.so /usr/lib/vigraph/modules/
-number-pin/vg-module-core-number-pin.so /usr/lib/vigraph/modules/
+pin/vg-module-core-pin.so /usr/lib/vigraph/modules/
 switch/vg-module-core-switch.so /usr/lib/vigraph/modules/
 clone-info/vg-module-core-clone-info.so /usr/lib/vigraph/modules/
 oscillator/vg-module-core-oscillator.so /usr/lib/vigraph/modules/

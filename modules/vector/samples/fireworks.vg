@@ -1,40 +1,54 @@
 # Fireworks example
 
-vector/figure x-wave="sin" x-freq=1
-              y-wave="sin" y-freq=1 y-phase=0.25
-              closed=1 points=10 ->-
-vector/scale x=0.02 y=0.02 z=0.02 ->-
-
-clone copies=25
+clone copies=5
 [
-  input: vector/pin ->-
-  t: vector/translate ->-
-  c: vector/hsl l=0.7 ->-
-  f: vector/fade ->-
+  vector/figure x-wave="sin" x-freq=1
+                y-wave="sin" y-freq=1 y-phase=0.25
+                closed=1 points=10 ->-
+  vector/scale x=0.02 y=0.02 z=0.02 ->-
+
+  inner: clone copies=25
+  [
+    input: vector/pin ->-
+    t: vector/translate ->-
+    c: vector/hsl l=0.7 ->-
+    f: vector/fade ->-
+    output: vector/pin
+
+    go: pin ->rxv.trigger ->start ->rc.trigger ->ryv.trigger
+            ->fade.start
+    timer ->vel_x.- ->vel_y.- ->acc_y.factor
+
+    # Horizontal velocity is random
+    vel_x: multiply ->t.x
+    rxv: random min=-0.05 max=0.05 ->vel_x.factor
+
+    # Vertical gravity acceleration
+    vel_y: add ->-
+    acc_y: multiply ->-
+    multiply factor=-0.02 ->-
+    add offset=0.25 ->t.y
+    ryv: random min=-5 max=2 ->vel_y.offset
+
+    # Random colour
+    rc: random min=0 max=0.2 ->c.h
+
+    # Fading
+    fade: interpolator from=1.0 to=0.0 period=5 ->-
+    twinkle: multiply ->f.alpha
+    random min=0.2 max=1 ->twinkle.factor
+  ] ->-
+
+  t2: vector/translate ->-
   output: vector/pin
 
-  beat interval=5 ->rxv.trigger ->start ->rc.trigger ->ryv.trigger ->fade.start
-  timer ->vel_x.- ->vel_y.- ->acc_y.factor
+  clone-info fraction>-
+  multiply factor=5 ->offset
+  beat interval=5 ->rpx.trigger ->rpy.trigger ->inner.go
 
-  # Horizontal velocity is random
-  vel_x: multiply ->t.x
-  rxv: random min=-0.05 max=0.05 ->vel_x.factor
-
-  # Vertical gravity acceleration
-  vel_y: add ->-
-  acc_y: multiply ->-
-  multiply factor=-0.02 ->-
-  add offset=0.25 ->t.y
-  ryv: random min=-5 max=2 ->vel_y.offset
-
-  # Random colour
-  rc: random min=0 max=0.2 ->c.h
-
-  # Fading
-  fade: interpolator from=1.0 to=0.0 period=5 ->-
-  twinkle: multiply ->f.alpha
-  random min=0.2 max=1 ->twinkle.factor
-
+  # Random position
+  rpx: random min=-0.4 max=0.4 ->t2.x
+  rpy: random min=-0.2 max=0.2 ->t2.y
 ] ->-
 vector/clip ->-
 vector/websocket-display

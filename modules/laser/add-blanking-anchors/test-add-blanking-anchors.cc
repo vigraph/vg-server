@@ -1,34 +1,54 @@
 //==========================================================================
 // ViGraph dataflow module:
-//  laser/filters/add-blanking-anchors/test-add-blanking-anchors.cc
+//   laser/add-blanking-anchors/test-add-blanking-anchors.cc
 //
 // Tests for <add-blanking-anchors> filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../../../vector/vector-module-test.h"
-ModuleLoader loader;
+#include "../../vector/vector-module.h"
+#include "../../module-test.h"
 
-TEST(AddBlankingAnchorsTest, TestBlankingPointInsertion)
+class AddBlankingAnchorsTest: public GraphTester
 {
-  FrameGraphTester tester{loader};
+public:
+  AddBlankingAnchorsTest()
+  {
+    loader.load("./vg-module-laser-add-blanking-anchors.so");
+  }
+};
 
-  auto svg = tester.add("svg")
-    .set("path", "M 0 0 L 1 0 M 2 0 L 3 0")
-    .set("normalise", false);
-  auto aba = tester.add("add-blanking-anchors")
+const auto sample_rate = 1;
+
+TEST_F(AddBlankingAnchorsTest, TestBlankingPointInsertion)
+{
+  auto& sb = add("laser/add-blanking-anchors")
     .set("leading", 1)
     .set("trailing", 2);
 
-  svg.connect("default", aba, "default");
+  auto fr_data = vector<Frame>(1);
+  auto& fr = fr_data[0];
+  fr.points.push_back(Point(0,0));
+  fr.points.push_back(Point(1,0, Colour::white));
+  fr.points.push_back(Point(2,0));
+  fr.points.push_back(Point(3,0, Colour::white));
 
-  tester.run();
-  Frame *frame = tester.get_frame();
-  ASSERT_FALSE(!frame);
+  auto& frs = add_source(fr_data);
+  frs.connect("output", sb, "input");
 
-  vector<Point>& opoints = frame->points;
-  ASSERT_EQ(10, opoints.size());  // 1 at start, 2 added at 1, 1 at 2, 2 at end
+  auto outfrs = vector<Frame>{};
+  auto& snk = add_sink(outfrs, sample_rate);
+  sb.connect("output", snk, "input");
+
+  run();
+
+  ASSERT_EQ(sample_rate, outfrs.size());
+  const auto& outfr = outfrs[0];
+  const auto& opoints = outfr.points;
+  // 1 at start, 2 added at 1, 1 at 2, 2 at end
+  ASSERT_EQ(10, opoints.size());
+
   int i=0;
   // added leading at start
   EXPECT_EQ(Point(0,0), opoints[i]);
@@ -64,16 +84,6 @@ TEST(AddBlankingAnchorsTest, TestBlankingPointInsertion)
 
 int main(int argc, char **argv)
 {
-  if (argc > 1 && string(argv[1]) == "-v")
-  {
-    auto chan_out = new Log::StreamChannel{&cout};
-    Log::logger.connect(chan_out);
-  }
-
   ::testing::InitGoogleTest(&argc, argv);
-  loader.load("../../../vector/sources/svg/vg-module-vector-source-svg.so");
-  loader.load("./vg-module-laser-filter-add-blanking-anchors.so");
-  loader.add_default_section("vector");
-  loader.add_default_section("laser");
   return RUN_ALL_TESTS();
 }

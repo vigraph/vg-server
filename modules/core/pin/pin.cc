@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/number-pin/number-pin.cc
+// ViGraph dataflow module: core/pin/pin.cc
 //
 // Number valued pin module
 //
@@ -24,8 +24,8 @@ public:
 
 Dataflow::SimpleModule module
 {
-  "number-pin",
-  "Number Pin",
+  "pin",
+  "Pin",
   "core",
   {},
   {

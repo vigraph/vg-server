@@ -1,10 +1,12 @@
 # Cloned circle
 
+vector/figure x-wave="sin" x-freq=1
+              y-wave="sin" y-freq=1 y-phase=0.25
+              closed=1 ->-
+
 clone copies=10
 [
-  vector/figure x-wave="sin" x-freq=1
-                y-wave="sin" y-freq=1 y-phase=0.25
-                closed=1 ->-
+  input: vector/pin ->-
   scale: vector/scale ->-
   output: vector/pin
 

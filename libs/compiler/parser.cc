@@ -196,6 +196,36 @@ void Parser::sanity_check(const JSON::Value& root)
 }
 
 //------------------------------------------------------------------------
+// Create subgraph inputs from connections
+void Parser::create_subgraph_inputs(JSON::Value& root)
+{
+  for(auto& eit: root.o)
+  {
+    const auto& outputs = eit.second["outputs"];
+    for(auto& oit: outputs.o)
+    {
+      const auto& connections = oit.second["connections"];
+      for(auto& cit: connections.a)
+      {
+        // Fail if not set
+        const auto& id = cit["element"].as_str();
+        auto& target = root[id];
+
+        // Does the target have elements, so it's a subgraph?
+        if (!!target && !!target["elements"])
+        {
+          // Create an input here
+          if (!target["inputs"])
+            target.set("inputs", JSON::Value::OBJECT);
+          auto& inputs = target["inputs"];
+          inputs.put(cit["input"].as_str(), JSON::Value::OBJECT);
+        }
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 // Read structure as JSON - raw object of elements
 JSON::Value Parser::get_json()
 {
@@ -285,6 +315,7 @@ JSON::Value Parser::get_json()
     }
 
     sanity_check(root);
+    create_subgraph_inputs(root);
     return root;
   }
   catch (const Lex::Exception& e)

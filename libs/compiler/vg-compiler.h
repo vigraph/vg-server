@@ -39,6 +39,7 @@ class Parser
   void read_settings(JSON::Value& element);
   void read_outputs(JSON::Value& element);
   void sanity_check(const JSON::Value& root);
+  void create_subgraph_inputs(JSON::Value& root);
 
 public:
   //------------------------------------------------------------------------

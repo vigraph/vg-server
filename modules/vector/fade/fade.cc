@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: vector/hsl/hsl.cc
+// ViGraph dataflow module: vector/fade/fade.cc
 //
-// HSL colour filter
+// Vector fade filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -12,26 +12,24 @@
 namespace {
 
 //==========================================================================
-// HSLColour
-class HSLColour: public SimpleElement
+// Fade
+class Fade: public SimpleElement
 {
 private:
   // Element virtuals
   void tick(const TickData& td) override;
 
   // Clone
-  HSLColour *create_clone() const override
+  Fade *create_clone() const override
   {
-    return new HSLColour{module};
+    return new Fade{module};
   }
 
 public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> h{0.0};
-  Input<double> s{1.0};
-  Input<double> l{0.5};
+  Input<double> alpha{1.0};
 
   // Input
   Input<Frame> input;
@@ -42,18 +40,16 @@ public:
 
 //--------------------------------------------------------------------------
 // Tick data
-void HSLColour::tick(const TickData& td)
+void Fade::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(h, s, l, input), tie(output),
-                 [&](double h, double s, double l, const Frame& input,
-                     Frame& output)
+  sample_iterate(nsamples, {}, tie(alpha, input), tie(output),
+                 [&](double alpha, const Frame& input, Frame& output)
   {
     output = input;
-    Colour::HSL hsl(h, s, l);
-    Colour::RGB rgb(hsl);
+
     for(auto& p: output.points)
-      if (!p.is_blanked()) p.c = rgb;
+      if (!p.is_blanked()) p.c.fade(alpha);
   });
 }
 
@@ -61,21 +57,19 @@ void HSLColour::tick(const TickData& td)
 // Module definition
 Dataflow::SimpleModule module
 {
-  "hsl",
-  "Vector HSL",
+  "fade",
+  "Vector fade",
   "vector",
   {},
   {
-    { "h",     &HSLColour::h     },
-    { "s",     &HSLColour::s     },
-    { "l",     &HSLColour::l     },
-    { "input", &HSLColour::input }
+    { "alpha", &Fade::alpha },
+    { "input", &Fade::input }
   },
   {
-    { "output", &HSLColour::output }
+    { "output", &Fade::output }
   }
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(HSLColour, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(Fade, module)

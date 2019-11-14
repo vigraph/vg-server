@@ -1,5 +1,6 @@
 alsa-out/vg-module-audio-alsa-out.so /usr/lib/vigraph/modules
 pitch-shift/vg-module-audio-pitch-shift.so /usr/lib/vigraph/modules
 position/vg-module-audio-position.so /usr/lib/vigraph/modules
+envelope/vg-module-audio-envelope.so /usr/lib/vigraph/modules
 sdl-out/vg-module-audio-sdl-out.so /usr/lib/vigraph/modules
 wav-in/vg-module-audio-wav-in.so /usr/lib/vigraph/modules

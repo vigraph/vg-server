@@ -13,7 +13,7 @@ class EnvelopeTest: public GraphTester
 public:
   EnvelopeTest()
   {
-    loader.load("./vg-module-core-envelope.so");
+    loader.load("./vg-module-audio-envelope.so");
   }
 };
 
@@ -24,7 +24,7 @@ TEST_F(EnvelopeTest, TestUnsetNotStartedProducesZero)
   const auto expected = vector<double>(nsamples, 0.0);
   auto actual = vector<double>{};
 
-  auto& env = add("envelope");
+  auto& env = add("audio/envelope");
   auto& snk = add_sink(actual, nsamples);
   env.connect("output", snk, "input");
 
@@ -38,7 +38,7 @@ TEST_F(EnvelopeTest, TestUnsetStartedProduces1)
   const auto expected = vector<double>(nsamples, 1.0);
   auto actual = vector<double>{};
 
-  auto& env = add("envelope")
+  auto& env = add("audio/envelope")
               .set("start", 1.0);
   auto& snk = add_sink(actual, nsamples);
   env.connect("output", snk, "input");
@@ -53,7 +53,7 @@ TEST_F(EnvelopeTest, TestSustainSetStartedProducesSustain)
   const auto expected = vector<double>(nsamples, 0.75);
   auto actual = vector<double>{};
 
-  auto& env = add("envelope")
+  auto& env = add("audio/envelope")
               .set("sustain", 0.75)
               .set("start", 1.0);
   auto& snk = add_sink(actual, nsamples);
@@ -66,7 +66,7 @@ TEST_F(EnvelopeTest, TestSustainSetStartedProducesSustain)
 
 TEST_F(EnvelopeTest, TestStartHalfWayThrough)
 {
-  auto& env = add("envelope");
+  auto& env = add("audio/envelope");
 
   auto start_data = vector<double>(100);
   start_data[50] = 1.0;
@@ -86,7 +86,7 @@ TEST_F(EnvelopeTest, TestStartHalfWayThrough)
 
 TEST_F(EnvelopeTest, TestStartThenStopHalfWayThrough)
 {
-  auto& env = add("envelope");
+  auto& env = add("audio/envelope");
 
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
@@ -111,7 +111,7 @@ TEST_F(EnvelopeTest, TestStartThenStopHalfWayThrough)
 
 TEST_F(EnvelopeTest, TestAttack)
 {
-  auto& env = add("envelope")
+  auto& env = add("audio/envelope")
               .set("attack", 1.0);
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
@@ -131,7 +131,7 @@ TEST_F(EnvelopeTest, TestAttack)
 
 TEST_F(EnvelopeTest, TestDecayToZero)
 {
-  auto& env = add("envelope")
+  auto& env = add("audio/envelope")
               .set("decay", 1.0)
               .set("sustain", 0.0);
   auto start_data = vector<double>(100);
@@ -152,7 +152,7 @@ TEST_F(EnvelopeTest, TestDecayToZero)
 
 TEST_F(EnvelopeTest, TestDecayToSustain)
 {
-  auto& env = add("envelope")
+  auto& env = add("audio/envelope")
               .set("decay", 0.5)
               .set("sustain", 0.5);
   auto start_data = vector<double>(100);
@@ -178,7 +178,7 @@ TEST_F(EnvelopeTest, TestDecayToSustain)
 
 TEST_F(EnvelopeTest, TestRelease)
 {
-  auto& env = add("envelope")
+  auto& env = add("audio/envelope")
               .set("release", 0.5);
 
   auto start_data = vector<double>(100);
@@ -209,7 +209,7 @@ TEST_F(EnvelopeTest, TestRelease)
 
 TEST_F(EnvelopeTest, TestFinishedTriggeredAfterRelease)
 {
-  auto& env = add("envelope")
+  auto& env = add("audio/envelope")
               .set("release", 0.25);
 
   auto start_data = vector<double>(100);
@@ -235,7 +235,7 @@ TEST_F(EnvelopeTest, TestFinishedTriggeredAfterRelease)
 
 TEST_F(EnvelopeTest, TestReleaseStartsFromCurrentPositionInAttack)
 {
-  auto& env = add("envelope")
+  auto& env = add("audio/envelope")
               .set("attack", 1.0)
               .set("release", 0.5);
 

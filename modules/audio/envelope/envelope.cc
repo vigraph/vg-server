@@ -169,7 +169,7 @@ Dataflow::SimpleModule module
 {
   "envelope",
   "Envelope",
-  "core",
+  "audio",
   {},
   {
     { "attack",    &Envelope::attack    },

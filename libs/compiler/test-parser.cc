@@ -316,6 +316,29 @@ clone copies=10
   ASSERT_EQ(JSON::Value::OBJECT, foo.type);
 }
 
+TEST(ParserTest, TestCloneInputs)
+{
+  string input(R"(
+bar ->i1
+clone
+[
+  foo
+]
+)");
+  istringstream iss(input);
+  Compiler::Parser parser(iss);
+  JSON::Value v;
+  ASSERT_NO_THROW(v = parser.get_json());
+  ASSERT_EQ(JSON::Value::OBJECT, v.type);
+  const JSON::Value& clone = v["clone1"];
+  ASSERT_EQ(JSON::Value::OBJECT, clone.type);
+
+  const JSON::Value& inputs = clone["inputs"];
+  ASSERT_EQ(JSON::Value::OBJECT, inputs.type);
+  const JSON::Value& foo = inputs["i1"];
+  ASSERT_EQ(JSON::Value::OBJECT, foo.type);
+}
+
 TEST(ParserTest, TestSanityCheckFailsOnDanglingOutputs)
 {
   string input("foo ->-");

@@ -52,7 +52,7 @@ void RGBColour::tick(const TickData& td)
     output = input;
     Colour::RGB rgb(r, g, b);
     for(auto& p: output.points)
-      p.c = rgb;
+      if (!p.is_blanked()) p.c = rgb;
   });
 }
 

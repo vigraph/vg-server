@@ -112,6 +112,30 @@ TEST_F(RGBTest, TestSetB)
   EXPECT_EQ(Colour::blue, outfr.points[0].c);
 }
 
+TEST_F(RGBTest, TestBlankedPointsNotTouched)
+{
+  auto& rgb = add("vector/rgb").set("r", 1.0);
+
+  auto fr_data = vector<Frame>(1);
+  auto& fr = fr_data[0];
+  fr.points.push_back(Point(1,0));
+
+  auto& frs = add_source(fr_data);
+  frs.connect("output", rgb, "input");
+
+  auto outfrs = vector<Frame>{};
+  auto& snk = add_sink(outfrs, sample_rate);
+  rgb.connect("output", snk, "input");
+
+  run();
+
+  ASSERT_EQ(sample_rate, outfrs.size());
+  const auto& outfr = outfrs[0];
+  ASSERT_EQ(1, outfr.points.size());
+  EXPECT_TRUE(outfr.points[0].is_blanked());
+}
+
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

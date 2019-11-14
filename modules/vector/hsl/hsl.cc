@@ -53,7 +53,7 @@ void HSLColour::tick(const TickData& td)
     Colour::HSL hsl(h, s, l);
     Colour::RGB rgb(hsl);
     for(auto& p: output.points)
-      p.c = rgb;
+      if (!p.is_blanked()) p.c = rgb;
   });
 }
 

@@ -6,3 +6,4 @@ fade/vg-module-bitmap-fade.so /usr/lib/vigraph/modules/
 hsl/vg-module-bitmap-hsl.so /usr/lib/vigraph/modules/
 rgb/vg-module-bitmap-rgb.so /usr/lib/vigraph/modules/
 pin/vg-module-bitmap-pin.so /usr/lib/vigraph/modules/
+switch/vg-module-bitmap-switch.so /usr/lib/vigraph/modules/

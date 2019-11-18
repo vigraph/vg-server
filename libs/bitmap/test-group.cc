@@ -74,7 +74,7 @@ TEST(GroupTest, TestCompositionWithSingleRectOffset)
   Bitmap::Group group;
   Bitmap::Rectangle rect(3, 2);
   rect.fill(Colour::white);
-  group.add(Vector(2, 1), rect);
+  group.add(Vector(1.0/5, -1.0/6), rect);
   Bitmap::Rectangle comp(5, 3);
   group.compose(comp);
   for(int i=0; i<comp.get_height(); i++)
@@ -105,7 +105,7 @@ TEST(GroupTest, TestCompositionWithMultipleRectsZOrdered)
 
   Bitmap::Rectangle rect1(3, 2);
   rect1.fill(Colour::white);
-  group.add(Vector(2,1,1), rect1);  // Note in front
+  group.add(Vector(1.0/5, -1.0/6, 1), rect1);  // Note in front
 
   Bitmap::Rectangle rect2(5, 3);
   rect2.fill(Colour::black);

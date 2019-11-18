@@ -302,6 +302,29 @@ TEST_F(OscillatorTest, TestRandomSingleCycle)
   }
 }
 
+TEST_F(OscillatorTest, TestSquareWaveSingleCycleWithPhase)
+{
+  auto& osc = add("oscillator")
+              .set("wave", Waveform::Type::square)
+              .set("freq", 1.0)
+              .set("phase", 0.25);
+  auto waveform = vector<double>{};
+  auto& snk = add_sink(waveform, waveform_size);
+  osc.connect("output", snk, "input");
+
+  run();
+
+  // Should be 44100 samples at alternating -1, 1, starting at 1/4
+  EXPECT_EQ(waveform_size, waveform.size());
+  for(auto i=0u; i<waveform.size(); i++)
+  {
+    if (i < quarter_waveform_size || i >= three_quarter_waveform_size)
+      EXPECT_EQ(1, waveform[i]) << i;
+    else
+      EXPECT_EQ(-1, waveform[i]) << i;
+  }
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

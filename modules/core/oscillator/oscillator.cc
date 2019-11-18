@@ -42,6 +42,7 @@ public:
   Input<Waveform::Type> waveform;
   Input<double> freq{1}; // Hz
   Input<double> pulse_width{0.5};
+  Input<double> phase{0};
 
   // Triggers
   Input<double> start{0.0};    // Trigger to start
@@ -59,9 +60,10 @@ void OscillatorSource::tick(const TickData& td)
   const auto sample_rate = max(output.get_sample_rate(),
                                control.get_sample_rate());
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, {}, tie(waveform, freq, pulse_width, start, stop),
+  sample_iterate(nsamples, {},
+                 tie(waveform, freq, pulse_width, phase, start, stop),
                  tie(output, control),
-                 [&](Waveform::Type wf, double f, double pw,
+                 [&](Waveform::Type wf, double f, double pw, double phase,
                      double _start, double _stop,
                      double& o, double& c)
   {
@@ -83,7 +85,9 @@ void OscillatorSource::tick(const TickData& td)
     {
       case State::enabled:
       case State::completing:
-        o = Waveform::get_value(wf, pw, theta);
+      {
+        auto tp = theta+phase;
+        o = Waveform::get_value(wf, pw, tp-floor(tp));
         c = (o + 1) / 2;
         theta += f / sample_rate;
         if (theta >= 1)
@@ -93,6 +97,8 @@ void OscillatorSource::tick(const TickData& td)
             state = State::disabled;
         }
         break;
+      }
+
       case State::disabled:
         o = 0;
         c = 0;
@@ -111,6 +117,7 @@ Dataflow::SimpleModule module
     { "wave",         &OscillatorSource::waveform },
     { "freq",         &OscillatorSource::freq },
     { "pulse-width",  &OscillatorSource::pulse_width },
+    { "phase",        &OscillatorSource::phase },
     { "start",        &OscillatorSource::start },
     { "stop",         &OscillatorSource::stop },
   },

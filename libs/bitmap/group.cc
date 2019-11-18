@@ -49,9 +49,23 @@ void Group::compose(Rectangle& result) const
        [] (const Item *a, const Item *b)
        { return a->pos.z < b->pos.z; });
 
+  auto rw = result.get_width();
+  auto rh = result.get_height();
+
   // Blit them back to front
   for(const auto item: sort_items)
-    item->rect.blit(item->pos, result);
+  {
+    auto pos = item->pos;
+    auto w = item->rect.get_width();
+    auto h = item->rect.get_height();
+
+    // Scale positions from unit square around centre of result,
+    // positive upwards
+    pos.x = (0.5 + pos.x)*rw - w/2;
+    pos.y = (0.5 - pos.y)*rh - h/2;
+
+    item->rect.blit(pos, result);
+  }
 }
 
 }} // namespaces

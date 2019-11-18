@@ -83,7 +83,7 @@ class Group
 public:
   struct Item
   {
-    Vector pos;
+    Vector pos;  // Defines *centre* of rectangle, in vg-geometry space
     Rectangle rect;
 
     Item(const Rectangle& _rect): rect(_rect) {}

@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph show-blanking filter module
+# Tupfile for Vigraph laser beamify module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-laser-filter-show-blanking
+NAME    = vg-module-laser-beamify
 TYPE    = shared
-DEPENDS = vg-dataflow ot-lib vg-module-vector-source-svg
+DEPENDS = vg-dataflow vg-geometry ot-lib
 
 include_rules

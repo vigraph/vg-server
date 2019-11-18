@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph reorder-segments filter module
+# Tupfile for Vigraph laser reorder-segments module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-laser-filter-reorder-segments
+NAME    = vg-module-laser-reorder-segments
 TYPE    = shared
-DEPENDS = vg-dataflow vg-laser ot-lib vg-module-vector-source-svg
+DEPENDS = vg-dataflow vg-geometry ot-lib vg-laser
 
 include_rules

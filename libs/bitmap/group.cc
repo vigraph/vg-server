@@ -52,7 +52,7 @@ void Group::compose(Rectangle& result) const
   auto rw = result.get_width();
   auto rh = result.get_height();
 
-  // Blit them back to front
+  // Apply them back to front
   for(const auto item: sort_items)
   {
     auto pos = item->pos;
@@ -64,7 +64,7 @@ void Group::compose(Rectangle& result) const
     pos.x = (0.5 + pos.x)*rw - w/2;
     pos.y = (0.5 - pos.y)*rh - h/2;
 
-    item->rect.blit(pos, result);
+    item->rect.apply(pos, result);
   }
 }
 

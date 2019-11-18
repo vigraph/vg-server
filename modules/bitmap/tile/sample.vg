@@ -1,0 +1,13 @@
+# Bitmap tile test
+
+# Path works when run from engine
+
+bitmap/image-in file="../modules/bitmap/tile/rainbow.jpg" ->-
+#bitmap/rectangle width=32 height=32 ->-
+bitmap/tile x=3 y=2 ->-
+trans: bitmap/translate ->-
+bitmap/websocket-display width=64 height=64 frame-rate=25
+
+oscillator wave="saw" freq=0.1 control>-
+multiply factor=0.5 ->-
+add offset=-0.3333 ->trans.x

@@ -165,8 +165,36 @@ void Rectangle::fill_polygons(const vector<Geometry::Point>& points)
 
 // -------------------------------------------------------------------
 // Blit (copy) into the given (x,y) position in a destination rectangle
+// Copies overwriting dest, including alpha
 // Clips to destination rectangle
 void Rectangle::blit(const Vector& pos, Rectangle& dest) const
+{
+  const auto height = get_height();
+  auto src_start_x = -min(0, (int)pos.x);
+  auto src_start_y = -min(0, (int)pos.y);
+  auto src_i{src_start_x + src_start_y*width};
+
+  auto dest_start_x = max(0, (int)pos.x);
+  auto dest_start_y = max(0, (int)pos.y);
+  auto dest_i{dest_start_x + dest_start_y*dest.width};
+
+  auto usable_width = min(width-src_start_x, dest.width-dest_start_x);
+  auto usable_height = min(height-src_start_y, dest.get_height()-dest_start_y);
+
+  for(auto y=0; y<usable_height; y++)
+  {
+    for(auto x=0; x<usable_width; x++)
+      dest.pixels[dest_i+x] = pixels[src_i+x];
+    src_i += width;
+    dest_i += dest.width;
+  }
+}
+
+// -------------------------------------------------------------------
+// Apply in the given (x,y) position in a destination rectangle
+// Blends with alpha over dest, retaining dest's alpha
+// Clips to destination rectangle
+void Rectangle::apply(const Vector& pos, Rectangle& dest) const
 {
   const auto height = get_height();
   auto src_start_x = -min(0, (int)pos.x);

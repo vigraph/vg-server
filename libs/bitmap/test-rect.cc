@@ -313,7 +313,7 @@ TEST(RectangleTest, TestBlitOffsetClippedAllRound)
       EXPECT_EQ(cs, dest.get(j,i)) << j << "," << i;
 }
 
-TEST(RectangleTest, TestBlitAlpha)
+TEST(RectangleTest, TestApplyAlpha)
 {
   Bitmap::Rectangle src(3, 2);
   Colour::RGBA cs(Colour::red, 0.5);
@@ -323,7 +323,7 @@ TEST(RectangleTest, TestBlitAlpha)
   Colour::RGBA cd(Colour::blue, 1.0);
   dest.fill(cd);
 
-  src.blit(Vector(), dest);
+  src.apply(Vector(), dest);
 
   Colour::RGBA combined(0.5, 0, 0.5, 1.0);
 

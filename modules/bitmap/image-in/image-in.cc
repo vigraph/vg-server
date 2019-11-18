@@ -113,7 +113,6 @@ void ImageIn::setup()
 
   image_rect = Bitmap::Rectangle(surface->w, surface->h);
   auto bytes_pp = surface->format->BytesPerPixel;
-  log.detail << "Pitch " << surface->pitch << " bpp " << bytes_pp << endl;
   for(auto y=0; y<surface->h; y++)
   {
     for(auto x=0; x<surface->w; x++)

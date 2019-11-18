@@ -8,7 +8,7 @@ bitmap/image-in file="../modules/bitmap/image-in/vigraph.png" ->-
 bitmap/hsl ->-
 trans: bitmap/translate z=1 ->out.-
 
-out: bitmap/websocket-display width=32 height=32 frame-rate=10
+out: bitmap/websocket-display width=32 height=32 frame-rate=25
 
 oscillator wave="sin" freq=0.2 ->-
 multiply factor=0.25 ->trans.x

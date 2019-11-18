@@ -65,8 +65,14 @@ public:
   void fill_polygons(const vector<Geometry::Point>& points);
 
   // Blit (copy) into the given (x,y) position in a destination rectangle
+  // Copies overwriting dest, including alpha
   // Clips to destination rectangle
   void blit(const Vector& pos, Rectangle& dest) const;
+
+  // Apply in the given (x,y) position in a destination rectangle
+  // Blends with alpha over dest, retaining dest's alpha
+  // Clips to destination rectangle
+  void apply(const Vector& pos, Rectangle& dest) const;
 
   // To/from PPM (P3 ASCII form)
   string to_ppm();

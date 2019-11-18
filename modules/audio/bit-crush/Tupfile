@@ -1,12 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph audio <bitcrush> bitcrush module
+# Tupfile for Vigraph Audio bit-crush module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-audio-filter-bitcrush
-TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry \
-          vg-module-audio-source-vco
+NAME      = vg-module-audio-bit-crush
+TYPE      = shared
+DEPENDS   = vg-dataflow ot-lib vg-waveform
 
 include_rules

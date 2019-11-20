@@ -1,5 +1,5 @@
 show-blanking/vg-module-laser-show-blanking.so /usr/lib/vigraph/modules/
-idn-transmit/vg-module-laser-idn-out.so /usr/lib/vigraph/modules/
+idn-out/vg-module-laser-idn-out.so /usr/lib/vigraph/modules/
 reorder-segments/vg-module-laser-reorder-segments.so /usr/lib/vigraph/modules/
 add-vertex-repeats/vg-module-laser-add-vertex-repeats.so /usr/lib/vigraph/modules/
 add-blanking-anchors/vg-module-laser-add-blanking-anchors.so /usr/lib/vigraph/modules/

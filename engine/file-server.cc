@@ -126,10 +126,10 @@ FileServer::FileServer(const XML::Element& config,
 
   // Start HTTP server
   int hport = xpath.get_value_int("http/@port", default_http_port);
-  auto dir_s = xpath.get_value("file/@path");
+  auto dir_s = xpath.get_value("directory/@path");
   if (dir_s.empty())
   {
-    log.error << "File server: no file path specified" << endl;
+    log.error << "File server: no directory path specified" << endl;
     return;
   }
 

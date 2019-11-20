@@ -85,7 +85,7 @@ WavIn::WavIn(const DynamicModule& module):
 
 //--------------------------------------------------------------------------
 // Setup
-void WavIn::setup(const SetupContext&)
+void WavIn::setup(const SetupContext& context)
 {
   Log::Streams log;
 
@@ -94,7 +94,7 @@ void WavIn::setup(const SetupContext&)
 
   waveforms.clear();
   wav_nsamples = 0;
-  const auto f = File::Path{file};
+  const auto f = context.get_file_path(file);
 
   if (!f.exists())
   {

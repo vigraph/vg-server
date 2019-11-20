@@ -85,14 +85,15 @@ ImageIn::ImageIn(const SimpleModule& module):
 
 //--------------------------------------------------------------------------
 // Setup
-void ImageIn::setup(const SetupContext&)
+void ImageIn::setup(const SetupContext& context)
 {
   Log::Streams log;
   auto got = IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
   if (!(got & IMG_INIT_JPG)) log.error << "SDL_image missing JPEG support\n";
   if (!(got & IMG_INIT_PNG)) log.error << "SDL_image missing PNG support\n";
 
-  auto surface_arb = IMG_Load(file.get().c_str());
+  const auto path = context.get_file_path(file);
+  auto surface_arb = IMG_Load(path.c_str());
   if (!surface_arb)
   {
     log.error << "Can't read image file " << file << ": " << IMG_GetError()

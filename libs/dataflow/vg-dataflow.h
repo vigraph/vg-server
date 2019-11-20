@@ -82,6 +82,20 @@ struct TickData
 // Setup Context
 class SetupContext
 {
+private:
+  File::Directory resource_dir;
+
+public:
+  //------------------------------------------------------------------------
+  // Get a resolved file_path
+  File::Path get_file_path(const string& path) const;
+
+  //------------------------------------------------------------------------
+  // Set resource directory
+  void set_resource_dir(const File::Directory& dir)
+  {
+    resource_dir = dir;
+  }
 };
 
 // forward declarations
@@ -2429,6 +2443,7 @@ class Engine: public VisitorAcceptor
   Time::Duration start_time;
   uint64_t tick_number{0};
   list<string> default_sections;  // Note: ordered
+  SetupContext context;
 
 public:
   Registry element_registry;
@@ -2449,6 +2464,13 @@ public:
   // Set/get the tick interval
   void set_tick_interval(const Time::Duration& d) { tick_interval = d; }
   Time::Duration get_tick_interval() const { return tick_interval; }
+
+  //------------------------------------------------------------------------
+  // Set resource directory
+  void set_resource_dir(const File::Directory& dir)
+  {
+    context.set_resource_dir(dir);
+  }
 
   //------------------------------------------------------------------------
   // Get the graph (for testing only)

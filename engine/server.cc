@@ -189,6 +189,14 @@ void Server::reconfigure()
     engine.add_default_section(section);
   }
 
+  // Resource path
+  const auto& resources_e = config_xml.get_child("resources");
+  const auto& resource_dir_e = resources_e.get_child("directory");
+  const auto r_d = File::Directory{resource_dir_e["path"]};
+  const auto r_d_exp = r_d.expand();
+  const auto r_dir = File::Directory{config_file.resolve(r_d_exp)};
+  engine.set_resource_dir(r_dir);
+
   // (re-)create the REST interface
   rest.reset();
   const XML::Element& rest_e = config_xml.get_child("rest");

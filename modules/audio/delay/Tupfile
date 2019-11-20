@@ -1,12 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph audio <delay> filter module
+# Tupfile for Vigraph Audio delay module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-audio-filter-delay
-TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry \
-          vg-module-audio-source-vco
+NAME      = vg-module-audio-delay
+TYPE      = shared
+DEPENDS   = vg-dataflow
 
 include_rules

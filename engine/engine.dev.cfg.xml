@@ -10,6 +10,11 @@
   <log level="3" file="/var/log/vigraph/engine.log"
        timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
 
+  <!-- Resources -->
+  <resources>
+    <directory path="." />
+  </resources>
+
   <!-- Loadable modules -->
   <modules>
     <!-- Search paths, recursive for all .so -->
@@ -26,7 +31,7 @@
     <http port="33380"/>
 
     <!-- Root directory for files -->
-    <file path="../../ui/web/build"/>
+    <directory path="../../ui/web/build"/>
 
   </file-server>
 

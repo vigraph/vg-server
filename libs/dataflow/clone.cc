@@ -1,5 +1,5 @@
 //==========================================================================
-// ViClone dataflow machines: clone.cc
+// ViGraph dataflow machines: clone.cc
 //
 // Clone implementation
 //

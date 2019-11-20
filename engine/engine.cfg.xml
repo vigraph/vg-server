@@ -32,6 +32,11 @@
   <!-- Drop to ordinary user priviledge, special user -->
   <security user="vigraph" group="vigraph"/>
 
+  <!-- Resources -->
+  <resources>
+    <directory path="." />
+  </resources>
+
   <!-- Loadable modules -->
   <modules>
     <!-- Search paths, recursive for all .so -->
@@ -48,7 +53,7 @@
     <http port="33380"/>
 
     <!-- Root directory for files -->
-    <file path="/usr/share/vigraph/web"/>
+    <directory path="/usr/share/vigraph/web"/>
 
   </file-server>
 

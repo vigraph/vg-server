@@ -10,10 +10,12 @@
   <log level="3" file="/var/log/vigraph/engine.log"
        timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
 
+  <background daemon="no"/>
+
   <!-- Loadable modules -->
   <modules>
     <!-- Search paths, recursive for all .so -->
-    <directory path="../build-debug/modules/"/>
+    <directory path="../build-release/modules/"/>
   </modules>
 
   <!-- Tick frequency (Hz, 25) -->

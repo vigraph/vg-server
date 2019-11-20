@@ -41,10 +41,6 @@
   <!-- Tick frequency (Hz, 25) -->
   <tick frequency="25"/>
 
-  <!-- Sample rate - note this can be reduced to the tick frequency if there
-       is no audio, to save control plane processing -->
-  <sample rate="44100"/>
-
   <!-- Built-in web server for UI -->
   <file-server>
 

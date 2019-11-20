@@ -46,10 +46,18 @@ void HSLColour::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(nsamples, {}, tie(h, s, l, input), tie(output),
-                 [&](double h, double s, double l, const Bitmap::Group& input,
+                 [&](double h, double s, double l, const Bitmap::Group& _input,
                      Bitmap::Group& output)
   {
-    output = input;
+    if (input.connected())
+      output = _input;
+    else
+    {
+      Bitmap::Rectangle r(1,1);
+      r.fill(Colour::black); // Opaque
+      output.add(r);
+    }
+
     Colour::HSL hsl(h, s, l);
     Colour::RGB rgb(hsl);
     for(auto& item: output.items)

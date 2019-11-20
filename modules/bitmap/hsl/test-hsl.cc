@@ -48,6 +48,26 @@ TEST_F(HSLTest, TestDefaultHSLIsRed)
     EXPECT_EQ(Colour::red, p);
 }
 
+TEST_F(HSLTest, TestWithNoInput)
+{
+  auto& trans = add("bitmap/hsl");
+
+  auto outbgs = vector<Bitmap::Group>{};
+  auto& snk = add_sink(outbgs, sample_rate);
+  trans.connect("output", snk, "input");
+
+  run();
+
+  ASSERT_EQ(sample_rate, outbgs.size());
+  const auto& outbg = outbgs[0];
+  ASSERT_EQ(1, outbg.items.size());
+  auto rect = outbg.items[0].rect;
+  EXPECT_EQ(1, rect.get_width());
+  EXPECT_EQ(1, rect.get_height());
+  for(const auto& p: rect.get_pixels())
+    EXPECT_EQ(Colour::red, p);
+}
+
 
 int main(int argc, char **argv)
 {

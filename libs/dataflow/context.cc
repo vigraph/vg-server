@@ -17,7 +17,7 @@ File::Path SetupContext::get_file_path(const string& path) const
   const auto d = resource_dir.realpath().str();
   const auto p = abs_path.str();
   if (p.size() < d.size() || d != p.substr(0, d.size()))
-    throw(runtime_error{"Invalid file path"});
+    throw(runtime_error{"Invalid file path: " + path});
   return abs_path;
 }
 

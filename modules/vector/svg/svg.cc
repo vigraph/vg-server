@@ -44,7 +44,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void SVGSource::setup(const SetupContext&)
+void SVGSource::setup(const SetupContext& context)
 {
   Log::Streams log;
 
@@ -63,7 +63,7 @@ void SVGSource::setup(const SetupContext&)
         return;
       }
 
-      File::Path fpath(file);
+      const auto fpath = context.get_file_path(file.get());
       XML::Configuration cfg(fpath.str(), log.error);
       if (!cfg.read())
       {

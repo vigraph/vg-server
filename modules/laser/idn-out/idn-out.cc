@@ -253,7 +253,8 @@ Dataflow::SimpleModule module
     { "intensity",       &IDNOut::intensity_enabled },
     { "address",         &IDNOut::host_address      },
     { "port",            &IDNOut::host_port         },
-    { "source=address",  &IDNOut::source_address    }
+    { "source-address",  &IDNOut::source_address    },
+    { "frame-rate",      &IDNOut::frame_rate        }
   },
   {
     { "input",           &IDNOut::input }

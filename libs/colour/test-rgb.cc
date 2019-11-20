@@ -166,6 +166,16 @@ TEST(ColourTest, TestRGBBlend)
   EXPECT_DOUBLE_EQ(0.7, c.b);
 }
 
+TEST(ColourTest, TestRGBAddition)
+{
+  Colour::RGB a(0.2, 0.4, 0.6);
+  Colour::RGB b(0.4, 0.6, 0.8);
+  a += b;
+  EXPECT_DOUBLE_EQ(0.6, a.r);
+  EXPECT_DOUBLE_EQ(1.0, a.g);
+  EXPECT_DOUBLE_EQ(1.0, a.b);  // note fence
+}
+
 
 } // anonymous namespace
 

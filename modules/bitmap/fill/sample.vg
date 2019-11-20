@@ -1,0 +1,10 @@
+# Bitmap fill colour test
+
+bitmap/rectangle height=30 width=30 ->-
+fill: bitmap/fill ->-
+bitmap/websocket-display width=30 height=30 frame-rate=25
+
+oscillator wave="sin" freq=0.2 control>hsl.h
+oscillator wave="sin" freq=0.05 control>hsl.s
+hsl: colour/hsl ->fill.colour
+

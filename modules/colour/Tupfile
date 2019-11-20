@@ -1,0 +1,24 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow colour modules
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-colour
+TYPE     = package
+DEPENDS  = vg-module-colour-rgb    \
+           vg-module-colour-hsl    \
+           vg-module-colour-pin    \
+           vg-module-colour-switch \
+           vg-module-colour-blend
+
+
+PACKAGE  = $(NAME)
+VERSION  = 2.0.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

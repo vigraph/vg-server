@@ -2,10 +2,10 @@
 
 # Path works when run from engine
 
-bitmap/hsl h=0 ->blend.top-left
-bitmap/hsl h=0.3 ->blend.top-right
-bitmap/hsl h=0.5 ->blend.bottom-left
-bitmap/hsl h=0.7 ->blend.bottom-right
+colour/hsl h=0   ->blend.top-left
+colour/hsl h=0.3 ->blend.top-right
+colour/hsl h=0.5 ->blend.bottom-left
+colour/hsl h=0.7 ->blend.bottom-right
 
 blend: bitmap/blend height=64 width=64 ->-
 bitmap/websocket-display width=64 height=64 frame-rate=25

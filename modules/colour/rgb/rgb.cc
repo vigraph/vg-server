@@ -1,12 +1,12 @@
 //==========================================================================
-// ViGraph dataflow module: bitmap/rgb/rgb.cc
+// ViGraph dataflow module: colour/rgb/rgb.cc
 //
 // RGB colour filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../bitmap-module.h"
+#include "../colour-module.h"
 #include <cmath>
 
 namespace {
@@ -33,11 +33,8 @@ public:
   Input<double> g{0.0};
   Input<double> b{0.0};
 
-  // Input
-  Input<Bitmap::Group> input;
-
   // Output
-  Output<Bitmap::Group> output;
+  Output<Colour::RGB> output;
 };
 
 //--------------------------------------------------------------------------
@@ -45,14 +42,11 @@ public:
 void RGBColour::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(r, g, b, input), tie(output),
-                 [&](double r, double g, double b, const Bitmap::Group& input,
-                     Bitmap::Group& output)
+  sample_iterate(nsamples, {}, tie(r, g, b), tie(output),
+                 [&](double r, double g, double b,
+                     Colour::RGB& output)
   {
-    output = input;
-    Colour::RGB rgb(r, g, b);
-    for(auto& item: output.items)
-      item.rect.colourise(rgb);
+    output = Colour::RGB(r, g, b);
   });
 }
 
@@ -61,14 +55,13 @@ void RGBColour::tick(const TickData& td)
 Dataflow::SimpleModule module
 {
   "rgb",
-  "Bitmap RGB",
-  "bitmap",
+  "RGB Colour",
+  "colour",
   {},
   {
-    { "r",     &RGBColour::r     },
-    { "g",     &RGBColour::g     },
-    { "b",     &RGBColour::b     },
-    { "input", &RGBColour::input }
+    { "r", &RGBColour::r },
+    { "g", &RGBColour::g },
+    { "b", &RGBColour::b },
   },
   {
     { "output", &RGBColour::output }

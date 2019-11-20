@@ -11,8 +11,8 @@ DEPENDS  = vg-module-bitmap-rectangle \
            vg-module-bitmap-websocket \
            vg-module-bitmap-vector-fill \
            vg-module-bitmap-fade \
-           vg-module-bitmap-hsl \
-           vg-module-bitmap-rgb \
+           vg-module-bitmap-fill \
+           vg-module-bitmap-blend \
            vg-module-bitmap-pin \
            vg-module-bitmap-switch
 

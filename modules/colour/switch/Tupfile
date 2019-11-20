@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph vector RGB colour module
+# Tupfile for Vigraph Switch module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-vector-rgb
+NAME    = vg-module-colour-switch
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-lib
+DEPENDS = vg-dataflow ot-lib vg-colour
 
 include_rules

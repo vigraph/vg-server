@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph bitmap RGB colour module
+# Tupfile for Vigraph HSL colour module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-bitmap-rgb
+NAME    = vg-module-colour-hsl
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry ot-lib vg-bitmap
+DEPENDS = vg-dataflow vg-geometry ot-lib vg-colour
 
 include_rules

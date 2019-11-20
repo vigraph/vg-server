@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph colour pin module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-colour-pin
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib vg-colour
+
+include_rules

@@ -8,6 +8,6 @@ bitmap/tile x=3 y=2 ->-
 trans: bitmap/translate ->-
 bitmap/websocket-display width=64 height=64 frame-rate=25
 
-oscillator wave="saw" freq=0.1 control>-
+oscillator wave="saw" freq=1 control>-
 multiply factor=0.5 ->-
-add offset=-0.3333 ->trans.x
+add offset=-0.25 ->trans.x

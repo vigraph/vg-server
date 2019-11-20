@@ -28,7 +28,7 @@ private:
   }
 
   // Setup
-  void setup() override;
+  void setup(const SetupContext& context) override;
 
 public:
   using SimpleElement::SimpleElement;
@@ -42,7 +42,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Sample
-void AverageFilter::setup()
+void AverageFilter::setup(const SetupContext&)
 {
   if (samples < 1)
     samples = 1;

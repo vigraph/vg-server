@@ -93,7 +93,7 @@ void Element::update_sample_rate()
 
 //--------------------------------------------------------------------------
 // Clone element
-Element *Element::clone() const
+Element *Element::clone(const SetupContext&) const
 {
   auto el = create_clone();
   if (!el)

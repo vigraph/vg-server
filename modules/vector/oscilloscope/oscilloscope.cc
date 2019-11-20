@@ -69,7 +69,7 @@ private:
   vector<double> buffer;
 
   // Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void update_sample_rate() override {}
   void tick(const TickData& td) override;
 
@@ -97,7 +97,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void Oscilloscope::setup()
+void Oscilloscope::setup(const SetupContext&)
 {
   slope.set_sample_rate(sample_rate);
   input.set_sample_rate(sample_rate);

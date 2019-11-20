@@ -20,7 +20,7 @@ private:
   vector<Point> points;
 
   // Source/Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -44,7 +44,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void SVGSource::setup()
+void SVGSource::setup(const SetupContext&)
 {
   Log::Streams log;
 

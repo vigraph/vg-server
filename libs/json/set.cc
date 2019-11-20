@@ -147,7 +147,7 @@ void set(Dataflow::Engine& engine, const Value& json,
       a.member_acceptor->accept(visitor);
     }
     if (a.setting)
-      a.element->setup();
+      engine.setup(*a.element);
 
     // Connection
     if (a.acceptor)
@@ -295,7 +295,7 @@ void SetVisitor::visit(Dataflow::Clone& clone)
             }
           }
         }
-        clone.setup();
+        engine.setup(clone);
       }
       // Fall through
 
@@ -372,7 +372,7 @@ void SetVisitor::visit(Dataflow::Element& element)
             }
           }
         }
-        element.setup();
+        engine.setup(element);
       }
       break;
     case Phase::connection:

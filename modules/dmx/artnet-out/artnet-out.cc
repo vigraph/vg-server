@@ -28,7 +28,7 @@ private:
   map<int, uint8_t> universe_sequences;
 
   // Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -55,7 +55,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup after config
-void ArtNetOut::setup()
+void ArtNetOut::setup(const SetupContext&)
 {
   Log::Streams log;
 

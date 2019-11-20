@@ -102,12 +102,12 @@ void Clone::update_clone_infos()
 
 //--------------------------------------------------------------------------
 // Clone
-Clone *Clone::clone() const
+Clone *Clone::clone(const SetupContext& context) const
 {
   auto c = new Clone{clone_module};
   for (const auto& graph: clones)
   {
-    auto g = graph.graph->clone();
+    auto g = graph.graph->clone(context);
     c->clones.emplace_back(g);
     const auto& els = g->get_elements();
     for (const auto& el: els)
@@ -135,7 +135,7 @@ vector<Graph *> Clone::get_graphs() const
 
 //--------------------------------------------------------------------------
 // Final setup for elements and calculate topology
-void Clone::setup()
+void Clone::setup(const SetupContext& context)
 {
   const auto n = copies.get();
   if (n < 1)
@@ -148,7 +148,7 @@ void Clone::setup()
 
   while (clones.size() < n)
   {
-    auto g = clones.front().graph->clone();
+    auto g = clones.front().graph->clone(context);
     clones.emplace_back(g);
     const auto& els = g->get_elements();
     for (const auto& el: els)
@@ -163,7 +163,7 @@ void Clone::setup()
 
   // Setup clones
   for (const auto& graph: clones)
-    graph.graph->setup();
+    graph.graph->setup(context);
 }
 
 //--------------------------------------------------------------------------

@@ -43,6 +43,14 @@ GraphElement *Engine::create(const string& type, const string& id) const
 }
 
 //--------------------------------------------------------------------------
+// Setup an element
+void Engine::setup(GraphElement& element) const
+{
+  const auto context = SetupContext{};
+  element.setup(context);
+}
+
+//--------------------------------------------------------------------------
 // Update element list
 void Engine::update_elements()
 {

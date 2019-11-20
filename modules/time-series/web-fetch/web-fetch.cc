@@ -22,7 +22,7 @@ private:
   DataSet data;
 
   // Source/Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -44,7 +44,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void WebFetch::setup()
+void WebFetch::setup(const SetupContext&)
 {
   Log::Streams log;
   Web::URL wurl(url);

@@ -29,7 +29,7 @@ private:
   vector<float> output_buffer;
 
   // Source/Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
   void shutdown() override;
 
@@ -59,7 +59,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void ALSAOut::setup()
+void ALSAOut::setup(const SetupContext&)
 {
   Log::Streams log;
   shutdown();

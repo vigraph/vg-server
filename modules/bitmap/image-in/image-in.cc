@@ -22,7 +22,7 @@ private:
   Bitmap::Rectangle image_rect;
 
   // SimpleElement virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -85,7 +85,7 @@ ImageIn::ImageIn(const SimpleModule& module):
 
 //--------------------------------------------------------------------------
 // Setup
-void ImageIn::setup()
+void ImageIn::setup(const SetupContext&)
 {
   Log::Streams log;
   auto got = IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);

@@ -87,7 +87,7 @@ void Graph::notify_connection(const string& in_name,
 
 //--------------------------------------------------------------------------
 // Clone
-Graph *Graph::clone() const
+Graph *Graph::clone(const SetupContext& context) const
 {
   auto g = new Graph{GraphModule{}};
   g->set_id(get_id());
@@ -96,8 +96,8 @@ Graph *Graph::clone() const
   auto pairs = vector<pair<GraphElement *, GraphElement *>>{};
   for (const auto& el: elements)
   {
-    auto c = el.second->clone();
-    c->setup();
+    auto c = el.second->clone(context);
+    c->setup(context);
     g->elements.emplace(el.first, c);
     pairs.emplace_back(el.second.get(), c);
   }
@@ -242,10 +242,10 @@ void Graph::remove_output_pin(const string& id)
 
 //------------------------------------------------------------------------
 // Final setup for elements and calculate topology
-void Graph::setup()
+void Graph::setup(const SetupContext& context)
 {
   for(const auto& it: elements)
-    it.second->setup();
+    it.second->setup(context);
 }
 
 //------------------------------------------------------------------------

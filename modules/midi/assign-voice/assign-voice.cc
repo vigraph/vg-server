@@ -16,7 +16,7 @@ class AssignVoice: public SimpleElement
 {
 private:
   // Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -53,7 +53,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void AssignVoice::setup()
+void AssignVoice::setup(const SetupContext&)
 {
   auto max = 0;
 

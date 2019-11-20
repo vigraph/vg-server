@@ -187,8 +187,7 @@ public:
   // Run test
   void run(int nticks = 1)
   {
-    auto& graph = loader.engine.get_graph();
-    graph.setup();
+    loader.engine.setup();
     loader.engine.set_tick_interval(Time::Duration{1});
     loader.engine.reset();
     loader.engine.update_elements();

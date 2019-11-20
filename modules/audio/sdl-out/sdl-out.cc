@@ -30,7 +30,7 @@ private:
   bool starved = false;
 
   // Source/Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
   void shutdown() override;
 
@@ -139,7 +139,7 @@ void SDLSink::callback(Uint8 *stream, int len)
 
 //--------------------------------------------------------------------------
 // Setup
-void SDLSink::setup()
+void SDLSink::setup(const SetupContext&)
 {
   Log::Streams log;
   shutdown();

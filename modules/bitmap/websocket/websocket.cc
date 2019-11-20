@@ -125,7 +125,7 @@ private:
   unique_ptr<Net::TCPServerThread> server_thread;
 
   // Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -151,7 +151,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void WebSocket::setup()
+void WebSocket::setup(const SetupContext&)
 {
   if (!!server) shutdown();
 

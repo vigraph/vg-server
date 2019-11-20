@@ -30,7 +30,7 @@ private:
   uint16_t message_sequence{0};
 
   // Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -62,7 +62,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup after config
-void IDNOut::setup()
+void IDNOut::setup(const SetupContext&)
 {
   Log::Streams log;
 

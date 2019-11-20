@@ -43,7 +43,7 @@ private:
   void run();
 
   // Source/Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
   void shutdown() override;
 
@@ -78,7 +78,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void ALSAIn::setup()
+void ALSAIn::setup(const SetupContext&)
 {
   Log::Streams log;
   shutdown();

@@ -39,7 +39,7 @@ private:
   map<int, State> states;
   int active = -1;
 
-  void setup() override
+  void setup(const SetupContext&) override
   {
     const auto ninputs = static_cast<unsigned>(max(inputs.get(), 2));
     while (input_list.size() > ninputs)

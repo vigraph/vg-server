@@ -32,7 +32,7 @@ private:
   atomic<double> last_value{0.0};
 
   // Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -71,7 +71,7 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void Sensor::setup()
+void Sensor::setup(const SetupContext&)
 {
   Log::Streams log;
   log.summary << "DSCUSB load sensor connecting to " << device << endl;

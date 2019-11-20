@@ -32,7 +32,6 @@ using namespace ViGraph;
 const auto namespace_separator = '/';
 const auto default_frequency = 25.0;
 const auto default_tick_interval = Time::Duration{1.0 / default_frequency};
-const auto default_sample_rate = default_frequency;
 
 // Typedefs
 typedef double timestamp_t; // Relative timestamp
@@ -77,6 +76,12 @@ struct TickData
   {
     return samples_at(sample_rate, end) - samples_at(sample_rate, start);
   }
+};
+
+//==========================================================================
+// Setup Context
+class SetupContext
+{
 };
 
 // forward declarations
@@ -1594,7 +1599,7 @@ public:
   virtual const Module& get_module() const = 0;
 
   // Setup after automatic configuration
-  virtual void setup() {}
+  virtual void setup(const SetupContext&) {}
 
   // Connect an element
   virtual bool connect(const string& out_name,
@@ -1645,7 +1650,7 @@ public:
   virtual void collect_elements(list<Element *>& elements) = 0;
 
   // Clone element
-  virtual GraphElement *clone() const = 0;
+  virtual GraphElement *clone(const SetupContext& context) const = 0;
 
   // Pathing
   virtual vector<ConstVisitorAcceptorInfo> get_visitor_acceptors(
@@ -1747,7 +1752,7 @@ public:
   }
 
   // Clone element
-  Element *clone() const override;
+  Element *clone(const SetupContext& context) const override;
 
   // Accept visitors
   vector<ConstVisitorAcceptorInfo> get_visitor_acceptors(
@@ -2013,7 +2018,6 @@ class Graph: public GraphElement
 private:
   mutable MT::RWMutex mutex;
   map<string, shared_ptr<GraphElement>> elements;   // By ID
-  double sample_rate = 0;
   GraphModule module;
 
   struct PinInfo
@@ -2089,11 +2093,7 @@ public:
 
   //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
-  void setup() override;
-
-  //------------------------------------------------------------------------
-  // Set sample rate
-  void set_sample_rate(double sr) { sample_rate = sr; }
+  void setup(const SetupContext& context) override;
 
   //------------------------------------------------------------------------
   // Get a particular element by ID
@@ -2126,7 +2126,7 @@ public:
   }
 
   // Clone element
-  Graph *clone() const override;
+  Graph *clone(const SetupContext& context) const override;
 
   //------------------------------------------------------------------------
   // Accept visitors
@@ -2227,7 +2227,7 @@ public:
 
   //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
-  void setup() override;
+  void setup(const SetupContext& context) override;
 
   //------------------------------------------------------------------------
   // Prepare for a tick
@@ -2240,7 +2240,7 @@ public:
   vector<Graph *> get_graphs() const;
 
   // Clone element
-  Clone *clone() const override;
+  Clone *clone(const SetupContext& context) const override;
 
   //------------------------------------------------------------------------
   // Accept visitors
@@ -2426,7 +2426,6 @@ class Engine: public VisitorAcceptor
   unique_ptr<Dataflow::Graph> graph;
   list<Element *> tick_elements;
   Time::Duration tick_interval = default_tick_interval;
-  double sample_rate = default_sample_rate;
   Time::Duration start_time;
   uint64_t tick_number{0};
   list<string> default_sections;  // Note: ordered
@@ -2452,12 +2451,6 @@ public:
   Time::Duration get_tick_interval() const { return tick_interval; }
 
   //------------------------------------------------------------------------
-  // Set/get the sample rate
-  void set_sample_rate(double sr)
-  { sample_rate = sr; graph->set_sample_rate(sr); }
-  double get_sample_rate() const { return sample_rate; }
-
-  //------------------------------------------------------------------------
   // Get the graph (for testing only)
   Dataflow::Graph& get_graph() const { return *graph; }
 
@@ -2465,6 +2458,14 @@ public:
   // Create an element with the given type - may be section:id or just id,
   // which is looked up in default namespaces
   GraphElement *create(const string& type, const string& id) const;
+
+  //------------------------------------------------------------------------
+  // Setup an element
+  void setup(GraphElement& element) const;
+
+  //------------------------------------------------------------------------
+  // Setup graph
+  void setup() { setup(*graph); }
 
   //------------------------------------------------------------------------
   // Update element list

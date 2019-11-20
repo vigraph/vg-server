@@ -32,7 +32,7 @@ private:
   } state = State::disabled;
 
   // Source/Element virtuals
-  void setup() override;
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -85,7 +85,7 @@ WavIn::WavIn(const DynamicModule& module):
 
 //--------------------------------------------------------------------------
 // Setup
-void WavIn::setup()
+void WavIn::setup(const SetupContext&)
 {
   Log::Streams log;
 

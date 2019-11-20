@@ -174,9 +174,8 @@ public:
 
   void setup()
   {
-    engine.set_sample_rate(sample_rate);
     engine.set_tick_interval(Time::Duration{1.0});
-    engine.get_graph().setup();
+    engine.setup();
     engine.update_elements();
   }
 

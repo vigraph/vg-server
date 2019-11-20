@@ -169,9 +169,10 @@ void WebSocket::setup()
 
 //--------------------------------------------------------------------------
 // Tick data
-void WebSocket::tick(const TickData&)
+void WebSocket::tick(const TickData& td)
 {
-  const auto nsamples = frame_rate;
+  const auto sample_rate = input.get_sample_rate();
+  const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(nsamples, tie(width, height), tie(input), {},
                  [&](int width, int height, const Bitmap::Group& input)
   {

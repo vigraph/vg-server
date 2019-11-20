@@ -1,42 +1,43 @@
 //==========================================================================
-// ViGraph dataflow module: bitmap/hsl/test-hsl.cc
+// ViGraph dataflow module: bitmap/fill/test-fill.cc
 //
-// Tests for <hsl> filter
+// Tests for <fill> filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../bitmap-module.h"
+#include "../../colour/colour-module.h"
 #include "../../module-test.h"
 
-class HSLTest: public GraphTester
+class FillTest: public GraphTester
 {
 public:
-  HSLTest()
+  FillTest()
   {
-    loader.load("./vg-module-bitmap-hsl.so");
+    loader.load("./vg-module-bitmap-fill.so");
   }
 };
 
 const auto sample_rate = 1;
 
-TEST_F(HSLTest, TestDefaultHSLIsRed)
+TEST_F(FillTest, TestDefaultFillIsWhite)
 {
-  auto& trans = add("bitmap/hsl");
+  auto& fill = add("bitmap/fill");
 
   auto bg_data = vector<Bitmap::Group>(1);
   auto& bg = bg_data[0];
 
   Bitmap::Rectangle r(5, 3);
-  r.fill(Colour::white);
+  r.fill(Colour::red);
   bg.add(r);
 
   auto& bgs = add_source(bg_data);
-  bgs.connect("output", trans, "input");
+  bgs.connect("output", fill, "input");
 
   auto outbgs = vector<Bitmap::Group>{};
   auto& snk = add_sink(outbgs, sample_rate);
-  trans.connect("output", snk, "input");
+  fill.connect("output", snk, "input");
 
   run();
 
@@ -45,16 +46,31 @@ TEST_F(HSLTest, TestDefaultHSLIsRed)
   ASSERT_EQ(1, outbg.items.size());
   auto rect = outbg.items[0].rect;
   for(const auto& p: rect.get_pixels())
-    EXPECT_EQ(Colour::red, p);
+    EXPECT_EQ(Colour::white, p);
 }
 
-TEST_F(HSLTest, TestWithNoInput)
+TEST_F(FillTest, TestSpecifiedFill)
 {
-  auto& trans = add("bitmap/hsl");
+  auto& fill = add("bitmap/fill");
+
+  auto col_data = vector<Colour::RGB>(1);
+  col_data[0] = Colour::red;
+  auto& cols = add_source(col_data);
+  cols.connect("output", fill, "colour");
+
+  auto bg_data = vector<Bitmap::Group>(1);
+  auto& bg = bg_data[0];
+
+  Bitmap::Rectangle r(5, 3);
+  r.fill(Colour::red);
+  bg.add(r);
+
+  auto& bgs = add_source(bg_data);
+  bgs.connect("output", fill, "input");
 
   auto outbgs = vector<Bitmap::Group>{};
   auto& snk = add_sink(outbgs, sample_rate);
-  trans.connect("output", snk, "input");
+  fill.connect("output", snk, "input");
 
   run();
 
@@ -62,12 +78,9 @@ TEST_F(HSLTest, TestWithNoInput)
   const auto& outbg = outbgs[0];
   ASSERT_EQ(1, outbg.items.size());
   auto rect = outbg.items[0].rect;
-  EXPECT_EQ(1, rect.get_width());
-  EXPECT_EQ(1, rect.get_height());
   for(const auto& p: rect.get_pixels())
     EXPECT_EQ(Colour::red, p);
 }
-
 
 int main(int argc, char **argv)
 {

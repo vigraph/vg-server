@@ -10,7 +10,7 @@ clone copies=5
   [
     input: vector/pin ->-
     t: vector/translate ->-
-    c: vector/hsl l=0.7 ->-
+    stroke: vector/stroke ->-
     f: vector/fade ->-
     output: vector/pin
 
@@ -30,7 +30,8 @@ clone copies=5
     ryv: random min=-3 max=3 ->vel_y.offset
 
     # Random colour
-    rc: random min=0 max=0.2 ->c.h
+    rc: random min=0 max=0.2 ->h
+    colour/hsl l=0.7 ->stroke.colour
 
     # Fading
     fade: interpolator from=1.0 to=0.0 period=5 ->-

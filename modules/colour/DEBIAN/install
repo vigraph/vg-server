@@ -1,0 +1,5 @@
+rgb/vg-module-colour-rgb.so /usr/lib/vigraph/modules/
+hsl/vg-module-colour-hsl.so /usr/lib/vigraph/modules/
+pin/vg-module-colour-pin.so /usr/lib/vigraph/modules/
+switch/vg-module-colour-switch.so /usr/lib/vigraph/modules/
+blend/vg-module-colour-blend.so /usr/lib/vigraph/modules/

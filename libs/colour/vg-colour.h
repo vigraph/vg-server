@@ -50,7 +50,7 @@ struct RGB
 
   // Blend between this and another colour
   // frac=0 => all 'this', frac=1 => all 'o'
-  RGB blend_with(const RGB& o, double frac)
+  RGB blend_with(const RGB& o, double frac) const
   {
     double rfrac = 1-frac;
     return RGB(r*rfrac + o.r*frac,
@@ -64,6 +64,13 @@ struct RGB
 
   bool operator!=(const RGB& o) const
   { return r!=o.r || g!=o.g || b!=o.b; }
+
+  // Combine with another one, additive, fencing at 1.0
+  RGB& operator+=(const RGB& o)
+  { r+=o.r; r=min(1.0, r);
+    g+=o.g; g=min(1.0, g);
+    b+=o.b; b=min(1.0, b);
+    return *this; }
 
   // Static helpers
   // Create from hex RGB

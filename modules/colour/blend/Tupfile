@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph blend colour module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-colour-blend
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-lib vg-colour
+
+include_rules

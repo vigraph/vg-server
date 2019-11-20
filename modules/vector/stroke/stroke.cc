@@ -1,37 +1,35 @@
 //==========================================================================
-// ViGraph dataflow module: vector/rgb/rgb.cc
+// ViGraph dataflow module: vector/stroke/stroke.cc
 //
-// RGB colour filter
+// Stroke colour filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../vector-module.h"
-#include <cmath>
+#include "../../colour/colour-module.h"
 
 namespace {
 
 //==========================================================================
-// RGBColour
-class RGBColour: public SimpleElement
+// StrokeColour
+class StrokeColour: public SimpleElement
 {
 private:
   // Element virtuals
   void tick(const TickData& td) override;
 
   // Clone
-  RGBColour *create_clone() const override
+  StrokeColour *create_clone() const override
   {
-    return new RGBColour{module};
+    return new StrokeColour{module};
   }
 
 public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> r{0.0};
-  Input<double> g{0.0};
-  Input<double> b{0.0};
+  Input<Colour::RGB> colour{Colour::white};
 
   // Input
   Input<Frame> input;
@@ -42,17 +40,16 @@ public:
 
 //--------------------------------------------------------------------------
 // Tick data
-void RGBColour::tick(const TickData& td)
+void StrokeColour::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(r, g, b, input), tie(output),
-                 [&](double r, double g, double b, const Frame& input,
+  sample_iterate(nsamples, {}, tie(colour, input), tie(output),
+                 [&](const Colour::RGB& colour, const Frame& input,
                      Frame& output)
   {
     output = input;
-    Colour::RGB rgb(r, g, b);
     for(auto& p: output.points)
-      if (!p.is_blanked()) p.c = rgb;
+      if (!p.is_blanked()) p.c = colour;
   });
 }
 
@@ -60,21 +57,19 @@ void RGBColour::tick(const TickData& td)
 // Module definition
 Dataflow::SimpleModule module
 {
-  "rgb",
-  "Vector RGB",
+  "stroke",
+  "Vector Stroke",
   "vector",
   {},
   {
-    { "r",     &RGBColour::r     },
-    { "g",     &RGBColour::g     },
-    { "b",     &RGBColour::b     },
-    { "input", &RGBColour::input }
+    { "colour", &StrokeColour::colour },
+    { "input",  &StrokeColour::input  }
   },
   {
-    { "output", &RGBColour::output }
+    { "output", &StrokeColour::output }
   }
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(RGBColour, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(StrokeColour, module)

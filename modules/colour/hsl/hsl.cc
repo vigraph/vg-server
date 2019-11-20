@@ -1,12 +1,12 @@
 //==========================================================================
-// ViGraph dataflow module: vector/hsl/hsl.cc
+// ViGraph dataflow module: colour/hsl/hsl.cc
 //
 // HSL colour filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../vector-module.h"
+#include "../colour-module.h"
 #include <cmath>
 
 namespace {
@@ -33,11 +33,8 @@ public:
   Input<double> s{1.0};
   Input<double> l{0.5};
 
-  // Input
-  Input<Frame> input;
-
   // Output
-  Output<Frame> output;
+  Output<Colour::RGB> output;
 };
 
 //--------------------------------------------------------------------------
@@ -45,15 +42,12 @@ public:
 void HSLColour::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(h, s, l, input), tie(output),
-                 [&](double h, double s, double l, const Frame& input,
-                     Frame& output)
+  sample_iterate(nsamples, {}, tie(h, s, l), tie(output),
+                 [&](double h, double s, double l,
+                     Colour::RGB& output)
   {
-    output = input;
     Colour::HSL hsl(h, s, l);
-    Colour::RGB rgb(hsl);
-    for(auto& p: output.points)
-      if (!p.is_blanked()) p.c = rgb;
+    output = Colour::RGB(hsl);
   });
 }
 
@@ -62,14 +56,13 @@ void HSLColour::tick(const TickData& td)
 Dataflow::SimpleModule module
 {
   "hsl",
-  "Vector HSL",
-  "vector",
+  "HSL Colour",
+  "colour",
   {},
   {
-    { "h",     &HSLColour::h     },
-    { "s",     &HSLColour::s     },
-    { "l",     &HSLColour::l     },
-    { "input", &HSLColour::input }
+    { "h", &HSLColour::h },
+    { "s", &HSLColour::s },
+    { "l", &HSLColour::l },
   },
   {
     { "output", &HSLColour::output }

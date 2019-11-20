@@ -5,7 +5,6 @@ bitmap/image-in file="../modules/bitmap/image-in/rainbow.jpg" ->-
 fade: bitmap/fade ->out.-
 
 bitmap/image-in file="../modules/bitmap/image-in/vigraph.png" ->-
-bitmap/hsl ->-
 trans: bitmap/translate z=1 ->out.-
 
 out: bitmap/websocket-display width=32 height=32 frame-rate=25

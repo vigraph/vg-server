@@ -10,8 +10,7 @@ DEPENDS  = vg-module-vector-translate    \
            vg-module-vector-scale        \
            vg-module-vector-rotate       \
            vg-module-vector-clip         \
-           vg-module-vector-hsl          \
-           vg-module-vector-rgb          \
+           vg-module-vector-stroke       \
            vg-module-vector-fade         \
            vg-module-vector-svg          \
            vg-module-vector-figure       \
@@ -22,7 +21,6 @@ DEPENDS  = vg-module-vector-translate    \
 
 #           vg-module-vector-filter-depth-fade \
 #           vg-module-vector-filter-pattern \
-#           vg-module-vector-filter-fade \
 #           vg-module-vector-filter-sum \
 #           vg-module-vector-filter-perspective \
 #           vg-module-vector-filter-collision-detect \

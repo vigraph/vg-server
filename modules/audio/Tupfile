@@ -10,6 +10,7 @@ DEPENDS  = vg-module-audio-alsa-out \
            vg-module-audio-bit-crush \
            vg-module-audio-delay \
            vg-module-audio-envelope \
+           vg-module-audio-loop \
            vg-module-audio-pitch-shift \
            vg-module-audio-position \
            vg-module-audio-reverb \

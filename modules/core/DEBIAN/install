@@ -17,6 +17,7 @@ wrap/vg-module-core-wrap.so /usr/lib/vigraph/modules/
 random/vg-module-core-random.so /usr/lib/vigraph/modules/
 log/vg-module-core-log.so /usr/lib/vigraph/modules/
 timer/vg-module-core-timer.so /usr/lib/vigraph/modules/
+toggle/vg-module-core-toggle.so /usr/lib/vigraph/modules/
 interpolator/vg-module-core-interpolator.so /usr/lib/vigraph/modules/
 
 #controls/interpolate/vg-module-core-control-interpolate.so /usr/lib/vigraph/modules/
@@ -27,7 +28,6 @@ interpolator/vg-module-core-interpolator.so /usr/lib/vigraph/modules/
 #controls/scale/vg-module-core-control-scale.so /usr/lib/vigraph/modules/
 #controls/sequence/vg-module-core-control-sequence.so /usr/lib/vigraph/modules/
 #controls/trigger-sequence/vg-module-core-control-trigger-sequence.so /usr/lib/vigraph/modules/
-#controls/toggle/vg-module-core-control-toggle.so /usr/lib/vigraph/modules/
 #controls/wait/vg-module-core-control-wait.so /usr/lib/vigraph/modules/
 #controls/window/vg-module-core-control-window.so /usr/lib/vigraph/modules/
 #sources/selector/vg-module-core-source-selector.so /usr/lib/vigraph/modules/

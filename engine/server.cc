@@ -96,6 +96,13 @@ int Server::pre_run()
 int Server::tick()
 {
   Time::Duration now = Time::Duration::clock();
+  if (graph_file_time)
+  {
+    const auto last_mod = graph_file.last_modified();
+    if (last_mod != graph_file_time &&
+        last_mod < Time::Stamp::now().time() - 2) // give time for file save
+      load_graph(graph_file);
+  }
   engine.tick(now);
   return 0;
 }
@@ -196,11 +203,11 @@ void Server::reconfigure()
   const auto p = graph_e["file"];
   if (!p.empty())
   {
-    const auto graph_path = config_file.resolve(p);
-    if (graph_path.exists())
-      load_graph(graph_path);
+    graph_file = config_file.resolve(p);
+    if (graph_file.exists())
+      load_graph(graph_file);
     else
-      log.error << "Graph file not found: " << graph_path << endl;
+      log.error << "Graph file not found: " << graph_file << endl;
   }
 
   // (re-)create the REST interface
@@ -221,6 +228,8 @@ void Server::reconfigure()
 bool Server::load_graph(const File::Path& path)
 {
   Log::Streams log;
+
+  graph_file_time = path.last_modified();
 
   const auto ext = path.extension();
 
@@ -261,6 +270,7 @@ bool Server::load_graph(const File::Path& path)
   else
   {
     log.error << "Unhandled file type for graph file: " << path << endl;
+    graph_file_time = 0;
     return false;
   }
 

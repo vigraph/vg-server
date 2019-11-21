@@ -58,6 +58,8 @@ class Server: public Daemon::Application
   XML::Element config_xml;
   File::Path config_file;
   string licence_file;
+  File::Path graph_file;
+  time_t graph_file_time = 0;
 
   // Loaded modules
   struct Module

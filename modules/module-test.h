@@ -184,6 +184,13 @@ public:
     return *e;
   }
 
+  // Setup an element
+  void setup(GraphElement& element)
+  {
+    loader.engine.setup(element);
+  }
+
+
   // Run test
   void run(int nticks = 1)
   {

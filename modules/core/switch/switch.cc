@@ -38,17 +38,17 @@ const Dataflow::DynamicModule NumberSwitch::switch_module =
   "Switch",
   "core",
   {
-    { "inputs",         &Switch::inputs },
+    { "inputs",         &NumberSwitch::inputs },
   },
   {
-    { "number",         &Switch::number },
-    { "fraction",       &Switch::fraction },
-    { "next",           &Switch::next },
-    { "fade-in-time",   &Switch::fade_in_time },
-    { "fade-out-time",  &Switch::fade_out_time },
+    { "number",         &NumberSwitch::number },
+    { "fraction",       &NumberSwitch::fraction },
+    { "next",           &NumberSwitch::next },
+    { "fade-in-time",   &NumberSwitch::fade_in_time },
+    { "fade-out-time",  &NumberSwitch::fade_out_time },
   },
   {
-    { "output",         &Switch::output },
+    { "output",         &NumberSwitch::output },
   }
 };
 

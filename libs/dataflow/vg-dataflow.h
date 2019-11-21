@@ -828,7 +828,9 @@ inline string get_module_type<bool>() { return "boolean"; }
 template<>
 inline void set_from_json(bool& value, const JSON::Value& json)
 {
-  value = (json.type == JSON::Value::TRUE_);
+  value = (json.type == JSON::Value::TRUE_)
+    || (json.type == JSON::Value::NUMBER && json.f != 0.0)
+    || (json.type == JSON::Value::INTEGER && json.n != 0);
 }
 
 template<>

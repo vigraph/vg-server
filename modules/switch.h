@@ -73,9 +73,10 @@ private:
     struct InputData
     {
       const vector<T> *data = nullptr;
+      const T& last_val;
       State *state = nullptr;
-      InputData(const vector<T> *_data, State *_state):
-        data{_data}, state{_state}
+      InputData(const vector<T> *_data, const T& _last_val, State *_state):
+        data{_data}, last_val{_last_val}, state{_state}
       {}
     };
     map<int, InputData> id;
@@ -83,6 +84,7 @@ private:
     {
       id.emplace(p.first,
                  InputData{&input_list[p.first]->get_buffer(),
+                           input_list[p.first]->get(),
                            &states[p.first]});
     }
 
@@ -156,6 +158,7 @@ private:
           if (id.find(active) == id.end())
             id.emplace(active,
                        InputData{&input_list[active]->get_buffer(),
+                                 input_list[active]->get(),
                                  &states[active]});
         }
       }
@@ -165,6 +168,7 @@ private:
       {
         auto n = idit->first;
         auto& b = *idit->second.data;
+        const auto& bval = i < b.size() ? b[i] : idit->second.last_val;
         auto& s = *idit->second.state;
         auto removed = false;
         switch (s.fade)
@@ -176,13 +180,11 @@ private:
               s.factor = 1;
               s.fade = State::Fade::full;
             }
-            if (i < b.size())
-              v += switch_fade(b[i], s.factor);
+            v += switch_fade(bval, s.factor);
             break;
 
           case State::Fade::full:
-            if (i < b.size())
-              v += b[i];
+            v += bval;
             break;
 
           case State::Fade::out:
@@ -194,8 +196,7 @@ private:
                 s.factor = 0;
                 complete = true;
               }
-              if (i < b.size())
-                v += switch_fade(b[i], s.factor);
+              v += switch_fade(bval, s.factor);
               if (complete)
               {
                 states.erase(n);

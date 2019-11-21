@@ -1,7 +1,7 @@
 //==========================================================================
 // ViGraph dataflow module: core/timer/timer.cc
 //
-// Control to provide a resettable timebase output
+// Control to provide a retriggerable monostable
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -16,7 +16,7 @@ class Timer: public SimpleElement
 {
  private:
   // Dynamic state
-  bool active{false};
+  bool is_active{false};
   Dataflow::timestamp_t start_time{0.0};
 
   // Element virtuals
@@ -31,43 +31,51 @@ class Timer: public SimpleElement
 public:
   using SimpleElement::SimpleElement;
 
+  // Configuration
+  Input<double> period{0.0};   // Period to stay active
+
   // Triggers
   Input<double> start{0.0};    // Trigger to start
-  Input<double> stop{0.0};     // Trigger to stop
+  Input<double> reset{0.0};    // Stop and reset
 
   // Outputs
-  Output<double> output;       // Trigger output
+  Output<double> finished;     // Trigger output on completion
+  Output<double> active;       // Level output
 };
 
 //--------------------------------------------------------------------------
 // Tick
 void Timer::tick(const TickData& td)
 {
-  const auto sample_rate = output.get_sample_rate();
+  const auto sample_rate = max(finished.get_sample_rate(),
+                               active.get_sample_rate());
   auto sample_time = td.first_sample_at(sample_rate);
   const auto sample_duration = td.sample_duration(sample_rate);
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(nsamples, {},
-                 tie(start, stop),
-                 tie(output),
-                 [&](double _start, double _stop,
-                     double& output)
+                 tie(period, start, reset),
+                 tie(finished, active),
+                 [&](double period, double _start, double _reset,
+                     double& finished, double& active)
   {
-    if (_stop)
+    if (_reset)
     {
-      active = false;
+      is_active = false;
     }
-    else if (_start || (!active && !start.connected())) // Freerun only once
+    else if (_start)
     {
-      active = true;
+      is_active = true;
       start_time = sample_time;
     }
 
-    if (active)
-      output = sample_time - start_time;
-    else
-      output = 0;
+    if (is_active && sample_time-start_time >= period)
+    {
+      finished = 1;
+      is_active = false;
+    }
+    else finished = 0;
 
+    active = is_active?1:0;
     sample_time += sample_duration;
   });
 }
@@ -81,11 +89,13 @@ Dataflow::SimpleModule module
   "core",
   {},
   {
+    { "period",    &Timer::period   },
     { "start",     &Timer::start    },
-    { "stop",      &Timer::stop     }
+    { "reset",     &Timer::reset    }
   },
   {
-    { "output",    &Timer::output   }
+    { "finished",  &Timer::finished },
+    { "active",    &Timer::active   }
   }
 };
 

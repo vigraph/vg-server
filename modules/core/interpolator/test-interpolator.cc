@@ -21,7 +21,7 @@ const auto sample_rate = 100;
 
 TEST_F(InterpolatorTest, TestWithNoPeriodGeneratesFrom)
 {
-  auto& interp = add("interpolator").set("from", 42.0);
+  auto& interp = add("core/interpolator").set("from", 42.0);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");
@@ -37,7 +37,7 @@ TEST_F(InterpolatorTest, TestWithNoPeriodGeneratesFrom)
 
 TEST_F(InterpolatorTest, TestAutoRun1Sec)
 {
-  auto& interp = add("interpolator").set("to", 1.0).set("period", 1.0);
+  auto& interp = add("core/interpolator").set("to", 1.0).set("period", 1.0);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");
@@ -53,7 +53,7 @@ TEST_F(InterpolatorTest, TestAutoRun1Sec)
 
 TEST_F(InterpolatorTest, TestAutoRun1SecWithOverrun)
 {
-  auto& interp = add("interpolator").set("to", 1.0).set("period", 0.5);
+  auto& interp = add("core/interpolator").set("to", 1.0).set("period", 0.5);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");
@@ -69,7 +69,7 @@ TEST_F(InterpolatorTest, TestAutoRun1SecWithOverrun)
 
 TEST_F(InterpolatorTest, TestStartConnectedButNotTriggeredGeneratesFrom)
 {
-  auto& interp = add("interpolator")
+  auto& interp = add("core/interpolator")
     .set("from", 42.0)
     .set("to", 100.0)
     .set("period", 1.0);
@@ -92,7 +92,7 @@ TEST_F(InterpolatorTest, TestStartConnectedButNotTriggeredGeneratesFrom)
 
 TEST_F(InterpolatorTest, TestStartTriggers)
 {
-  auto& interp = add("interpolator")
+  auto& interp = add("core/interpolator")
     .set("from", 1.0)
     .set("to", 2.0)
     .set("period", 0.5);

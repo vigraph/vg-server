@@ -30,7 +30,7 @@ const auto three_quarter_waveform_size = 3 * waveform_size / 4;
 
 TEST_F(OscillatorTest, TestNoWaveform)
 {
-  auto& osc = add("oscillator");
+  auto& osc = add("core/oscillator");
   auto waveform = vector<double>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
@@ -45,7 +45,7 @@ TEST_F(OscillatorTest, TestNoWaveform)
 
 TEST_F(OscillatorTest, TestNoWaveformControl)
 {
-  auto& osc = add("oscillator");
+  auto& osc = add("core/oscillator");
   auto waveform = vector<double>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("control", snk, "input");
@@ -60,7 +60,7 @@ TEST_F(OscillatorTest, TestNoWaveformControl)
 
 TEST_F(OscillatorTest, TestSquareWaveSingleCycle)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 1.0);
   auto waveform = vector<double>{};
@@ -82,7 +82,7 @@ TEST_F(OscillatorTest, TestSquareWaveSingleCycle)
 
 TEST_F(OscillatorTest, TestSquareWaveSingleCycleControl)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 1.0);
   auto waveform = vector<double>{};
@@ -104,7 +104,7 @@ TEST_F(OscillatorTest, TestSquareWaveSingleCycleControl)
 
 TEST_F(OscillatorTest, TestSquareWaveStartConnectedButNotStarted)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 1.0);
   auto start_data = vector<double>(100);
@@ -124,7 +124,7 @@ TEST_F(OscillatorTest, TestSquareWaveStartConnectedButNotStarted)
 
 TEST_F(OscillatorTest, TestSquareWaveStartHalfWayThrough)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 2.0);
 
@@ -153,7 +153,7 @@ TEST_F(OscillatorTest, TestSquareWaveStartHalfWayThrough)
 
 TEST_F(OscillatorTest, TestSquareWaveStopPartWayThrough)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 2.0);
 
@@ -191,7 +191,7 @@ TEST_F(OscillatorTest, TestSquareWaveStopPartWayThrough)
 
 TEST_F(OscillatorTest, TestSquareWaveMultiCycle)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 10.0);
   auto waveform = vector<double>{};
@@ -213,7 +213,7 @@ TEST_F(OscillatorTest, TestSquareWaveMultiCycle)
 
 TEST_F(OscillatorTest, TestSawWaveSingleCycle)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::saw)
               .set("freq", 1.0);
   auto waveform = vector<double>{};
@@ -236,7 +236,7 @@ TEST_F(OscillatorTest, TestSawWaveSingleCycle)
 
 TEST_F(OscillatorTest, TestTriangleWaveSingleCycle)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::triangle)
               .set("freq", 1.0);
   auto waveform = vector<double>{};
@@ -267,7 +267,7 @@ TEST_F(OscillatorTest, TestTriangleWaveSingleCycle)
 
 TEST_F(OscillatorTest, TestSinWaveSingleCycle)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::sin)
               .set("freq", 1.0);
   auto waveform = vector<double>{};
@@ -284,7 +284,7 @@ TEST_F(OscillatorTest, TestSinWaveSingleCycle)
 
 TEST_F(OscillatorTest, TestRandomSingleCycle)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::random)
               .set("freq", 1.0);
   auto waveform = vector<double>{};
@@ -304,7 +304,7 @@ TEST_F(OscillatorTest, TestRandomSingleCycle)
 
 TEST_F(OscillatorTest, TestSquareWaveSingleCycleWithPhase)
 {
-  auto& osc = add("oscillator")
+  auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 1.0)
               .set("phase", 0.25);

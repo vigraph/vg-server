@@ -7,7 +7,7 @@
 NAME     = vg-engine
 TYPE     = exe
 DEPENDS  = ot-daemon ot-soap ot-g2d \
-           vg-dataflow vg-json vg-geometry vg-licence \
+           vg-dataflow vg-json vg-geometry vg-licence vg-compiler \
            ot-lib \
            ext-pkg-sdl2
 

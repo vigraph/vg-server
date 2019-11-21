@@ -21,7 +21,7 @@ const auto sample_rate = 100;
 
 TEST_F(CountTest, TestQuiescentProducesZero)
 {
-  auto& cnt = add("count");
+  auto& cnt = add("core/count");
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   cnt.connect("output", snk, "input");
@@ -36,7 +36,7 @@ TEST_F(CountTest, TestQuiescentProducesZero)
 
 TEST_F(CountTest, TestTriggerUpAndDown)
 {
-  auto& cnt = add("count");
+  auto& cnt = add("core/count");
 
   auto up_data = vector<double>(100);
   up_data[0] = 1.0;
@@ -74,7 +74,7 @@ TEST_F(CountTest, TestTriggerUpAndDown)
 
 TEST_F(CountTest, TestDeltaUpDown)
 {
-  auto& cnt = add("count")
+  auto& cnt = add("core/count")
               .set("delta", 3.14);
 
   auto up_data = vector<double>(100);
@@ -106,7 +106,7 @@ TEST_F(CountTest, TestDeltaUpDown)
 
 TEST_F(CountTest, TestReset)
 {
-  auto& cnt = add("count");
+  auto& cnt = add("core/count");
 
   auto up_data = vector<double>(100);
   up_data[0] = 1.0;

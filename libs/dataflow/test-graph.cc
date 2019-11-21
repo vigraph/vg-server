@@ -17,10 +17,10 @@ namespace {
 TEST_F(GraphTest, TestGraphTickAndFiltering)
 {
   TestGraph graph(engine);
-  auto& source = graph.add("test-source");
-  auto& filter1 = graph.add("test-filter").set("value", 2.0);
-  auto& filter2 = graph.add("test-filter").set("value", 3.0);
-  auto& sinke = graph.add("test-sink", "SINK");
+  auto& source = graph.add("test/test-source");
+  auto& filter1 = graph.add("test/test-filter").set("value", 2.0);
+  auto& filter2 = graph.add("test/test-filter").set("value", 3.0);
+  auto& sinke = graph.add("test/test-sink", "SINK");
 
   source.connect("output", filter1, "input");
   filter1.connect("output", filter2, "input");
@@ -39,10 +39,10 @@ TEST_F(GraphTest, TestGraphTickAndFiltering)
 TEST_F(GraphTest, TestGraphTickAndMultipleSources)
 {
   TestGraph graph(engine);
-  auto& source1 = graph.add("test-source");
-  auto& source2 = graph.add("test-source");
-  auto& filter = graph.add("test-filter").set("value", 2.0);
-  auto& sinke = graph.add("test-sink", "SINK");
+  auto& source1 = graph.add("test/test-source");
+  auto& source2 = graph.add("test/test-source");
+  auto& filter = graph.add("test/test-filter").set("value", 2.0);
+  auto& sinke = graph.add("test/test-sink", "SINK");
 
   source1.connect("output", filter, "input");
   source2.connect("output", filter, "input");
@@ -61,9 +61,9 @@ TEST_F(GraphTest, TestGraphTickAndMultipleSources)
 TEST_F(GraphTest, TestGraphSimpleTickOrdering)
 {
   TestGraph graph(engine);
-  auto& filter_e = graph.add("test-filter", "f");
-  auto& source_e = graph.add("test-source", "S");
-  auto& sink_e = graph.add("test-sink", "s");
+  auto& filter_e = graph.add("test/test-filter", "f");
+  auto& source_e = graph.add("test/test-source", "S");
+  auto& sink_e = graph.add("test/test-sink", "s");
 
   source_e.connect("output", filter_e, "input");
   filter_e.connect("output", sink_e, "input");
@@ -90,8 +90,8 @@ TEST_F(GraphTest, TestGraphSimpleTickOrdering)
 TEST_F(GraphTest, TestGraphTickOrderingWithoutRouting)
 {
   TestGraph graph(engine);
-  graph.add("test-source", "S1");
-  graph.add("test-source", "S2");
+  graph.add("test/test-source", "S1");
+  graph.add("test/test-source", "S2");
   graph.setup();
 
   string tick_order;
@@ -111,7 +111,7 @@ TEST_F(GraphTest, TestGraphTickOrderingWithoutRouting)
 TEST_F(GraphTest, TestGraphShutdown)
 {
   TestGraph graph(engine);
-  graph.add("test-source", "S");
+  graph.add("test/test-source", "S");
   graph.setup();
 
   auto source = graph.get<TestSource>("S");

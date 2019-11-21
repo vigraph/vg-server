@@ -12,8 +12,7 @@
 namespace ViGraph { namespace Dataflow {
 
 //--------------------------------------------------------------------------
-// Create an element with the given type - may be section:id or just id,
-// which is looked up in default namespaces
+// Create an element with the given type
 GraphElement *Engine::create(const string& type, const string& id) const
 {
   vector<string> bits = Text::split(type, namespace_separator);
@@ -25,21 +24,7 @@ GraphElement *Engine::create(const string& type, const string& id) const
       e->set_id(id);
     return e;
   }
-  else
-  {
-    // Try default sections
-    for (const auto& section: default_sections)
-    {
-      auto e = element_registry.create(section, type);
-      if (e)
-      {
-        e->set_id(id);
-        return e;
-      }
-    }
-
-    return nullptr;
-  }
+  return nullptr;
 }
 
 //--------------------------------------------------------------------------

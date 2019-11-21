@@ -81,6 +81,9 @@ class Server: public Daemon::Application
   // Internal
   bool load_module(const File::Path& path);
 
+  // Load a graph
+  bool load_graph(const File::Path& path);
+
 public:
   //------------------------------------------------------------------------
   // Constructor

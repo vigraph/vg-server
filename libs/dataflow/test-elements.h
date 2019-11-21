@@ -194,7 +194,6 @@ protected:
 public:
   void SetUp()
   {
-    engine.add_default_section("test");
     engine.element_registry.add("test", "test-source", TestSourceFactory);
     engine.element_registry.add("test", "test-filter", TestFilterFactory);
     engine.element_registry.add("test", "test-sink", TestSinkFactory);

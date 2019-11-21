@@ -21,7 +21,7 @@ const auto sample_rate = 1;
 
 TEST_F(CompareTest, TestDefaultCompareLowerTriggersLower)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("input", -0.5);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
@@ -36,7 +36,7 @@ TEST_F(CompareTest, TestDefaultCompareLowerTriggersLower)
 
 TEST_F(CompareTest, TestDefaultCompareLowerTriggersDoesntTriggerEqual)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("input", -0.5);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
@@ -51,7 +51,7 @@ TEST_F(CompareTest, TestDefaultCompareLowerTriggersDoesntTriggerEqual)
 
 TEST_F(CompareTest, TestDefaultCompareLowerDoesntTriggerHigher)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("input", -0.5);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
@@ -66,7 +66,7 @@ TEST_F(CompareTest, TestDefaultCompareLowerDoesntTriggerHigher)
 
 TEST_F(CompareTest, TestDefaultCompareEqualTriggersEqual)
 {
-  auto& cmp = add("compare");
+  auto& cmp = add("core/compare");
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   cmp.connect("equal", snk, "input");
@@ -80,7 +80,7 @@ TEST_F(CompareTest, TestDefaultCompareEqualTriggersEqual)
 
 TEST_F(CompareTest, TestDefaultCompareEqualTriggersDoesntTriggerLower)
 {
-  auto& cmp = add("compare");
+  auto& cmp = add("core/compare");
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   cmp.connect("lower", snk, "input");
@@ -94,7 +94,7 @@ TEST_F(CompareTest, TestDefaultCompareEqualTriggersDoesntTriggerLower)
 
 TEST_F(CompareTest, TestDefaultCompareEqualDoesntTriggerHigher)
 {
-  auto& cmp = add("compare");
+  auto& cmp = add("core/compare");
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   cmp.connect("higher", snk, "input");
@@ -108,7 +108,7 @@ TEST_F(CompareTest, TestDefaultCompareEqualDoesntTriggerHigher)
 
 TEST_F(CompareTest, TestDefaultCompareHigherTriggersHigher)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("input", 0.5);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
@@ -123,7 +123,7 @@ TEST_F(CompareTest, TestDefaultCompareHigherTriggersHigher)
 
 TEST_F(CompareTest, TestDefaultCompareHigherTriggersDoesntTriggerEqual)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("input", 0.5);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
@@ -138,7 +138,7 @@ TEST_F(CompareTest, TestDefaultCompareHigherTriggersDoesntTriggerEqual)
 
 TEST_F(CompareTest, TestDefaultCompareHigherDoesntTriggerLower)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("input", 0.5);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
@@ -153,7 +153,7 @@ TEST_F(CompareTest, TestDefaultCompareHigherDoesntTriggerLower)
 
 TEST_F(CompareTest, TestSetValueCompareHigherDoesntTriggerHigher)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("value", 0.6)
               .set("input", 0.5);
   auto output = vector<double>{};
@@ -169,7 +169,7 @@ TEST_F(CompareTest, TestSetValueCompareHigherDoesntTriggerHigher)
 
 TEST_F(CompareTest, TestDefaultCompareLowerWithOnChangeTriggersLowerOnlyOnce)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("input", -1.0)
               .set("on-change", true);
   auto output = vector<double>{};
@@ -186,7 +186,7 @@ TEST_F(CompareTest, TestDefaultCompareLowerWithOnChangeTriggersLowerOnlyOnce)
 
 TEST_F(CompareTest, TestDefaultCompareEqualWithOnChangeTriggersEqualOnlyOnce)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("input", 0.0)
               .set("on-change", true);
   auto output = vector<double>{};
@@ -203,7 +203,7 @@ TEST_F(CompareTest, TestDefaultCompareEqualWithOnChangeTriggersEqualOnlyOnce)
 
 TEST_F(CompareTest, TestDefaultCompareHigherWithOnChangeTriggersHigherOnlyOnce)
 {
-  auto& cmp = add("compare")
+  auto& cmp = add("core/compare")
               .set("input", 0.5)
               .set("on-change", true);
   auto output = vector<double>{};

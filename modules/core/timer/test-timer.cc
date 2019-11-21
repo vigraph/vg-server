@@ -21,7 +21,7 @@ const auto sample_rate = 100;
 
 TEST_F(TimerTest, TestFreeRun)
 {
-  auto& timer = add("timer");
+  auto& timer = add("core/timer");
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   timer.connect("output", snk, "input");
@@ -37,7 +37,7 @@ TEST_F(TimerTest, TestFreeRun)
 
 TEST_F(TimerTest, TestStartConnectedButNotFired)
 {
-  auto& timer = add("timer");
+  auto& timer = add("core/timer");
 
   auto start_data = vector<double>(100);
   auto& sts = add_source(start_data);
@@ -56,7 +56,7 @@ TEST_F(TimerTest, TestStartConnectedButNotFired)
 
 TEST_F(TimerTest, TestStartAndRestart)
 {
-  auto& timer = add("timer");
+  auto& timer = add("core/timer");
 
   auto start_data = vector<double>(100);
   start_data[0] = 1.0;
@@ -78,7 +78,7 @@ TEST_F(TimerTest, TestStartAndRestart)
 
 TEST_F(TimerTest, TestStartAndStop)
 {
-  auto& timer = add("timer");
+  auto& timer = add("core/timer");
 
   auto start_data = vector<double>(100);
   start_data[25] = 1.0;

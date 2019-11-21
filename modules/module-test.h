@@ -27,16 +27,6 @@ private:
 public:
   Dataflow::Engine engine;
 
-  ModuleLoader()
-  {
-    add_default_section("core");
-  }
-
-  void add_default_section(const string& section)
-  {
-    engine.add_default_section(section);
-  }
-
   void load(const string& path)
   {
     ASSERT_TRUE(libs.find(path) == libs.end())

@@ -21,7 +21,7 @@ const auto sample_rate = 1;
 
 TEST_F(WrapTest, TestWrapDoesNothingInRange)
 {
-  auto& wrp = add("wrap")
+  auto& wrp = add("core/wrap")
               .set("input", 0.5);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
@@ -36,7 +36,7 @@ TEST_F(WrapTest, TestWrapDoesNothingInRange)
 
 TEST_F(WrapTest, TestWrapWrapsOverRange)
 {
-  auto& wrp = add("wrap")
+  auto& wrp = add("core/wrap")
               .set("max", 0.4)
               .set("input", 0.5);
   auto output = vector<double>{};
@@ -52,7 +52,7 @@ TEST_F(WrapTest, TestWrapWrapsOverRange)
 
 TEST_F(WrapTest, TestWrapWrapsUnderRange)
 {
-  auto& wrp = add("wrap")
+  auto& wrp = add("core/wrap")
               .set("min", 0.6)
               .set("input", 0.5);
   auto output = vector<double>{};

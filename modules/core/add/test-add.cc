@@ -26,7 +26,7 @@ TEST_F(AddTest, TestSetOnlyInput)
   const auto expected = vector<double>(nsamples, 42.0);
   auto actual = vector<double>{};
 
-  auto& ad_ = add("add")
+  auto& ad_ = add("core/add")
               .set("input", 42.0);
   auto& snk = add_sink(actual, nsamples);
   ad_.connect("output", snk, "input");
@@ -41,7 +41,7 @@ TEST_F(AddTest, TestSetOnlyOffset)
   const auto expected = vector<double>(nsamples, 10.0);
   auto actual = vector<double>{};
 
-  auto& ad_ = add("add")
+  auto& ad_ = add("core/add")
               .set("offset", 10.0);
   auto& snk = add_sink(actual, nsamples);
   ad_.connect("output", snk, "input");
@@ -56,7 +56,7 @@ TEST_F(AddTest, TestSetBothInputAndOffset)
   const auto expected = vector<double>(nsamples, 45.14);
   auto actual = vector<double>{};
 
-  auto& ad_ = add("add")
+  auto& ad_ = add("core/add")
               .set("input", 42.0)
               .set("offset", 3.14);
   auto& snk = add_sink(actual, nsamples);

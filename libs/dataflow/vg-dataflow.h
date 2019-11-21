@@ -2442,7 +2442,6 @@ class Engine: public VisitorAcceptor
   Time::Duration tick_interval = default_tick_interval;
   Time::Duration start_time;
   uint64_t tick_number{0};
-  list<string> default_sections;  // Note: ordered
   SetupContext context;
 
 public:
@@ -2454,11 +2453,6 @@ public:
   {
     graph->set_id("root");
   }
-
-  //------------------------------------------------------------------------
-  // Add a default section - use to auto-prefix unqualified element names
-  void add_default_section(const string& s)
-  { default_sections.push_back(s); }
 
   //------------------------------------------------------------------------
   // Set/get the tick interval

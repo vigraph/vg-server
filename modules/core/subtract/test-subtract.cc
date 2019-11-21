@@ -26,7 +26,7 @@ TEST_F(SubtractTest, TestSetOnlyInput)
   const auto expected = vector<double>(nsamples, 42.0);
   auto actual = vector<double>{};
 
-  auto& sub = add("subtract")
+  auto& sub = add("core/subtract")
               .set("input", 42.0);
   auto& snk = add_sink(actual, nsamples);
   sub.connect("output", snk, "input");
@@ -41,7 +41,7 @@ TEST_F(SubtractTest, TestSetOnlyOffset)
   const auto expected = vector<double>(nsamples, -10.0);
   auto actual = vector<double>{};
 
-  auto& sub = add("subtract")
+  auto& sub = add("core/subtract")
               .set("offset", 10.0);
   auto& snk = add_sink(actual, nsamples);
   sub.connect("output", snk, "input");
@@ -56,7 +56,7 @@ TEST_F(SubtractTest, TestSetBothInputAndOffset)
   const auto expected = vector<double>(nsamples, 38.86);
   auto actual = vector<double>{};
 
-  auto& sub = add("subtract")
+  auto& sub = add("core/subtract")
               .set("input", 42.0)
               .set("offset", 3.14);
   auto& snk = add_sink(actual, nsamples);

@@ -8,9 +8,13 @@
 
 #include "engine.h"
 #include "vg-licence.h"
+#include "vg-compiler.h"
+#include "vg-json.h"
 #include <SDL.h>
 
 namespace ViGraph { namespace Engine {
+
+const auto default_section = "core";
 
 //--------------------------------------------------------------------------
 // Constructor
@@ -180,15 +184,6 @@ void Server::reconfigure()
     }
   }
 
-  // Set default sections
-  const XML::Element& naming_e = config_xml.get_child("naming");
-  for(const auto def_e: naming_e.get_children("default"))
-  {
-    const auto& section = (*def_e)["section"];
-    log.summary << "Using default section name '" << section << "'\n";
-    engine.add_default_section(section);
-  }
-
   // Resource path
   const auto& resources_e = config_xml.get_child("resources");
   const auto& resource_dir_e = resources_e.get_child("directory");
@@ -196,6 +191,17 @@ void Server::reconfigure()
   const auto r_d_exp = r_d.expand();
   const auto r_dir = File::Directory{config_file.resolve(r_d_exp)};
   engine.set_resource_dir(r_dir);
+
+  const auto& graph_e = config_xml.get_child("graph");
+  const auto p = graph_e["file"];
+  if (!p.empty())
+  {
+    const auto graph_path = config_file.resolve(p);
+    if (graph_path.exists())
+      load_graph(graph_path);
+    else
+      log.error << "Graph file not found: " << graph_path << endl;
+  }
 
   // (re-)create the REST interface
   rest.reset();
@@ -208,6 +214,67 @@ void Server::reconfigure()
   const XML::Element& file_server_e = config_xml.get_child("file-server");
   if (!!file_server_e) file_server.reset(new FileServer(file_server_e,
                                                         config_file.dirname()));
+}
+
+//--------------------------------------------------------------------------
+// Load a graph file
+bool Server::load_graph(const File::Path& path)
+{
+  Log::Streams log;
+
+  const auto ext = path.extension();
+
+  JSON::Value json;
+  if (Text::tolower(ext) == "json")
+  {
+    try
+    {
+      auto s = string{};
+      path.read_all(s);
+      auto iss = istringstream{s};
+      ObTools::JSON::Parser parser(iss);
+      json = parser.read_value();
+    }
+    catch (ObTools::JSON::Exception& e)
+    {
+      log.error << "Graph load JSON parsing failed: " << e.error << endl;
+      return false;
+    }
+  }
+  else if (Text::tolower(ext) == "vg")
+  {
+    try
+    {
+      auto s = string{};
+      path.read_all(s);
+      auto iss = istringstream{s};
+      Compiler::Parser parser(iss);
+      parser.set_default_section(default_section);
+      json = parser.get_elements_json();
+    }
+    catch (Compiler::Exception e)
+    {
+      log.error << "Graph load compile failed: " << e.error << endl;
+      return false;
+    }
+  }
+  else
+  {
+    log.error << "Unhandled file type for graph file: " << path << endl;
+    return false;
+  }
+
+  try
+  {
+    JSON::set(engine, json, Dataflow::Path{""});
+  }
+  catch (runtime_error& e)
+  {
+    log.error << "Could not create graph from file: " << e.what() << endl;
+    return false;
+  }
+
+  return true;
 }
 
 //--------------------------------------------------------------------------

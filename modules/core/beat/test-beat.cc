@@ -21,7 +21,7 @@ const auto sample_rate = 100;
 
 TEST_F(BeatTest, TestInterval)
 {
-  auto& bet = add("beat")
+  auto& bet = add("core/beat")
               .set("interval", 0.1);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
@@ -38,7 +38,7 @@ TEST_F(BeatTest, TestInterval)
 
 TEST_F(BeatTest, TestIntervalWithOffset)
 {
-  auto& bet = add("beat")
+  auto& bet = add("core/beat")
               .set("interval", 0.1)
               .set("offset",   0.05);
   auto output = vector<double>{};
@@ -56,7 +56,7 @@ TEST_F(BeatTest, TestIntervalWithOffset)
 
 TEST_F(BeatTest, TestStartingMidwayThroughTick)
 {
-  auto& bet = add("beat")
+  auto& bet = add("core/beat")
               .set("interval", 0.1);
 
   auto start_data = vector<double>(100);
@@ -77,7 +77,7 @@ TEST_F(BeatTest, TestStartingMidwayThroughTick)
 
 TEST_F(BeatTest, TestStoppingMidwayThroughTick)
 {
-  auto& bet = add("beat")
+  auto& bet = add("core/beat")
               .set("interval", 0.1);
 
   auto start_data = vector<double>(100);

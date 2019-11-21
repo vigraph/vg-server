@@ -26,7 +26,7 @@ TEST_F(DivideTest, TestSetOnlyInput)
   const auto expected = vector<double>(nsamples, 42.0);
   auto actual = vector<double>{};
 
-  auto& dvd = add("divide")
+  auto& dvd = add("core/divide")
               .set("input", 42.0);
   auto& snk = add_sink(actual, nsamples);
   dvd.connect("output", snk, "input");
@@ -41,7 +41,7 @@ TEST_F(DivideTest, TestSetOnlyFactor)
   const auto expected = vector<double>(nsamples, 0.0);
   auto actual = vector<double>{};
 
-  auto& dvd = add("divide")
+  auto& dvd = add("core/divide")
               .set("factor", 10.0);
   auto& snk = add_sink(actual, nsamples);
   dvd.connect("output", snk, "input");
@@ -56,7 +56,7 @@ TEST_F(DivideTest, TestSetBothInputAndFactor)
   const auto expected = vector<double>(nsamples, 4.2);
   auto actual = vector<double>{};
 
-  auto& dvd = add("divide")
+  auto& dvd = add("core/divide")
               .set("input", 42.0)
               .set("factor", 10.0);
   auto& snk = add_sink(actual, nsamples);
@@ -72,7 +72,7 @@ TEST_F(DivideTest, TestSetDivideByZeroPositive)
   const auto expected = vector<double>(nsamples, DBL_MAX);
   auto actual = vector<double>{};
 
-  auto& dvd = add("divide")
+  auto& dvd = add("core/divide")
               .set("input", 42.0)
               .set("factor", 0.0);
   auto& snk = add_sink(actual, nsamples);
@@ -88,7 +88,7 @@ TEST_F(DivideTest, TestSetDivideByZeroNegative)
   const auto expected = vector<double>(nsamples, DBL_MIN);
   auto actual = vector<double>{};
 
-  auto& dvd = add("divide")
+  auto& dvd = add("core/divide")
               .set("input", -42.0)
               .set("factor", 0.0);
   auto& snk = add_sink(actual, nsamples);

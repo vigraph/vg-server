@@ -26,7 +26,7 @@ TEST_F(MultiplyTest, TestSetOnlyInput)
   const auto expected = vector<double>(nsamples, 42.0);
   auto actual = vector<double>{};
 
-  auto& mlt = add("multiply")
+  auto& mlt = add("core/multiply")
               .set("input", 42.0);
   auto& snk = add_sink(actual, nsamples);
   mlt.connect("output", snk, "input");
@@ -42,7 +42,7 @@ TEST_F(MultiplyTest, TestSetOnlyFactor)
   const auto expected = vector<double>(nsamples, 0.0);
   auto actual = vector<double>{};
 
-  auto& mlt = add("multiply")
+  auto& mlt = add("core/multiply")
               .set("factor", 10.0);
   auto& snk = add_sink(actual, nsamples);
   mlt.connect("output", snk, "input");
@@ -57,7 +57,7 @@ TEST_F(MultiplyTest, TestSetBothInputAndFactor)
   const auto expected = vector<double>(nsamples, 4.2);
   auto actual = vector<double>{};
 
-  auto& mlt = add("multiply")
+  auto& mlt = add("core/multiply")
               .set("input", 42.0)
               .set("factor", 0.1);
   auto& snk = add_sink(actual, nsamples);

@@ -41,17 +41,17 @@ const Dataflow::DynamicModule BitmapSwitch::switch_module =
   "Switch",
   "bitmap",
   {
-    { "inputs",         &Switch::inputs },
+    { "inputs",         &BitmapSwitch::inputs },
   },
   {
-    { "number",         &Switch::number },
-    { "fraction",       &Switch::fraction },
-    { "next",           &Switch::next },
-    { "fade-in-time",   &Switch::fade_in_time },
-    { "fade-out-time",  &Switch::fade_out_time },
+    { "number",         &BitmapSwitch::number },
+    { "fraction",       &BitmapSwitch::fraction },
+    { "next",           &BitmapSwitch::next },
+    { "fade-in-time",   &BitmapSwitch::fade_in_time },
+    { "fade-out-time",  &BitmapSwitch::fade_out_time },
   },
   {
-    { "output",         &Switch::output },
+    { "output",         &BitmapSwitch::output },
   }
 };
 

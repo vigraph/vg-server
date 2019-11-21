@@ -41,17 +41,17 @@ const Dataflow::DynamicModule VectorSwitch::switch_module =
   "Switch",
   "vector",
   {
-    { "inputs",         &Switch::inputs },
+    { "inputs",         &VectorSwitch::inputs },
   },
   {
-    { "number",         &Switch::number },
-    { "fraction",       &Switch::fraction },
-    { "next",           &Switch::next },
-    { "fade-in-time",   &Switch::fade_in_time },
-    { "fade-out-time",  &Switch::fade_out_time },
+    { "number",         &VectorSwitch::number },
+    { "fraction",       &VectorSwitch::fraction },
+    { "next",           &VectorSwitch::next },
+    { "fade-in-time",   &VectorSwitch::fade_in_time },
+    { "fade-out-time",  &VectorSwitch::fade_out_time },
   },
   {
-    { "output",         &Switch::output },
+    { "output",         &VectorSwitch::output },
   }
 };
 

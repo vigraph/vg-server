@@ -317,6 +317,7 @@ void SetVisitor::visit(Dataflow::Element& element)
     case Phase::setup:
       {
         const auto& module = element.get_module();
+        auto input_settings = vector<string>{};
         // Settings
         auto& settingsj = json.get("settings");
         if (!!settingsj && settingsj.type == Value::Type::OBJECT)
@@ -333,24 +334,33 @@ void SetVisitor::visit(Dataflow::Element& element)
             }
             else
             {
-              // Try inputs
-              const auto i = module.get_input(sid);
-              if (i)
-              {
-                auto visitor = SetVisitor{engine, sit.second, phase, id,
-                                          &element, graph};
-                i->accept(visitor);
-              }
-              else
-              {
-                Log::Error elog;
-                elog << element.get_id() << ": Unknown setting '"
-                     << sid << "'" << endl;
-              }
+              // Add to list to try on inputs after setup
+              input_settings.push_back(sid);
             }
           }
         }
-        // Inputs
+
+        engine.setup(element);
+
+        // Inputs set in settings
+        for (const auto& sid: input_settings)
+        {
+          const auto i = module.get_input(sid);
+          if (i)
+          {
+            const auto& sconf = settingsj.get(sid);
+            auto visitor = SetVisitor{engine, sconf, phase, id,
+                                      &element, graph};
+            i->accept(visitor);
+          }
+          else
+          {
+            Log::Error elog;
+            elog << element.get_id() << ": Unknown setting '"
+                 << sid << "'" << endl;
+          }
+        }
+        // Actual Inputs
         auto& inputsj = json.get("inputs");
         if (!!inputsj && inputsj.type == Value::Type::OBJECT)
         {
@@ -372,7 +382,6 @@ void SetVisitor::visit(Dataflow::Element& element)
             }
           }
         }
-        engine.setup(element);
       }
       break;
     case Phase::connection:

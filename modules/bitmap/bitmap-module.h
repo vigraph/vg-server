@@ -19,6 +19,8 @@ using namespace ViGraph::Geometry;
 // JSON conversions
 namespace ViGraph { namespace Dataflow {
 
+//--------------------------------------------------------------------------
+// Bitmap 'frame' = Bitmap::Group
 template<> inline
 string get_module_type<Bitmap::Group>() { return "frame"; }
 

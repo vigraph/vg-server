@@ -86,23 +86,64 @@ private:
                            &states[p.first]});
     }
 
+    enum class SwitchOn
+    {
+      none,
+      number,
+      fraction,
+      next
+    };
+    auto switch_on = SwitchOn::none;
+    auto switch_input = static_cast<const vector<double> *>(nullptr);
+    auto switch_last = 0.0;
+    if (number.connected())
+    {
+      switch_on = SwitchOn::number;
+      switch_input = &number.get_buffer();
+      switch_last = number.get();
+    }
+    else if (fraction.connected())
+    {
+      switch_on = SwitchOn::fraction;
+      switch_input = &fraction.get_buffer();
+      switch_last = fraction.get();
+    }
+    else if (next.connected())
+    {
+      switch_on = SwitchOn::next;
+      switch_input = &next.get_buffer();
+      switch_last = 0;
+    }
+
     for (auto i = 0u; i < nsamples; ++i)
     {
       auto n = active;
-      if (number.connected())
+      const auto inp = switch_input
+                       ? (i < switch_input->size()
+                          ? (*switch_input)[i]
+                          : (switch_input->empty()
+                             ? switch_last
+                             : switch_input->back()
+                            )
+                         )
+                       : 0.0;
+      switch (switch_on)
       {
-        n = min(max(static_cast<int>(number) - 1, -1),
-                static_cast<int>(input_list.size()) - 1);
-      }
-      else if (fraction.connected())
-      {
-        n = min(max(static_cast<int>(fraction * input_list.size()), 0),
-                static_cast<int>(input_list.size()) - 1);
-      }
-      else if (next.connected())
-      {
-        if (++active >= static_cast<int>(input_list.size()))
-          active = 0;
+        case SwitchOn::number:
+          n = min(max(static_cast<int>(inp) - 1, -1),
+                  static_cast<int>(input_list.size()) - 1);
+          break;
+        case SwitchOn::fraction:
+          n = min(max(static_cast<int>(inp * input_list.size()), 0),
+                  static_cast<int>(input_list.size()) - 1);
+          break;
+        case SwitchOn::next:
+          if (inp)
+            if (++n >= static_cast<int>(input_list.size()))
+              n = 0;
+          break;
+        case SwitchOn::none:
+            break;
       }
       if (active != n)
       {

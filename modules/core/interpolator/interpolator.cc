@@ -35,7 +35,7 @@ public:
 
   // Configuration
   Input<double> from{0.0};
-  Input<double> to{0.0};
+  Input<double> to{1.0};
   Input<double> period{0.0};
 
   // Triggers

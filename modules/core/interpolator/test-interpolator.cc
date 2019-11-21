@@ -35,9 +35,9 @@ TEST_F(InterpolatorTest, TestWithNoPeriodGeneratesFrom)
 
 }
 
-TEST_F(InterpolatorTest, TestAutoRun1Sec)
+TEST_F(InterpolatorTest, TestAutoRun1SecDefaultTo)
 {
-  auto& interp = add("core/interpolator").set("to", 1.0).set("period", 1.0);
+  auto& interp = add("core/interpolator").set("period", 1.0);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");
@@ -53,7 +53,7 @@ TEST_F(InterpolatorTest, TestAutoRun1Sec)
 
 TEST_F(InterpolatorTest, TestAutoRun1SecWithOverrun)
 {
-  auto& interp = add("core/interpolator").set("to", 1.0).set("period", 0.5);
+  auto& interp = add("core/interpolator").set("period", 0.5);
   auto output = vector<double>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");

@@ -291,7 +291,10 @@ Dataflow::DynamicModule module
     { "loop", &WavIn::loop },
   },
   {
-    // dynamic input channels
+    { "start", &WavIn::start },
+    { "stop",  &WavIn::stop  }
+
+    // + dynamic input channels
   },
   {}
 };

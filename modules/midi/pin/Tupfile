@@ -4,7 +4,7 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-midi-midi--pin
+NAME    = vg-module-midi-pin
 TYPE    = shared
 DEPENDS = vg-dataflow vg-midi ot-lib
 

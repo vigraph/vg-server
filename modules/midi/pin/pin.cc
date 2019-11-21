@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: midi/midi-pin/midi-pin.cc
+// ViGraph dataflow module: midi/pin/pin.cc
 //
 // MIDI pin module
 //
@@ -24,7 +24,7 @@ public:
 
 Dataflow::SimpleModule module
 {
-  "midi-pin",
+  "pin",
   "MIDI Pin",
   "midi",
   {},

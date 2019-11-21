@@ -6,3 +6,6 @@ fade/vg-module-bitmap-fade.so /usr/lib/vigraph/modules/
 fill/vg-module-bitmap-fill.so /usr/lib/vigraph/modules/
 pin/vg-module-bitmap-pin.so /usr/lib/vigraph/modules/
 switch/vg-module-bitmap-switch.so /usr/lib/vigraph/modules/
+blend/vg-module-bitmap-blend.so /usr/lib/vigraph/modules/
+tile/vg-module-bitmap-tile.so /usr/lib/vigraph/modules/
+twist/vg-module-bitmap-twist.so /usr/lib/vigraph/modules/

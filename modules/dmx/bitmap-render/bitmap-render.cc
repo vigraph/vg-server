@@ -59,6 +59,7 @@ void BitmapRender::tick(const TickData& td)
     input.compose(bitmap);
 
     const auto& pixels = bitmap.get_pixels();
+    auto pad_count=0u;
     for(auto count=0u; count<pixels.size(); count++)
     {
       auto i = count;
@@ -77,10 +78,10 @@ void BitmapRender::tick(const TickData& td)
       output.channels.push_back(pixel.g * 255.0);
       output.channels.push_back(pixel.b * 255.0);
 
-      if (pad_every && ++count >= (unsigned)pad_every)
+      if (pad_every && 3*++pad_count >= (unsigned)pad_every)
       {
-        output.channels.resize(output.channels.size()+pad_extra*3);
-        count = 0;
+        output.channels.resize(output.channels.size()+pad_extra);
+        pad_count = 0;
       }
     }
   });

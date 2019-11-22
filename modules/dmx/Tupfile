@@ -6,7 +6,9 @@
 
 NAME     = vg-modules-dmx
 TYPE     = package
-DEPENDS  =
+DEPENDS  = vg-module-dmx-artnet-out \
+           vg-module-dmx-bitmap-render
+
 #           vg-module-dmx-service-distributor \
 #           vg-module-dmx-control-ola \
 #           vg-module-dmx-control-channel-in \

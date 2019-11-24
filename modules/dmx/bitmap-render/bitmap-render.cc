@@ -35,6 +35,7 @@ public:
   Setting<int> height{1};
   Setting<int> pad_every{0};
   Setting<int> pad_extra{0};
+  Setting<bool> pad_reverse{false};
   Setting<int> reverse_every{0};
 
   // Input
@@ -60,6 +61,7 @@ void BitmapRender::tick(const TickData& td)
 
     const auto& pixels = bitmap.get_pixels();
     auto pad_count=0u;
+    auto pad_flip = 0u;
     for(auto count=0u; count<pixels.size(); count++)
     {
       auto i = count;
@@ -69,7 +71,7 @@ void BitmapRender::tick(const TickData& td)
       {
         const auto section = i/reverse_every;
         const auto section_start = section * reverse_every;
-        if (!(section % 2)) // every other section
+        if (section % 2 == pad_flip) // every other section
           i = section_start+reverse_every-(i-section_start);
       }
 
@@ -82,6 +84,7 @@ void BitmapRender::tick(const TickData& td)
       {
         output.channels.resize(output.channels.size()+pad_extra);
         pad_count = 0;
+        if (pad_reverse) pad_flip = 1-pad_flip;
       }
     }
   });
@@ -99,6 +102,7 @@ Dataflow::SimpleModule module
     { "height", &BitmapRender::height },
     { "pad-every", &BitmapRender::pad_every },
     { "pad-extra", &BitmapRender::pad_extra },
+    { "pad-reverse", &BitmapRender::pad_reverse },
     { "reverse-every", &BitmapRender::reverse_every }
   },
   {

@@ -1754,7 +1754,7 @@ public:
   void update_sample_rate() override;
 
   // Is ready to process tick
-  bool ready() const;
+  virtual bool ready() const;
 
   // Tick
   virtual void tick(const TickData& /*tick data*/) {}

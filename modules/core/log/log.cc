@@ -20,6 +20,7 @@ private:
 
   // Element virtuals
   void tick(const TickData& td) override;
+  void setup(const SetupContext&) override;
 
   // Clone
   LogControl *create_clone() const override
@@ -31,27 +32,46 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<string> prefix;  // Default empty
+  Setting<string> text;  // Default empty
 
   // Input
   Input<double> input;
+  Input<double> trigger;
 };
+
+//--------------------------------------------------------------------------
+// Setup
+void LogControl::setup(const SetupContext&)
+{
+  input.set_sample_rate(25.0);  // Arbitrary, but usable
+  trigger.set_sample_rate(25.0);
+}
 
 //--------------------------------------------------------------------------
 // Tick
 void LogControl::tick(const TickData&)
 {
-  const auto nsamples = input.get_buffer().size();
-  sample_iterate(nsamples, {}, tie(input), {},
-                 [&](double input)
+  // Run two loops in parallel, being aware that they might not both have
+  // samples
+  const auto& inputs = input.get_buffer();
+  const auto& triggers = trigger.get_buffer();
+  auto n = max(inputs.size(), triggers.size());
+
+  for(auto i=0u; i<n; i++)
   {
-    if (input != last_input)
+    if (i<inputs.size() && inputs[i] != last_input)
     {
       Log::Detail log;
-      log << prefix << input << endl;
-      last_input = input;
+      log << text << inputs[i] << endl;
+      last_input = inputs[i];
     }
-  });
+
+    if (i<triggers.size() && triggers[i])
+    {
+      Log::Detail log;
+      log << text << endl;
+    }
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -62,10 +82,11 @@ Dataflow::SimpleModule module
   "Log",
   "core",
   {
-    { "prefix", &LogControl::prefix }
+    { "text", &LogControl::text }
   },
   {
-    { "input",  &LogControl::input  },
+    { "input",   &LogControl::input   },
+    { "trigger", &LogControl::trigger }
   },
   {
   }

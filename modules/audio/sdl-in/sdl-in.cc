@@ -16,9 +16,6 @@ using namespace ViGraph::Dataflow;
 const auto default_device{"default"};
 const auto default_sample_rate{44100};
 const auto default_channels = 1;
-const auto default_start_threshold = 2000;
-const auto default_max_delay = 4000;
-const auto default_max_recovery = 1;
 
 //==========================================================================
 // SDL out
@@ -53,9 +50,6 @@ public:
   Setting<string> device{default_device};
   Setting<double> sample_rate{default_sample_rate};
   Setting<double> nchannels{default_channels};
-  Setting<double> start_threshold{default_start_threshold};
-  Setting<double> max_delay{default_max_delay};
-  Setting<double> max_recovery{default_max_recovery};
 
   // Callback for SDL
   void callback(Uint8 *stream, int len);
@@ -247,9 +241,6 @@ const DynamicModule SDLIn::sdl_in_module =
     { "device", &SDLIn::device },
     { "sample-rate", &SDLIn::sample_rate },
     { "channels", &SDLIn::nchannels },
-    { "start-threshold", &SDLIn::start_threshold },
-    { "max-delay", &SDLIn::max_delay },
-    { "max-recovery", &SDLIn::max_recovery },
   },
   {},
   {

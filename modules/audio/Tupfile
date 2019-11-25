@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-audio
 TYPE     = package
-DEPENDS  = vg-module-audio-alsa-out \
+DEPENDS  = vg-module-audio-alsa-in \
+           vg-module-audio-alsa-out \
            vg-module-audio-bit-crush \
            vg-module-audio-delay \
            vg-module-audio-envelope \

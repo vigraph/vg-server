@@ -1,3 +1,4 @@
+alsa-in/vg-module-audio-alsa-in.so /usr/lib/vigraph/modules
 alsa-out/vg-module-audio-alsa-out.so /usr/lib/vigraph/modules
 bit-crush/vg-module-audio-bit-crush.so /usr/lib/vigraph/modules
 delay/vg-module-audio-delay.so /usr/lib/vigraph/modules

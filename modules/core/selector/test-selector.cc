@@ -45,7 +45,7 @@ TEST_F(SelectorTest, TestSelectorTriggeredOnce)
   auto i1_data = vector<double>(nsamples);
   i1_data[0] = 1.0;
   auto& i1s = add_source(i1_data);
-  i1s.connect("output", selector, "input1");
+  i1s.connect("output", selector, "select1");
 
   auto output = vector<double>{};
   auto& sink = add_sink(output, nsamples);
@@ -66,12 +66,12 @@ TEST_F(SelectorTest, TestSelectorTriggeredTwiceSeparately)
   auto i1_data = vector<double>(nsamples);
   i1_data[0] = 1.0;
   auto& i1s = add_source(i1_data);
-  i1s.connect("output", selector, "input1");
+  i1s.connect("output", selector, "select1");
 
   auto i2_data = vector<double>(nsamples);
   i2_data[nsamples/2] = 1.0;
   auto& i2s = add_source(i2_data);
-  i2s.connect("output", selector, "input2");
+  i2s.connect("output", selector, "select2");
 
   auto output = vector<double>{};
   auto& sink = add_sink(output, nsamples);
@@ -92,17 +92,17 @@ TEST_F(SelectorTest, TestSelectorTriggeredThriceOverlaid)
   auto i1_data = vector<double>(nsamples);
   i1_data[0] = 1.0;
   auto& i1s = add_source(i1_data);
-  i1s.connect("output", selector, "input1");
+  i1s.connect("output", selector, "select1");
 
   auto i2_data = vector<double>(nsamples);
   i2_data[nsamples/2] = 1.0;
   auto& i2s = add_source(i2_data);
-  i2s.connect("output", selector, "input2");
+  i2s.connect("output", selector, "select2");
 
   auto i3_data = vector<double>(nsamples);
   i3_data[nsamples/2] = 1.0;
   auto& i3s = add_source(i3_data);
-  i3s.connect("output", selector, "input3");
+  i3s.connect("output", selector, "select3");
 
   auto output = vector<double>{};
   auto& sink = add_sink(output, nsamples);

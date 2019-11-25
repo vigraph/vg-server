@@ -49,7 +49,7 @@ void Selector::setup(const SetupContext&)
   while (input_list.size() > ninputs)
   {
     const auto i = input_list.size();
-    module.erase_input("input" + Text::itos(i));
+    module.erase_input("select" + Text::itos(i));
     input_list.pop_back();
   }
 
@@ -57,7 +57,7 @@ void Selector::setup(const SetupContext&)
   {
     input_list.emplace_back(new Input<double>{});
     const auto i = input_list.size();
-    module.add_input("input" + Text::itos(i), input_list.back().get());
+    module.add_input("select" + Text::itos(i), input_list.back().get());
   }
 
   last_inputs = inputs;

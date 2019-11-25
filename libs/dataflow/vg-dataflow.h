@@ -1693,6 +1693,7 @@ class Element: public GraphElement
 {
 private:
   std::set<ElementInput *> inputs;
+  bool updating_sample_rate = false;
 
   template<typename... Ss, size_t... Sc, typename... Is, size_t... Ic,
            typename... Os, size_t... Oc, typename F>

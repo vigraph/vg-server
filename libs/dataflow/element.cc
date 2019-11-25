@@ -75,9 +75,14 @@ void Element::notify_connection(const string& in_name,
 // Handle sample rate change
 void Element::update_sample_rate()
 {
+  if (updating_sample_rate)
+    return;
+
   auto& module = get_module();
   if (!module.has_outputs())
     return;
+
+  updating_sample_rate = true;
   auto rate = double{};
   module.for_each_output([this, &rate](const string&, const OutputMember& om)
       {
@@ -89,6 +94,7 @@ void Element::update_sample_rate()
       {
         im.get(*this).set_sample_rate(rate);
       });
+  updating_sample_rate = false;
 }
 
 //--------------------------------------------------------------------------

@@ -1715,8 +1715,10 @@ private:
     for (auto i = 0u; i < count; ++i)
     {
       f(get<Sc>(settings)...,
-        (get<Ic>(inputs).size() > i ? get<Ic>(inputs)[i]
-                                    : get<Ic>(is).get())...,
+        (get<Ic>(inputs).empty() ? get<Ic>(is).get()
+                                 : (get<Ic>(inputs).size() > i
+                                   ? get<Ic>(inputs)[i]
+                                   : get<Ic>(inputs).back()))...,
         get<Oc>(outputs).data[i]...
        );
     }
@@ -1754,7 +1756,7 @@ public:
   void update_sample_rate() override;
 
   // Is ready to process tick
-  bool ready() const;
+  virtual bool ready() const;
 
   // Tick
   virtual void tick(const TickData& /*tick data*/) {}

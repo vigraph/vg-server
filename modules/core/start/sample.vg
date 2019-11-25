@@ -1,0 +1,4 @@
+# Simple start trigger sample
+
+start ->trigger
+log text="Triggered!"

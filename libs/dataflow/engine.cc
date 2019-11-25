@@ -80,7 +80,6 @@ void Engine::tick(const Time::Duration& t)
           for (const auto& e: tick_elements)
           {
             elog << "  " << e->get_id() << endl;
-            e->reset();
             ticked.push_back(e);
           }
           break;
@@ -91,7 +90,6 @@ void Engine::tick(const Time::Duration& t)
           if ((*it)->ready())
           {
             (*it)->tick(td);
-            (*it)->reset();
             ticked.push_back(*it);
             it = tick_elements.erase(it);
           }
@@ -102,6 +100,10 @@ void Engine::tick(const Time::Duration& t)
         }
       }
       tick_elements = ticked;
+
+      // Reset all
+      for(auto it: tick_elements)
+        it->reset();
     }
     catch (const runtime_error& e)
     {

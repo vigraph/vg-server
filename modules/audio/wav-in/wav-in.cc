@@ -54,6 +54,8 @@ public:
 
   Input<double> start{0.0};
   Input<double> stop{0.0};
+
+  Output<double> finished;
 };
 
 //--------------------------------------------------------------------------
@@ -200,9 +202,10 @@ void WavIn::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(sample_rate);
   const auto step = wav_sample_rate / sample_rate;
 
-  sample_iterate(nsamples, {}, tie(start, stop), {},
-                 [&](double _start, double _stop)
+  sample_iterate(nsamples, {}, tie(start, stop), tie(finished),
+                 [&](double _start, double _stop, double &f)
   {
+    f = 0;
     if (_stop)
     {
       if (state == State::enabled)
@@ -233,6 +236,7 @@ void WavIn::tick(const TickData& td)
           if (pos >= wav_nsamples)
           {
             pos = fmod(pos, wav_nsamples);
+            f = 1;
             if (!loop || state == State::completing)
               state = State::complete;
           }
@@ -255,16 +259,17 @@ const DynamicModule WavIn::wav_in_module =
   "Wav file input",
   "audio",
   {
-    { "file", &WavIn::file },
-    { "loop", &WavIn::loop },
+    { "file",     &WavIn::file },
+    { "loop",     &WavIn::loop },
   },
   {
-    { "start", &WavIn::start },
-    { "stop",  &WavIn::stop  }
-
-    // + dynamic input channels
+    { "start",    &WavIn::start },
+    { "stop",     &WavIn::stop  },
   },
-  {}
+  {
+    { "finished", &WavIn::finished  },
+    // + dynamic output channels
+  }
 };
 
 } // anon

@@ -17,6 +17,9 @@ using namespace ViGraph::Dataflow;
 // WavIn
 class WavIn: public DynamicElement
 {
+public:
+  const static DynamicModule wav_in_module;
+
 private:
   vector<vector<double>> waveforms;
   string wav_file;
@@ -30,6 +33,8 @@ private:
     completing,
     complete
   } state = State::disabled;
+
+  vector<unique_ptr<Output<double>>> outputs;
 
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
@@ -49,13 +54,6 @@ public:
 
   Input<double> start{0.0};
   Input<double> stop{0.0};
-
-  Output<double> channel1;
-  Output<double> channel2;
-  Output<double> channel3;
-  Output<double> channel4;
-  Output<double> channel5;
-  Output<double> channel6;
 };
 
 //--------------------------------------------------------------------------
@@ -170,30 +168,17 @@ void WavIn::setup(const SetupContext& context)
   }
 
   // Update module information
-  if (waveforms.size() < 6 && module.num_outputs() >= 6)
-    module.erase_output("channel6");
-  if (waveforms.size() < 5 && module.num_outputs() >= 5)
-    module.erase_output("channel5");
-  if (waveforms.size() < 4 && module.num_outputs() >= 4)
-    module.erase_output("channel4");
-  if (waveforms.size() < 3 && module.num_outputs() >= 3)
-    module.erase_output("channel3");
-  if (waveforms.size() < 2 && module.num_outputs() >= 2)
-    module.erase_output("channel2");
-  if (waveforms.size() < 1 && module.num_outputs() >= 1)
-    module.erase_output("channel1");
-  if (waveforms.size() >= 1 && module.num_outputs() < 1)
-    module.add_output("channel1", &WavIn::channel1);
-  if (waveforms.size() >= 2 && module.num_outputs() < 2)
-    module.add_output("channel2", &WavIn::channel2);
-  if (waveforms.size() >= 3 && module.num_outputs() < 3)
-    module.add_output("channel3", &WavIn::channel3);
-  if (waveforms.size() >= 4 && module.num_outputs() < 4)
-    module.add_output("channel4", &WavIn::channel4);
-  if (waveforms.size() >= 5 && module.num_outputs() < 5)
-    module.add_output("channel5", &WavIn::channel5);
-  if (waveforms.size() >= 6 && module.num_outputs() < 6)
-    module.add_output("channel6", &WavIn::channel6);
+  while (outputs.size() > waveforms.size())
+  {
+    module.erase_output("channel" + Text::itos(outputs.size()));
+    outputs.pop_back();
+  }
+  while (outputs.size() < waveforms.size())
+  {
+    outputs.emplace_back(new Output<double>{});
+    module.add_output("channel" + Text::itos(outputs.size()),
+                      outputs.back().get());
+  }
 
   log.detail << "Loaded wav file '" << f << "' with " << waveforms.size()
              << " channels\n";
@@ -203,22 +188,20 @@ void WavIn::setup(const SetupContext& context)
 // Process some data
 void WavIn::tick(const TickData& td)
 {
-  const auto sample_rate = max(channel1.get_sample_rate(),
-                               max(channel2.get_sample_rate(),
-                                   max(channel3.get_sample_rate(),
-                                       max(channel4.get_sample_rate(),
-                                           max(channel5.get_sample_rate(),
-                                               channel6.get_sample_rate())))));
+  auto sample_rate = double{};
+  auto obuffers = vector<Output<double>::Buffer>{};
+  obuffers.reserve(outputs.size());
+  for (auto& o: outputs)
+  {
+    if (o->get_sample_rate() > sample_rate)
+      sample_rate = o->get_sample_rate();
+    obuffers.emplace_back(o->get_buffer());
+  }
   const auto nsamples = td.samples_in_tick(sample_rate);
   const auto step = wav_sample_rate / sample_rate;
-  const auto channels = min(waveforms.size(), 6ul);
-  sample_iterate(nsamples, {},
-                 tie(start, stop),
-                 tie(channel1, channel2, channel3,
-                     channel4, channel5, channel6),
-                 [&](double _start, double _stop,
-                     double& c1, double& c2, double& c3,
-                     double& c4, double& c5, double& c6)
+
+  sample_iterate(nsamples, {}, tie(start, stop), {},
+                 [&](double _start, double _stop)
   {
     if (_stop)
     {
@@ -239,18 +222,13 @@ void WavIn::tick(const TickData& td)
           const auto p = fmod(pos, 1);
           const auto i1 = static_cast<unsigned>(pos);
           const auto i2 = (i1 + 1 >= wav_nsamples) ? 0 : i1 + 1;
-          if (channels >= 1)
-            c1 = waveforms[0][i1] + ((waveforms[0][i2] - waveforms[0][i1]) * p);
-          if (channels >= 2)
-            c2 = waveforms[1][i1] + ((waveforms[1][i2] - waveforms[1][i1]) * p);
-          if (channels >= 3)
-            c3 = waveforms[2][i1] + ((waveforms[2][i2] - waveforms[2][i1]) * p);
-          if (channels >= 4)
-            c4 = waveforms[3][i1] + ((waveforms[3][i2] - waveforms[3][i1]) * p);
-          if (channels >= 5)
-            c5 = waveforms[4][i1] + ((waveforms[4][i2] - waveforms[4][i1]) * p);
-          if (channels >= 6)
-            c6 = waveforms[5][i1] + ((waveforms[5][i2] - waveforms[5][i1]) * p);
+          auto c = 0;
+          for (auto& waveform: waveforms)
+          {
+            const auto s = waveform[i1] + ((waveform[i2] - waveform[i1]) * p);
+            obuffers[c].data.emplace_back(s);
+            ++c;
+          }
           pos += step;
           if (pos >= wav_nsamples)
           {
@@ -262,18 +240,8 @@ void WavIn::tick(const TickData& td)
         break;
       case State::disabled:
       case State::complete:
-        if (channels >= 1)
-          c1 = 0;
-        if (channels >= 2)
-          c2 = 0;
-        if (channels >= 3)
-          c3 = 0;
-        if (channels >= 4)
-          c4 = 0;
-        if (channels >= 5)
-          c5 = 0;
-        if (channels >= 6)
-          c6 = 0;
+        for (auto& ob: obuffers)
+          ob.data.emplace_back(0);
         break;
     }
   });
@@ -281,7 +249,7 @@ void WavIn::tick(const TickData& td)
 
 //--------------------------------------------------------------------------
 // Module definition
-Dataflow::DynamicModule module
+const DynamicModule WavIn::wav_in_module =
 {
   "wav-in",
   "Wav file input",
@@ -301,4 +269,4 @@ Dataflow::DynamicModule module
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(WavIn, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(WavIn, WavIn::wav_in_module)

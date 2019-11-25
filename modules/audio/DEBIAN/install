@@ -7,5 +7,6 @@ loop/vg-module-audio-loop.so /usr/lib/vigraph/modules
 pitch-shift/vg-module-audio-pitch-shift.so /usr/lib/vigraph/modules
 position/vg-module-audio-position.so /usr/lib/vigraph/modules
 reverb/vg-module-audio-reverb.so /usr/lib/vigraph/modules
+sdl-in/vg-module-audio-sdl-in.so /usr/lib/vigraph/modules
 sdl-out/vg-module-audio-sdl-out.so /usr/lib/vigraph/modules
 wav-in/vg-module-audio-wav-in.so /usr/lib/vigraph/modules

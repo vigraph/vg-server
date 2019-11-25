@@ -15,6 +15,7 @@ DEPENDS  = vg-module-audio-alsa-in \
            vg-module-audio-pitch-shift \
            vg-module-audio-position \
            vg-module-audio-reverb \
+           vg-module-audio-sdl-in \
            vg-module-audio-sdl-out \
            vg-module-audio-wav-in
 

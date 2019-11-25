@@ -19,16 +19,16 @@ log/vg-module-core-log.so /usr/lib/vigraph/modules/
 timer/vg-module-core-timer.so /usr/lib/vigraph/modules/
 toggle/vg-module-core-toggle.so /usr/lib/vigraph/modules/
 interpolator/vg-module-core-interpolator.so /usr/lib/vigraph/modules/
+cut/vg-module-core-cut.so /usr/lib/vigraph/modules/
+start/vg-module-core-start.so /usr/lib/vigraph/modules/
+selector/vg-module-core-selector.so /usr/lib/vigraph/modules/
 
-#controls/interpolate/vg-module-core-control-interpolate.so /usr/lib/vigraph/modules/
 #controls/round/vg-module-core-control-round.so /usr/lib/vigraph/modules/
 #controls/set/vg-module-core-control-set.so /usr/lib/vigraph/modules/
 #controls/smooth/vg-module-core-control-smooth.so /usr/lib/vigraph/modules/
-#controls/trigger/vg-module-core-control-trigger.so /usr/lib/vigraph/modules/
 #controls/scale/vg-module-core-control-scale.so /usr/lib/vigraph/modules/
 #controls/sequence/vg-module-core-control-sequence.so /usr/lib/vigraph/modules/
 #controls/trigger-sequence/vg-module-core-control-trigger-sequence.so /usr/lib/vigraph/modules/
 #controls/wait/vg-module-core-control-wait.so /usr/lib/vigraph/modules/
 #controls/window/vg-module-core-control-window.so /usr/lib/vigraph/modules/
-#sources/selector/vg-module-core-source-selector.so /usr/lib/vigraph/modules/
 #services/thread-pool/vg-module-core-service-thread-pool.so /usr/lib/vigraph/modules/

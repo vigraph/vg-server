@@ -24,8 +24,8 @@ public:
 
 Dataflow::SimpleModule module
 {
-  "number-pin",
-  "Pin",
+  "trigger-pin",
+  "Trigger pin",
   "core",
   {},
   {

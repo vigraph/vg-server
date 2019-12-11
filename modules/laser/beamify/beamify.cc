@@ -28,8 +28,8 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Setting<int> every;
-  Setting<int> extra;
+  Setting<Integer> every;
+  Setting<Integer> extra;
 
   // Input
   Input<Frame> input;

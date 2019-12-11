@@ -31,12 +31,12 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<int> width{1};
-  Setting<int> height{1};
-  Setting<int> pad_every{0};
-  Setting<int> pad_extra{0};
+  Setting<Integer> width{1};
+  Setting<Integer> height{1};
+  Setting<Integer> pad_every{0};
+  Setting<Integer> pad_extra{0};
   Setting<bool> pad_reverse{false};
-  Setting<int> reverse_every{0};
+  Setting<Integer> reverse_every{0};
 
   // Input
   Input<Bitmap::Group> input;
@@ -50,9 +50,8 @@ public:
 void BitmapRender::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, tie(width, height), tie(input), tie(output),
-                 [&](int width, int height,
-                     const Bitmap::Group& input,
+  sample_iterate(nsamples, {}, tie(input), tie(output),
+                 [&](const Bitmap::Group& input,
                      DMXState& output)
   {
     Bitmap::Rectangle bitmap(width, height);

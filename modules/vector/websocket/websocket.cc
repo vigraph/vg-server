@@ -134,8 +134,8 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<int> port{default_port};
-  Setting<double> frame_rate{default_frame_rate};
+  Setting<Integer> port{default_port};
+  Setting<Number> frame_rate{default_frame_rate};
 
   // Input
   Input<Frame> input;

@@ -41,7 +41,7 @@ private:
 
   void setup(const SetupContext&) override
   {
-    const auto ninputs = static_cast<unsigned>(max(inputs.get(), 2));
+    const auto ninputs = static_cast<unsigned>(max(inputs.get(), 2l));
     while (input_list.size() > ninputs)
     {
       const auto i = input_list.size();
@@ -216,7 +216,7 @@ private:
 public:
   using DynamicElement::DynamicElement;
 
-  Setting<int> inputs{2};
+  Setting<Integer> inputs{2};
 
   Input<double> number{0};
   Input<double> fraction{0};

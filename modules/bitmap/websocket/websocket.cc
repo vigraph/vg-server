@@ -140,10 +140,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<int> port{default_port};
-  Setting<double> frame_rate{default_frame_rate};
-  Setting<int> width{default_width};
-  Setting<int> height{default_height};
+  Setting<Integer> port{default_port};
+  Setting<Number> frame_rate{default_frame_rate};
+  Setting<Integer> width{default_width};
+  Setting<Integer> height{default_height};
 
   // Input
   Input<Bitmap::Group> input;
@@ -173,8 +173,8 @@ void WebSocket::tick(const TickData& td)
 {
   const auto sample_rate = input.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, tie(width, height), tie(input), {},
-                 [&](int width, int height, const Bitmap::Group& input)
+  sample_iterate(nsamples, {}, tie(input), {},
+                 [&](const Bitmap::Group& input)
   {
     if (!!server)
     {

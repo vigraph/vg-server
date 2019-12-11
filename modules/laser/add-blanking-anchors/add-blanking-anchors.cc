@@ -34,8 +34,8 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<int> leading{default_leading};
-  Setting<int> trailing{default_trailing};
+  Setting<Integer> leading{default_leading};
+  Setting<Integer> trailing{default_trailing};
 
   // Input
   Input<Frame> input;

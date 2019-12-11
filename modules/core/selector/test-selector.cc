@@ -23,7 +23,7 @@ const auto nsamples = 10;
 
 TEST_F(SelectorTest, TestSelectorNotTriggered)
 {
-  auto& selector = add("core/selector").set("inputs", 3);
+  auto& selector = add("core/selector").set("inputs", Integer{3});
   setup(selector);
 
   auto output = vector<double>{};
@@ -39,7 +39,7 @@ TEST_F(SelectorTest, TestSelectorNotTriggered)
 
 TEST_F(SelectorTest, TestSelectorTriggeredOnce)
 {
-  auto& selector = add("core/selector").set("inputs", 3);
+  auto& selector = add("core/selector").set("inputs", Integer{3});
   setup(selector);
 
   auto i1_data = vector<double>(nsamples);
@@ -60,7 +60,7 @@ TEST_F(SelectorTest, TestSelectorTriggeredOnce)
 
 TEST_F(SelectorTest, TestSelectorTriggeredTwiceSeparately)
 {
-  auto& selector = add("core/selector").set("inputs", 3);
+  auto& selector = add("core/selector").set("inputs", Integer{3});
   setup(selector);
 
   auto i1_data = vector<double>(nsamples);
@@ -86,7 +86,7 @@ TEST_F(SelectorTest, TestSelectorTriggeredTwiceSeparately)
 
 TEST_F(SelectorTest, TestSelectorTriggeredThriceOverlaid)
 {
-  auto& selector = add("core/selector").set("inputs", 3);
+  auto& selector = add("core/selector").set("inputs", Integer{3});
   setup(selector);
 
   auto i1_data = vector<double>(nsamples);

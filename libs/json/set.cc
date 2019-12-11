@@ -165,6 +165,8 @@ void set(Dataflow::Engine& engine, const Value& json,
         a.member_acceptor->accept(visitor);
       }
     }
+
+    engine.update_elements();
   }
   catch (...)
   {

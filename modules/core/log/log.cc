@@ -36,7 +36,7 @@ public:
 
   // Input
   Input<double> input;
-  Input<double> trigger;
+  Input<Trigger> trigger;
 };
 
 //--------------------------------------------------------------------------

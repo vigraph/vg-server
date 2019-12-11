@@ -41,11 +41,11 @@ public:
   Input<double> offset{0.0};
 
   // Triggers
-  Input<double> start{0.0};    // Trigger to start
-  Input<double> stop{0.0};     // Trigger to stop
+  Input<Trigger> start{0.0};    // Trigger to start
+  Input<Trigger> stop{0.0};     // Trigger to stop
 
   // Outputs
-  Output<double> output;       // Trigger output
+  Output<Trigger> output;       // Trigger output
 };
 
 //--------------------------------------------------------------------------
@@ -60,8 +60,8 @@ void Beat::tick(const TickData& td)
                  tie(interval, offset, start, stop),
                  tie(output),
                  [&](double interval, double offset,
-                     double _start, double _stop,
-                     double& output)
+                     Trigger _start, Trigger _stop,
+                     Trigger& output)
   {
     if (_stop)
     {

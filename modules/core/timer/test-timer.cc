@@ -23,7 +23,7 @@ TEST_F(TimerTest, TestUnconnectedDoesNotStart)
 {
   auto& timer = add("core/timer").set("period", 0.5);
 
-  auto finished = vector<double>{};
+  auto finished = vector<Trigger>{};
   auto& sinkf = add_sink(finished, sample_rate);
   timer.connect("finished", sinkf, "input");
 
@@ -47,12 +47,12 @@ TEST_F(TimerTest, TestRunAfterStart)
 {
   auto& timer = add("core/timer").set("period", 0.5);
 
-  auto start_data = vector<double>(100);
+  auto start_data = vector<Trigger>(100);
   start_data[0] = 1.0;
   auto& sts = add_source(start_data);
   sts.connect("output", timer, "start");
 
-  auto finished = vector<double>{};
+  auto finished = vector<Trigger>{};
   auto& sinkf = add_sink(finished, sample_rate);
   timer.connect("finished", sinkf, "input");
 
@@ -76,17 +76,17 @@ TEST_F(TimerTest, TestStartThenReset)
 {
   auto& timer = add("core/timer").set("period", 0.5);
 
-  auto start_data = vector<double>(100);
+  auto start_data = vector<Trigger>(100);
   start_data[0] = 1.0;
   auto& sts = add_source(start_data);
   sts.connect("output", timer, "start");
 
-  auto reset_data = vector<double>(100);
+  auto reset_data = vector<Trigger>(100);
   reset_data[25] = 1.0;
   auto& sos = add_source(reset_data);
   sos.connect("output", timer, "reset");
 
-  auto finished = vector<double>{};
+  auto finished = vector<Trigger>{};
   auto& sinkf = add_sink(finished, sample_rate);
   timer.connect("finished", sinkf, "input");
 
@@ -110,13 +110,13 @@ TEST_F(TimerTest, TestRunAfterRestart)
 {
   auto& timer = add("core/timer").set("period", 0.5);
 
-  auto start_data = vector<double>(100);
+  auto start_data = vector<Trigger>(100);
   start_data[0] = 1.0;
   start_data[25] = 1.0;
   auto& sts = add_source(start_data);
   sts.connect("output", timer, "start");
 
-  auto finished = vector<double>{};
+  auto finished = vector<Trigger>{};
   auto& sinkf = add_sink(finished, sample_rate);
   timer.connect("finished", sinkf, "input");
 

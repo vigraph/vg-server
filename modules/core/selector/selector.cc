@@ -15,7 +15,7 @@ namespace {
 class Selector: public DynamicElement
 {
 private:
-  vector<shared_ptr<Input<double>>> input_list;
+  vector<shared_ptr<Input<Trigger>>> input_list;
   Integer last_inputs{0};
   int current{0};
 
@@ -55,7 +55,7 @@ void Selector::setup(const SetupContext&)
 
   while (input_list.size() < ninputs)
   {
-    input_list.emplace_back(new Input<double>{});
+    input_list.emplace_back(new Input<Trigger>{});
     const auto i = input_list.size();
     module.add_input("select" + Text::itos(i), input_list.back().get());
   }
@@ -70,7 +70,7 @@ void Selector::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   auto _output{output.get_buffer(td)};
 
-  vector<const vector<double> *> input_bufs;
+  vector<const vector<Trigger> *> input_bufs;
   for(const auto& input: input_list)
     input_bufs.push_back(&input->get_buffer());
 

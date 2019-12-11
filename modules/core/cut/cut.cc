@@ -1,7 +1,7 @@
 //==========================================================================
 // ViGraph dataflow module: core/cut/cut.cc
 //
-// Control to provide a retriggerable monostable
+// Control to provide a break point for trigger loops
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -42,10 +42,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Triggers
-  Input<double> input{0.0};
+  Input<Trigger> input{0.0};
 
   // Outputs
-  Output<double> output;
+  Output<Trigger> output;
 };
 
 //--------------------------------------------------------------------------
@@ -59,7 +59,7 @@ void Cut::tick(const TickData& td)
 
   sample_iterate(td, nsamples, {}, {},
                  tie(output),
-                 [&](double& output)
+                 [&](Trigger& output)
   {
     // Output from previous state only on first sample
     if (trigger)

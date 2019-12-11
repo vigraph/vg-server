@@ -29,11 +29,10 @@ private:
 public:
   using SimpleElement::SimpleElement;
 
-  // Configuration
-  Input<double> input{0.0};
+  Input<Trigger> input{0.0};
   Output<double> output;
-  Output<double> enabled;
-  Output<double> disabled;
+  Output<Trigger> enabled;
+  Output<Trigger> disabled;
 };
 
 //--------------------------------------------------------------------------
@@ -42,7 +41,7 @@ void Toggle::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input), tie(output, enabled, disabled),
-                 [&](double i, double& o, double& e, double& d)
+                 [&](Trigger i, double& o, Trigger& e, Trigger& d)
   {
     e = d = 0;
     if (i)

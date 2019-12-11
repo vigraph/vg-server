@@ -96,7 +96,8 @@ private:
       next
     };
     auto switch_on = SwitchOn::none;
-    auto switch_input = static_cast<const vector<double> *>(nullptr);
+    auto switch_input = static_cast<const vector<Number> *>(nullptr);
+    auto switch_input_trig = static_cast<const vector<Trigger> *>(nullptr);
     auto switch_last = 0.0;
     if (number.connected())
     {
@@ -113,7 +114,7 @@ private:
     else if (next.connected())
     {
       switch_on = SwitchOn::next;
-      switch_input = &next.get_buffer();
+      switch_input_trig = &next.get_buffer();
       switch_last = 0;
     }
 
@@ -128,7 +129,15 @@ private:
                              : switch_input->back()
                             )
                          )
-                       : 0.0;
+                       : (switch_input_trig
+                          ? (i < switch_input_trig->size()
+                             ? (*switch_input_trig)[i]
+                             : (switch_input_trig->empty()
+                                ? switch_last
+                                : switch_input_trig->back()
+                               )
+                            )
+                          : 0.0);
       switch (switch_on)
       {
         case SwitchOn::number:
@@ -218,11 +227,11 @@ public:
 
   Setting<Integer> inputs{2};
 
-  Input<double> number{0};
-  Input<double> fraction{0};
-  Input<double> next{0};
-  Input<double> fade_in_time{0};
-  Input<double> fade_out_time{0};
+  Input<Number> number{0};
+  Input<Number> fraction{0};
+  Input<Trigger> next{0};
+  Input<Number> fade_in_time{0};
+  Input<Number> fade_out_time{0};
 
   Output<T> output;
 };

@@ -44,7 +44,7 @@ void VectorFill::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input, width, height), tie(output),
-                 [&](const Frame& input, double width, double height,
+                 [&](const Frame& input, Number width, Number height,
                      Bitmap::Group& output)
   {
     Bitmap::Rectangle rect(width, height);

@@ -28,8 +28,8 @@ private:
     release
   } state = State::off;
   timestamp_t state_changed_time{0};
-  double release_start_value{0};
-  double attack_start_value{0};
+  Number release_start_value{0};
+  Number attack_start_value{0};
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -71,10 +71,10 @@ void Envelope::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(attack, decay, sustain, release, start, stop, reset),
                  tie(output, finished),
-                 [&](double attack, double decay,
-                     double sustain, double release,
+                 [&](Number attack, Number decay,
+                     Number sustain, Number release,
                      Trigger start, Trigger stop, Trigger reset,
-                     double& output, Trigger& finished)
+                     Number& output, Trigger& finished)
   {
     if (reset)
     {

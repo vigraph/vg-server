@@ -27,7 +27,7 @@ TEST_F(TimerTest, TestUnconnectedDoesNotStart)
   auto& sinkf = add_sink(finished, sample_rate);
   timer.connect("finished", sinkf, "input");
 
-  auto active = vector<double>{};
+  auto active = vector<Number>{};
   auto& sinka = add_sink(active, sample_rate);
   timer.connect("active", sinka, "input");
 
@@ -56,7 +56,7 @@ TEST_F(TimerTest, TestRunAfterStart)
   auto& sinkf = add_sink(finished, sample_rate);
   timer.connect("finished", sinkf, "input");
 
-  auto active = vector<double>{};
+  auto active = vector<Number>{};
   auto& sinka = add_sink(active, sample_rate);
   timer.connect("active", sinka, "input");
 
@@ -90,7 +90,7 @@ TEST_F(TimerTest, TestStartThenReset)
   auto& sinkf = add_sink(finished, sample_rate);
   timer.connect("finished", sinkf, "input");
 
-  auto active = vector<double>{};
+  auto active = vector<Number>{};
   auto& sinka = add_sink(active, sample_rate);
   timer.connect("active", sinka, "input");
 
@@ -120,7 +120,7 @@ TEST_F(TimerTest, TestRunAfterRestart)
   auto& sinkf = add_sink(finished, sample_rate);
   timer.connect("finished", sinkf, "input");
 
-  auto active = vector<double>{};
+  auto active = vector<Number>{};
   auto& sinka = add_sink(active, sample_rate);
   timer.connect("active", sinka, "input");
 

@@ -24,7 +24,7 @@ private:
     return new ControlIn{module};
   }
 
-  double last_output = 0.0;
+  Number last_output = 0.0;
 
 public:
   using SimpleElement::SimpleElement;
@@ -41,7 +41,7 @@ void ControlIn::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(channel, control, input), tie(output),
-                 [&](double c, double co, const MIDI::Event& i, double& o)
+                 [&](Number c, Number co, const MIDI::Event& i, Number& o)
   {
     if (i.type == MIDI::Event::Type::control_change &&
         (c < 0 || i.channel == c) && (co < 0 || i.key == co))

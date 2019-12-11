@@ -55,8 +55,8 @@ void Timer::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(period, start, reset),
                  tie(finished, active),
-                 [&](double period, Trigger _start, Trigger _reset,
-                     Trigger& finished, double& active)
+                 [&](Number period, Trigger _start, Trigger _reset,
+                     Trigger& finished, Number& active)
   {
     if (_reset)
     {

@@ -23,8 +23,8 @@ const auto nsamples = 100;
 
 TEST_F(MultiplyTest, TestSetOnlyInput)
 {
-  const auto expected = vector<double>(nsamples, 42.0);
-  auto actual = vector<double>{};
+  const auto expected = vector<Number>(nsamples, 42.0);
+  auto actual = vector<Number>{};
 
   auto& mlt = add("core/multiply")
               .set("input", 42.0);
@@ -39,8 +39,8 @@ TEST_F(MultiplyTest, TestSetOnlyInput)
 
 TEST_F(MultiplyTest, TestSetOnlyFactor)
 {
-  const auto expected = vector<double>(nsamples, 0.0);
-  auto actual = vector<double>{};
+  const auto expected = vector<Number>(nsamples, 0.0);
+  auto actual = vector<Number>{};
 
   auto& mlt = add("core/multiply")
               .set("factor", 10.0);
@@ -54,8 +54,8 @@ TEST_F(MultiplyTest, TestSetOnlyFactor)
 
 TEST_F(MultiplyTest, TestSetBothInputAndFactor)
 {
-  const auto expected = vector<double>(nsamples, 4.2);
-  auto actual = vector<double>{};
+  const auto expected = vector<Number>(nsamples, 4.2);
+  auto actual = vector<Number>{};
 
   auto& mlt = add("core/multiply")
               .set("input", 42.0)

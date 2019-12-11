@@ -27,7 +27,7 @@ TEST_F(BitCrushTest, TestNoInput)
 {
   auto& btc = add("audio/bit-crush")
               .set("input", 0.0);
-  auto actual = vector<double>{};
+  auto actual = vector<Number>{};
   auto& snk = add_sink(actual, samples);
   btc.connect("output", snk, "input");
 
@@ -44,13 +44,13 @@ TEST_F(BitCrushTest, TestBits)
 {
   auto& btc = add("audio/bit-crush")
               .set("bits", 2.0);
-  const auto input = vector<double>{-1, -0.8, -0.6, -0.4, -0.2, 0,
+  const auto input = vector<Number>{-1, -0.8, -0.6, -0.4, -0.2, 0,
                                     0.2, 0.4, 0.6, 0.8, 1};
-  const auto expected = vector<double>{-1, -1, -1.0/3.0, -1.0/3.0, -1.0/3.0,
+  const auto expected = vector<Number>{-1, -1, -1.0/3.0, -1.0/3.0, -1.0/3.0,
                                        1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0,
                                        1, 1};
   auto& src = add_source(input);
-  auto actual = vector<double>{};
+  auto actual = vector<Number>{};
   auto& snk = add_sink(actual, input.size());
   src.connect("output", btc, "input");
   btc.connect("output", snk, "input");
@@ -68,10 +68,10 @@ TEST_F(BitCrushTest, TestSampleRate)
 {
   auto& btc = add("audio/bit-crush")
               .set("rate", 2.0);
-  const auto input = vector<double>{-1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4};
-  const auto expected = vector<double>{-1, -1, -1, -1, -0.2, -0.2, -0.2, -0.2};
+  const auto input = vector<Number>{-1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4};
+  const auto expected = vector<Number>{-1, -1, -1, -1, -0.2, -0.2, -0.2, -0.2};
   auto& src = add_source(input);
-  auto actual = vector<double>{};
+  auto actual = vector<Number>{};
   auto& snk = add_sink(actual, input.size());
   src.connect("output", btc, "input");
   btc.connect("output", snk, "input");

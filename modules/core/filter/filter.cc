@@ -72,7 +72,7 @@ private:
     return new Filter{module};
   }
 
-  vector<double> buffer;
+  vector<Number> buffer;
 
 public:
   using SimpleElement::SimpleElement;
@@ -93,8 +93,8 @@ void Filter::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input, mode, cutoff, resonance, steepness),
                  tie(output),
-                 [&](double input, Mode mode, double cutoff,
-                     double resonance, double steepness, double& o)
+                 [&](Number input, Mode mode, Number cutoff,
+                     Number resonance, Number steepness, Number& o)
   {
     const auto stp = static_cast<unsigned>(max(1.0, steepness) + 1);
     if (stp != buffer.size())

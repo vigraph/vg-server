@@ -23,7 +23,7 @@ TEST_F(LimitTest, TestLimitDoesNothingInRange)
 {
   auto& lmt = add("core/limit")
               .set("input", 0.5);
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   lmt.connect("output", snk, "input");
 
@@ -39,7 +39,7 @@ TEST_F(LimitTest, TestLimitCapsOverRange)
   auto& lmt = add("core/limit")
               .set("max", 0.4)
               .set("input", 0.5);
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   lmt.connect("output", snk, "input");
 
@@ -55,7 +55,7 @@ TEST_F(LimitTest, TestLimitCollarsUnderRange)
   auto& lmt = add("core/limit")
               .set("min", 0.6)
               .set("input", 0.5);
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   lmt.connect("output", snk, "input");
 

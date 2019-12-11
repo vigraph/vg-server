@@ -10,14 +10,14 @@
 #include "../../switch.h"
 
 template<>
-inline double switch_fade(const double& value, double factor)
+inline Number switch_fade(const Number& value, Number factor)
 {
   return value * factor;
 }
 
 namespace {
 
-class NumberSwitch: public Switch<double>
+class NumberSwitch: public Switch<Number>
 {
 public:
   const static Dataflow::DynamicModule switch_module;

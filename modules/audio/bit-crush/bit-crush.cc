@@ -21,7 +21,7 @@ using namespace ViGraph::Geometry;
 class BitCrush: public SimpleElement
 {
 private:
-  double last_sample = 0;
+  Number last_sample = 0;
   unsigned samples_ago = numeric_limits<unsigned>::max() - 1;
 
   // Element virtuals
@@ -50,7 +50,7 @@ void BitCrush::tick(const TickData& td)
   const auto sample_rate = output.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(input, rate, bits), tie(output),
-                 [&](double i, double r, double b, double& o)
+                 [&](Number i, Number r, Number b, Number& o)
   {
     if (!r || ++samples_ago >= sample_rate / r)
     {

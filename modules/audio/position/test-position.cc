@@ -27,8 +27,8 @@ TEST_F(PositionTest, TestNoInput)
 {
   auto& pos = add("audio/position")
               .set("input", 0.0);
-  auto left = vector<double>{};
-  auto right = vector<double>{};
+  auto left = vector<Number>{};
+  auto right = vector<Number>{};
   auto& skl = add_sink(left, samples);
   auto& skr = add_sink(right, samples);
   pos.connect("left", skl, "input");
@@ -50,8 +50,8 @@ TEST_F(PositionTest, TestCentered)
   auto& pos = add("audio/position")
               .set("input", 1.0)
               .set("x", 0.0);
-  auto left = vector<double>{};
-  auto right = vector<double>{};
+  auto left = vector<Number>{};
+  auto right = vector<Number>{};
   auto& skl = add_sink(left, samples);
   auto& skr = add_sink(right, samples);
   pos.connect("left", skl, "input");
@@ -75,8 +75,8 @@ TEST_F(PositionTest, TestFullRight)
   auto& pos = add("audio/position")
               .set("input", 1.0)
               .set("x", 0.5);
-  auto left = vector<double>{};
-  auto right = vector<double>{};
+  auto left = vector<Number>{};
+  auto right = vector<Number>{};
   auto& skl = add_sink(left, samples);
   auto& skr = add_sink(right, samples);
   pos.connect("left", skl, "input");
@@ -101,8 +101,8 @@ TEST_F(PositionTest, TestFullLeft)
   auto& pos = add("audio/position")
               .set("input", 1.0)
               .set("x", -0.5);
-  auto left = vector<double>{};
-  auto right = vector<double>{};
+  auto left = vector<Number>{};
+  auto right = vector<Number>{};
   auto& skl = add_sink(left, samples);
   auto& skr = add_sink(right, samples);
   pos.connect("left", skl, "input");
@@ -127,8 +127,8 @@ TEST_F(PositionTest, TestOutOfBoundsRight)
   auto& pos = add("audio/position")
               .set("input", 1.0)
               .set("x", 1.5);
-  auto left = vector<double>{};
-  auto right = vector<double>{};
+  auto left = vector<Number>{};
+  auto right = vector<Number>{};
   auto& skl = add_sink(left, samples);
   auto& skr = add_sink(right, samples);
   pos.connect("left", skl, "input");
@@ -153,8 +153,8 @@ TEST_F(PositionTest, TestOutOfBoundsLeft)
   auto& pos = add("audio/position")
               .set("input", 1.0)
               .set("x", -1.5);
-  auto left = vector<double>{};
-  auto right = vector<double>{};
+  auto left = vector<Number>{};
+  auto right = vector<Number>{};
   auto& skl = add_sink(left, samples);
   auto& skr = add_sink(right, samples);
   pos.connect("left", skl, "input");

@@ -45,7 +45,7 @@ void Position::tick(const TickData& td)
                                right.get_sample_rate());
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(input, x), tie(left, right),
-                 [](double i, double x, double& l, double& r)
+                 [](Number i, Number x, Number& l, Number& r)
   {
     x = min(max(x, -0.5), 0.5) + 0.5;
     l = i * cos(x * pi / 2);

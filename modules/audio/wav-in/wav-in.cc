@@ -21,11 +21,11 @@ public:
   const static DynamicModule wav_in_module;
 
 private:
-  vector<vector<double>> waveforms;
+  vector<vector<Number>> waveforms;
   string wav_file;
-  double wav_sample_rate = 0;
+  Number wav_sample_rate = 0;
   unsigned wav_nsamples = 0;
-  double pos = 0;
+  Number pos = 0;
   enum class State
   {
     disabled,
@@ -190,7 +190,7 @@ void WavIn::setup(const SetupContext& context)
 // Process some data
 void WavIn::tick(const TickData& td)
 {
-  auto sample_rate = double{};
+  auto sample_rate = Number{};
   auto obuffers = vector<Output<Number>::Buffer>{};
   obuffers.reserve(outputs.size());
   for (auto& o: outputs)

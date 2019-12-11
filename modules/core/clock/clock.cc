@@ -51,7 +51,7 @@ void Clock::tick(const TickData& td)
                  tie(start, stop),
                  tie(output),
                  [&](Trigger _start, Trigger _stop,
-                     double& output)
+                     Number& output)
   {
     if (_stop)
     {

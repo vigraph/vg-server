@@ -57,8 +57,8 @@ void Clip::tick(const TickData& td)
                  tie(min_x, min_y, min_z, max_x, max_y, max_z, alpha, input),
                  tie(output),
                  [&](bool exclude,
-                     double min_x, double min_y, double min_z,
-                     double max_x, double max_y, double max_z, double alpha,
+                     Number min_x, Number min_y, Number min_z,
+                     Number max_x, Number max_y, Number max_z, Number alpha,
                      const Frame& input,
                      Frame& output)
   {

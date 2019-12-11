@@ -47,7 +47,7 @@ void Limit::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(min, max, input),
                  tie(output),
-                 [&](double min, double max, double input, double& output)
+                 [&](Number min, Number max, Number input, Number& output)
   {
     if (input < min)
       output = min;

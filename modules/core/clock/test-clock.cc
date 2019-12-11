@@ -22,7 +22,7 @@ const auto sample_rate = 100;
 TEST_F(ClockTest, TestFreeRun)
 {
   auto& clock = add("core/clock");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   clock.connect("output", snk, "input");
 
@@ -42,7 +42,7 @@ TEST_F(ClockTest, TestStartConnectedButNotFired)
   auto start_data = vector<Trigger>(100);
   auto& sts = add_source(start_data);
   sts.connect("output", clock, "start");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   clock.connect("output", snk, "input");
 
@@ -64,7 +64,7 @@ TEST_F(ClockTest, TestStartAndRestart)
   auto& sts = add_source(start_data);
   sts.connect("output", clock, "start");
 
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   clock.connect("output", snk, "input");
 
@@ -90,7 +90,7 @@ TEST_F(ClockTest, TestStartAndStop)
   auto& sos = add_source(stop_data);
   sos.connect("output", clock, "stop");
 
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   clock.connect("output", snk, "input");
 

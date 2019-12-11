@@ -39,7 +39,7 @@ void MultiplyFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input, factor), tie(output),
-                 [&](double input, double factor, double& o)
+                 [&](Number input, Number factor, Number& o)
   {
     o = input * factor;
   });

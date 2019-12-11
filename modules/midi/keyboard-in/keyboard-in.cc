@@ -24,8 +24,8 @@ private:
     return new KeyboardIn{module};
   }
 
-  double last_frequency{0.0};
-  double last_velocity{0.0};
+  Number last_frequency{0.0};
+  Number last_velocity{0.0};
 
 public:
   using SimpleElement::SimpleElement;
@@ -50,8 +50,8 @@ void KeyboardIn::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(channel, voice, input),
                  tie(frequency, velocity, start, stop),
-                 [&](double c, double voice, const MIDI::Event& i,
-                     double& f, double& v, Trigger& _start, Trigger& _stop)
+                 [&](Number c, Number voice, const MIDI::Event& i,
+                     Number& f, Number& v, Trigger& _start, Trigger& _stop)
   {
     f = last_frequency;
     v = last_velocity;

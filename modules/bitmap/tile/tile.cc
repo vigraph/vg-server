@@ -45,7 +45,7 @@ void Tile::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(x, y, input), tie(output),
-                 [&](double x, double y, const Bitmap::Group& input,
+                 [&](Number x, Number y, const Bitmap::Group& input,
                      Bitmap::Group& output)
   {
     for(auto& item: input.items)

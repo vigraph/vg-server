@@ -63,8 +63,8 @@ void Compare::tick(const TickData& td)
                  tie(value, input),
                  tie(lower, equal, higher),
                  [&](bool on_change,
-                     double value, double input,
-                     double& lower, double& equal, double& higher)
+                     Number value, Number input,
+                     Number& lower, Number& equal, Number& higher)
   {
     lower = equal = higher = 0.0;
     if (input > value)

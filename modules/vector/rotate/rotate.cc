@@ -46,7 +46,7 @@ void Rotate::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(x, y, z, input), tie(output),
-                 [&](double x, double y, double z, const Frame& input,
+                 [&](Number x, Number y, Number z, const Frame& input,
                      Frame& output)
   {
     // Precalculate useful stuff

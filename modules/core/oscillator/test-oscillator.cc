@@ -31,7 +31,7 @@ const auto three_quarter_waveform_size = 3 * waveform_size / 4;
 TEST_F(OscillatorTest, TestNoWaveform)
 {
   auto& osc = add("core/oscillator");
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -46,7 +46,7 @@ TEST_F(OscillatorTest, TestNoWaveform)
 TEST_F(OscillatorTest, TestNoWaveformControl)
 {
   auto& osc = add("core/oscillator");
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("control", snk, "input");
 
@@ -63,7 +63,7 @@ TEST_F(OscillatorTest, TestSquareWaveSingleCycle)
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 1.0);
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -85,7 +85,7 @@ TEST_F(OscillatorTest, TestSquareWaveSingleCycleControl)
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 1.0);
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("control", snk, "input");
 
@@ -110,7 +110,7 @@ TEST_F(OscillatorTest, TestSquareWaveStartConnectedButNotStarted)
   auto start_data = vector<Trigger>(100);
   auto& sts = add_source(start_data);
   sts.connect("output", osc, "start");
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -132,7 +132,7 @@ TEST_F(OscillatorTest, TestSquareWaveStartHalfWayThrough)
   start_data[half_waveform_size] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", osc, "start");
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -170,7 +170,7 @@ TEST_F(OscillatorTest, TestSquareWaveStopPartWayThrough)
   stop_data[quarter_waveform_size] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", osc, "stop");
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -194,7 +194,7 @@ TEST_F(OscillatorTest, TestSquareWaveMultiCycle)
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 10.0);
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -216,7 +216,7 @@ TEST_F(OscillatorTest, TestSawWaveSingleCycle)
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::saw)
               .set("freq", 1.0);
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -239,7 +239,7 @@ TEST_F(OscillatorTest, TestTriangleWaveSingleCycle)
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::triangle)
               .set("freq", 1.0);
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -270,7 +270,7 @@ TEST_F(OscillatorTest, TestSinWaveSingleCycle)
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::sin)
               .set("freq", 1.0);
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -287,7 +287,7 @@ TEST_F(OscillatorTest, TestRandomSingleCycle)
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::random)
               .set("freq", 1.0);
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -308,7 +308,7 @@ TEST_F(OscillatorTest, TestSquareWaveSingleCycleWithPhase)
               .set("wave", Waveform::Type::square)
               .set("freq", 1.0)
               .set("phase", 0.25);
-  auto waveform = vector<double>{};
+  auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 

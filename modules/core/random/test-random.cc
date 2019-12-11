@@ -22,7 +22,7 @@ const auto sample_rate = 100;
 TEST_F(RandomTest, TestRandomDefaultFreeRuns0to1)
 {
   auto& rnd = add("core/random");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   rnd.connect("output", snk, "input");
 
@@ -44,7 +44,7 @@ TEST_F(RandomTest, TestRandomWithTriggerDoesntStartUntilTriggerAndHolds)
   trigger_data[50] = 1;
   auto& ts = add_source(trigger_data);
   ts.connect("output", rnd, "trigger");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   rnd.connect("output", snk, "input");
 
@@ -75,7 +75,7 @@ TEST_F(RandomTest, TestRandomSpecifiedRange)
   auto& rnd = add("core/random")
               .set("min", 100.0)
               .set("max", 200.0);
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   rnd.connect("output", snk, "input");
 

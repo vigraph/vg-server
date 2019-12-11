@@ -39,7 +39,7 @@ void OffsetFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input, amount), tie(output),
-                 [&](const DataCollection& input, double amount,
+                 [&](const DataCollection& input, Number amount,
                      DataCollection& output)
   {
     output = input;

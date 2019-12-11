@@ -10,7 +10,7 @@
 #include <cmath>
 #include <stdlib.h>
 
-const double interval_rounding = 1e-6;  // Fix rounding when very near
+const auto interval_rounding = 1e-6;  // Fix rounding when very near
 
 namespace {
 
@@ -59,7 +59,7 @@ void Beat::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(interval, offset, start, stop),
                  tie(output),
-                 [&](double interval, double offset,
+                 [&](Number interval, Number offset,
                      Trigger _start, Trigger _stop,
                      Trigger& output)
   {

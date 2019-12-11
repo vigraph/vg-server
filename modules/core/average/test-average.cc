@@ -26,7 +26,7 @@ TEST_F(AverageTest, TestAverage)
   auto& avg = add("core/average")
               .set("samples", samples)
               .set("input", 42.0);
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, samples);
   avg.connect("output", snk, "input");
 
@@ -44,7 +44,7 @@ TEST_F(AverageTest, TestRMSAverage)
               .set("samples", samples)
               .set("rms", true)
               .set("input", 42.0);
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, samples);
   avg.connect("output", snk, "input");
 
@@ -58,13 +58,13 @@ TEST_F(AverageTest, TestRMSAverage)
 
 TEST_F(AverageTest, TestAverageForVariantData)
 {
-  auto input_data = vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  auto expected = vector<double>{1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5};
+  auto input_data = vector<Number>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  auto expected = vector<Number>{1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5};
   auto& src = add_source(input_data);
   auto& avg = add("core/average")
               .set("samples", samples);
   src.connect("output", avg, "input");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, samples);
   avg.connect("output", snk, "input");
 
@@ -75,8 +75,8 @@ TEST_F(AverageTest, TestAverageForVariantData)
 
 TEST_F(AverageTest, TestRMSAverageForVariantData)
 {
-  auto input_data = vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  auto expected = vector<double>{
+  auto input_data = vector<Number>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  auto expected = vector<Number>{
     1,
     1.5811388300841898,
     2.1602468994692869,
@@ -93,7 +93,7 @@ TEST_F(AverageTest, TestRMSAverageForVariantData)
               .set("samples", samples)
               .set("rms", true);
   src.connect("output", avg, "input");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, samples);
   avg.connect("output", snk, "input");
 

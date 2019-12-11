@@ -31,10 +31,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> input{0.0};
-  Input<double> x{0.0};
-  Output<double> left;
-  Output<double> right;
+  Input<Number> input{0.0};
+  Input<Number> x{0.0};
+  Output<Number> left;
+  Output<Number> right;
 };
 
 //--------------------------------------------------------------------------

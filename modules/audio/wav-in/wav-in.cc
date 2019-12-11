@@ -34,7 +34,7 @@ private:
     complete
   } state = State::disabled;
 
-  vector<unique_ptr<Output<double>>> outputs;
+  vector<unique_ptr<Output<Number>>> outputs;
 
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
@@ -177,7 +177,7 @@ void WavIn::setup(const SetupContext& context)
   }
   while (outputs.size() < waveforms.size())
   {
-    outputs.emplace_back(new Output<double>{});
+    outputs.emplace_back(new Output<Number>{});
     module.add_output("channel" + Text::itos(outputs.size()),
                       outputs.back().get());
   }
@@ -191,7 +191,7 @@ void WavIn::setup(const SetupContext& context)
 void WavIn::tick(const TickData& td)
 {
   auto sample_rate = double{};
-  auto obuffers = vector<Output<double>::Buffer>{};
+  auto obuffers = vector<Output<Number>::Buffer>{};
   obuffers.reserve(outputs.size());
   for (auto& o: outputs)
   {

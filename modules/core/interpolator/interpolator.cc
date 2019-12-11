@@ -34,15 +34,15 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> from{0.0};
-  Input<double> to{1.0};
-  Input<double> period{0.0};
+  Input<Number> from{0.0};
+  Input<Number> to{1.0};
+  Input<Number> period{0.0};
 
   // Triggers
-  Input<double> start{0.0};    // Trigger to start
+  Input<Trigger> start{0.0};    // Trigger to start
 
   // Outputs
-  Output<double> output;       // Trigger output
+  Output<Number> output;       // Trigger output
 };
 
 //--------------------------------------------------------------------------
@@ -56,9 +56,9 @@ void Interpolator::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(from, to, period, start),
                  tie(output),
-                 [&](double from, double to, double period,
-                     double _start,
-                     double& output)
+                 [&](Number from, Number to, Number period,
+                     Trigger _start,
+                     Number& output)
   {
     if (_start || (!active && !start.connected()))
     {

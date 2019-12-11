@@ -35,7 +35,7 @@ public:
   Setting<bool> auto_scale{true};
 
   // Input
-  Input<double> points{default_points};
+  Input<Number> points{default_points};
   Input<DataCollection> input;
 
   // Output

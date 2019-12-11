@@ -44,9 +44,9 @@ public:
   PitchShift(const SimpleModule& module);
 
   // Configuration
-  Input<double> input{0.0};
-  Input<double> pitch{0.0};
-  Output<double> output;
+  Input<Number> input{0.0};
+  Input<Number> pitch{0.0};
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

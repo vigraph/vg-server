@@ -37,10 +37,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> input{0.0};
-  Input<double> rate{default_rate};
-  Input<double> bits{default_bits};
-  Output<double> output;
+  Input<Number> input{0.0};
+  Input<Number> rate{default_rate};
+  Input<Number> bits{default_bits};
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

@@ -44,17 +44,17 @@ public:
   SDLSink(const DynamicModule& module);
 
   Setting<string> device{default_device};
-  Setting<double> nchannels{default_channels};
-  Setting<double> buffer_size{default_buffer_size};
-  Setting<double> max_delay{default_max_delay};
-  Setting<double> max_recovery{default_max_recovery};
+  Setting<Number> nchannels{default_channels};
+  Setting<Number> buffer_size{default_buffer_size};
+  Setting<Number> max_delay{default_max_delay};
+  Setting<Number> max_recovery{default_max_recovery};
 
-  Input<double> channel1;
-  Input<double> channel2;
-  Input<double> channel3;
-  Input<double> channel4;
-  Input<double> channel5;
-  Input<double> channel6;
+  Input<Number> channel1;
+  Input<Number> channel2;
+  Input<Number> channel3;
+  Input<Number> channel4;
+  Input<Number> channel5;
+  Input<Number> channel6;
 
   // Callback for SDL
   void callback(Uint8 *stream, int len);

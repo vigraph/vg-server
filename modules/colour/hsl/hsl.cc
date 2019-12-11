@@ -29,9 +29,9 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> h{0.0};
-  Input<double> s{1.0};
-  Input<double> l{0.5};
+  Input<Number> h{0.0};
+  Input<Number> s{1.0};
+  Input<Number> l{0.5};
 
   // Output
   Output<Colour::RGB> output;

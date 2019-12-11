@@ -42,14 +42,14 @@ private:
     return new SDLIn{module};
   }
 
-  vector<unique_ptr<Output<double>>> outputs;
+  vector<unique_ptr<Output<Number>>> outputs;
 
 public:
   SDLIn(const DynamicModule& module);
 
   Setting<string> device{default_device};
-  Setting<double> sample_rate{default_sample_rate};
-  Setting<double> nchannels{default_channels};
+  Setting<Number> sample_rate{default_sample_rate};
+  Setting<Number> nchannels{default_channels};
 
   // Callback for SDL
   void callback(Uint8 *stream, int len);
@@ -151,7 +151,7 @@ void SDLIn::setup(const SetupContext&)
     }
     while (outputs.size() < have.channels)
     {
-      outputs.emplace_back(new Output<double>{});
+      outputs.emplace_back(new Output<Number>{});
       module.add_output("channel" + Text::itos(outputs.size()),
                         outputs.back().get());
     }
@@ -175,7 +175,7 @@ void SDLIn::tick(const TickData& td)
   {
     pos = fmod(pos, 1);
     auto sample_rate = double{};
-    auto obuffers = vector<Output<double>::Buffer>{};
+    auto obuffers = vector<Output<Number>::Buffer>{};
     obuffers.reserve(outputs.size());
     for (auto& o: outputs)
     {

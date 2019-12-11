@@ -29,7 +29,7 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> mix{0.0};
+  Input<Number> mix{0.0};
 
   // Inputs
   Input<Colour::RGB> from;

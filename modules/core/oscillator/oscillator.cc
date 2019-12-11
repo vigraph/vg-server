@@ -40,17 +40,17 @@ public:
 
   // Configuration
   Input<Waveform::Type> waveform;
-  Input<double> freq{1}; // Hz
-  Input<double> pulse_width{0.5};
-  Input<double> phase{0};
+  Input<Number> freq{1}; // Hz
+  Input<Number> pulse_width{0.5};
+  Input<Number> phase{0};
 
   // Triggers
-  Input<double> start{0.0};    // Trigger to start
-  Input<double> stop{0.0};     // Trigger to stop
+  Input<Number> start{0.0};    // Trigger to start
+  Input<Number> stop{0.0};     // Trigger to stop
 
   // Output
-  Output<double> output;
-  Output<double> control;
+  Output<Number> output;
+  Output<Number> control;
 };
 
 //--------------------------------------------------------------------------

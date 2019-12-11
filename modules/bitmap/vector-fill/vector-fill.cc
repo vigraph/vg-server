@@ -31,8 +31,8 @@ public:
 
   // Input
   Input<Frame> input;
-  Input<double> width;
-  Input<double> height;
+  Input<Number> width;
+  Input<Number> height;
 
   // Output
   Output<Bitmap::Group> output;

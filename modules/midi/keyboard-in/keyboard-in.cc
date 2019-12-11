@@ -30,11 +30,11 @@ private:
 public:
   using SimpleElement::SimpleElement;
 
-  Input<double> channel{-1};
-  Input<double> voice{-1};
+  Input<Number> channel{-1};
+  Input<Number> voice{-1};
   Input<MIDI::Event> input;
-  Output<double> frequency;
-  Output<double> velocity;
+  Output<Number> frequency;
+  Output<Number> velocity;
   Output<Trigger> start;
   Output<Trigger> stop;
 };

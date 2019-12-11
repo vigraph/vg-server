@@ -36,12 +36,12 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> input{0.0};
+  Input<Number> input{0.0};
   Input<Trigger> play_start{0.0};
   Input<Trigger> play_stop{0.0};
   Input<Trigger> record_start{0.0};
   Input<Trigger> record_stop{0.0};
-  Output<double> output;
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

@@ -30,10 +30,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> angle{0.0}; // 0..1 full circle, positive anticlockwise, 0 = +x
-  Input<double> distance{0.0};
-  Output<double> x;
-  Output<double> y;
+  Input<Number> angle{0.0}; // 0..1 full circle, positive anticlockwise, 0 = +x
+  Input<Number> distance{0.0};
+  Output<Number> x;
+  Output<Number> y;
 };
 
 //--------------------------------------------------------------------------

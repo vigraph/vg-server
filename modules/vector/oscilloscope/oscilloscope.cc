@@ -83,13 +83,13 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Setting<double> sample_rate{default_sample_rate};
+  Setting<Number> sample_rate{default_sample_rate};
   Input<Slope> slope{Slope::free};
-  Input<double> max_points{0};
-  Input<double> level{0};
+  Input<Number> max_points{0};
+  Input<Number> level{0};
 
   // Input
-  Input<double> input;
+  Input<Number> input;
 
   // Output
   Output<Frame> output;

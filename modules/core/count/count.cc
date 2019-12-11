@@ -31,13 +31,13 @@ public:
   using SimpleElement::SimpleElement;
 
   // Triggers
-  Input<double> delta{1.0};
-  Input<double> up{0.0};
-  Input<double> down{0.0};
-  Input<double> reset{0.0};
+  Input<Number> delta{1.0};
+  Input<Number> up{0.0};
+  Input<Number> down{0.0};
+  Input<Number> reset{0.0};
 
   // Outputs
-  Output<double> output;
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

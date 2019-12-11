@@ -35,7 +35,7 @@ public:
   Setting<string> text;  // Default empty
 
   // Input
-  Input<double> input;
+  Input<Number> input;
   Input<Trigger> trigger;
 };
 

@@ -29,14 +29,14 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> min{0.0};
-  Input<double> max{1.0};
+  Input<Number> min{0.0};
+  Input<Number> max{1.0};
 
   // Input
-  Input<double> input{0.0};
+  Input<Number> input{0.0};
 
   // Outputs
-  Output<double> output;
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

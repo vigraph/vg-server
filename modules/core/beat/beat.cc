@@ -37,8 +37,8 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> interval{0.0};
-  Input<double> offset{0.0};
+  Input<Number> interval{0.0};
+  Input<Number> offset{0.0};
 
   // Triggers
   Input<Trigger> start{0.0};    // Trigger to start

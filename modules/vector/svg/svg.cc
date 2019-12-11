@@ -35,7 +35,7 @@ public:
   // Settings
   Setting<string> path_data;
   Setting<string> file;
-  Setting<double> precision{SVG::default_precision};
+  Setting<Number> precision{SVG::default_precision};
   Setting<bool>   normalise{true};
 
   // Output

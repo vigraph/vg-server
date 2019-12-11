@@ -31,14 +31,14 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> min{0.0};
-  Input<double> max{1.0};
+  Input<Number> min{0.0};
+  Input<Number> max{1.0};
 
   // Triggers
-  Input<double> trigger{0.0};
+  Input<Number> trigger{0.0};
 
   // Outputs
-  Output<double> output;
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

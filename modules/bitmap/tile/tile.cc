@@ -29,8 +29,8 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> x{1.0};
-  Input<double> y{1.0};
+  Input<Number> x{1.0};
+  Input<Number> y{1.0};
 
   // Input
   Input<Bitmap::Group> input;

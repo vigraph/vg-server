@@ -39,15 +39,15 @@ public:
   Setting<bool> on_change;
 
   // Configuration
-  Input<double> value{0.0};
+  Input<Number> value{0.0};
 
   // Input
-  Input<double> input{0.0};
+  Input<Number> input{0.0};
 
   // Outputs
-  Output<double> lower;     // When input < value
-  Output<double> equal;     // When input == value
-  Output<double> higher;    // When input > value
+  Output<Number> lower;     // When input < value
+  Output<Number> equal;     // When input == value
+  Output<Number> higher;    // When input > value
 };
 
 //--------------------------------------------------------------------------

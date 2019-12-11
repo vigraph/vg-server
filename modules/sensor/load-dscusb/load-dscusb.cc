@@ -48,10 +48,10 @@ public:
 
   // Settings
   Setting<string> device{default_device};
-  Setting<double> interval{default_interval};
+  Setting<Number> interval{default_interval};
 
   // Outputs
-  Output<double> output;
+  Output<Number> output;
 };
 
 //==========================================================================

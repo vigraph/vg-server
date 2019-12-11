@@ -36,7 +36,7 @@ public:
   Setting<Integer> inputs;
 
   // Configuration
-  Output<double> output;
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

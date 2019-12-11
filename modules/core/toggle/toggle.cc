@@ -30,7 +30,7 @@ public:
   using SimpleElement::SimpleElement;
 
   Input<Trigger> input{0.0};
-  Output<double> output;
+  Output<Number> output;
   Output<Trigger> enabled;
   Output<Trigger> disabled;
 };

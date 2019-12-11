@@ -43,18 +43,18 @@ public:
   using DynamicElement::DynamicElement;
 
   Setting<string> device{default_device};
-  Setting<double> sample_rate{default_sample_rate};
-  Setting<double> nchannels{default_channels};
-  Setting<double> start_threshold{default_start_threshold};
-  Setting<double> max_delay{default_max_delay};
-  Setting<double> max_recovery{default_max_recovery};
+  Setting<Number> sample_rate{default_sample_rate};
+  Setting<Number> nchannels{default_channels};
+  Setting<Number> start_threshold{default_start_threshold};
+  Setting<Number> max_delay{default_max_delay};
+  Setting<Number> max_recovery{default_max_recovery};
 
-  Input<double> channel1;
-  Input<double> channel2;
-  Input<double> channel3;
-  Input<double> channel4;
-  Input<double> channel5;
-  Input<double> channel6;
+  Input<Number> channel1;
+  Input<Number> channel2;
+  Input<Number> channel3;
+  Input<Number> channel4;
+  Input<Number> channel5;
+  Input<Number> channel6;
 };
 
 //--------------------------------------------------------------------------

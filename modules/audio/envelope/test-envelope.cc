@@ -221,7 +221,8 @@ TEST_F(EnvelopeTest, TestFinishedTriggeredAfterRelease)
   stop_data[50] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
-  auto output = vector<double>{};
+
+  auto output = vector<Trigger>{};
   auto& snk = add_sink(output, nsamples);
   env.connect("finished", snk, "input");
 

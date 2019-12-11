@@ -32,13 +32,13 @@ public:
   Setting<bool> exclude{false};
 
   // Configuration
-  Input<double> min_x{-0.5};
-  Input<double> min_y{-0.5};
-  Input<double> min_z{-0.5};
-  Input<double> max_x{0.5};
-  Input<double> max_y{0.5};
-  Input<double> max_z{0.5};
-  Input<double> alpha{0};
+  Input<Number> min_x{-0.5};
+  Input<Number> min_y{-0.5};
+  Input<Number> min_z{-0.5};
+  Input<Number> max_x{0.5};
+  Input<Number> max_y{0.5};
+  Input<Number> max_z{0.5};
+  Input<Number> alpha{0};
 
   // Input
   Input<Frame> input;

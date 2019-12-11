@@ -32,11 +32,11 @@ public:
   using SimpleElement::SimpleElement;
 
   // Triggers
-  Input<double> start{0.0};    // Trigger to start
-  Input<double> stop{0.0};     // Trigger to stop
+  Input<Number> start{0.0};    // Trigger to start
+  Input<Number> stop{0.0};     // Trigger to stop
 
   // Outputs
-  Output<double> output;       // Trigger output
+  Output<Number> output;       // Trigger output
 };
 
 //--------------------------------------------------------------------------

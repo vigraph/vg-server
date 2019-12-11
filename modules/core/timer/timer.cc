@@ -32,7 +32,7 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> period{0.0};   // Period to stay active
+  Input<Number> period{0.0};   // Period to stay active
 
   // Triggers
   Input<Trigger> start{0.0};    // Trigger to start
@@ -40,7 +40,7 @@ public:
 
   // Outputs
   Output<Trigger> finished;     // Trigger output on completion
-  Output<double> active;       // Level output
+  Output<Number> active;       // Level output
 };
 
 //--------------------------------------------------------------------------

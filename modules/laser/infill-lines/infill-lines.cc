@@ -31,8 +31,8 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<double> max_distance_lit{0.0};
-  Setting<double> max_distance_blanked{0.0};
+  Setting<Number> max_distance_lit{0.0};
+  Setting<Number> max_distance_blanked{0.0};
 
   // Input
   Input<Frame> input;

@@ -43,8 +43,8 @@ public:
   Setting<BlendType> type{BlendType::none};
 
   // Inputs
-  Input<double> width{1};
-  Input<double> height{1};
+  Input<Number> width{1};
+  Input<Number> height{1};
 
   // Horizontal
   Input<Colour::RGB> left{Colour::black};
@@ -63,7 +63,7 @@ public:
   // Radial
   Input<Colour::RGB> centre{Colour::black};
   Input<Colour::RGB> edge{Colour::black};
-  Input<double> radius{0.5};
+  Input<Number> radius{0.5};
 
   // Output
   Output<Bitmap::Group> output;

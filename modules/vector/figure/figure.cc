@@ -57,28 +57,28 @@ public:
 
   // Inputs
   Input<Waveform::Type> x_waveform;
-  Input<double> x_freq{1.0};
-  Input<double> x_phase{0.0};
-  Input<double> x_pulse_width{0.5};
-  Input<double> x_pos{0.0};
-  Input<double> x_scale{1.0};
+  Input<Number> x_freq{1.0};
+  Input<Number> x_phase{0.0};
+  Input<Number> x_pulse_width{0.5};
+  Input<Number> x_pos{0.0};
+  Input<Number> x_scale{1.0};
 
   Input<Waveform::Type> y_waveform;
-  Input<double> y_freq{1.0};
-  Input<double> y_phase{0.0};
-  Input<double> y_pulse_width{0.5};
-  Input<double> y_pos{0.0};
-  Input<double> y_scale{1.0};
+  Input<Number> y_freq{1.0};
+  Input<Number> y_phase{0.0};
+  Input<Number> y_pulse_width{0.5};
+  Input<Number> y_pos{0.0};
+  Input<Number> y_scale{1.0};
 
   Input<Waveform::Type> z_waveform;
-  Input<double> z_freq{1.0};
-  Input<double> z_phase{0.0};
-  Input<double> z_pulse_width{0.5};
-  Input<double> z_pos{0.0};
-  Input<double> z_scale{1.0};
+  Input<Number> z_freq{1.0};
+  Input<Number> z_phase{0.0};
+  Input<Number> z_pulse_width{0.5};
+  Input<Number> z_pos{0.0};
+  Input<Number> z_scale{1.0};
 
-  Input<double> points{default_points};
-  Input<double> closed{0.0};
+  Input<Number> points{default_points};
+  Input<Number> closed{0.0};
 
   // Outputs
   Output<Frame> output;

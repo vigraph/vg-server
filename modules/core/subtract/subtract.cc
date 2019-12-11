@@ -28,9 +28,9 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> input{0.0};
-  Input<double> offset{0.0};
-  Output<double> output;
+  Input<Number> input{0.0};
+  Input<Number> offset{0.0};
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

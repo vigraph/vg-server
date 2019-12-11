@@ -29,10 +29,10 @@ private:
 public:
   using SimpleElement::SimpleElement;
 
-  Input<double> channel{-1};
-  Input<double> key{-1};
+  Input<Number> channel{-1};
+  Input<Number> key{-1};
   Input<MIDI::Event> input;
-  Output<double> velocity;
+  Output<Number> velocity;
   Output<Trigger> start;
   Output<Trigger> stop;
 };

@@ -28,7 +28,7 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> samples{0.0};
+  Input<Number> samples{0.0};
 
   // Input
   Input<DataCollection> input;

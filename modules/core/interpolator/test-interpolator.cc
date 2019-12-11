@@ -22,7 +22,7 @@ const auto sample_rate = 100;
 TEST_F(InterpolatorTest, TestWithNoPeriodGeneratesFrom)
 {
   auto& interp = add("core/interpolator").set("from", 42.0);
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");
 
@@ -38,7 +38,7 @@ TEST_F(InterpolatorTest, TestWithNoPeriodGeneratesFrom)
 TEST_F(InterpolatorTest, TestAutoRun1SecDefaultTo)
 {
   auto& interp = add("core/interpolator").set("period", 1.0);
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");
 
@@ -54,7 +54,7 @@ TEST_F(InterpolatorTest, TestAutoRun1SecDefaultTo)
 TEST_F(InterpolatorTest, TestAutoRun1SecWithOverrun)
 {
   auto& interp = add("core/interpolator").set("period", 0.5);
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");
 
@@ -74,11 +74,11 @@ TEST_F(InterpolatorTest, TestStartConnectedButNotTriggeredGeneratesFrom)
     .set("to", 100.0)
     .set("period", 1.0);
 
-  auto start_data = vector<double>(100);
+  auto start_data = vector<Trigger>(100);
   auto& sts = add_source(start_data);
   sts.connect("output", interp, "start");
 
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");
 
@@ -97,12 +97,12 @@ TEST_F(InterpolatorTest, TestStartTriggers)
     .set("to", 2.0)
     .set("period", 0.5);
 
-  auto start_data = vector<double>(100);
+  auto start_data = vector<Trigger>(100);
   start_data[50] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", interp, "start");
 
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   interp.connect("output", snk, "input");
 

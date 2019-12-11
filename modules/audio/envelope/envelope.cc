@@ -44,10 +44,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> attack{0.0};   // Time for attack
-  Input<double> decay{0.0};    // Time for decay
-  Input<double> sustain{1.0};  // Value to sustain at
-  Input<double> release{0.0};  // Time to release
+  Input<Number> attack{0.0};   // Time for attack
+  Input<Number> decay{0.0};    // Time for decay
+  Input<Number> sustain{1.0};  // Value to sustain at
+  Input<Number> release{0.0};  // Time to release
 
   // Triggers
   Input<Trigger> start{0.0};   // Trigger to start attack
@@ -55,8 +55,8 @@ public:
   Input<Trigger> reset{0.0};   // Hard reset
 
   // Outputs
-  Output<double> output;       // Value output
-  Output<double> finished;     // Trigger when fully released
+  Output<Number> output;       // Value output
+  Output<Trigger> finished;    // Trigger when fully released
 };
 
 //--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ void Envelope::tick(const TickData& td)
                  [&](double attack, double decay,
                      double sustain, double release,
                      Trigger start, Trigger stop, Trigger reset,
-                     double& output, double& finished)
+                     double& output, Trigger& finished)
   {
     if (reset)
     {
@@ -100,7 +100,7 @@ void Envelope::tick(const TickData& td)
       state_changed_time = sample_time;
     }
 
-    finished = 0.0;  // By default
+    finished = 0;  // By default
 
     auto delta = sample_time-state_changed_time;
     switch (state)
@@ -150,7 +150,7 @@ void Envelope::tick(const TickData& td)
         {
           state = State::off;
           attack_start_value = output = 0.0;
-          finished = 1.0;
+          finished = 1;
         }
         else
         {

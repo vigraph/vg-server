@@ -29,7 +29,7 @@ public:
 
   // Configuration
   Input<DataCollection> input;
-  Input<double> amount{0.0};
+  Input<Number> amount{0.0};
   Output<DataCollection> output;
 };
 

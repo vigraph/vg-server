@@ -29,10 +29,10 @@ private:
 public:
   using SimpleElement::SimpleElement;
 
-  Input<double> channel{-1};
-  Input<double> control{-1};
+  Input<Number> channel{-1};
+  Input<Number> control{-1};
   Input<MIDI::Event> input;
-  Output<double> output;
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

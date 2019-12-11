@@ -79,11 +79,11 @@ public:
 
   // Configuration
   Input<Mode> mode{Mode::low_pass};
-  Input<double> input{0.0};
-  Input<double> cutoff{1.0};
-  Input<double> resonance{1.0};
-  Input<double> steepness{1.0};
-  Output<double> output;
+  Input<Number> input{0.0};
+  Input<Number> cutoff{1.0};
+  Input<Number> resonance{1.0};
+  Input<Number> steepness{1.0};
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

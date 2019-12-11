@@ -30,10 +30,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> input{0.0};
-  Input<double> time{0.0};
-  Input<double> feedback{0.0};
-  Output<double> output;
+  Input<Number> input{0.0};
+  Input<Number> time{0.0};
+  Input<Number> feedback{0.0};
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

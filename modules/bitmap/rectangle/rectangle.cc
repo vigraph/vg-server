@@ -28,8 +28,8 @@ public:
   using SimpleElement::SimpleElement;
 
   // Inputs
-  Input<double> width{1};
-  Input<double> height{1};
+  Input<Number> width{1};
+  Input<Number> height{1};
 
   // Output
   Output<Bitmap::Group> output;

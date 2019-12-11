@@ -29,7 +29,7 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<double> alpha{1.0};
+  Input<Number> alpha{1.0};
 
   // Input
   Input<Frame> input;

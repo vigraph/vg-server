@@ -44,17 +44,17 @@ private:
     return new ALSAIn{module};
   }
 
-  vector<unique_ptr<Output<double>>> outputs;
+  vector<unique_ptr<Output<Number>>> outputs;
 
 public:
   using DynamicElement::DynamicElement;
 
   Setting<string> device{default_device};
-  Setting<double> sample_rate{default_sample_rate};
-  Setting<double> nchannels{default_channels};
-  Setting<double> start_threshold{default_start_threshold};
-  Setting<double> max_delay{default_max_delay};
-  Setting<double> max_recovery{default_max_recovery};
+  Setting<Number> sample_rate{default_sample_rate};
+  Setting<Number> nchannels{default_channels};
+  Setting<Number> start_threshold{default_start_threshold};
+  Setting<Number> max_delay{default_max_delay};
+  Setting<Number> max_recovery{default_max_recovery};
 };
 
 //--------------------------------------------------------------------------
@@ -141,7 +141,7 @@ void ALSAIn::setup(const SetupContext&)
     }
     while (outputs.size() < nchannels)
     {
-      outputs.emplace_back(new Output<double>{});
+      outputs.emplace_back(new Output<Number>{});
       module.add_output("channel" + Text::itos(outputs.size()),
                         outputs.back().get());
     }
@@ -162,7 +162,7 @@ void ALSAIn::tick(const TickData& td)
   {
     pos = fmod(pos, 1);
     auto sample_rate = double{};
-    auto obuffers = vector<Output<double>::Buffer>{};
+    auto obuffers = vector<Output<Number>::Buffer>{};
     obuffers.reserve(outputs.size());
     for (auto& o: outputs)
     {

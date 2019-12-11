@@ -18,7 +18,7 @@ using namespace ViGraph::Geometry;
 class OscillatorSource: public SimpleElement
 {
 private:
-  double theta = 0.0;
+  Number theta = 0.0;
   enum State
   {
     disabled,
@@ -45,8 +45,8 @@ public:
   Input<Number> phase{0};
 
   // Triggers
-  Input<Number> start{0.0};    // Trigger to start
-  Input<Number> stop{0.0};     // Trigger to stop
+  Input<Trigger> start{0.0};    // Trigger to start
+  Input<Trigger> stop{0.0};     // Trigger to stop
 
   // Output
   Output<Number> output;
@@ -63,9 +63,9 @@ void OscillatorSource::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(waveform, freq, pulse_width, phase, start, stop),
                  tie(output, control),
-                 [&](Waveform::Type wf, double f, double pw, double phase,
-                     double _start, double _stop,
-                     double& o, double& c)
+                 [&](Waveform::Type wf, Number f, Number pw, Number phase,
+                     Trigger _start, Trigger _stop,
+                     Number& o, Number& c)
   {
     if (_stop)
     {

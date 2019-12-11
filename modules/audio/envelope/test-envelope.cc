@@ -21,8 +21,8 @@ const auto nsamples = 100;
 
 TEST_F(EnvelopeTest, TestUnsetNotStartedProducesZero)
 {
-  const auto expected = vector<double>(nsamples, 0.0);
-  auto actual = vector<double>{};
+  const auto expected = vector<Number>(nsamples, 0.0);
+  auto actual = vector<Number>{};
 
   auto& env = add("audio/envelope");
   auto& snk = add_sink(actual, nsamples);
@@ -35,8 +35,8 @@ TEST_F(EnvelopeTest, TestUnsetNotStartedProducesZero)
 
 TEST_F(EnvelopeTest, TestUnsetStartedProduces1)
 {
-  const auto expected = vector<double>(nsamples, 1.0);
-  auto actual = vector<double>{};
+  const auto expected = vector<Number>(nsamples, 1.0);
+  auto actual = vector<Number>{};
 
   auto& env = add("audio/envelope")
               .set("start", Trigger{1});
@@ -50,8 +50,8 @@ TEST_F(EnvelopeTest, TestUnsetStartedProduces1)
 
 TEST_F(EnvelopeTest, TestSustainSetStartedProducesSustain)
 {
-  const auto expected = vector<double>(nsamples, 0.75);
-  auto actual = vector<double>{};
+  const auto expected = vector<Number>(nsamples, 0.75);
+  auto actual = vector<Number>{};
 
   auto& env = add("audio/envelope")
               .set("sustain", 0.75)
@@ -72,7 +72,7 @@ TEST_F(EnvelopeTest, TestStartHalfWayThrough)
   start_data[50] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, nsamples);
   env.connect("output", snk, "input");
 
@@ -97,7 +97,7 @@ TEST_F(EnvelopeTest, TestStartThenStopHalfWayThrough)
   stop_data[50] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, nsamples);
   env.connect("output", snk, "input");
 
@@ -117,7 +117,7 @@ TEST_F(EnvelopeTest, TestAttack)
   start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, nsamples);
   env.connect("output", snk, "input");
 
@@ -138,7 +138,7 @@ TEST_F(EnvelopeTest, TestDecayToZero)
   start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, nsamples);
   env.connect("output", snk, "input");
 
@@ -159,7 +159,7 @@ TEST_F(EnvelopeTest, TestDecayToSustain)
   start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, nsamples);
   env.connect("output", snk, "input");
 
@@ -190,7 +190,7 @@ TEST_F(EnvelopeTest, TestRelease)
   stop_data[50] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, nsamples);
   env.connect("output", snk, "input");
 
@@ -249,7 +249,7 @@ TEST_F(EnvelopeTest, TestReleaseStartsFromCurrentPositionInAttack)
   stop_data[50] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, nsamples);
   env.connect("output", snk, "input");
 

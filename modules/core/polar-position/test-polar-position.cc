@@ -22,15 +22,15 @@ const auto nsamples = 1;
 
 TEST_F(PolarPositionTest, TestDefaultis0_0)
 {
-  const auto expected_x = vector<double>(nsamples, 0);
-  const auto expected_y = vector<double>(nsamples, 0);
+  const auto expected_x = vector<Number>(nsamples, 0);
+  const auto expected_y = vector<Number>(nsamples, 0);
 
   auto& pp = add("core/polar-position");
-  auto actual_x = vector<double>{};
+  auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
 
-  auto actual_y = vector<double>{};
+  auto actual_y = vector<Number>{};
   auto& sink_y = add_sink(actual_y, nsamples);
   pp.connect("y", sink_y, "input");
 
@@ -42,15 +42,15 @@ TEST_F(PolarPositionTest, TestDefaultis0_0)
 
 TEST_F(PolarPositionTest, TestAngle0IsX)
 {
-  const auto expected_x = vector<double>(nsamples, 1.0);
-  const auto expected_y = vector<double>(nsamples, 0);
+  const auto expected_x = vector<Number>(nsamples, 1.0);
+  const auto expected_y = vector<Number>(nsamples, 0);
 
   auto& pp = add("core/polar-position").set("distance", 1.0);
-  auto actual_x = vector<double>{};
+  auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
 
-  auto actual_y = vector<double>{};
+  auto actual_y = vector<Number>{};
   auto& sink_y = add_sink(actual_y, nsamples);
   pp.connect("y", sink_y, "input");
 
@@ -62,15 +62,15 @@ TEST_F(PolarPositionTest, TestAngle0IsX)
 
 TEST_F(PolarPositionTest, TestAngle0_25IsY)
 {
-  const auto expected_x = vector<double>(nsamples, 0);
-  const auto expected_y = vector<double>(nsamples, 1);
+  const auto expected_x = vector<Number>(nsamples, 0);
+  const auto expected_y = vector<Number>(nsamples, 1);
 
   auto& pp = add("core/polar-position").set("angle", 0.25).set("distance", 1.0);
-  auto actual_x = vector<double>{};
+  auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
 
-  auto actual_y = vector<double>{};
+  auto actual_y = vector<Number>{};
   auto& sink_y = add_sink(actual_y, nsamples);
   pp.connect("y", sink_y, "input");
 
@@ -82,15 +82,15 @@ TEST_F(PolarPositionTest, TestAngle0_25IsY)
 
 TEST_F(PolarPositionTest, TestAngle0_5Distance2IsMinus2X)
 {
-  const auto expected_x = vector<double>(nsamples, -2);
-  const auto expected_y = vector<double>(nsamples, 0);
+  const auto expected_x = vector<Number>(nsamples, -2);
+  const auto expected_y = vector<Number>(nsamples, 0);
 
   auto& pp = add("core/polar-position").set("angle", 0.5).set("distance", 2.0);
-  auto actual_x = vector<double>{};
+  auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
 
-  auto actual_y = vector<double>{};
+  auto actual_y = vector<Number>{};
   auto& sink_y = add_sink(actual_y, nsamples);
   pp.connect("y", sink_y, "input");
 
@@ -102,15 +102,15 @@ TEST_F(PolarPositionTest, TestAngle0_5Distance2IsMinus2X)
 
 TEST_F(PolarPositionTest, TestAngle0_75IsMinusY)
 {
-  const auto expected_x = vector<double>(nsamples, 0);
-  const auto expected_y = vector<double>(nsamples, -1);
+  const auto expected_x = vector<Number>(nsamples, 0);
+  const auto expected_y = vector<Number>(nsamples, -1);
 
   auto& pp = add("core/polar-position").set("angle", 0.75).set("distance", 1.0);
-  auto actual_x = vector<double>{};
+  auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
 
-  auto actual_y = vector<double>{};
+  auto actual_y = vector<Number>{};
   auto& sink_y = add_sink(actual_y, nsamples);
   pp.connect("y", sink_y, "input");
 
@@ -122,15 +122,15 @@ TEST_F(PolarPositionTest, TestAngle0_75IsMinusY)
 
 TEST_F(PolarPositionTest, TestAngle1IsX)
 {
-  const auto expected_x = vector<double>(nsamples, 1.0);
-  const auto expected_y = vector<double>(nsamples, 0);
+  const auto expected_x = vector<Number>(nsamples, 1.0);
+  const auto expected_y = vector<Number>(nsamples, 0);
 
   auto& pp = add("core/polar-position").set("angle", 1.0).set("distance", 1.0);
-  auto actual_x = vector<double>{};
+  auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
 
-  auto actual_y = vector<double>{};
+  auto actual_y = vector<Number>{};
   auto& sink_y = add_sink(actual_y, nsamples);
   pp.connect("y", sink_y, "input");
 

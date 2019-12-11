@@ -24,7 +24,7 @@ private:
     return new KeyIn{module};
   }
 
-  double last_velocity{0.0};
+  Number last_velocity{0.0};
 
 public:
   using SimpleElement::SimpleElement;
@@ -47,8 +47,8 @@ void KeyIn::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(channel, key, input),
                  tie(velocity, start, stop),
-                 [&](double c, double co, const MIDI::Event& i,
-                     double& v, Trigger& _start, Trigger& _stop)
+                 [&](Number c, Number co, const MIDI::Event& i,
+                     Number& v, Trigger& _start, Trigger& _stop)
   {
     v = last_velocity;
     _start = 0;

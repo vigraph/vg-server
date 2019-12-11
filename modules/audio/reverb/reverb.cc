@@ -15,7 +15,7 @@ namespace {
 class Reverb: public SimpleElement
 {
 private:
-  deque<double> buffer;
+  deque<Number> buffer;
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -45,7 +45,7 @@ void Reverb::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(sample_rate);
 
   sample_iterate(td, nsamples, {}, tie(input, time, feedback), tie(output),
-                 [&](double i, double t, double f, double& o)
+                 [&](Number i, Number t, Number f, Number& o)
   {
     const auto bsamples = static_cast<size_t>(t * sample_rate);
     if (bsamples > buffer.size())

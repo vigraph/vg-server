@@ -186,8 +186,8 @@ void ALSAOut::tick(const TickData& td)
     sample_iterate(td, nsamples, {},
                    tie(channel1, channel2, channel3,
                        channel4, channel5, channel6), {},
-                   [&](double c1, double c2, double c3,
-                       double c4, double c5, double c6)
+                   [&](Number c1, Number c2, Number c3,
+                       Number c4, Number c5, Number c6)
     {
       if (channels >= 1)
         output_buffer.emplace_back(c1);

@@ -16,7 +16,7 @@ namespace {
 class LogControl: public SimpleElement
 {
 private:
-  double last_input{0.0};
+  Number last_input{0.0};
 
   // Element virtuals
   void tick(const TickData& td) override;

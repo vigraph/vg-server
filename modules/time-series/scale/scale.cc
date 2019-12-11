@@ -39,7 +39,7 @@ void ScaleFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input, factor), tie(output),
-                 [&](const DataCollection& input, double factor,
+                 [&](const DataCollection& input, Number factor,
                      DataCollection& output)
   {
     output = input;

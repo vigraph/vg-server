@@ -16,7 +16,7 @@ namespace {
 class Random: public SimpleElement
 {
 private:
-  double current{0.0};
+  Number current{0.0};
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -35,7 +35,7 @@ public:
   Input<Number> max{1.0};
 
   // Triggers
-  Input<Number> trigger{0.0};
+  Input<Trigger> trigger{0.0};
 
   // Outputs
   Output<Number> output;
@@ -49,10 +49,10 @@ void Random::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(min, max, trigger),
                  tie(output),
-                 [&](double min, double max, double _trigger, double& output)
+                 [&](Number min, Number max, Trigger _trigger, Number& output)
   {
     if (_trigger || !trigger.connected())
-      current = min + (double)rand()/RAND_MAX*(max-min);
+      current = min + (Number)rand()/RAND_MAX*(max-min);
 
     output = current;
   });

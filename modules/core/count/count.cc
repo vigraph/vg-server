@@ -16,7 +16,7 @@ namespace {
 // Count
 class Count: public SimpleElement
 {
-  double value{0.0};
+  Number value{0.0};
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -48,9 +48,9 @@ void Count::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(delta, up, down, reset),
                  tie(output),
-                 [&](double delta,
-                     double up, double down, double reset,
-                     double& output)
+                 [&](Number delta,
+                     Number up, Number down, Number reset,
+                     Number& output)
   {
     if (reset)
       value = 0.0;

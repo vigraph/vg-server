@@ -79,7 +79,7 @@ void PitchShift::tick(const TickData& td)
   auto f = vector<float>{};
   f.reserve(nsamples);
   sample_iterate(td, nsamples, {}, tie(input), {},
-                 [&](double input)
+                 [&](Number input)
   {
     f.emplace_back(input);
   });
@@ -113,7 +113,7 @@ void PitchShift::tick(const TickData& td)
 
   auto fpos = 0u;
   sample_iterate(td, nsamples, {}, {}, tie(output),
-                 [&](double& o)
+                 [&](Number& o)
   {
     if (fpos < f.size())
       o = f[fpos++];

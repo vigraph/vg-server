@@ -101,7 +101,7 @@ void AssignVoice::tick(const TickData& td)
   const auto sample_duration = td.sample_duration(sample_rate);
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(channel, input), tie(output),
-                 [&](double c, const MIDI::Event& i, MIDI::Event& o)
+                 [&](Number c, const MIDI::Event& i, MIDI::Event& o)
   {
     o = i;
     if (c == i.channel)

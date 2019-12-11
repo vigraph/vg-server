@@ -15,7 +15,7 @@ namespace {
 class Delay: public SimpleElement
 {
 private:
-  deque<double> buffer;
+  deque<Number> buffer;
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -44,7 +44,7 @@ void Delay::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(sample_rate);
 
   sample_iterate(td, nsamples, {}, tie(input, time), tie(output),
-                 [&](double i, double t, double& o)
+                 [&](Number i, Number t, Number& o)
   {
     const auto bsamples = static_cast<size_t>(t * sample_rate);
     if (bsamples > buffer.size())

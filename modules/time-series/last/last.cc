@@ -43,7 +43,7 @@ void LastFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input, samples), tie(output),
-                 [&](const DataCollection& input, double samples,
+                 [&](const DataCollection& input, Number samples,
                      DataCollection& output)
   {
     for(auto& ids: input.datasets)

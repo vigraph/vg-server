@@ -18,9 +18,9 @@ private:
   bool recording = false;
   bool playing = false;
   bool recorded_ready = false;
-  vector<double> recording_buffer;
-  vector<double> recorded_buffer;
-  vector<double> play_buffer;
+  vector<Number> recording_buffer;
+  vector<Number> recorded_buffer;
+  vector<Number> play_buffer;
   uint64_t play_pos = 0;
 
   // Element virtuals
@@ -54,9 +54,9 @@ void Loop::tick(const TickData& td)
 
   sample_iterate(td, nsamples, {}, tie(input, play_start, play_stop,
                                    record_start, record_stop), tie(output),
-                 [&](double i, Trigger pb, Trigger pe,
+                 [&](Number i, Trigger pb, Trigger pe,
                      Trigger rb, Trigger re,
-                     double& o)
+                     Number& o)
   {
     if (recording)
     {

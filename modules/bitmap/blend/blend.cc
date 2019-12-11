@@ -144,7 +144,7 @@ void Blend::tick_horizontal(const TickData& td)
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(width, height, left, right),
                  tie(output),
-                 [&](double width, double height,
+                 [&](Number width, Number height,
                      const Colour::RGB& left,
                      const Colour::RGB& right,
                      Bitmap::Group& output)
@@ -171,7 +171,7 @@ void Blend::tick_vertical(const TickData& td)
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(width, height, top, bottom),
                  tie(output),
-                 [&](double width, double height,
+                 [&](Number width, Number height,
                      const Colour::RGB& top,
                      const Colour::RGB& bottom,
                      Bitmap::Group& output)
@@ -199,7 +199,7 @@ void Blend::tick_rectangular(const TickData& td)
   sample_iterate(td, nsamples, {}, tie(width, height, top_left, top_right,
                                    bottom_left, bottom_right),
                  tie(output),
-                 [&](double width, double height,
+                 [&](Number width, Number height,
                      const Colour::RGB& top_left,
                      const Colour::RGB& top_right,
                      const Colour::RGB& bottom_left,
@@ -233,10 +233,10 @@ void Blend::tick_radial(const TickData& td)
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(width, height, centre, edge, radius),
                  tie(output),
-                 [&](double width, double height,
+                 [&](Number width, Number height,
                      const Colour::RGB& centre,
                      const Colour::RGB& edge,
-                     double radius,
+                     Number radius,
                      Bitmap::Group& output)
   {
     Bitmap::Rectangle rect(width, height);

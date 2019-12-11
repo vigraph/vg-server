@@ -66,7 +66,7 @@ namespace {
 class Oscilloscope: public SimpleElement
 {
 private:
-  vector<double> buffer;
+  vector<Number> buffer;
 
   // Element virtuals
   void setup(const SetupContext& context) override;

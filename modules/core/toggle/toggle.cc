@@ -41,7 +41,7 @@ void Toggle::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input), tie(output, enabled, disabled),
-                 [&](Trigger i, double& o, Trigger& e, Trigger& d)
+                 [&](Trigger i, Number& o, Trigger& e, Trigger& d)
   {
     e = d = 0;
     if (i)

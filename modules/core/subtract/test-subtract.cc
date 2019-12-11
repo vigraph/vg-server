@@ -23,8 +23,8 @@ const auto nsamples = 100;
 
 TEST_F(SubtractTest, TestSetOnlyInput)
 {
-  const auto expected = vector<double>(nsamples, 42.0);
-  auto actual = vector<double>{};
+  const auto expected = vector<Number>(nsamples, 42.0);
+  auto actual = vector<Number>{};
 
   auto& sub = add("core/subtract")
               .set("input", 42.0);
@@ -38,8 +38,8 @@ TEST_F(SubtractTest, TestSetOnlyInput)
 
 TEST_F(SubtractTest, TestSetOnlyOffset)
 {
-  const auto expected = vector<double>(nsamples, -10.0);
-  auto actual = vector<double>{};
+  const auto expected = vector<Number>(nsamples, -10.0);
+  auto actual = vector<Number>{};
 
   auto& sub = add("core/subtract")
               .set("offset", 10.0);
@@ -53,8 +53,8 @@ TEST_F(SubtractTest, TestSetOnlyOffset)
 
 TEST_F(SubtractTest, TestSetBothInputAndOffset)
 {
-  const auto expected = vector<double>(nsamples, 38.86);
-  auto actual = vector<double>{};
+  const auto expected = vector<Number>(nsamples, 38.86);
+  auto actual = vector<Number>{};
 
   auto& sub = add("core/subtract")
               .set("input", 42.0)

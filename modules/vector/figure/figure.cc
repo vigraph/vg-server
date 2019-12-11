@@ -95,18 +95,18 @@ void Figure::tick(const TickData& td)
                      z_waveform, z_freq, z_phase, z_pulse_width, z_pos, z_scale,
                      points, closed),
                  tie(output),
-                 [&](Waveform::Type x_wf, double x_freq, double x_phase,
-                     double x_pw, double x_pos, double x_scale,
-                     Waveform::Type y_wf, double y_freq, double y_phase,
-                     double y_pw, double y_pos, double y_scale,
-                     Waveform::Type z_wf, double z_freq, double z_phase,
-                     double z_pw, double z_pos, double z_scale,
-                     double points, double closed,
+                 [&](Waveform::Type x_wf, Number x_freq, Number x_phase,
+                     Number x_pw, Number x_pos, Number x_scale,
+                     Waveform::Type y_wf, Number y_freq, Number y_phase,
+                     Number y_pw, Number y_pos, Number y_scale,
+                     Waveform::Type z_wf, Number z_freq, Number z_phase,
+                     Number z_pw, Number z_pos, Number z_scale,
+                     Number points, Number closed,
                      Frame& output)
   {
-    double x_theta = x_phase;
-    double y_theta = y_phase;
-    double z_theta = z_phase;
+    Number x_theta = x_phase;
+    Number y_theta = y_phase;
+    Number z_theta = z_phase;
 
     // Special cases to fix phase difference - waveform library starts
     // at zero-crossing point for saw, with a discontinuity midway,

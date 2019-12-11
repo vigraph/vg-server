@@ -24,7 +24,7 @@ TEST_F(ToggleTest, TestEmptyInput)
   auto& tgl = add("core/toggle");
   const auto input = vector<Trigger>{0, 0, 0, 0, 0};
   auto& src = add_source(input);
-  auto actualo = vector<double>{};
+  auto actualo = vector<Number>{};
   auto actuale = vector<Trigger>{};
   auto actuald = vector<Trigger>{};
   auto& sko = add_sink(actualo, input.size());
@@ -37,7 +37,7 @@ TEST_F(ToggleTest, TestEmptyInput)
 
   run();
 
-  const auto expected = vector<double>{0, 0, 0, 0, 0};
+  const auto expected = vector<Number>{0, 0, 0, 0, 0};
   EXPECT_EQ(expected, actualo);
   const auto expected_t = vector<Trigger>{0, 0, 0, 0, 0};
   EXPECT_EQ(expected_t, actuale);
@@ -49,7 +49,7 @@ TEST_F(ToggleTest, TestTurnsOn)
   auto& tgl = add("core/toggle");
   const auto input = vector<Trigger>{0, 0, 1, 0, 0};
   auto& src = add_source(input);
-  auto actualo = vector<double>{};
+  auto actualo = vector<Number>{};
   auto actuale = vector<Trigger>{};
   auto actuald = vector<Trigger>{};
   auto& sko = add_sink(actualo, input.size());
@@ -62,7 +62,7 @@ TEST_F(ToggleTest, TestTurnsOn)
 
   run();
 
-  const auto expectedo = vector<double>{0, 0, 1, 1, 1};
+  const auto expectedo = vector<Number>{0, 0, 1, 1, 1};
   EXPECT_EQ(expectedo, actualo);
   const auto expectede = vector<Trigger>{0, 0, 1, 0, 0};
   EXPECT_EQ(expectede, actuale);
@@ -75,7 +75,7 @@ TEST_F(ToggleTest, TestTurnsOff)
   auto& tgl = add("core/toggle");
   const auto input = vector<Trigger>{0, 1, 0, 1, 0};
   auto& src = add_source(input);
-  auto actualo = vector<double>{};
+  auto actualo = vector<Number>{};
   auto actuale = vector<Trigger>{};
   auto actuald = vector<Trigger>{};
   auto& sko = add_sink(actualo, input.size());
@@ -88,7 +88,7 @@ TEST_F(ToggleTest, TestTurnsOff)
 
   run();
 
-  const auto expectedo = vector<double>{0, 1, 1, 0, 0};
+  const auto expectedo = vector<Number>{0, 1, 1, 0, 0};
   EXPECT_EQ(expectedo, actualo);
   const auto expectede = vector<Trigger>{0, 1, 0, 0, 0};
   EXPECT_EQ(expectede, actuale);

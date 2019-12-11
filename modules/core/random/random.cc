@@ -35,7 +35,7 @@ public:
   Input<Number> max{1.0};
 
   // Triggers
-  Input<Number> trigger{0.0};
+  Input<Trigger> trigger{0.0};
 
   // Outputs
   Output<Number> output;
@@ -49,7 +49,7 @@ void Random::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(min, max, trigger),
                  tie(output),
-                 [&](double min, double max, double _trigger, double& output)
+                 [&](double min, double max, Trigger _trigger, double& output)
   {
     if (_trigger || !trigger.connected())
       current = min + (double)rand()/RAND_MAX*(max-min);

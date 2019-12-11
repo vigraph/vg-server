@@ -32,11 +32,11 @@ public:
   using SimpleElement::SimpleElement;
 
   // Triggers
-  Input<Number> start{0.0};    // Trigger to start
-  Input<Number> stop{0.0};     // Trigger to stop
+  Input<Trigger> start{0.0};    // Trigger to start
+  Input<Trigger> stop{0.0};     // Trigger to stop
 
   // Outputs
-  Output<Number> output;       // Trigger output
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ void Clock::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(start, stop),
                  tie(output),
-                 [&](double _start, double _stop,
+                 [&](Trigger _start, Trigger _stop,
                      double& output)
   {
     if (_stop)

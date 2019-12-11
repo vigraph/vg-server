@@ -107,7 +107,7 @@ TEST_F(OscillatorTest, TestSquareWaveStartConnectedButNotStarted)
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
               .set("freq", 1.0);
-  auto start_data = vector<double>(100);
+  auto start_data = vector<Trigger>(100);
   auto& sts = add_source(start_data);
   sts.connect("output", osc, "start");
   auto waveform = vector<double>{};
@@ -128,8 +128,8 @@ TEST_F(OscillatorTest, TestSquareWaveStartHalfWayThrough)
               .set("wave", Waveform::Type::square)
               .set("freq", 2.0);
 
-  auto start_data = vector<double>(waveform_size);
-  start_data[half_waveform_size] = 1.0;
+  auto start_data = vector<Trigger>(waveform_size);
+  start_data[half_waveform_size] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", osc, "start");
   auto waveform = vector<double>{};
@@ -159,15 +159,15 @@ TEST_F(OscillatorTest, TestSquareWaveStopPartWayThrough)
 
   // Note we have to connect and trigger start otherwise it will
   // retrigger automatically because not connected
-  auto start_data = vector<double>(waveform_size);
-  start_data[0] = 1.0;
+  auto start_data = vector<Trigger>(waveform_size);
+  start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", osc, "start");
 
-  auto stop_data = vector<double>(waveform_size);
+  auto stop_data = vector<Trigger>(waveform_size);
   // Note we set the stop half-way through the waveform, to test it is
   // properly run out to theta wrap
-  stop_data[quarter_waveform_size] = 1.0;
+  stop_data[quarter_waveform_size] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", osc, "stop");
   auto waveform = vector<double>{};

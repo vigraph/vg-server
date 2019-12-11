@@ -42,7 +42,7 @@ public:
   Input<Trigger> start{0.0};    // Trigger to start
 
   // Outputs
-  Output<Number> output;       // Trigger output
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------

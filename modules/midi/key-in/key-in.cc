@@ -33,8 +33,8 @@ public:
   Input<double> key{-1};
   Input<MIDI::Event> input;
   Output<double> velocity;
-  Output<double> start;
-  Output<double> stop;
+  Output<Trigger> start;
+  Output<Trigger> stop;
 };
 
 //--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ void KeyIn::tick(const TickData& td)
   sample_iterate(td, nsamples, {}, tie(channel, key, input),
                  tie(velocity, start, stop),
                  [&](double c, double co, const MIDI::Event& i,
-                     double& v, double& _start, double& _stop)
+                     double& v, Trigger& _start, Trigger& _stop)
   {
     v = last_velocity;
     _start = 0;

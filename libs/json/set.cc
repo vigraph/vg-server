@@ -99,72 +99,78 @@ void set(Dataflow::Engine& engine, const Value& json,
 {
   auto lock = engine.get_write_lock();
 
-  auto acceptors = engine.get_visitor_acceptors(path, 0);
-  if (acceptors.empty())
-    throw runtime_error("Path not found");
-
-  for (auto& a: acceptors)
+  try
   {
-    // Setup
-    if (a.create)
+    auto acceptors = engine.get_visitor_acceptors(path, 0);
+    if (acceptors.empty())
+      throw runtime_error("Path not found");
+
+    for (auto& a: acceptors)
     {
-      if (a.attribute)
+      // Setup
+      if (a.create)
       {
-        // Graph input/output
-        const auto& dir = json["direction"].as_str();
-        auto graph = dynamic_cast<Dataflow::Graph *>(a.element);
-        if (graph)
+        if (a.attribute)
         {
-          if (dir == "in")
-            graph->add_input_pin(a.id, a.id, "input");
-          else if (dir == "out")
-            graph->add_output_pin(a.id, a.id, "output");
+          // Graph input/output
+          const auto& dir = json["direction"].as_str();
+          auto graph = dynamic_cast<Dataflow::Graph *>(a.element);
+          if (graph)
+          {
+            if (dir == "in")
+              graph->add_input_pin(a.id, a.id, "input");
+            else if (dir == "out")
+              graph->add_output_pin(a.id, a.id, "output");
+            else
+              throw(runtime_error{"Direction is required"});
+          }
           else
-            throw(runtime_error{"Direction is required"});
+          {
+            throw(runtime_error{"Path not found"});
+          }
+          continue;
         }
         else
         {
-          throw(runtime_error{"Path not found"});
+          a.acceptor = create_element(engine, *a.graph, a.clone, a.id, json);
         }
-        continue;
+      }
+
+      if (a.acceptor)
+      {
+        auto visitor = SetVisitor{engine, json, SetVisitor::Phase::setup,
+                                  a.id, a.graph, a.clone};
+        a.acceptor->accept(visitor);
       }
       else
       {
-        a.acceptor = create_element(engine, *a.graph, a.clone, a.id, json);
+        auto visitor = SetVisitor{engine, json, SetVisitor::Phase::setup,
+                                  a.id, a.element, a.graph};
+        a.member_acceptor->accept(visitor);
+      }
+      if (a.setting)
+        engine.setup(*a.element);
+
+      // Connection
+      if (a.acceptor)
+      {
+        auto visitor = SetVisitor{engine, json, SetVisitor::Phase::connection,
+                                  a.id, a.graph, a.clone};
+        a.acceptor->accept(visitor);
+      }
+      else
+      {
+        auto visitor = SetVisitor{engine, json, SetVisitor::Phase::connection,
+                                  a.id, a.element, a.graph};
+        a.member_acceptor->accept(visitor);
       }
     }
-
-    if (a.acceptor)
-    {
-      auto visitor = SetVisitor{engine, json, SetVisitor::Phase::setup,
-                                a.id, a.graph, a.clone};
-      a.acceptor->accept(visitor);
-    }
-    else
-    {
-      auto visitor = SetVisitor{engine, json, SetVisitor::Phase::setup,
-                                a.id, a.element, a.graph};
-      a.member_acceptor->accept(visitor);
-    }
-    if (a.setting)
-      engine.setup(*a.element);
-
-    // Connection
-    if (a.acceptor)
-    {
-      auto visitor = SetVisitor{engine, json, SetVisitor::Phase::connection,
-                                a.id, a.graph, a.clone};
-      a.acceptor->accept(visitor);
-    }
-    else
-    {
-      auto visitor = SetVisitor{engine, json, SetVisitor::Phase::connection,
-                                a.id, a.element, a.graph};
-      a.member_acceptor->accept(visitor);
-    }
   }
-
-  engine.update_elements();
+  catch (...)
+  {
+    engine.update_elements();
+    throw;
+  }
 }
 
 void SetVisitor::visit(Dataflow::Engine& engine)

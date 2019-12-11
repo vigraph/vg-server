@@ -96,10 +96,10 @@ void WavIn::setup(const SetupContext& context)
   wav_nsamples = 0;
   const auto f = context.get_file_path(file);
 
-  if (!f.exists())
+  if (!f || !f.exists())
   {
     Log::Error log;
-    log << "File not found: '" << f << "' in WavIn '" << get_id() << "'\n";
+    log << "File not found: '" << file << "' in WavIn '" << get_id() << "'\n";
     return;
   }
 

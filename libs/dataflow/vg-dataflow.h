@@ -219,7 +219,8 @@ private:
 
 public:
   //------------------------------------------------------------------------
-  // Get a resolved file_path
+  // Get a resolved file_path - returns empty path if resulting path is
+  // outside resource_dir or invalid (including if it doesn't exist)
   File::Path get_file_path(const string& path) const;
 
   //------------------------------------------------------------------------

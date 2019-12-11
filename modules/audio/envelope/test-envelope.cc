@@ -39,7 +39,7 @@ TEST_F(EnvelopeTest, TestUnsetStartedProduces1)
   auto actual = vector<double>{};
 
   auto& env = add("audio/envelope")
-              .set("start", 1.0);
+              .set("start", Trigger{1});
   auto& snk = add_sink(actual, nsamples);
   env.connect("output", snk, "input");
 
@@ -55,7 +55,7 @@ TEST_F(EnvelopeTest, TestSustainSetStartedProducesSustain)
 
   auto& env = add("audio/envelope")
               .set("sustain", 0.75)
-              .set("start", 1.0);
+              .set("start", Trigger{1});
   auto& snk = add_sink(actual, nsamples);
   env.connect("output", snk, "input");
 
@@ -68,8 +68,8 @@ TEST_F(EnvelopeTest, TestStartHalfWayThrough)
 {
   auto& env = add("audio/envelope");
 
-  auto start_data = vector<double>(100);
-  start_data[50] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[50] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
   auto output = vector<double>{};
@@ -88,13 +88,13 @@ TEST_F(EnvelopeTest, TestStartThenStopHalfWayThrough)
 {
   auto& env = add("audio/envelope");
 
-  auto start_data = vector<double>(100);
-  start_data[0] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
 
-  auto stop_data = vector<double>(100);
-  stop_data[50] = 1.0;
+  auto stop_data = vector<Trigger>(100);
+  stop_data[50] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
   auto output = vector<double>{};
@@ -113,8 +113,8 @@ TEST_F(EnvelopeTest, TestAttack)
 {
   auto& env = add("audio/envelope")
               .set("attack", 1.0);
-  auto start_data = vector<double>(100);
-  start_data[0] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
   auto output = vector<double>{};
@@ -134,8 +134,8 @@ TEST_F(EnvelopeTest, TestDecayToZero)
   auto& env = add("audio/envelope")
               .set("decay", 1.0)
               .set("sustain", 0.0);
-  auto start_data = vector<double>(100);
-  start_data[0] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
   auto output = vector<double>{};
@@ -155,8 +155,8 @@ TEST_F(EnvelopeTest, TestDecayToSustain)
   auto& env = add("audio/envelope")
               .set("decay", 0.5)
               .set("sustain", 0.5);
-  auto start_data = vector<double>(100);
-  start_data[0] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
   auto output = vector<double>{};
@@ -181,13 +181,13 @@ TEST_F(EnvelopeTest, TestRelease)
   auto& env = add("audio/envelope")
               .set("release", 0.5);
 
-  auto start_data = vector<double>(100);
-  start_data[0] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
 
-  auto stop_data = vector<double>(100);
-  stop_data[50] = 1.0;
+  auto stop_data = vector<Trigger>(100);
+  stop_data[50] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
   auto output = vector<double>{};
@@ -212,13 +212,13 @@ TEST_F(EnvelopeTest, TestFinishedTriggeredAfterRelease)
   auto& env = add("audio/envelope")
               .set("release", 0.25);
 
-  auto start_data = vector<double>(100);
-  start_data[0] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
 
-  auto stop_data = vector<double>(100);
-  stop_data[50] = 1.0;
+  auto stop_data = vector<Trigger>(100);
+  stop_data[50] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
   auto output = vector<double>{};
@@ -239,13 +239,13 @@ TEST_F(EnvelopeTest, TestReleaseStartsFromCurrentPositionInAttack)
               .set("attack", 1.0)
               .set("release", 0.5);
 
-  auto start_data = vector<double>(100);
-  start_data[0] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", env, "start");
 
-  auto stop_data = vector<double>(100);
-  stop_data[50] = 1.0;
+  auto stop_data = vector<Trigger>(100);
+  stop_data[50] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", env, "stop");
   auto output = vector<double>{};

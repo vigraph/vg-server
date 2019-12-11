@@ -52,10 +52,10 @@ public:
   Setting<string> file{};
   Setting<bool> loop{false};
 
-  Input<double> start{0.0};
-  Input<double> stop{0.0};
+  Input<Trigger> start{0.0};
+  Input<Trigger> stop{0.0};
 
-  Output<double> finished;
+  Output<Trigger> finished;
 };
 
 //--------------------------------------------------------------------------
@@ -203,7 +203,7 @@ void WavIn::tick(const TickData& td)
   const auto step = wav_sample_rate / sample_rate;
 
   sample_iterate(td, nsamples, {}, tie(start, stop), tie(finished),
-                 [&](double _start, double _stop, double &f)
+                 [&](Trigger _start, Trigger _stop, Trigger &f)
   {
     f = 0;
     if (_stop)

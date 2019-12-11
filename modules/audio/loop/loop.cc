@@ -37,10 +37,10 @@ public:
 
   // Configuration
   Input<double> input{0.0};
-  Input<double> play_start{0.0};
-  Input<double> play_stop{0.0};
-  Input<double> record_start{0.0};
-  Input<double> record_stop{0.0};
+  Input<Trigger> play_start{0.0};
+  Input<Trigger> play_stop{0.0};
+  Input<Trigger> record_start{0.0};
+  Input<Trigger> record_stop{0.0};
   Output<double> output;
 };
 
@@ -54,7 +54,8 @@ void Loop::tick(const TickData& td)
 
   sample_iterate(td, nsamples, {}, tie(input, play_start, play_stop,
                                    record_start, record_stop), tie(output),
-                 [&](double i, double pb, double pe, double rb, double re,
+                 [&](double i, Trigger pb, Trigger pe,
+                     Trigger rb, Trigger re,
                      double& o)
   {
     if (recording)

@@ -50,9 +50,9 @@ public:
   Input<double> release{0.0};  // Time to release
 
   // Triggers
-  Input<double> start{0.0};    // Trigger to start attack
-  Input<double> stop{0.0};     // Trigger to start release
-  Input<double> reset{0.0};    // Hard reset
+  Input<Trigger> start{0.0};   // Trigger to start attack
+  Input<Trigger> stop{0.0};    // Trigger to start release
+  Input<Trigger> reset{0.0};   // Hard reset
 
   // Outputs
   Output<double> output;       // Value output
@@ -73,7 +73,7 @@ void Envelope::tick(const TickData& td)
                  tie(output, finished),
                  [&](double attack, double decay,
                      double sustain, double release,
-                     double start, double stop, double reset,
+                     Trigger start, Trigger stop, Trigger reset,
                      double& output, double& finished)
   {
     if (reset)

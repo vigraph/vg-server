@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph core pin module
+# Tupfile for Vigraph core trigger-pin module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-pin
+NAME    = vg-module-core-trigger-pin
 TYPE    = shared
 DEPENDS = vg-dataflow ot-lib vg-waveform
 

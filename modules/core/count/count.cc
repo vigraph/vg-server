@@ -32,9 +32,9 @@ public:
 
   // Triggers
   Input<Number> delta{1.0};
-  Input<Number> up{0.0};
-  Input<Number> down{0.0};
-  Input<Number> reset{0.0};
+  Input<Trigger> up{0};
+  Input<Trigger> down{0};
+  Input<Trigger> reset{0.0};
 
   // Outputs
   Output<Number> output;
@@ -49,13 +49,13 @@ void Count::tick(const TickData& td)
                  tie(delta, up, down, reset),
                  tie(output),
                  [&](Number delta,
-                     Number up, Number down, Number reset,
+                     Trigger up, Trigger down, Trigger reset,
                      Number& output)
   {
     if (reset)
       value = 0.0;
     else
-      value += (up-down)*delta;
+      value += ((int)up-(int)down)*delta;
 
     output = value;
   });

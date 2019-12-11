@@ -1,7 +1,7 @@
 //==========================================================================
 // ViGraph dataflow module: core/filter/filter.cc
 //
-// Multiplier module (=attenuator and ring mod for audio)
+// Basic high/low/band-pass filter
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================

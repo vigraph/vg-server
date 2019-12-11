@@ -23,16 +23,16 @@ DEPENDS  = vg-module-core-clone         \
            vg-module-core-wrap          \
            vg-module-core-random        \
            vg-module-core-beat          \
+           vg-module-core-cut           \
+           vg-module-core-start         \
+           vg-module-core-selector      \
            vg-module-core-timer         \
            vg-module-core-toggle        \
            vg-module-core-interpolator  \
            vg-module-core-log
 
-#           vg-module-core-source-selector \
 #           vg-module-core-control-set \
-#           vg-module-core-control-trigger \
 #           vg-module-core-control-wait \
-#           vg-module-core-control-interpolate \
 #           vg-module-core-control-round \
 #           vg-module-core-control-scale \
 #           vg-module-core-control-smooth \

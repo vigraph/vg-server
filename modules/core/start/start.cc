@@ -30,7 +30,7 @@ public:
   using SimpleElement::SimpleElement;
 
   // Outputs
-  Output<double> output;
+  Output<Trigger> output;
 };
 
 //--------------------------------------------------------------------------
@@ -41,7 +41,7 @@ void Start::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, {},
                  tie(output),
-                 [&](double& output)
+                 [&](Trigger& output)
   {
     if (!triggered)
     {

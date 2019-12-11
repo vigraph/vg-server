@@ -35,11 +35,11 @@ public:
   Input<double> period{0.0};   // Period to stay active
 
   // Triggers
-  Input<double> start{0.0};    // Trigger to start
-  Input<double> reset{0.0};    // Stop and reset
+  Input<Trigger> start{0.0};    // Trigger to start
+  Input<Trigger> reset{0.0};    // Stop and reset
 
   // Outputs
-  Output<double> finished;     // Trigger output on completion
+  Output<Trigger> finished;     // Trigger output on completion
   Output<double> active;       // Level output
 };
 
@@ -55,8 +55,8 @@ void Timer::tick(const TickData& td)
   sample_iterate(td, nsamples, {},
                  tie(period, start, reset),
                  tie(finished, active),
-                 [&](double period, double _start, double _reset,
-                     double& finished, double& active)
+                 [&](double period, Trigger _start, Trigger _reset,
+                     Trigger& finished, double& active)
   {
     if (_reset)
     {

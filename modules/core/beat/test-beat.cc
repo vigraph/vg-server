@@ -23,7 +23,7 @@ TEST_F(BeatTest, TestInterval)
 {
   auto& bet = add("core/beat")
               .set("interval", 0.1);
-  auto output = vector<double>{};
+  auto output = vector<Trigger>{};
   auto& snk = add_sink(output, sample_rate);
   bet.connect("output", snk, "input");
 
@@ -41,7 +41,7 @@ TEST_F(BeatTest, TestIntervalWithOffset)
   auto& bet = add("core/beat")
               .set("interval", 0.1)
               .set("offset",   0.05);
-  auto output = vector<double>{};
+  auto output = vector<Trigger>{};
   auto& snk = add_sink(output, sample_rate);
   bet.connect("output", snk, "input");
 
@@ -59,11 +59,11 @@ TEST_F(BeatTest, TestStartingMidwayThroughTick)
   auto& bet = add("core/beat")
               .set("interval", 0.1);
 
-  auto start_data = vector<double>(100);
-  start_data[50] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[50] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", bet, "start");
-  auto output = vector<double>{};
+  auto output = vector<Trigger>{};
   auto& snk = add_sink(output, sample_rate);
   bet.connect("output", snk, "input");
 
@@ -80,17 +80,17 @@ TEST_F(BeatTest, TestStoppingMidwayThroughTick)
   auto& bet = add("core/beat")
               .set("interval", 0.1);
 
-  auto start_data = vector<double>(100);
-  start_data[0] = 1.0;
+  auto start_data = vector<Trigger>(100);
+  start_data[0] = 1;
   auto& sts = add_source(start_data);
   sts.connect("output", bet, "start");
 
-  auto stop_data = vector<double>(100);
-  stop_data[50] = 1.0;
+  auto stop_data = vector<Trigger>(100);
+  stop_data[50] = 1;
   auto& sos = add_source(stop_data);
   sos.connect("output", bet, "stop");
 
-  auto output = vector<double>{};
+  auto output = vector<Trigger>{};
   auto& snk = add_sink(output, sample_rate);
   bet.connect("output", snk, "input");
 

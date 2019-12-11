@@ -23,12 +23,12 @@ TEST_F(CutTest, TestTriggerIsNotPassedThroughImmediately)
 {
   auto& cut = add("core/cut");
 
-  auto input_data = vector<double>(1);
+  auto input_data = vector<Trigger>(1);
   input_data[0] = 1.0;
   auto& is = add_source(input_data);
   is.connect("output", cut, "input");
 
-  auto output = vector<double>{};
+  auto output = vector<Trigger>{};
   auto& sink = add_sink(output, sample_rate);
   cut.connect("output", sink, "input");
 
@@ -42,12 +42,12 @@ TEST_F(CutTest, TestTriggerIsPassedThroughOnSecondTick)
 {
   auto& cut = add("core/cut");
 
-  auto input_data = vector<double>(2);  // Two ticks
+  auto input_data = vector<Trigger>(2);  // Two ticks
   input_data[0] = 1.0;
   auto& is = add_source(input_data);
   is.connect("output", cut, "input");
 
-  auto output = vector<double>{};
+  auto output = vector<Trigger>{};
   auto& sink = add_sink(output, sample_rate);
   cut.connect("output", sink, "input");
 
@@ -61,12 +61,12 @@ TEST_F(CutTest, TestLoopingTrigger)
 {
   auto& cut = add("core/cut");
 
-  auto input_data = vector<double>(2);  // Two ticks
+  auto input_data = vector<Trigger>(2);  // Two ticks
   input_data[0] = 1.0;
   auto& is = add_source(input_data);
   is.connect("output", cut, "input");
 
-  auto output = vector<double>{};
+  auto output = vector<Trigger>{};
   auto& sink = add_sink(output, sample_rate);
   cut.connect("output", sink, "input");
 

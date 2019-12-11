@@ -23,7 +23,7 @@ TEST_F(StartTest, TestTriggeredAtStart)
 {
   auto& start = add("core/start");
 
-  auto output = vector<double>{};
+  auto output = vector<Trigger>{};
   auto& sink = add_sink(output, sample_rate);
   start.connect("output", sink, "input");
 
@@ -37,7 +37,7 @@ TEST_F(StartTest, TestNotTriggeredAfterStart)
 {
   auto& start = add("core/start");
 
-  auto output = vector<double>{};
+  auto output = vector<Trigger>{};
   auto& sink = add_sink(output, sample_rate);
   start.connect("output", sink, "input");
 

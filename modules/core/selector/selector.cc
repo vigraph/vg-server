@@ -68,7 +68,7 @@ void Selector::setup(const SetupContext&)
 void Selector::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  auto _output{output.get_buffer()};
+  auto _output{output.get_buffer(td)};
 
   vector<const vector<double> *> input_bufs;
   for(const auto& input: input_list)

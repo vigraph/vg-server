@@ -40,7 +40,7 @@ public:
 void ControlIn::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(channel, control, input), tie(output),
+  sample_iterate(td, nsamples, {}, tie(channel, control, input), tie(output),
                  [&](double c, double co, const MIDI::Event& i, double& o)
   {
     if (i.type == MIDI::Event::Type::control_change &&

@@ -49,7 +49,7 @@ void BitCrush::tick(const TickData& td)
 {
   const auto sample_rate = output.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, {}, tie(input, rate, bits), tie(output),
+  sample_iterate(td, nsamples, {}, tie(input, rate, bits), tie(output),
                  [&](double i, double r, double b, double& o)
   {
     if (!r || ++samples_ago >= sample_rate / r)

@@ -74,6 +74,7 @@ template<> inline JSON::Value get_as_json(const Frame& frame)
   return value;
 }
 
+
 }} //namespaces
 
 #endif // !__VIGRAPH_VECTOR_MODULE_H

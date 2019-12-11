@@ -79,7 +79,7 @@ void ArtNetOut::tick(const TickData& td)
   if (!socket) return;
 
   const auto nsamples = td.samples_in_tick(frame_rate);
-  sample_iterate(nsamples, {}, tie(input), {},
+  sample_iterate(td, nsamples, {}, tie(input), {},
                  [&](const DMXState& input)
   {
     // Can spread over multiple Universes

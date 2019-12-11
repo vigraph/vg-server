@@ -78,7 +78,7 @@ public:
   void tick(const TickData& td) override
   {
     const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-    sample_iterate(nsamples, {}, {}, tie(output),
+    sample_iterate(td, nsamples, {}, {}, tie(output),
                    [&](T& o)
     {
       if (data.empty())

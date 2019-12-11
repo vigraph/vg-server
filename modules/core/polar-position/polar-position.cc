@@ -42,7 +42,7 @@ void PolarPositionFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(max(x.get_sample_rate(),
                                                y.get_sample_rate()));
-  sample_iterate(nsamples, {}, tie(angle, distance), tie(x, y),
+  sample_iterate(td, nsamples, {}, tie(angle, distance), tie(x, y),
                  [&](double angle, double distance, double& x, double& y)
   {
     auto rad = angle * 2 * M_PI;

@@ -45,7 +45,7 @@ void KeyIn::tick(const TickData& td)
                                max(start.get_sample_rate(),
                                    stop.get_sample_rate()));
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, {}, tie(channel, key, input),
+  sample_iterate(td, nsamples, {}, tie(channel, key, input),
                  tie(velocity, start, stop),
                  [&](double c, double co, const MIDI::Event& i,
                      double& v, double& _start, double& _stop)

@@ -90,7 +90,7 @@ void IDNOut::tick(const TickData& td)
   auto sample_time = td.first_sample_at(sample_rate);
   const auto sample_duration = td.sample_duration(sample_rate);
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, {}, tie(input), {},
+  sample_iterate(td, nsamples, {}, tie(input), {},
                  [&](const Frame& input)
   {
     transmit(input, sample_time, sample_rate);

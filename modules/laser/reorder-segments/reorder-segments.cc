@@ -42,7 +42,7 @@ public:
 void ReorderSegments::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(input), tie(output),
+  sample_iterate(td, nsamples, {}, tie(input), tie(output),
                  [&](const Frame& input, Frame& output)
   {
     output.points = optimiser.reorder_segments(input.points);

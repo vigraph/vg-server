@@ -168,7 +168,7 @@ void ALSAIn::tick(const TickData& td)
     {
       if (o->get_sample_rate() > sample_rate)
         sample_rate = o->get_sample_rate();
-      obuffers.emplace_back(o->get_buffer());
+      obuffers.emplace_back(o->get_buffer(td));
     }
     const auto nsamples = td.samples_in_tick(sample_rate);
     const auto in_nsamples = td.samples_in_tick(input_sample_rate);

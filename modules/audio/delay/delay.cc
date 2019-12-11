@@ -43,7 +43,7 @@ void Delay::tick(const TickData& td)
 
   const auto nsamples = td.samples_in_tick(sample_rate);
 
-  sample_iterate(nsamples, {}, tie(input, time), tie(output),
+  sample_iterate(td, nsamples, {}, tie(input, time), tie(output),
                  [&](double i, double t, double& o)
   {
     const auto bsamples = static_cast<size_t>(t * sample_rate);

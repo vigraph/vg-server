@@ -60,7 +60,7 @@ void OscillatorSource::tick(const TickData& td)
   const auto sample_rate = max(output.get_sample_rate(),
                                control.get_sample_rate());
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, {},
+  sample_iterate(td, nsamples, {},
                  tie(waveform, freq, pulse_width, phase, start, stop),
                  tie(output, control),
                  [&](Waveform::Type wf, double f, double pw, double phase,

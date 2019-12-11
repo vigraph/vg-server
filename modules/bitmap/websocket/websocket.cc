@@ -173,7 +173,7 @@ void WebSocket::tick(const TickData& td)
 {
   const auto sample_rate = input.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, {}, tie(input), {},
+  sample_iterate(td, nsamples, {}, tie(input), {},
                  [&](const Bitmap::Group& input)
   {
     if (!!server)

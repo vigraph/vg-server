@@ -68,7 +68,7 @@ void Envelope::tick(const TickData& td)
   auto sample_time = td.first_sample_at(sample_rate);
   const auto sample_duration = td.sample_duration(sample_rate);
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, {},
+  sample_iterate(td, nsamples, {},
                  tie(attack, decay, sustain, release, start, stop, reset),
                  tie(output, finished),
                  [&](double attack, double decay,

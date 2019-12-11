@@ -91,7 +91,7 @@ public:
 void Filter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(input, mode, cutoff, resonance, steepness),
+  sample_iterate(td, nsamples, {}, tie(input, mode, cutoff, resonance, steepness),
                  tie(output),
                  [&](double input, Mode mode, double cutoff,
                      double resonance, double steepness, double& o)

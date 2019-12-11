@@ -57,7 +57,7 @@ void Cut::tick(const TickData& td)
   auto trigger{was_triggered};
   if (nsamples) was_triggered = false;
 
-  sample_iterate(nsamples, {}, {},
+  sample_iterate(td, nsamples, {}, {},
                  tie(output),
                  [&](double& output)
   {

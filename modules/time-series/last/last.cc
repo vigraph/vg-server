@@ -42,7 +42,7 @@ public:
 void LastFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(input, samples), tie(output),
+  sample_iterate(td, nsamples, {}, tie(input, samples), tie(output),
                  [&](const DataCollection& input, double samples,
                      DataCollection& output)
   {

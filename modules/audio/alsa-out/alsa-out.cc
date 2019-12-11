@@ -183,7 +183,7 @@ void ALSAOut::tick(const TickData& td)
     const auto channels = nchannels;
     output_buffer.clear();
     output_buffer.reserve(nsamples * channels);
-    sample_iterate(nsamples, {},
+    sample_iterate(td, nsamples, {},
                    tie(channel1, channel2, channel3,
                        channel4, channel5, channel6), {},
                    [&](double c1, double c2, double c3,

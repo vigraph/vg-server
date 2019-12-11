@@ -52,7 +52,7 @@ void Loop::tick(const TickData& td)
 
   const auto nsamples = td.samples_in_tick(sample_rate);
 
-  sample_iterate(nsamples, {}, tie(input, play_start, play_stop,
+  sample_iterate(td, nsamples, {}, tie(input, play_start, play_stop,
                                    record_start, record_stop), tie(output),
                  [&](double i, double pb, double pe, double rb, double re,
                      double& o)

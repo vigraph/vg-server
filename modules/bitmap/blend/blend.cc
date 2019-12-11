@@ -142,7 +142,7 @@ void Blend::setup(const SetupContext&)
 void Blend::tick_horizontal(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(width, height, left, right),
+  sample_iterate(td, nsamples, {}, tie(width, height, left, right),
                  tie(output),
                  [&](double width, double height,
                      const Colour::RGB& left,
@@ -169,7 +169,7 @@ void Blend::tick_horizontal(const TickData& td)
 void Blend::tick_vertical(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(width, height, top, bottom),
+  sample_iterate(td, nsamples, {}, tie(width, height, top, bottom),
                  tie(output),
                  [&](double width, double height,
                      const Colour::RGB& top,
@@ -196,7 +196,7 @@ void Blend::tick_vertical(const TickData& td)
 void Blend::tick_rectangular(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(width, height, top_left, top_right,
+  sample_iterate(td, nsamples, {}, tie(width, height, top_left, top_right,
                                    bottom_left, bottom_right),
                  tie(output),
                  [&](double width, double height,
@@ -231,7 +231,7 @@ void Blend::tick_rectangular(const TickData& td)
 void Blend::tick_radial(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(width, height, centre, edge, radius),
+  sample_iterate(td, nsamples, {}, tie(width, height, centre, edge, radius),
                  tie(output),
                  [&](double width, double height,
                      const Colour::RGB& centre,

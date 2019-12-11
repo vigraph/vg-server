@@ -45,7 +45,7 @@ public:
 void Count::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {},
+  sample_iterate(td, nsamples, {},
                  tie(delta, up, down, reset),
                  tie(output),
                  [&](double delta,

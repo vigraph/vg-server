@@ -47,7 +47,7 @@ public:
 void Plotter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(input, points), tie(output),
+  sample_iterate(td, nsamples, {}, tie(input, points), tie(output),
                  [&](const DataCollection& input, double points,
                      Frame& output)
   {

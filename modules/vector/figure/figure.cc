@@ -89,7 +89,7 @@ public:
 void Figure::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {},
+  sample_iterate(td, nsamples, {},
                  tie(x_waveform, x_freq, x_phase, x_pulse_width, x_pos, x_scale,
                      y_waveform, y_freq, y_phase, y_pulse_width, y_pos, y_scale,
                      z_waveform, z_freq, z_phase, z_pulse_width, z_pos, z_scale,

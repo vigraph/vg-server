@@ -197,12 +197,12 @@ void WavIn::tick(const TickData& td)
   {
     if (o->get_sample_rate() > sample_rate)
       sample_rate = o->get_sample_rate();
-    obuffers.emplace_back(o->get_buffer());
+    obuffers.emplace_back(o->get_buffer(td));
   }
   const auto nsamples = td.samples_in_tick(sample_rate);
   const auto step = wav_sample_rate / sample_rate;
 
-  sample_iterate(nsamples, {}, tie(start, stop), tie(finished),
+  sample_iterate(td, nsamples, {}, tie(start, stop), tie(finished),
                  [&](double _start, double _stop, double &f)
   {
     f = 0;

@@ -40,7 +40,7 @@ public:
 void RectangleSource::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(width, height), tie(output),
+  sample_iterate(td, nsamples, {}, tie(width, height), tie(output),
                  [&](double width, double height,
                      Bitmap::Group& output)
   {

@@ -42,7 +42,7 @@ public:
 void RGBColour::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(r, g, b), tie(output),
+  sample_iterate(td, nsamples, {}, tie(r, g, b), tie(output),
                  [&](double r, double g, double b,
                      Colour::RGB& output)
   {

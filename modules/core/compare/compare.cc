@@ -58,7 +58,7 @@ void Compare::tick(const TickData& td)
                                max(equal.get_sample_rate(),
                                    higher.get_sample_rate()));
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples,
+  sample_iterate(td, nsamples,
                  tie(on_change),
                  tie(value, input),
                  tie(lower, equal, higher),

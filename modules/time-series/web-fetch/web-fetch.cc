@@ -103,7 +103,7 @@ void WebFetch::setup(const SetupContext&)
 void WebFetch::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, {}, tie(output),
+  sample_iterate(td, nsamples, {}, {}, tie(output),
                  [&](DataCollection& output)
   {
     output.add(data);

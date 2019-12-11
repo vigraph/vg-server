@@ -44,7 +44,7 @@ public:
 void Blend::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(mix, from, to), tie(output),
+  sample_iterate(td, nsamples, {}, tie(mix, from, to), tie(output),
                  [&](double mix, const Colour::RGB& from,
                      const Colour::RGB& to,
                      Colour::RGB& output)

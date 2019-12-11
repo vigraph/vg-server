@@ -222,7 +222,7 @@ void SDLSink::tick(const TickData& td)
     auto bpos = output_buffer.size();
     const auto channels = nchannels;
     output_buffer.resize(bpos + nsamples * channels);
-    sample_iterate(nsamples, {},
+    sample_iterate(td, nsamples, {},
                    tie(channel1, channel2, channel3,
                        channel4, channel5, channel6), {},
                    [&](double c1, double c2, double c3,

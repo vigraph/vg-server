@@ -42,7 +42,7 @@ public:
 void HSLColour::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(h, s, l), tie(output),
+  sample_iterate(td, nsamples, {}, tie(h, s, l), tie(output),
                  [&](double h, double s, double l,
                      Colour::RGB& output)
   {

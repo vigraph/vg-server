@@ -52,7 +52,7 @@ public:
 void Clip::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples,
+  sample_iterate(td, nsamples,
                  tie(exclude),
                  tie(min_x, min_y, min_z, max_x, max_y, max_z, alpha, input),
                  tie(output),

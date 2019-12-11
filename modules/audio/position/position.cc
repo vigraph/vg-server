@@ -44,7 +44,7 @@ void Position::tick(const TickData& td)
   const auto sample_rate = max(left.get_sample_rate(),
                                right.get_sample_rate());
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(nsamples, {}, tie(input, x), tie(left, right),
+  sample_iterate(td, nsamples, {}, tie(input, x), tie(left, right),
                  [](double i, double x, double& l, double& r)
   {
     x = min(max(x, -0.5), 0.5) + 0.5;

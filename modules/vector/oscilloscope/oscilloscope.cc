@@ -112,7 +112,7 @@ void Oscilloscope::tick(const TickData& td)
 
   const auto output_rate = output.get_sample_rate();
   const auto out_samples = td.samples_in_tick(output_rate);
-  auto out = output.get_buffer();
+  auto out = output.get_buffer(td);
   if (out_samples)
   {
     const auto s = slope.get();

@@ -43,7 +43,7 @@ public:
 void FillFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(nsamples, {}, tie(colour, input), tie(output),
+  sample_iterate(td, nsamples, {}, tie(colour, input), tie(output),
                  [&](const Colour::RGB& colour, const Bitmap::Group& input,
                      Bitmap::Group& output)
   {

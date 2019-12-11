@@ -49,7 +49,13 @@ inline void set_from_json(T& value, const JSON::Value& json);
 template<typename T>
 inline JSON::Value get_as_json(const T& value);
 template<typename T>
-inline void downsample(const vector<T>& from, vector<T>& to);
+inline void downsample(const vector<T>& from, vector<T>& to)
+{
+  const auto fsize = from.size();
+  const auto tsize = to.size();
+  for (auto i = 0u; i < tsize; ++i)
+    to[i] = from[(i * fsize) / tsize];
+}
 
 // Specialisation for <Number>
 template<>
@@ -68,15 +74,6 @@ template<>
 inline JSON::Value get_as_json(const Number& value)
 {
   return {value};
-}
-
-template<>
-inline void downsample(const vector<Number>& from, vector<Number>& to)
-{
-  const auto fsize = from.size();
-  const auto tsize = to.size();
-  for (auto i = 0u; i < tsize; ++i)
-    to[i] = from[(i * fsize) / tsize];
 }
 
 // Specialisation for <Trigger>
@@ -2453,9 +2450,9 @@ template<typename T>
 class Pin: public SimpleElement
 {
 private:
-  void tick(const TickData&) override
+  void tick(const TickData& td) override
   {
-    output.get_buffer().data = input.get_buffer();
+    output.get_buffer(td).data = input.get_buffer();
   }
 public:
   using SimpleElement::SimpleElement;

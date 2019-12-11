@@ -163,7 +163,7 @@ void ALSAIn::tick(const TickData& td)
     last_tick_end = event_last_read;
   auto earliest = last_tick_end - tick_duration;
   auto i = 0u;
-  sample_iterate(nsamples, {}, {},
+  sample_iterate(td, nsamples, {}, {},
                  tie(output),
                  [&](MIDI::Event& o)
   {

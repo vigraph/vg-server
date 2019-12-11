@@ -68,7 +68,7 @@ private:
                                             : 1.0;
     const auto nsamples = td.samples_in_tick(sample_rate);
 
-    auto out = output.get_buffer();
+    auto out = output.get_buffer(td);
 
     struct InputData
     {

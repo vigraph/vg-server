@@ -24,8 +24,8 @@ const auto sample_rate = 1;
 TEST_F(AddBlankingAnchorsTest, TestBlankingPointInsertion)
 {
   auto& sb = add("laser/add-blanking-anchors")
-    .set("leading", 1)
-    .set("trailing", 2);
+    .set("leading", Integer{1})
+    .set("trailing", Integer{2});
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];

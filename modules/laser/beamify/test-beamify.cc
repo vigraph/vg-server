@@ -47,7 +47,9 @@ TEST_F(BeamifyTest, TestDefaultDoesNothing)
 
 TEST_F(BeamifyTest, TestBeamifySpecified)
 {
-  auto& sb = add("laser/beamify").set("every", 2).set("extra", 1);
+  auto& sb = add("laser/beamify")
+            .set("every", Integer{2})
+            .set("extra", Integer{1});
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];

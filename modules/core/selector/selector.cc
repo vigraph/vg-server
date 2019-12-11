@@ -16,7 +16,7 @@ class Selector: public DynamicElement
 {
 private:
   vector<shared_ptr<Input<double>>> input_list;
-  int last_inputs{0};
+  Integer last_inputs{0};
   int current{0};
 
   // Element virtuals
@@ -33,7 +33,7 @@ public:
   using DynamicElement::DynamicElement;
 
   // Settings
-  Setting<int> inputs;
+  Setting<Integer> inputs;
 
   // Configuration
   Output<double> output;

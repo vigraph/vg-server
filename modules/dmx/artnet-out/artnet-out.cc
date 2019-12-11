@@ -44,10 +44,10 @@ public:
 
   // Settings
   Setting<string> host_address;
-  Setting<int> host_port{ArtNet::udp_port};
+  Setting<Integer> host_port{ArtNet::udp_port};
   Setting<string> source_address{default_source_address};
-  Setting<double> frame_rate{default_frame_rate};
-  Setting<double> universe{default_universe};
+  Setting<Number> frame_rate{default_frame_rate};
+  Setting<Number> universe{default_universe};
 
   // Input
   Input<DMXState> input;

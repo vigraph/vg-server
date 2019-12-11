@@ -15,8 +15,8 @@ namespace {
 class AverageFilter: public SimpleElement
 {
 private:
-  queue<double> sample_buffer;
-  double total = 0.0;
+  queue<Number> sample_buffer;
+  Number total = 0.0;
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -35,9 +35,9 @@ public:
 
   // Configuration
   Setting<bool> rms{false};
-  Setting<int> samples{100};
-  Input<double> input{0.0};
-  Output<double> output;
+  Setting<Integer> samples{100};
+  Input<Number> input{0.0};
+  Output<Number> output;
 };
 
 //--------------------------------------------------------------------------
@@ -62,7 +62,7 @@ void AverageFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(nsamples, {}, tie(input), tie(output),
-                 [&](double input, double& output)
+                 [&](Number input, Number& output)
   {
     sample_buffer.push(input);
     if (rms)

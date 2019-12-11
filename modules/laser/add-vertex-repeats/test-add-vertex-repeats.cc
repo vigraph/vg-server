@@ -23,8 +23,8 @@ const auto sample_rate = 1;
 TEST_F(AddVertexRepeatsTest, TestMaximumAngleVertexPointInsertion)
 {
   auto& sb = add("laser/add-vertex-repeats")
-    .set("max-angle", 30.0)
-    .set("repeats", 5);
+    .set("max-angle", Number{30.0})
+    .set("repeats", Integer{5});
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
@@ -56,8 +56,8 @@ TEST_F(AddVertexRepeatsTest, TestMaximumAngleVertexPointInsertion)
 TEST_F(AddVertexRepeatsTest, TestMaximumAngleIgnoresSmallAngles)
 {
   auto& sb = add("laser/add-vertex-repeats")
-    .set("max-angle", 30.0)
-    .set("repeats", 5);
+    .set("max-angle", Number{30.0})
+    .set("repeats", Integer{5});
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];

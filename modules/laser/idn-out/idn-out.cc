@@ -49,12 +49,12 @@ public:
 
   // Settings
   Setting<string> host_address;
-  Setting<int> host_port{IDN::Hello::default_port};
-  Setting<int> packet_size{default_packet_size};
-  Setting<double> config_interval{default_config_interval};
+  Setting<Integer> host_port{IDN::Hello::default_port};
+  Setting<Integer> packet_size{default_packet_size};
+  Setting<Number> config_interval{default_config_interval};
   Setting<bool> intensity_enabled{false};
   Setting<string> source_address{default_source_address};
-  Setting<double> frame_rate{default_frame_rate};
+  Setting<Integer> frame_rate{default_frame_rate};
 
   // Input
   Input<Frame> input;

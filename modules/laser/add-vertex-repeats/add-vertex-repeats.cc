@@ -34,8 +34,8 @@ public:
   using SimpleElement::SimpleElement;
 
   // Settings
-  Setting<int> repeats{default_repeats};
-  Setting<double> max_angle{default_max_angle};
+  Setting<Integer> repeats{default_repeats};
+  Setting<Number> max_angle{default_max_angle};
 
   // Input
   Input<Frame> input;

@@ -45,7 +45,7 @@ private:
 public:
   using SimpleElement::SimpleElement;
 
-  Setting<int> voices;
+  Setting<Integer> voices;
   Input<double> channel{-1};
   Input<MIDI::Event> input;
   Output<MIDI::Event> output;

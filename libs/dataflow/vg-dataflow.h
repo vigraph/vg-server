@@ -34,6 +34,9 @@ const auto default_frequency = 25.0;
 const auto default_tick_interval = Time::Duration{1.0 / default_frequency};
 
 // Typedefs
+using Number = double;
+using Integer = int64_t;
+using Trigger = unsigned;
 typedef double timestamp_t; // Relative timestamp
 
 //==========================================================================
@@ -767,12 +770,12 @@ inline void set_from_json(T& value, const JSON::Value& json);
 template<typename T>
 inline JSON::Value get_as_json(const T& value);
 
-// Specialisation for <double>
+// Specialisation for <Number>
 template<>
-inline string get_module_type<double>() { return "number"; }
+inline string get_module_type<Number>() { return "number"; }
 
 template<>
-inline void set_from_json(double& value, const JSON::Value& json)
+inline void set_from_json(Number& value, const JSON::Value& json)
 {
   if (json.type == JSON::Value::NUMBER)
     value = json.f;
@@ -781,7 +784,30 @@ inline void set_from_json(double& value, const JSON::Value& json)
 }
 
 template<>
-inline JSON::Value get_as_json(const double& value)
+inline JSON::Value get_as_json(const Number& value)
+{
+  return {value};
+}
+
+// Specialisation for <Trigger>
+template<>
+inline string get_module_type<Trigger>() { return "trigger"; }
+
+template<>
+inline void set_from_json(Trigger& value, const JSON::Value& json)
+{
+  if (json.type == JSON::Value::INTEGER)
+    value = json.n;
+  else if (json.type == JSON::Value::NUMBER)
+    value = json.f;
+  else if (json.type == JSON::Value::TRUE_)
+    value = 1;
+  else
+    value = 0;
+}
+
+template<>
+inline JSON::Value get_as_json(const Trigger& value)
 {
   return {value};
 }
@@ -802,21 +828,21 @@ inline JSON::Value get_as_json(const string& value)
   return {value};
 }
 
-// Specialisation for <int>
+// Specialisation for <Integer>
 template<>
-inline string get_module_type<int>() { return "integer"; }
+inline string get_module_type<Integer>() { return "integer"; }
 
 template<>
-inline void set_from_json(int& value, const JSON::Value& json)
+inline void set_from_json(Integer& value, const JSON::Value& json)
 {
-  if (json.type == JSON::Value::NUMBER)
-    value = json.f;
-  else
+  if (json.type == JSON::Value::INTEGER)
     value = json.n;
+  else
+    value = json.f;
 }
 
 template<>
-inline JSON::Value get_as_json(const int& value)
+inline JSON::Value get_as_json(const Integer& value)
 {
   return {value};
 }

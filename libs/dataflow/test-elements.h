@@ -34,7 +34,7 @@ public:
   // Generate some data
   void tick(const TickData& td) override
   {
-    auto buffer = output.get_buffer();
+    auto buffer = output.get_buffer(td);
     const auto nsamples = td.samples_in_tick(sample_rate);
     for (auto i = 0u; i < nsamples; ++i)
       buffer.data.push_back(td.start + 1);
@@ -79,10 +79,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Process some data
-  void tick(const TickData&) override
+  void tick(const TickData& td) override
   {
     auto& in = input.get_buffer();
-    auto out = output.get_buffer();
+    auto out = output.get_buffer(td);
     for (const auto i: in)
       out.data.push_back(i * value.get());
     if (tick_order) *tick_order += get_id();
@@ -119,6 +119,12 @@ public:
 
   // Construct
   using SimpleElement::SimpleElement;
+
+  // Setup
+  void setup(const SetupContext&) override
+  {
+    input.set_sample_rate(sample_rate);
+  }
 
   // Tick
   void tick(const TickData&) override

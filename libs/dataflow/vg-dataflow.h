@@ -39,6 +39,138 @@ using Integer = int64_t;
 using Trigger = unsigned;
 typedef double timestamp_t; // Relative timestamp
 
+//--------------------------------------------------------------------------
+// Value type templates
+
+// Generic (non-)definition
+template<typename T> inline string get_module_type();
+template<typename T>
+inline void set_from_json(T& value, const JSON::Value& json);
+template<typename T>
+inline JSON::Value get_as_json(const T& value);
+template<typename T>
+inline void downsample(const vector<T>& from, vector<T>& to);
+
+// Specialisation for <Number>
+template<>
+inline string get_module_type<Number>() { return "number"; }
+
+template<>
+inline void set_from_json(Number& value, const JSON::Value& json)
+{
+  if (json.type == JSON::Value::NUMBER)
+    value = json.f;
+  else
+    value = json.n;
+}
+
+template<>
+inline JSON::Value get_as_json(const Number& value)
+{
+  return {value};
+}
+
+template<>
+inline void downsample(const vector<Number>& from, vector<Number>& to)
+{
+  const auto fsize = from.size();
+  const auto tsize = to.size();
+  for (auto i = 0u; i < tsize; ++i)
+    to[i] = from[(i * fsize) / tsize];
+}
+
+// Specialisation for <Trigger>
+template<>
+inline string get_module_type<Trigger>() { return "trigger"; }
+
+template<>
+inline void set_from_json(Trigger& value, const JSON::Value& json)
+{
+  if (json.type == JSON::Value::INTEGER)
+    value = json.n;
+  else if (json.type == JSON::Value::NUMBER)
+    value = json.f;
+  else if (json.type == JSON::Value::TRUE_)
+    value = 1;
+  else
+    value = 0;
+}
+
+template<>
+inline JSON::Value get_as_json(const Trigger& value)
+{
+  return {value};
+}
+
+template<>
+inline void downsample(const vector<Trigger>& from, vector<Trigger>& to)
+{
+  const auto fsize = from.size();
+  const auto tsize = to.size();
+  for (auto i = 0u; i < tsize; ++i)
+  {
+    auto t = 0u;
+    const auto b = (i * fsize) / tsize;
+    const auto e = ((i + 1) * fsize) / tsize;
+    for (auto j = b; j < e; ++j)
+      t += from[j];
+    to[i] = t;
+  }
+}
+
+// Specialisation for <string>
+template<>
+inline string get_module_type<string>() { return "text"; }
+
+template<>
+inline void set_from_json(string& value, const JSON::Value& json)
+{
+  value = json.s;
+}
+
+template<>
+inline JSON::Value get_as_json(const string& value)
+{
+  return {value};
+}
+
+// Specialisation for <Integer>
+template<>
+inline string get_module_type<Integer>() { return "integer"; }
+
+template<>
+inline void set_from_json(Integer& value, const JSON::Value& json)
+{
+  if (json.type == JSON::Value::INTEGER)
+    value = json.n;
+  else
+    value = json.f;
+}
+
+template<>
+inline JSON::Value get_as_json(const Integer& value)
+{
+  return {value};
+}
+
+// Specialisation for <bool>
+template<>
+inline string get_module_type<bool>() { return "boolean"; }
+
+template<>
+inline void set_from_json(bool& value, const JSON::Value& json)
+{
+  value = (json.type == JSON::Value::TRUE_)
+    || (json.type == JSON::Value::NUMBER && json.f != 0.0)
+    || (json.type == JSON::Value::INTEGER && json.n != 0);
+}
+
+template<>
+inline JSON::Value get_as_json(const bool& value)
+{
+  return {value ? JSON::Value::TRUE_ : JSON::Value::FALSE_};
+}
+
 //==========================================================================
 // Tick data - data that is passed for each tick
 struct TickData
@@ -598,6 +730,25 @@ private:
   map<Input<T> *, OutputData> output_data;
   Input<T> *primary_data = nullptr;
 
+  void set_primary_data()
+  {
+    if (output_data.empty())
+    {
+      primary_data = nullptr;
+      return;
+    }
+    double high_sample_rate = 0.0;
+    for (const auto& od: output_data)
+    {
+      const auto& i = od.first;
+      if (!primary_data || i->get_sample_rate() > high_sample_rate)
+      {
+        primary_data = i;
+        high_sample_rate = i->get_sample_rate();
+      }
+    }
+  }
+
 public:
   void connect(GraphElement *from_element,
                GraphElement *to_element, Input<T>& to)
@@ -605,8 +756,7 @@ public:
     auto& id = to.input_data[this];
     id.element = from_element;
     output_data[&to] = {to_element, &id};
-    if (!primary_data)
-      primary_data = &to;
+    set_primary_data();
   }
 
   double get_sample_rate() const override
@@ -632,22 +782,16 @@ public:
   {
     to.input_data.erase(this);
     output_data.erase(&to);
-    if (primary_data == &to)
-    {
-      if (output_data.empty())
-        primary_data = nullptr;
-      else
-        primary_data = output_data.begin()->first;
-    }
+    set_primary_data();
   }
 
   // Disconnect everything
   void disconnect() override
   {
-    primary_data = nullptr;
     for (const auto& od: output_data)
       od.first->input_data.erase(this);
     output_data.clear();
+    set_primary_data();
   }
 
   bool connected() const
@@ -657,18 +801,20 @@ public:
 
   struct Buffer
   {
+    const TickData& td;
     Output<T> *out = nullptr;
     vector<T>& data;
-    Buffer(Output<T> * _out, vector<T>& _data): out{_out}, data{_data} {}
-    ~Buffer() { if (out) out->complete(); }
+    Buffer(const TickData& _td, Output<T> * _out, vector<T>& _data):
+      td{_td}, out{_out}, data{_data} {}
+    ~Buffer() { if (out) out->complete(td); }
   };
-  Buffer get_buffer()
+  Buffer get_buffer(const TickData& td)
   {
     static auto empty = vector<T>{};
-    static auto empty_buffer = Buffer{nullptr, empty};
+    static auto empty_buffer = Buffer{td, nullptr, empty};
     if (!primary_data)
       return empty_buffer;
-    return Buffer{this, output_data[primary_data].input->data};
+    return Buffer{td, this, output_data[primary_data].input->data};
   }
 
   vector<Connection> get_connections() const override
@@ -679,18 +825,37 @@ public:
     return result;
   }
 
-  void complete()
+  void complete(const TickData& td)
   {
     if (!output_data.empty())
     {
-      const auto& b = output_data[primary_data];
+      const auto& p = output_data[primary_data];
 
       for (auto& o: output_data)
       {
         if (o.first != primary_data)
-          o.second.input->data = b.input->data;
-        o.second.input->ready = true;
+        {
+          const auto nsamples = td.samples_in_tick(o.first->get_sample_rate());
+          if (p.input->data.size() > nsamples)
+          {
+            o.second.input->data.resize(nsamples);
+            downsample(p.input->data, o.second.input->data);
+          }
+          else
+          {
+            o.second.input->data = p.input->data;
+          }
+          o.second.input->ready = true;
+        }
       }
+      const auto psamples = td.samples_in_tick(primary_data->get_sample_rate());
+      if (p.input->data.size() > psamples)
+      {
+        const auto t = p.input->data;
+        p.input->data.resize(psamples);
+        downsample(t, p.input->data);
+      }
+      p.input->ready = true;
     }
   }
 
@@ -759,111 +924,6 @@ public:
 
   virtual ~Module() {}
 };
-
-//--------------------------------------------------------------------------
-// Value type templates
-
-// Generic (non-)definition
-template<typename T> inline string get_module_type();
-template<typename T>
-inline void set_from_json(T& value, const JSON::Value& json);
-template<typename T>
-inline JSON::Value get_as_json(const T& value);
-
-// Specialisation for <Number>
-template<>
-inline string get_module_type<Number>() { return "number"; }
-
-template<>
-inline void set_from_json(Number& value, const JSON::Value& json)
-{
-  if (json.type == JSON::Value::NUMBER)
-    value = json.f;
-  else
-    value = json.n;
-}
-
-template<>
-inline JSON::Value get_as_json(const Number& value)
-{
-  return {value};
-}
-
-// Specialisation for <Trigger>
-template<>
-inline string get_module_type<Trigger>() { return "trigger"; }
-
-template<>
-inline void set_from_json(Trigger& value, const JSON::Value& json)
-{
-  if (json.type == JSON::Value::INTEGER)
-    value = json.n;
-  else if (json.type == JSON::Value::NUMBER)
-    value = json.f;
-  else if (json.type == JSON::Value::TRUE_)
-    value = 1;
-  else
-    value = 0;
-}
-
-template<>
-inline JSON::Value get_as_json(const Trigger& value)
-{
-  return {value};
-}
-
-// Specialisation for <string>
-template<>
-inline string get_module_type<string>() { return "text"; }
-
-template<>
-inline void set_from_json(string& value, const JSON::Value& json)
-{
-  value = json.s;
-}
-
-template<>
-inline JSON::Value get_as_json(const string& value)
-{
-  return {value};
-}
-
-// Specialisation for <Integer>
-template<>
-inline string get_module_type<Integer>() { return "integer"; }
-
-template<>
-inline void set_from_json(Integer& value, const JSON::Value& json)
-{
-  if (json.type == JSON::Value::INTEGER)
-    value = json.n;
-  else
-    value = json.f;
-}
-
-template<>
-inline JSON::Value get_as_json(const Integer& value)
-{
-  return {value};
-}
-
-// Specialisation for <bool>
-template<>
-inline string get_module_type<bool>() { return "boolean"; }
-
-template<>
-inline void set_from_json(bool& value, const JSON::Value& json)
-{
-  value = (json.type == JSON::Value::TRUE_)
-    || (json.type == JSON::Value::NUMBER && json.f != 0.0)
-    || (json.type == JSON::Value::INTEGER && json.n != 0);
-}
-
-template<>
-inline JSON::Value get_as_json(const bool& value)
-{
-  return {value ? JSON::Value::TRUE_ : JSON::Value::FALSE_};
-}
 
 class SimpleModule: public Module
 {
@@ -1723,7 +1783,7 @@ private:
 
   template<typename... Ss, size_t... Sc, typename... Is, size_t... Ic,
            typename... Os, size_t... Oc, typename F>
-  void sample_iterate_impl(unsigned int count,
+  void sample_iterate_impl(const TickData& td, unsigned int count,
                            const tuple<Ss...>& ss, index_sequence<Sc...>,
                            const tuple<Is...>& is, index_sequence<Ic...>,
                            const tuple<Os...>& os, index_sequence<Oc...>,
@@ -1733,7 +1793,7 @@ private:
     (void)settings;
     auto inputs = make_tuple(get<Ic>(is).get_buffer()...);
     (void)inputs;
-    auto outputs = make_tuple(get<Oc>(os).get_buffer()...);
+    auto outputs = make_tuple(get<Oc>(os).get_buffer(td)...);
     (void)outputs;
     // Resize all outputs to wanted size
     int dummy[] = {0, (void(get<Oc>(outputs).data.resize(count)), 0)...};
@@ -1755,11 +1815,12 @@ private:
 
 protected:
   template<typename... Ss, typename... Is, typename... Os, typename F>
-  void sample_iterate(const unsigned count, const tuple<Ss...>& ss,
+  void sample_iterate(const TickData& td, const unsigned count,
+                      const tuple<Ss...>& ss,
                       const tuple<Is...>& is, const tuple<Os...>& os,
                       const F& f)
   {
-    sample_iterate_impl(count,
+    sample_iterate_impl(td, count,
                         ss, index_sequence_for<Ss...>{},
                         is, index_sequence_for<Is...>{},
                         os, index_sequence_for<Os...>{},

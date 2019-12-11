@@ -35,9 +35,6 @@ private:
 public:
   using SimpleElement::SimpleElement;
 
-  // Setting
-  Setting<bool> on_change;
-
   // Configuration
   Input<Number> value{0.0};
 
@@ -45,51 +42,63 @@ public:
   Input<Number> input{0.0};
 
   // Outputs
-  Output<Number> lower;     // When input < value
-  Output<Number> equal;     // When input == value
-  Output<Number> higher;    // When input > value
+  Output<Number> is_lower;     // When input < value
+  Output<Number> is_equal;     // When input == value
+  Output<Number> is_higher;    // When input > value
+  Output<Trigger> went_lower;
+  Output<Trigger> went_equal;
+  Output<Trigger> went_higher;
 };
 
 //--------------------------------------------------------------------------
 // Tick
 void Compare::tick(const TickData& td)
 {
-  const auto sample_rate = max(lower.get_sample_rate(),
-                               max(equal.get_sample_rate(),
-                                   higher.get_sample_rate()));
+  const auto sample_rate = max(is_lower.get_sample_rate(),
+                               max(is_equal.get_sample_rate(),
+                                   max(is_higher.get_sample_rate(),
+                                       max(went_lower.get_sample_rate(),
+                                           max(went_equal.get_sample_rate(),
+                                           went_higher.get_sample_rate())))));
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples,
-                 tie(on_change),
+                 {},
                  tie(value, input),
-                 tie(lower, equal, higher),
-                 [&](bool on_change,
-                     double value, double input,
-                     double& lower, double& equal, double& higher)
+                 tie(is_lower, is_equal, is_higher,
+                     went_lower, went_equal, went_higher),
+                 [&](Number value, Number input,
+                     Number& is_lower, Number& is_equal, Number& is_higher,
+                     Trigger& went_lower, Trigger& went_equal,
+                     Trigger& went_higher)
   {
-    lower = equal = higher = 0.0;
+    is_lower = is_equal = is_higher = 0.0;
+    went_lower = went_equal = went_higher = 0.0;
     if (input > value)
     {
-      if (!on_change || last != Last::higher)
+      if (last != Last::higher)
       {
-        higher = 1;
+        went_higher = 1;
         last = Last::higher;
       }
+      is_higher = 1;
     }
     else if (input < value)
     {
-      if (!on_change || last != Last::lower)
+      if (last != Last::lower)
       {
-        lower = 1;
+        went_lower = 1;
         last = Last::lower;
       }
+      is_lower = 1;
     }
     else
     {
-      if (!on_change || last != Last::equal)
+      if (last != Last::equal)
       {
-        equal = 1;
+        went_equal = 1;
         last = Last::equal;
       }
+      is_equal = 1;
     }
   });
 }
@@ -101,17 +110,18 @@ Dataflow::SimpleModule module
   "compare",
   "Compare",
   "core",
+  {},
   {
-    { "on-change",  &Compare::on_change }
+    { "value",        &Compare::value     },
+    { "input",        &Compare::input     }
   },
   {
-    { "value",      &Compare::value     },
-    { "input",      &Compare::input     }
-  },
-  {
-    { "lower",     &Compare::lower      },
-    { "equal",     &Compare::equal      },
-    { "higher",    &Compare::higher     }
+    { "is-lower",     &Compare::is_lower      },
+    { "is-equal",     &Compare::is_equal      },
+    { "is-higher",    &Compare::is_higher     },
+    { "went-lower",   &Compare::went_lower    },
+    { "went-equal",   &Compare::went_equal    },
+    { "went-higher",  &Compare::went_higher   },
   }
 };
 

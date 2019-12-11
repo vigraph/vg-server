@@ -22,10 +22,10 @@ const auto sample_rate = 1;
 TEST_F(CompareTest, TestDefaultCompareLowerTriggersLower)
 {
   auto& cmp = add("core/compare")
-              .set("input", -0.5);
-  auto output = vector<double>{};
+              .set("input", Number{-0.5});
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("lower", snk, "input");
+  cmp.connect("is-lower", snk, "input");
 
   run();
 
@@ -37,10 +37,10 @@ TEST_F(CompareTest, TestDefaultCompareLowerTriggersLower)
 TEST_F(CompareTest, TestDefaultCompareLowerTriggersDoesntTriggerEqual)
 {
   auto& cmp = add("core/compare")
-              .set("input", -0.5);
-  auto output = vector<double>{};
+              .set("input", Number{-0.5});
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("equal", snk, "input");
+  cmp.connect("is-equal", snk, "input");
 
   run();
 
@@ -52,10 +52,10 @@ TEST_F(CompareTest, TestDefaultCompareLowerTriggersDoesntTriggerEqual)
 TEST_F(CompareTest, TestDefaultCompareLowerDoesntTriggerHigher)
 {
   auto& cmp = add("core/compare")
-              .set("input", -0.5);
-  auto output = vector<double>{};
+              .set("input", Number{-0.5});
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("higher", snk, "input");
+  cmp.connect("is-higher", snk, "input");
 
   run();
 
@@ -67,9 +67,9 @@ TEST_F(CompareTest, TestDefaultCompareLowerDoesntTriggerHigher)
 TEST_F(CompareTest, TestDefaultCompareEqualTriggersEqual)
 {
   auto& cmp = add("core/compare");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("equal", snk, "input");
+  cmp.connect("is-equal", snk, "input");
 
   run();
 
@@ -81,9 +81,9 @@ TEST_F(CompareTest, TestDefaultCompareEqualTriggersEqual)
 TEST_F(CompareTest, TestDefaultCompareEqualTriggersDoesntTriggerLower)
 {
   auto& cmp = add("core/compare");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("lower", snk, "input");
+  cmp.connect("is-lower", snk, "input");
 
   run();
 
@@ -95,9 +95,9 @@ TEST_F(CompareTest, TestDefaultCompareEqualTriggersDoesntTriggerLower)
 TEST_F(CompareTest, TestDefaultCompareEqualDoesntTriggerHigher)
 {
   auto& cmp = add("core/compare");
-  auto output = vector<double>{};
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("higher", snk, "input");
+  cmp.connect("is-higher", snk, "input");
 
   run();
 
@@ -109,10 +109,10 @@ TEST_F(CompareTest, TestDefaultCompareEqualDoesntTriggerHigher)
 TEST_F(CompareTest, TestDefaultCompareHigherTriggersHigher)
 {
   auto& cmp = add("core/compare")
-              .set("input", 0.5);
-  auto output = vector<double>{};
+              .set("input", Number{0.5});
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("higher", snk, "input");
+  cmp.connect("is-higher", snk, "input");
 
   run();
 
@@ -124,10 +124,10 @@ TEST_F(CompareTest, TestDefaultCompareHigherTriggersHigher)
 TEST_F(CompareTest, TestDefaultCompareHigherTriggersDoesntTriggerEqual)
 {
   auto& cmp = add("core/compare")
-              .set("input", 0.5);
-  auto output = vector<double>{};
+              .set("input", Number{0.5});
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("equal", snk, "input");
+  cmp.connect("is-equal", snk, "input");
 
   run();
 
@@ -139,10 +139,10 @@ TEST_F(CompareTest, TestDefaultCompareHigherTriggersDoesntTriggerEqual)
 TEST_F(CompareTest, TestDefaultCompareHigherDoesntTriggerLower)
 {
   auto& cmp = add("core/compare")
-              .set("input", 0.5);
-  auto output = vector<double>{};
+              .set("input", Number{0.5});
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("lower", snk, "input");
+  cmp.connect("is-lower", snk, "input");
 
   run();
 
@@ -154,11 +154,11 @@ TEST_F(CompareTest, TestDefaultCompareHigherDoesntTriggerLower)
 TEST_F(CompareTest, TestSetValueCompareHigherDoesntTriggerHigher)
 {
   auto& cmp = add("core/compare")
-              .set("value", 0.6)
-              .set("input", 0.5);
-  auto output = vector<double>{};
+              .set("value", Number{0.6})
+              .set("input", Number{0.5});
+  auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
-  cmp.connect("higher", snk, "input");
+  cmp.connect("is-higher", snk, "input");
 
   run();
 
@@ -170,52 +170,49 @@ TEST_F(CompareTest, TestSetValueCompareHigherDoesntTriggerHigher)
 TEST_F(CompareTest, TestDefaultCompareLowerWithOnChangeTriggersLowerOnlyOnce)
 {
   auto& cmp = add("core/compare")
-              .set("input", -1.0)
-              .set("on-change", true);
-  auto output = vector<double>{};
+              .set("input", Number{-1.0});
+  auto output = vector<Trigger>{};
   auto& snk = add_sink(output, 2);
-  cmp.connect("lower", snk, "input");
+  cmp.connect("went-lower", snk, "input");
 
   run();
 
   // Should be 2 samples at 1.0, 0.0
   ASSERT_EQ(2, output.size());
-  EXPECT_EQ(1.0, output[0]);
-  EXPECT_EQ(0.0, output[1]);
+  EXPECT_EQ(1, output[0]);
+  EXPECT_EQ(0, output[1]);
 }
 
 TEST_F(CompareTest, TestDefaultCompareEqualWithOnChangeTriggersEqualOnlyOnce)
 {
   auto& cmp = add("core/compare")
-              .set("input", 0.0)
-              .set("on-change", true);
-  auto output = vector<double>{};
+              .set("input", Number{0.0});
+  auto output = vector<Trigger>{};
   auto& snk = add_sink(output, 2);
-  cmp.connect("equal", snk, "input");
+  cmp.connect("went-equal", snk, "input");
 
   run();
 
   // Should be 2 samples at 1.0, 0.0
   ASSERT_EQ(2, output.size());
-  EXPECT_EQ(1.0, output[0]);
-  EXPECT_EQ(0.0, output[1]);
+  EXPECT_EQ(1, output[0]);
+  EXPECT_EQ(0, output[1]);
 }
 
 TEST_F(CompareTest, TestDefaultCompareHigherWithOnChangeTriggersHigherOnlyOnce)
 {
   auto& cmp = add("core/compare")
-              .set("input", 0.5)
-              .set("on-change", true);
-  auto output = vector<double>{};
+              .set("input", Number{0.5});
+  auto output = vector<Trigger>{};
   auto& snk = add_sink(output, 2);
-  cmp.connect("higher", snk, "input");
+  cmp.connect("went-higher", snk, "input");
 
   run();
 
   // Should be 2 samples at 1.0, 0.0
   ASSERT_EQ(2, output.size());
-  EXPECT_EQ(1.0, output[0]);
-  EXPECT_EQ(0.0, output[1]);
+  EXPECT_EQ(1, output[0]);
+  EXPECT_EQ(0, output[1]);
 }
 
 int main(int argc, char **argv)

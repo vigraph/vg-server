@@ -72,8 +72,7 @@ private:
   { in.run(); }
 
 public:
-  ALSAInThread(ALSAIn& _in): in{_in}
-  { start(); }
+  ALSAInThread(ALSAIn& _in): in{_in} {}
 };
 
 //--------------------------------------------------------------------------
@@ -99,6 +98,7 @@ void ALSAIn::setup(const SetupContext&)
 
   thread.reset(new ALSAInThread(*this));
   running = true;
+  thread->start();
 }
 
 //--------------------------------------------------------------------------

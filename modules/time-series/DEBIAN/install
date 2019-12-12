@@ -1,6 +1,6 @@
-web-fetch/vg-module-time-series-web-fetch.so /usr/lib/vigraph/module
-offset/vg-module-time-series-offset.so /usr/lib/vigraph/module
-scale/vg-module-time-series-scale.so /usr/lib/vigraph/module
-last/vg-module-time-series-last.so /usr/lib/vigraph/module
-average/vg-module-time-series-average.so /usr/lib/vigraph/module
-plot/vg-module-time-series-plot.so /usr/lib/vigraph/module
+web-fetch/vg-module-time-series-web-fetch.so /usr/lib/vigraph/modules
+offset/vg-module-time-series-offset.so /usr/lib/vigraph/modules
+scale/vg-module-time-series-scale.so /usr/lib/vigraph/modules
+last/vg-module-time-series-last.so /usr/lib/vigraph/modules
+average/vg-module-time-series-average.so /usr/lib/vigraph/modules
+plot/vg-module-time-series-plot.so /usr/lib/vigraph/modules

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph Music library
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-music
+TYPE    = lib
+DEPENDS = 
+
+include_rules

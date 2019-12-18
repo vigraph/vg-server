@@ -6,13 +6,11 @@
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../core-module.h"
+#include "../audio-module.h"
 #include "../../waveform.h"
-#include "vg-geometry.h"
+#include "vg-music.h"
 
 namespace {
-
-using namespace ViGraph::Geometry;
 
 //==========================================================================
 // Oscillator source
@@ -41,9 +39,10 @@ public:
 
   // Configuration
   Input<Waveform::Type> waveform;
-  Input<Number> freq{1}; // Hz
+  Input<Number> note{0};   // 1 per octave, 0 = Middle C
+  Input<Number> octave{0}; // 1 per octave, added to above
+  Input<Number> detune{0}; // 1 per semi tone, added/12 to above
   Input<Number> pulse_width{0.5};
-  Input<Number> phase{0};
 
   // Triggers
   Input<Trigger> start{0.0};    // Trigger to start
@@ -51,22 +50,21 @@ public:
 
   // Output
   Output<Number> output;
-  Output<Number> control;
 };
 
 //--------------------------------------------------------------------------
 // Generate a fragment
 void OscillatorSource::tick(const TickData& td)
 {
-  const auto sample_rate = max(output.get_sample_rate(),
-                               control.get_sample_rate());
+  const auto sample_rate = output.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {},
-                 tie(waveform, freq, pulse_width, phase, start, stop),
-                 tie(output, control),
-                 [&](Waveform::Type wf, Number f, Number pw, Number phase,
+                 tie(waveform, note, octave, detune, pulse_width, start, stop),
+                 tie(output),
+                 [&](Waveform::Type waveform, Number note, Number octave,
+                     Number detune, Number pulse_width,
                      Trigger _start, Trigger _stop,
-                     Number& o, Number& c)
+                     Number& output)
   {
     if (_stop)
     {
@@ -87,10 +85,10 @@ void OscillatorSource::tick(const TickData& td)
       case State::enabled:
       case State::completing:
       {
-        auto tp = theta+phase;
-        o = Waveform::get_value(wf, pw, tp-floor(tp));
-        c = (o + 1) / 2;
-        theta += f / sample_rate;
+        output = Waveform::get_value(waveform, pulse_width, theta-floor(theta));
+        auto cv = note + octave + detune/12;
+        auto freq = Music::cv_to_frequency(cv);
+        theta += freq / sample_rate;
         if (theta >= 1)
         {
           theta -= floor(theta); // Wrap to 0..1
@@ -101,8 +99,7 @@ void OscillatorSource::tick(const TickData& td)
       }
 
       case State::disabled:
-        o = 0;
-        c = 0;
+        output = 0;
         break;
     }
   });
@@ -111,20 +108,20 @@ void OscillatorSource::tick(const TickData& td)
 Dataflow::SimpleModule module
 {
   "oscillator",
-  "Oscillator",
-  "core",
+  "Audio Oscillator",
+  "audio",
   {},
   {
     { "wave",         &OscillatorSource::waveform },
-    { "freq",         &OscillatorSource::freq },
+    { "note",         &OscillatorSource::note },
+    { "octave",       &OscillatorSource::octave },
+    { "detune",       &OscillatorSource::detune },
     { "pulse-width",  &OscillatorSource::pulse_width },
-    { "phase",        &OscillatorSource::phase },
     { "start",        &OscillatorSource::start },
     { "stop",         &OscillatorSource::stop },
   },
   {
-    { "output", &OscillatorSource::output },
-    { "control", &OscillatorSource::control },
+    { "output", &OscillatorSource::output }
   }
 };
 

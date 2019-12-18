@@ -31,7 +31,7 @@
 //==========================================================================
 
 #include "../vector-module.h"
-#include "../../core/core-module.h"
+#include "../../waveform.h"
 #include <cmath>
 
 namespace {

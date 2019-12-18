@@ -96,12 +96,8 @@ int get_midi_number(const string& note);
 string get_midi_note(int number);
 
 //==========================================================================
-// MIDI Note frequency
-double get_midi_frequency(int number);
-
-//==========================================================================
-// MIDI Number from frequency
-int get_midi_frequency_number(double frequency);
+// MIDI Note to "Control Voltage" (1.0 per octave, Middle C = 0)
+double get_midi_cv(int number);
 
 //==========================================================================
 }} //namespaces

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph audio oscillator module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-audio-oscillator
+TYPE    = shared
+DEPENDS = vg-dataflow vg-waveform vg-music ot-lib
+
+include_rules

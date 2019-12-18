@@ -92,17 +92,10 @@ string get_midi_note(int number)
 }
 
 //==========================================================================
-// MIDI Note frequency
-double get_midi_frequency(int number)
+// MIDI Note to CV
+double get_midi_cv(int number)
 {
-  return 440.0 * pow(2, (number - 69) / 12.0);
-}
-
-//==========================================================================
-// MIDI Number from frequency
-int get_midi_frequency_number(double frequency)
-{
-  return log2(frequency / 440.0) * 12.0 + 69;
+  return (number - 60) / 12.0;
 }
 
 }} // namespaces

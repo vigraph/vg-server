@@ -50,18 +50,12 @@ TEST(MIDINoteTest, TestFlats)
   EXPECT_EQ(102, get_midi_number("Gb7 "));
 }
 
-TEST(MIDINoteTest, TestFrequency)
+TEST(MIDINoteTest, TestNoteToCV)
 {
-  EXPECT_NEAR(311.13, get_midi_frequency(63), 0.01);
-  EXPECT_NEAR(3322.44, get_midi_frequency(104), 0.01);
-  EXPECT_NEAR(7040.00, get_midi_frequency(117), 0.01);
-}
-
-TEST(MIDINoteTest, TestFrequencyNumber)
-{
-  EXPECT_EQ(63, get_midi_frequency_number(311.13));
-  EXPECT_EQ(104, get_midi_frequency_number(3322.44));
-  EXPECT_EQ(117, get_midi_frequency_number(7040.00));
+  EXPECT_EQ(0, get_midi_cv(60));
+  EXPECT_EQ(1, get_midi_cv(72));
+  EXPECT_EQ(-1, get_midi_cv(48));
+  EXPECT_DOUBLE_EQ(0.5, get_midi_cv(66));
 }
 
 TEST(MIDINoteTest, TestNumberToNote)

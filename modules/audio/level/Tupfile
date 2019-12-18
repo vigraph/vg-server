@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph audio level module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-audio-level
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib
+
+include_rules

@@ -41,7 +41,7 @@ public:
 
   // Configuration
   Input<Waveform::Type> waveform;
-  Input<Number> freq{1}; // Hz
+  Input<Number> period{1}; // sec
   Input<Number> pulse_width{0.5};
   Input<Number> phase{0};
 
@@ -51,22 +51,20 @@ public:
 
   // Output
   Output<Number> output;
-  Output<Number> control;
 };
 
 //--------------------------------------------------------------------------
 // Generate a fragment
 void OscillatorSource::tick(const TickData& td)
 {
-  const auto sample_rate = max(output.get_sample_rate(),
-                               control.get_sample_rate());
+  const auto sample_rate = output.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {},
-                 tie(waveform, freq, pulse_width, phase, start, stop),
-                 tie(output, control),
-                 [&](Waveform::Type wf, Number f, Number pw, Number phase,
+                 tie(waveform, period, pulse_width, phase, start, stop),
+                 tie(output),
+                 [&](Waveform::Type wf, Number period, Number pw, Number phase,
                      Trigger _start, Trigger _stop,
-                     Number& o, Number& c)
+                     Number& output)
   {
     if (_stop)
     {
@@ -88,9 +86,8 @@ void OscillatorSource::tick(const TickData& td)
       case State::completing:
       {
         auto tp = theta+phase;
-        o = Waveform::get_value(wf, pw, tp-floor(tp));
-        c = (o + 1) / 2;
-        theta += f / sample_rate;
+        output = (Waveform::get_value(wf, pw, tp-floor(tp))+1)/2;
+        if (period > 0) theta += 1 / period / sample_rate;
         if (theta >= 1)
         {
           theta -= floor(theta); // Wrap to 0..1
@@ -101,8 +98,7 @@ void OscillatorSource::tick(const TickData& td)
       }
 
       case State::disabled:
-        o = 0;
-        c = 0;
+        output = 0;
         break;
     }
   });
@@ -116,15 +112,14 @@ Dataflow::SimpleModule module
   {},
   {
     { "wave",         &OscillatorSource::waveform },
-    { "freq",         &OscillatorSource::freq },
+    { "period",       &OscillatorSource::period },
     { "pulse-width",  &OscillatorSource::pulse_width },
     { "phase",        &OscillatorSource::phase },
     { "start",        &OscillatorSource::start },
     { "stop",         &OscillatorSource::stop },
   },
   {
-    { "output", &OscillatorSource::output },
-    { "control", &OscillatorSource::control },
+    { "output", &OscillatorSource::output }
   }
 };
 

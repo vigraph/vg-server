@@ -37,21 +37,6 @@ TEST_F(OscillatorTest, TestNoWaveform)
 
   run();
 
-  // Should be 44100 samples at 0
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ(0.0, waveform[i]);
-}
-
-TEST_F(OscillatorTest, TestNoWaveformControl)
-{
-  auto& osc = add("core/oscillator");
-  auto waveform = vector<Number>{};
-  auto& snk = add_sink(waveform, waveform_size);
-  osc.connect("control", snk, "input");
-
-  run();
-
   // Should be 44100 samples at 0.5
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
@@ -62,36 +47,14 @@ TEST_F(OscillatorTest, TestSquareWaveSingleCycle)
 {
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
-              .set("freq", 1.0);
+              .set("period", 1.0);
   auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
   run();
 
-  // Should be 44100 samples at alternating -1, 1
-  EXPECT_EQ(waveform_size, waveform.size());
-  for(auto i=0u; i<waveform.size(); i++)
-  {
-    if (i < half_waveform_size)
-      EXPECT_EQ(1, waveform[i]) << i;
-    else
-      EXPECT_EQ(-1, waveform[i]) << i;
-  }
-}
-
-TEST_F(OscillatorTest, TestSquareWaveSingleCycleControl)
-{
-  auto& osc = add("core/oscillator")
-              .set("wave", Waveform::Type::square)
-              .set("freq", 1.0);
-  auto waveform = vector<Number>{};
-  auto& snk = add_sink(waveform, waveform_size);
-  osc.connect("control", snk, "input");
-
-  run();
-
-  // Should be 44100 samples at alternating 0, 1
+  // Should be 44100 samples at alternating 1, 0
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
   {
@@ -106,7 +69,7 @@ TEST_F(OscillatorTest, TestSquareWaveStartConnectedButNotStarted)
 {
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
-              .set("freq", 1.0);
+              .set("period", 1.0);
   auto start_data = vector<Trigger>(100);
   auto& sts = add_source(start_data);
   sts.connect("output", osc, "start");
@@ -126,7 +89,7 @@ TEST_F(OscillatorTest, TestSquareWaveStartHalfWayThrough)
 {
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
-              .set("freq", 2.0);
+              .set("period", 0.5);
 
   auto start_data = vector<Trigger>(waveform_size);
   start_data[half_waveform_size] = 1;
@@ -138,7 +101,7 @@ TEST_F(OscillatorTest, TestSquareWaveStartHalfWayThrough)
 
   run();
 
-  // Should be 44100 samples, half at 0, half at alternating 1.0, -1.0
+  // Should be 44100 samples, half at 0, half at alternating 1.0, 0
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
   {
@@ -147,7 +110,7 @@ TEST_F(OscillatorTest, TestSquareWaveStartHalfWayThrough)
     else if (i < three_quarter_waveform_size)
       EXPECT_EQ(1, waveform[i]) << i;
     else
-      EXPECT_EQ(-1, waveform[i]) << i;
+      EXPECT_EQ(0, waveform[i]) << i;
   }
 }
 
@@ -155,7 +118,7 @@ TEST_F(OscillatorTest, TestSquareWaveStopPartWayThrough)
 {
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
-              .set("freq", 2.0);
+              .set("period", 0.5);
 
   // Note we have to connect and trigger start otherwise it will
   // retrigger automatically because not connected
@@ -176,14 +139,14 @@ TEST_F(OscillatorTest, TestSquareWaveStopPartWayThrough)
 
   run();
 
-  // Should be 44100 samples, half at 0, half at alternating 1.0, -1.0
+  // Should be 44100 samples, half at 0, half at alternating 1.0, 0
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
   {
     if (i < quarter_waveform_size)
       EXPECT_EQ(1, waveform[i]) << i;
     else if (i < half_waveform_size)
-      EXPECT_EQ(-1, waveform[i]) << i;
+      EXPECT_EQ(0, waveform[i]) << i;
     else
       EXPECT_EQ(0.0, waveform[i]) << i;
   }
@@ -193,21 +156,21 @@ TEST_F(OscillatorTest, TestSquareWaveMultiCycle)
 {
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
-              .set("freq", 10.0);
+              .set("period", 0.1);
   auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
   run();
 
-  // Should be 44100 samples at alternating 1, -1
+  // Should be 44100 samples at alternating 1, 0
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
   {
     if (i % (waveform_size / 10) < (half_waveform_size / 10))
       EXPECT_EQ(1, waveform[i]) << i;
     else
-      EXPECT_EQ(-1, waveform[i]) << i;
+      EXPECT_EQ(0, waveform[i]) << i;
   }
 }
 
@@ -215,7 +178,7 @@ TEST_F(OscillatorTest, TestSawWaveSingleCycle)
 {
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::saw)
-              .set("freq", 1.0);
+              .set("period", 1.0);
   auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
@@ -227,9 +190,9 @@ TEST_F(OscillatorTest, TestSawWaveSingleCycle)
   for(auto i=0u; i<waveform.size(); i++)
   {
     if (i < half_waveform_size)
-      EXPECT_NEAR((double)i / half_waveform_size, waveform[i], 0.0001) << i;
+      EXPECT_NEAR(0.5+(double)i / waveform_size, waveform[i], 0.0001) << i;
     else
-      EXPECT_NEAR((double)(i - half_waveform_size) / half_waveform_size - 1,
+      EXPECT_NEAR((double)(i - half_waveform_size) / waveform_size,
                   waveform[i], 0.0001) << i;
   }
 }
@@ -238,7 +201,7 @@ TEST_F(OscillatorTest, TestTriangleWaveSingleCycle)
 {
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::triangle)
-              .set("freq", 1.0);
+              .set("period", 1.0);
   auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
@@ -250,17 +213,14 @@ TEST_F(OscillatorTest, TestTriangleWaveSingleCycle)
   for(auto i=0u; i<waveform.size(); i++)
   {
     if (i < quarter_waveform_size)
-      EXPECT_NEAR((double)i / quarter_waveform_size, waveform[i], 0.0001) << i;
-    else if (i < half_waveform_size)
-      EXPECT_NEAR(1.0 - ((double)i - quarter_waveform_size)
-                        / quarter_waveform_size,
-                  waveform[i], 0.0001) << i;
+      EXPECT_NEAR(0.5 + (double)i / half_waveform_size, waveform[i],
+                  0.0001) << i;
     else if (i < three_quarter_waveform_size)
-      EXPECT_NEAR(-((double)i - half_waveform_size) / quarter_waveform_size,
+      EXPECT_NEAR(1.0- ((double)i - quarter_waveform_size) / half_waveform_size,
                   waveform[i], 0.0001) << i;
     else
-      EXPECT_NEAR(-1.0 + ((double)i - three_quarter_waveform_size)
-                         / quarter_waveform_size,
+      EXPECT_NEAR(((double)i - three_quarter_waveform_size)
+                  / half_waveform_size,
                   waveform[i], 0.0001) << i;
   }
 }
@@ -269,36 +229,36 @@ TEST_F(OscillatorTest, TestSinWaveSingleCycle)
 {
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::sin)
-              .set("freq", 1.0);
+              .set("period", 1.0);
   auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
   run();
 
-  // Should be 44100 samples in sin -1..1
+  // Should be 44100 samples in sin 0..1
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_NEAR(sin(2*pi*(double)i/waveform.size()), waveform[i], 0.0001) << i;
+    EXPECT_NEAR(sin(2*pi*(double)i/waveform.size())/2+0.5,
+                waveform[i], 0.0001) << i;
 }
 
 TEST_F(OscillatorTest, TestRandomSingleCycle)
 {
   auto& osc = add("core/oscillator")
-              .set("wave", Waveform::Type::random)
-              .set("freq", 1.0);
+             .set("wave", Waveform::Type::random);
   auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
   run();
 
-  // Should be 44100 samples random between -1 and 1
+  // Should be 44100 samples random between 0 and 1
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
   {
     EXPECT_GE(1.0, waveform[i]) << i;
-    EXPECT_LE(-1.0, waveform[i]) << i;
+    EXPECT_LE(0.0, waveform[i]) << i;
   }
 }
 
@@ -306,7 +266,7 @@ TEST_F(OscillatorTest, TestSquareWaveSingleCycleWithPhase)
 {
   auto& osc = add("core/oscillator")
               .set("wave", Waveform::Type::square)
-              .set("freq", 1.0)
+              .set("period", 1.0)
               .set("phase", 0.25);
   auto waveform = vector<Number>{};
   auto& snk = add_sink(waveform, waveform_size);
@@ -314,14 +274,14 @@ TEST_F(OscillatorTest, TestSquareWaveSingleCycleWithPhase)
 
   run();
 
-  // Should be 44100 samples at alternating -1, 1, starting at 1/4
+  // Should be 44100 samples at alternating 0, 1, starting at 1/4
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
   {
     if (i < quarter_waveform_size || i >= three_quarter_waveform_size)
       EXPECT_EQ(1, waveform[i]) << i;
     else
-      EXPECT_EQ(-1, waveform[i]) << i;
+      EXPECT_EQ(0, waveform[i]) << i;
   }
 }
 

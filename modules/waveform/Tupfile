@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-waveform
 TYPE     = package
-DEPENDS  = vg-module-waveform-pin
+DEPENDS  = vg-module-waveform-enum \
+           vg-module-waveform-pin
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

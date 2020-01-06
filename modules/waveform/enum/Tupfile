@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph waveform enum module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-waveform-enum
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib vg-waveform
+
+include_rules

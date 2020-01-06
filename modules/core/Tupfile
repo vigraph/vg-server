@@ -27,6 +27,7 @@ DEPENDS  = vg-module-core-clone         \
            vg-module-core-random        \
            vg-module-core-beat          \
            vg-module-core-cut           \
+           vg-module-core-memory        \
            vg-module-core-start         \
            vg-module-core-selector      \
            vg-module-core-timer         \

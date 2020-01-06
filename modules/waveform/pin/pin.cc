@@ -1,13 +1,10 @@
 //==========================================================================
-// ViGraph dataflow module: core/waveform-pin/waveform-pin.cc
-//
 // Waveform valued pin module
 //
 // Copyright (c) 2020 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../core-module.h"
-#include "../../waveform.h"
+#include "../waveform-module.h"
 
 namespace {
 
@@ -25,9 +22,9 @@ public:
 
 Dataflow::SimpleModule module
 {
-  "waveform-pin",
+  "pin",
   "Waveform pin",
-  "core",
+  "waveform",
   {},
   {
     { "input",  &WaveformPin::input },

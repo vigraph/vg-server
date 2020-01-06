@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph core waveform-pin module
+# Tupfile for Vigraph waveform pin module
 #
 # Copyright (c) 2020 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-waveform-pin
+NAME    = vg-module-waveform-pin
 TYPE    = shared
 DEPENDS = vg-dataflow ot-lib vg-waveform
 

@@ -1,67 +1,67 @@
 //==========================================================================
-// ViGraph dataflow module: core/cut/test-cut.cc
+// ViGraph dataflow module: core/memory/test-memory.cc
 //
-// Tests for cut control
+// Tests for memory control
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../../module-test.h"
 
-class CutTest: public GraphTester
+class MemoryTest: public GraphTester
 {
 public:
-  CutTest()
+  MemoryTest()
   {
-    loader.load("./vg-module-core-cut.so");
+    loader.load("./vg-module-core-memory.so");
   }
 };
 
 const auto sample_rate = 1;
 
-TEST_F(CutTest, TestTriggerIsPassedThroughOnSecondTickOnly)
+TEST_F(MemoryTest, TestDelaysByOneTick)
 {
-  auto& cut = add("core/cut");
+  auto& memory = add("core/memory");
 
-  auto input_data = vector<Trigger>(3);  // Three ticks
+  auto input_data = vector<Number>(3);
   input_data[0] = 1.0;
   auto& is = add_source(input_data);
-  is.connect("output", cut, "input");
+  is.connect("output", memory, "input");
 
-  auto output = vector<Trigger>{};
+  auto output = vector<Number>{};
   auto& sink = add_sink(output, sample_rate);
-  cut.connect("output", sink, "input");
+  memory.connect("output", sink, "input");
 
   run(3);
 
   ASSERT_EQ(3, output.size());
   EXPECT_EQ(0, output[0]);
   EXPECT_EQ(1, output[1]);
-  EXPECT_EQ(0, output[2]);  // Doesn't stay triggered
+  EXPECT_EQ(0, output[2]);
 }
 
-TEST_F(CutTest, TestLoopingTrigger)
+TEST_F(MemoryTest, TestLooping)
 {
-  auto& cut = add("core/cut");
+  auto& memory = add("core/memory");
 
-  auto input_data = vector<Trigger>(3);  // Three ticks
+  auto input_data = vector<Number>(3);
   input_data[0] = 1.0;
   auto& is = add_source(input_data);
-  is.connect("output", cut, "input");
+  is.connect("output", memory, "input");
 
-  auto output = vector<Trigger>{};
+  auto output = vector<Number>{};
   auto& sink = add_sink(output, sample_rate);
-  cut.connect("output", sink, "input");
+  memory.connect("output", sink, "input");
 
   // Loopback to itself
-  cut.connect("output", cut, "input");
+  memory.connect("output", memory, "input");
 
   run(3);
 
   ASSERT_EQ(3, output.size());
   EXPECT_EQ(0, output[0]);
   EXPECT_EQ(1, output[1]);
-  EXPECT_EQ(1, output[2]);  // Stays triggered because of loop
+  EXPECT_EQ(1, output[2]);  // From loopback
 }
 
 int main(int argc, char **argv)

@@ -183,7 +183,7 @@ TEST_F(OscillatorTest, TestSawWaveSingleCycle)
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
-  run(2);
+  run();
 
   // Should be 44100 samples linearly increasing
   EXPECT_EQ(waveform_size, waveform.size());

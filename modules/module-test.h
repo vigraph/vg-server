@@ -130,7 +130,8 @@ public:
 
   void tick(const TickData&) override
   {
-    data = input.get_buffer();
+    const auto& buf = input.get_buffer();
+    data.insert(data.end(), buf.begin(), buf.end());
   }
 };
 

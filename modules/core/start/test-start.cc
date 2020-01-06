@@ -19,21 +19,7 @@ public:
 
 const auto sample_rate = 1;
 
-TEST_F(StartTest, TestTriggeredAtStart)
-{
-  auto& start = add("core/start");
-
-  auto output = vector<Trigger>{};
-  auto& sink = add_sink(output, sample_rate);
-  start.connect("output", sink, "input");
-
-  run(1);
-
-  ASSERT_EQ(1, output.size());
-  EXPECT_EQ(1, output[0]);
-}
-
-TEST_F(StartTest, TestNotTriggeredAfterStart)
+TEST_F(StartTest, TestTriggeredAtStartAndThenNot)
 {
   auto& start = add("core/start");
 
@@ -43,8 +29,9 @@ TEST_F(StartTest, TestNotTriggeredAfterStart)
 
   run(2);
 
-  ASSERT_EQ(1, output.size());
-  EXPECT_EQ(0, output[0]);
+  ASSERT_EQ(2, output.size());
+  EXPECT_EQ(1, output[0]);
+  EXPECT_EQ(0, output[1]);
 }
 
 int main(int argc, char **argv)

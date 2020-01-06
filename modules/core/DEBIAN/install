@@ -22,6 +22,7 @@ timer/vg-module-core-timer.so /usr/lib/vigraph/modules/
 toggle/vg-module-core-toggle.so /usr/lib/vigraph/modules/
 interpolator/vg-module-core-interpolator.so /usr/lib/vigraph/modules/
 cut/vg-module-core-cut.so /usr/lib/vigraph/modules/
+memory/vg-module-core-memory.so /usr/lib/vigraph/modules/
 start/vg-module-core-start.so /usr/lib/vigraph/modules/
 selector/vg-module-core-selector.so /usr/lib/vigraph/modules/
 

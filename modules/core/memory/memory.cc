@@ -31,6 +31,17 @@ class Memory: public SimpleElement
     Element::reset();
   }
 
+  // We control our own input sample rate
+  void update_sample_rate() override {}
+
+  // Capture sample rate on setup
+  void setup(const SetupContext& context) override
+  {
+    auto tick_interval = context.get_engine().get_tick_interval().seconds();
+    if (tick_interval)
+      input.set_sample_rate(1.0/tick_interval);
+  }
+
   // Clone
   Memory *create_clone() const override
   {

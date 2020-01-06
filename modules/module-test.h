@@ -27,6 +27,11 @@ private:
 public:
   Dataflow::Engine engine;
 
+  ModuleLoader()
+  {
+    engine.set_tick_interval(Time::Duration{1.0});
+  }
+
   void load(const string& path)
   {
     ASSERT_TRUE(libs.find(path) == libs.end())

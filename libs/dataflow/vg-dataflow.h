@@ -210,14 +210,33 @@ struct TickData
   }
 };
 
+// forward declarations
+class Engine;
+class Graph;
+class Clone;
+class Element;
+class ElementSetting;
+class ElementInput;
+class ElementOutput;
+class GraphElement;
+class ReadVisitor;
+class WriteVisitor;
+
 //==========================================================================
 // Setup Context
 class SetupContext
 {
 private:
   File::Directory resource_dir;
+  Engine& engine;
 
 public:
+  // Constructor with engine
+  SetupContext(Engine& _engine): engine(_engine) {}
+
+  // Get engine
+  Engine& get_engine() const { return engine; }
+
   //------------------------------------------------------------------------
   // Get a resolved file_path - returns empty path if resulting path is
   // outside resource_dir or invalid (including if it doesn't exist)
@@ -230,18 +249,6 @@ public:
     resource_dir = dir;
   }
 };
-
-// forward declarations
-class Engine;
-class Graph;
-class Clone;
-class Element;
-class ElementSetting;
-class ElementInput;
-class ElementOutput;
-class GraphElement;
-class ReadVisitor;
-class WriteVisitor;
 
 //==========================================================================
 // Path class
@@ -2539,7 +2546,7 @@ public:
 
   //------------------------------------------------------------------------
   // Constructor
-  Engine(): graph(new Graph{})
+  Engine(): graph(new Graph{}), context(*this)
   {
     graph->set_id("root");
   }

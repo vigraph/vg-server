@@ -19,11 +19,11 @@ public:
 
 const auto sample_rate = 1;
 
-TEST_F(CutTest, TestTriggerIsNotPassedThroughImmediately)
+TEST_F(CutTest, TestTriggerIsPassedThroughOnSecondTickOnly)
 {
   auto& cut = add("core/cut");
 
-  auto input_data = vector<Trigger>(1);
+  auto input_data = vector<Trigger>(3);  // Three ticks
   input_data[0] = 1.0;
   auto& is = add_source(input_data);
   is.connect("output", cut, "input");
@@ -32,36 +32,19 @@ TEST_F(CutTest, TestTriggerIsNotPassedThroughImmediately)
   auto& sink = add_sink(output, sample_rate);
   cut.connect("output", sink, "input");
 
-  run(1);
+  run(3);
 
-  ASSERT_EQ(1, output.size());
+  ASSERT_EQ(3, output.size());
   EXPECT_EQ(0, output[0]);
-}
-
-TEST_F(CutTest, TestTriggerIsPassedThroughOnSecondTick)
-{
-  auto& cut = add("core/cut");
-
-  auto input_data = vector<Trigger>(2);  // Two ticks
-  input_data[0] = 1.0;
-  auto& is = add_source(input_data);
-  is.connect("output", cut, "input");
-
-  auto output = vector<Trigger>{};
-  auto& sink = add_sink(output, sample_rate);
-  cut.connect("output", sink, "input");
-
-  run(2);
-
-  ASSERT_EQ(1, output.size());
-  EXPECT_EQ(1, output[0]);
+  EXPECT_EQ(1, output[1]);
+  EXPECT_EQ(0, output[2]);  // Doesn't stay triggered
 }
 
 TEST_F(CutTest, TestLoopingTrigger)
 {
   auto& cut = add("core/cut");
 
-  auto input_data = vector<Trigger>(2);  // Two ticks
+  auto input_data = vector<Trigger>(3);  // Three ticks
   input_data[0] = 1.0;
   auto& is = add_source(input_data);
   is.connect("output", cut, "input");
@@ -73,10 +56,12 @@ TEST_F(CutTest, TestLoopingTrigger)
   // Loopback to itself
   cut.connect("output", cut, "input");
 
-  run(2);
+  run(3);
 
-  ASSERT_EQ(1, output.size());
-  EXPECT_EQ(1, output[0]);
+  ASSERT_EQ(3, output.size());
+  EXPECT_EQ(0, output[0]);
+  EXPECT_EQ(1, output[1]);
+  EXPECT_EQ(1, output[2]);  // Stays triggered because of loop
 }
 
 int main(int argc, char **argv)

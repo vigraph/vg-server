@@ -40,6 +40,7 @@ class Memory: public SimpleElement
     auto tick_interval = context.get_engine().get_tick_interval().seconds();
     if (tick_interval)
       input.set_sample_rate(1.0/tick_interval);
+    last_value = initial;
   }
 
   // Clone
@@ -50,6 +51,9 @@ class Memory: public SimpleElement
 
 public:
   using SimpleElement::SimpleElement;
+
+  // Settings
+  Setting<Number> initial{0.0};
 
   // Input
   Input<Number> input{0.0};
@@ -80,7 +84,9 @@ Dataflow::SimpleModule module
   "memory",
   "Memory",
   "core",
-  {},
+  {
+    { "initial", &Memory::initial }
+  },
   {
     { "input", &Memory::input }
   },

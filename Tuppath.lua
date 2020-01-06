@@ -39,6 +39,8 @@ function get_dependency_path(name)
     return 'modules/bitmap/' .. string.sub(name, 18)
   elseif string.sub(name, 1, 17) == 'vg-module-colour-' then
     return 'modules/colour/' .. string.sub(name, 18)
+  elseif string.sub(name, 1, 19) == 'vg-module-waveform-' then
+    return 'modules/waveform/' .. string.sub(name, 20)
 
   elseif string.sub(name, 1, 3) == 'vg-' then
     return 'libs/' .. string.sub(name, 4)

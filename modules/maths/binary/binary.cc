@@ -65,6 +65,15 @@ inline double mod(double x, double y) { return y? fmod(x, y) : 0; }
 DECLARE_BINARY(Mod, mod, "input", "modulus")
 inline double power(double x, double y) { return pow(x, y); }
 DECLARE_BINARY(Power, power, "input", "exponent")
+inline double add(double x, double y) { return x+y; }
+DECLARE_BINARY(Add, add, "input", "offset")
+inline double subtract(double x, double y) { return x-y; }
+DECLARE_BINARY(Subtract, subtract, "input", "offset")
+inline double multiply(double x, double y) { return x*y; }
+DECLARE_BINARY(Multiply, multiply, "input", "factor")
+inline double divide(double x, double y)
+{ return y ? (x/y) : (x<0?DBL_MIN:DBL_MAX); }
+DECLARE_BINARY(Divide, divide, "input", "factor")
 
 } // anon
 
@@ -74,5 +83,9 @@ DECLARE_BINARY(Power, power, "input", "exponent")
 VIGRAPH_MODULE_INIT_START
   REGISTER_BINARY(Mod, mod)
   REGISTER_BINARY(Power, power)
+  REGISTER_BINARY(Add, add)
+  REGISTER_BINARY(Subtract, subtract)
+  REGISTER_BINARY(Multiply, multiply)
+  REGISTER_BINARY(Divide, divide)
 VIGRAPH_MODULE_INIT_END
 

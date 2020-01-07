@@ -57,6 +57,36 @@ TEST_F(BinaryTest, TestPower)
   test_binary("power", "exponent", 2, 16, 65536);
 }
 
+TEST_F(BinaryTest, TestAdd)
+{
+  test_binary("add", "offset", 2, 1, 3);
+}
+
+TEST_F(BinaryTest, TestSubtract)
+{
+  test_binary("subtract", "offset", 2, 1, 1);
+}
+
+TEST_F(BinaryTest, TestMultiply)
+{
+  test_binary("multiply", "factor", 6, 7, 42);
+}
+
+TEST_F(BinaryTest, TestDivide)
+{
+  test_binary("divide", "factor", 42, 6, 7);
+}
+
+TEST_F(BinaryTest, TestDivideZeroPositive)
+{
+  test_binary("divide", "factor", 42, 0, DBL_MAX);
+}
+
+TEST_F(BinaryTest, TestDivideZeroNegative)
+{
+  test_binary("divide", "factor", -42, 0, DBL_MIN);
+}
+
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

@@ -27,7 +27,13 @@ class Memory: public SimpleElement
   void reset() override
   {
     const auto& in = input.get_buffer();
-    if (in.size()) last_value = in.back();
+    if (in.size())
+    {
+      // Take average
+      last_value = 0;
+      for(auto v: in) last_value += v;
+      last_value /= in.size();
+    }
     Element::reset();
   }
 

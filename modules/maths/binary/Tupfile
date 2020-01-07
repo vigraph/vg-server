@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph function module
+# Tupfile for Vigraph maths binary functions module
 #
 # Copyright (c) 2020 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-function
+NAME    = vg-module-maths-binary
 TYPE    = shared
-DEPENDS = vg-dataflow ot-lib vg-waveform
+DEPENDS = vg-dataflow ot-lib
 
 include_rules

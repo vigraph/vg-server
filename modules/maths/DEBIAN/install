@@ -1,0 +1,2 @@
+unary/vg-module-maths-unary.so /usr/lib/vigraph/modules/
+binary/vg-module-maths-binary.so /usr/lib/vigraph/modules/

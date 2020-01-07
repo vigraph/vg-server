@@ -18,7 +18,6 @@ DEPENDS  = vg-module-core-clone         \
            vg-module-core-divide        \
            vg-module-core-add           \
            vg-module-core-subtract      \
-           vg-module-core-function      \
            vg-module-core-compare       \
            vg-module-core-count         \
            vg-module-core-limit         \

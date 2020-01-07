@@ -10,7 +10,6 @@ add/vg-module-core-add.so /usr/lib/vigraph/modules/
 subtract/vg-module-core-subtract.so /usr/lib/vigraph/modules/
 multiply/vg-module-core-multiply.so /usr/lib/vigraph/modules/
 divide/vg-module-core-divide.so /usr/lib/vigraph/modules/
-function/vg-module-core-function.so /usr/lib/vigraph/modules/
 beat/vg-module-core-beat.so /usr/lib/vigraph/modules/
 compare/vg-module-core-compare.so /usr/lib/vigraph/modules/
 count/vg-module-core-count.so /usr/lib/vigraph/modules/

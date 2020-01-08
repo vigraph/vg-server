@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph MIDI button in module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-midi-button-in
+TYPE    = shared
+DEPENDS = vg-dataflow vg-midi ot-lib
+
+include_rules

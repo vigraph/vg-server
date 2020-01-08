@@ -11,7 +11,7 @@
 namespace {
 
 //==========================================================================
-// Binary function template - parameter is simple binary function (e.g. sin)
+// Binary function template - parameter is simple binary function (e.g. mod)
 typedef double (*binary_op)(double x, double y);
 
 template <binary_op op>

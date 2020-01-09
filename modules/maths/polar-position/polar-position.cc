@@ -1,12 +1,12 @@
 //==========================================================================
-// ViGraph dataflow module: core/polar-position/polar-position.cc
+// ViGraph dataflow module: maths/polar-position/polar-position.cc
 //
 // Polar position module - creates Cartesian from polar co-ordinates
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../core-module.h"
+#include "../maths-module.h"
 #define _USE_MATH_DEFINES
 #include <cmath>
 
@@ -55,7 +55,7 @@ Dataflow::SimpleModule module
 {
   "polar-position",
   "Polar Position",
-  "core",
+  "maths",
   {},
   {
     { "angle",    &PolarPositionFilter::angle    },

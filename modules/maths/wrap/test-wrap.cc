@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/wrap/test-wrap.cc
+// ViGraph dataflow module: maths/wrap/test-wrap.cc
 //
 // Tests for wrap control
 //
@@ -13,7 +13,7 @@ class WrapTest: public GraphTester
 public:
   WrapTest()
   {
-    loader.load("./vg-module-core-wrap.so");
+    loader.load("./vg-module-maths-wrap.so");
   }
 };
 
@@ -21,7 +21,7 @@ const auto sample_rate = 1;
 
 TEST_F(WrapTest, TestWrapDoesNothingInRange)
 {
-  auto& wrp = add("core/wrap")
+  auto& wrp = add("maths/wrap")
               .set("input", 0.5);
   auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
@@ -36,7 +36,7 @@ TEST_F(WrapTest, TestWrapDoesNothingInRange)
 
 TEST_F(WrapTest, TestWrapWrapsOverRange)
 {
-  auto& wrp = add("core/wrap")
+  auto& wrp = add("maths/wrap")
               .set("max", 0.4)
               .set("input", 0.5);
   auto output = vector<Number>{};
@@ -52,7 +52,7 @@ TEST_F(WrapTest, TestWrapWrapsOverRange)
 
 TEST_F(WrapTest, TestWrapWrapsUnderRange)
 {
-  auto& wrp = add("core/wrap")
+  auto& wrp = add("maths/wrap")
               .set("min", 0.6)
               .set("input", 0.5);
   auto output = vector<Number>{};

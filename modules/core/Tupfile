@@ -13,24 +13,11 @@ DEPENDS  = vg-module-core-clone         \
            vg-module-core-pin           \
            vg-module-core-oscillator    \
            vg-module-core-compare       \
-           vg-module-core-limit         \
-           vg-module-core-wrap          \
            vg-module-core-random        \
            vg-module-core-memory        \
            vg-module-core-timer         \
            vg-module-core-interpolator  \
            vg-module-core-log
-
-#           vg-module-core-control-set \
-#           vg-module-core-control-wait \
-#           vg-module-core-control-round \
-#           vg-module-core-control-scale \
-#           vg-module-core-control-smooth \
-#           vg-module-core-control-sequence \
-#           vg-module-core-control-trigger-sequence \
-#           vg-module-core-control-window \
-#           vg-module-core-service-pool \
-#           vg-module-core-service-thread-pool
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

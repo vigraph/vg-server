@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/polar-position/test-polar-position.cc
+// ViGraph dataflow module: maths/polar-position/test-polar-position.cc
 //
 // Tests for polar-position filter
 //
@@ -14,7 +14,7 @@ class PolarPositionTest: public GraphTester
 public:
   PolarPositionTest()
   {
-    loader.load("./vg-module-core-polar-position.so");
+    loader.load("./vg-module-maths-polar-position.so");
   }
 };
 
@@ -25,7 +25,7 @@ TEST_F(PolarPositionTest, TestDefaultis0_0)
   const auto expected_x = vector<Number>(nsamples, 0);
   const auto expected_y = vector<Number>(nsamples, 0);
 
-  auto& pp = add("core/polar-position");
+  auto& pp = add("maths/polar-position");
   auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
@@ -45,7 +45,7 @@ TEST_F(PolarPositionTest, TestAngle0IsX)
   const auto expected_x = vector<Number>(nsamples, 1.0);
   const auto expected_y = vector<Number>(nsamples, 0);
 
-  auto& pp = add("core/polar-position").set("distance", 1.0);
+  auto& pp = add("maths/polar-position").set("distance", 1.0);
   auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
@@ -65,7 +65,7 @@ TEST_F(PolarPositionTest, TestAngle0_25IsY)
   const auto expected_x = vector<Number>(nsamples, 0);
   const auto expected_y = vector<Number>(nsamples, 1);
 
-  auto& pp = add("core/polar-position").set("angle", 0.25).set("distance", 1.0);
+  auto& pp = add("maths/polar-position").set("angle", 0.25).set("distance", 1.0);
   auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
@@ -85,7 +85,7 @@ TEST_F(PolarPositionTest, TestAngle0_5Distance2IsMinus2X)
   const auto expected_x = vector<Number>(nsamples, -2);
   const auto expected_y = vector<Number>(nsamples, 0);
 
-  auto& pp = add("core/polar-position").set("angle", 0.5).set("distance", 2.0);
+  auto& pp = add("maths/polar-position").set("angle", 0.5).set("distance", 2.0);
   auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
@@ -105,7 +105,7 @@ TEST_F(PolarPositionTest, TestAngle0_75IsMinusY)
   const auto expected_x = vector<Number>(nsamples, 0);
   const auto expected_y = vector<Number>(nsamples, -1);
 
-  auto& pp = add("core/polar-position").set("angle", 0.75).set("distance", 1.0);
+  auto& pp = add("maths/polar-position").set("angle", 0.75).set("distance", 1.0);
   auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");
@@ -125,7 +125,7 @@ TEST_F(PolarPositionTest, TestAngle1IsX)
   const auto expected_x = vector<Number>(nsamples, 1.0);
   const auto expected_y = vector<Number>(nsamples, 0);
 
-  auto& pp = add("core/polar-position").set("angle", 1.0).set("distance", 1.0);
+  auto& pp = add("maths/polar-position").set("angle", 1.0).set("distance", 1.0);
   auto actual_x = vector<Number>{};
   auto& sink_x = add_sink(actual_x, nsamples);
   pp.connect("x", sink_x, "input");

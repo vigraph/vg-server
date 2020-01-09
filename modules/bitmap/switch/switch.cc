@@ -20,7 +20,7 @@ inline Bitmap::Group switch_fade(const Bitmap::Group& value, double factor)
 
 namespace {
 
-class BitmapSwitch: public Switch<Bitmap::Group>
+class BitmapSwitch: public FadeableSwitch<Bitmap::Group>
 {
 public:
   const static Dataflow::DynamicModule switch_module;
@@ -32,7 +32,7 @@ private:
     return new BitmapSwitch{switch_module};
   }
 public:
-  using Switch::Switch;
+  using FadeableSwitch::FadeableSwitch;
 };
 
 const Dataflow::DynamicModule BitmapSwitch::switch_module =

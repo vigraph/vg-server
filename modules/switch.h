@@ -1,7 +1,7 @@
 //==========================================================================
 // ViGraph dataflow modules: switch.h
 //
-// Switch template
+// Switch templates
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -17,12 +17,149 @@ using namespace ObTools;
 using namespace ViGraph;
 using namespace ViGraph::Dataflow;
 
-template<typename T> inline T switch_fade(const T& value, double factor);
-
 //==========================================================================
 // Switch class template
 template<typename T>
 class Switch: public DynamicElement
+{
+private:
+  vector<shared_ptr<Input<T>>> input_list;
+  int active = -1;
+
+  void setup(const SetupContext&) override
+  {
+    const auto ninputs = static_cast<unsigned>(max(inputs.get(), 2l));
+    while (input_list.size() > ninputs)
+    {
+      const auto i = input_list.size();
+      module.erase_input("input" + Text::itos(i));
+      input_list.pop_back();
+    }
+    while (input_list.size() < ninputs)
+    {
+      input_list.emplace_back(new Input<T>{});
+      const auto i = input_list.size();
+      module.add_input("input" + Text::itos(i), input_list.back().get());
+    }
+    if (active >= static_cast<int>(input_list.size()))
+      active = -1;
+  }
+
+  void tick(const TickData& td) override
+  {
+    const auto sample_rate = output.get_sample_rate();
+    const auto nsamples = td.samples_in_tick(sample_rate);
+
+    auto out = output.get_buffer(td);
+
+    struct InputData
+    {
+      const vector<T> *data = nullptr;
+      const T& last_val;
+      InputData(const vector<T> *_data, const T& _last_val):
+        data{_data}, last_val{_last_val}
+      {}
+    };
+
+    enum class SwitchOn
+    {
+      none,
+      number,
+      fraction,
+      next
+    };
+    auto switch_on = SwitchOn::none;
+    auto switch_input = static_cast<const vector<Number> *>(nullptr);
+    auto switch_input_trig = static_cast<const vector<Trigger> *>(nullptr);
+    auto switch_last = 0.0;
+    if (number.connected())
+    {
+      switch_on = SwitchOn::number;
+      switch_input = &number.get_buffer();
+      switch_last = number.get();
+    }
+    else if (fraction.connected())
+    {
+      switch_on = SwitchOn::fraction;
+      switch_input = &fraction.get_buffer();
+      switch_last = fraction.get();
+    }
+    else if (next.connected())
+    {
+      switch_on = SwitchOn::next;
+      switch_input_trig = &next.get_buffer();
+      switch_last = 0;
+    }
+
+    for (auto i = 0u; i < nsamples; ++i)
+    {
+      const auto inp = switch_input
+                       ? (i < switch_input->size()
+                          ? (*switch_input)[i]
+                          : (switch_input->empty()
+                             ? switch_last
+                             : switch_input->back()
+                            )
+                         )
+                       : (switch_input_trig
+                          ? (i < switch_input_trig->size()
+                             ? (*switch_input_trig)[i]
+                             : (switch_input_trig->empty()
+                                ? switch_last
+                                : switch_input_trig->back()
+                               )
+                            )
+                          : 0.0);
+      switch (switch_on)
+      {
+        case SwitchOn::number:
+          active = min(max(static_cast<int>(inp) - 1, -1),
+                       static_cast<int>(input_list.size()) - 1);
+          break;
+        case SwitchOn::fraction:
+          active = min(max(static_cast<int>(inp * input_list.size()), 0),
+                       static_cast<int>(input_list.size()) - 1);
+          break;
+        case SwitchOn::next:
+          if (inp)
+            if (++active >= static_cast<int>(input_list.size()))
+              active = 0;
+          break;
+        case SwitchOn::none:
+            break;
+      }
+
+      if (active >= 0)
+      {
+        const auto& b = input_list[active]->get_buffer();
+        const auto& bval = i < b.size() ? b[i] : input_list[active]->get();
+        out.data.emplace_back(bval);
+      }
+      else
+      {
+        out.data.emplace_back();
+      }
+    }
+  }
+
+public:
+  using DynamicElement::DynamicElement;
+
+  Setting<Integer> inputs{2};
+
+  Input<Number> number{0};
+  Input<Number> fraction{0};
+  Input<Trigger> next{0};
+
+  Output<T> output;
+};
+
+template<typename T> inline T switch_fade(const T& value, double factor);
+
+//==========================================================================
+// Fadeable Switch class template
+template<typename T>
+class FadeableSwitch: public DynamicElement
 {
 private:
   vector<shared_ptr<Input<T>>> input_list;

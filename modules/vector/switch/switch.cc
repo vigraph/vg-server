@@ -20,7 +20,7 @@ inline Frame switch_fade(const Frame& value, double factor)
 
 namespace {
 
-class VectorSwitch: public Switch<Frame>
+class VectorSwitch: public FadeableSwitch<Frame>
 {
 public:
   const static Dataflow::DynamicModule switch_module;
@@ -32,7 +32,7 @@ private:
     return new VectorSwitch{switch_module};
   }
 public:
-  using Switch::Switch;
+  using FadeableSwitch::FadeableSwitch;
 };
 
 const Dataflow::DynamicModule VectorSwitch::switch_module =

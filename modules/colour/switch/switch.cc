@@ -19,7 +19,7 @@ inline Colour::RGB switch_fade(const Colour::RGB& c, double factor)
 
 namespace {
 
-class ColourSwitch: public Switch<Colour::RGB>
+class ColourSwitch: public FadeableSwitch<Colour::RGB>
 {
 public:
   const static Dataflow::DynamicModule switch_module;
@@ -31,7 +31,7 @@ private:
     return new ColourSwitch{switch_module};
   }
 public:
-  using Switch::Switch;
+  using FadeableSwitch::FadeableSwitch;
 };
 
 const Dataflow::DynamicModule ColourSwitch::switch_module =
@@ -40,17 +40,17 @@ const Dataflow::DynamicModule ColourSwitch::switch_module =
   "Switch",
   "colour",
   {
-    { "inputs",         &Switch::inputs },
+    { "inputs",         &ColourSwitch::inputs },
   },
   {
-    { "number",         &Switch::number },
-    { "fraction",       &Switch::fraction },
-    { "next",           &Switch::next },
-    { "fade-in-time",   &Switch::fade_in_time },
-    { "fade-out-time",  &Switch::fade_out_time },
+    { "number",         &ColourSwitch::number },
+    { "fraction",       &ColourSwitch::fraction },
+    { "next",           &ColourSwitch::next },
+    { "fade-in-time",   &ColourSwitch::fade_in_time },
+    { "fade-out-time",  &ColourSwitch::fade_out_time },
   },
   {
-    { "output",         &Switch::output },
+    { "output",         &ColourSwitch::output },
   }
 };
 

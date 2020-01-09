@@ -17,7 +17,7 @@ inline Number switch_fade(const Number& value, Number factor)
 
 namespace {
 
-class NumberSwitch: public Switch<Number>
+class NumberSwitch: public FadeableSwitch<Number>
 {
 public:
   const static Dataflow::DynamicModule switch_module;
@@ -29,7 +29,7 @@ private:
     return new NumberSwitch{switch_module};
   }
 public:
-  using Switch::Switch;
+  using FadeableSwitch::FadeableSwitch;
 };
 
 const Dataflow::DynamicModule NumberSwitch::switch_module =

@@ -1,2 +1,3 @@
 enum/vg-module-waveform-enum.so /usr/lib/vigraph/modules/
 pin/vg-module-waveform-pin.so /usr/lib/vigraph/modules/
+switch/vg-module-waveform-switch.so /usr/lib/vigraph/modules/

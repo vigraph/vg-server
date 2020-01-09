@@ -1,0 +1,7 @@
+beat/vg-module-trigger-beat.so /usr/lib/vigraph/modules/
+count/vg-module-trigger-count.so /usr/lib/vigraph/modules/
+latch/vg-module-trigger-latch.so /usr/lib/vigraph/modules/
+memory/vg-module-trigger-memory.so /usr/lib/vigraph/modules/
+pin/vg-module-trigger-pin.so /usr/lib/vigraph/modules/
+selector/vg-module-trigger-selector.so /usr/lib/vigraph/modules/
+start/vg-module-trigger-start.so /usr/lib/vigraph/modules/

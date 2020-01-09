@@ -1,0 +1,9 @@
+# Cut sample with timers in a loop
+
+trigger/start ->t1.start ->t2.start
+t1: timer period=1 finished>log1.trigger finished>t2.start
+t2: timer period=5 finished>log2.trigger finished>-
+trigger/memory ->t1.start
+
+log1: log text="T1"
+log2: log text="T2"

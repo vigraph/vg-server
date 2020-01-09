@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph trigger selector module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-trigger-selector
+TYPE    = shared
+DEPENDS = vg-dataflow vg-waveform ot-lib
+
+include_rules

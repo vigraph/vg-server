@@ -43,6 +43,8 @@ function get_dependency_path(name)
     return 'modules/waveform/' .. string.sub(name, 20)
   elseif string.sub(name, 1, 16) == 'vg-module-maths-' then
     return 'modules/maths/' .. string.sub(name, 17)
+  elseif string.sub(name, 1, 18) == 'vg-module-trigger-' then
+    return 'modules/trigger/' .. string.sub(name, 19)
 
   elseif string.sub(name, 1, 3) == 'vg-' then
     return 'libs/' .. string.sub(name, 4)

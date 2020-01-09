@@ -1,0 +1,25 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow trigger modules
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-trigger
+TYPE     = package
+DEPENDS  = vg-module-trigger-beat     \
+           vg-module-trigger-count    \
+           vg-module-trigger-latch    \
+           vg-module-trigger-memory   \
+           vg-module-trigger-pin      \
+           vg-module-trigger-selector \
+           vg-module-trigger-start
+
+PACKAGE  = $(NAME)
+VERSION  = 2.0.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

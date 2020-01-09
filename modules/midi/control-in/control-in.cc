@@ -16,6 +16,7 @@ class ControlIn: public SimpleElement
 {
 private:
   // Element virtuals
+  void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
 
   // Clone
@@ -29,11 +30,20 @@ private:
 public:
   using SimpleElement::SimpleElement;
 
+  Setting<Number> initial{0};
   Input<Number> channel{-1};
   Input<Number> control{-1};
   Input<MIDI::Event> input;
   Output<Number> output;
 };
+
+//--------------------------------------------------------------------------
+// Control Setup
+void ControlIn::setup(const SetupContext& context)
+{
+  SimpleElement::setup(context);
+  last_output = initial;
+}
 
 //--------------------------------------------------------------------------
 // Generate a fragment
@@ -56,7 +66,9 @@ Dataflow::SimpleModule module
   "control-in",
   "ControlIn",
   "midi",
-  {},
+  {
+    { "initial",  &ControlIn::initial },
+  },
   {
     { "channel",  &ControlIn::channel },
     { "control",  &ControlIn::control },

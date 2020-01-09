@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for Vigraph ALSA MIDI out module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-module-midi-alsa-out
+TYPE      = shared
+DEPENDS   = vg-dataflow vg-midi ext-asound
+PLATFORMS = linux
+
+include_rules

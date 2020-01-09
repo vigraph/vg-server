@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph MIDI control out module
+#
+# Copyright (c) 2019 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-midi-control-out
+TYPE    = shared
+DEPENDS = vg-dataflow vg-midi ot-lib
+
+include_rules

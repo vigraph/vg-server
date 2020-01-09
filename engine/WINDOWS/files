@@ -1,10 +1,99 @@
 vg-engine.exe
 WINDOWS/engine.cfg.xml
 WINDOWS/licence.xml
+../modules/core/average/vg-module-core-average.dll modules
+../modules/core/clock/vg-module-core-clock.dll modules
 ../modules/core/clone/vg-module-core-clone.dll modules
-../modules/core/graph/vg-module-core-graph.dll modules
 ../modules/core/clone-info/vg-module-core-clone-info.dll modules
+../modules/core/compare/vg-module-core-compare.dll modules
+../modules/core/filter/vg-module-core-filter.dll modules
+../modules/core/graph/vg-module-core-graph.dll modules
+../modules/core/interpolator/vg-module-core-interpolator.dll modules
+../modules/core/log/vg-module-core-log.dll modules
+../modules/core/memory/vg-module-core-memory.dll modules
 ../modules/core/oscillator/vg-module-core-oscillator.dll modules
-../modules/core/number-pin/vg-module-core-number-pin.dll modules
-../modules/core/trigger-pin/vg-module-core-trigger-pin.dll modules
+../modules/core/pin/vg-module-core-pin.dll modules
+../modules/core/random/vg-module-core-random.dll modules
+../modules/core/switch/vg-module-core-switch.dll modules
+../modules/core/timer/vg-module-core-timer.dll modules
+
+../modules/audio/bit-crush/vg-module-audio-bit-crush.dll modules
+../modules/audio/delay/vg-module-audio-delay.dll modules
+../modules/audio/envelope/vg-module-audio-envelope.dll modules
+../modules/audio/level/vg-module-audio-level.dll modules
+../modules/audio/loop/vg-module-audio-loop.dll modules
+../modules/audio/oscillator/vg-module-audio-oscillator.dll modules
+../modules/audio/pitch-shift/vg-module-audio-pitch-shift.dll modules
+../modules/audio/position/vg-module-audio-position.dll modules
+../modules/audio/reverb/vg-module-audio-reverb.dll modules
 ../modules/audio/sdl-out/vg-module-audio-sdl-out.dll modules
+../modules/audio/sdl-in/vg-module-audio-sdl-in.dll modules
+../modules/audio/wav-in/vg-module-audio-wav-in.dll modules
+
+../modules/bitmap/blend/vg-module-bitmap-blend.dll modules
+../modules/bitmap/fade/vg-module-bitmap-fade.dll modules
+../modules/bitmap/fill/vg-module-bitmap-fill.dll modules
+../modules/bitmap/image-in/vg-module-bitmap-image-in.dll modules
+../modules/bitmap/pin/vg-module-bitmap-pin.dll modules
+../modules/bitmap/rectangle/vg-module-bitmap-rectangle.dll modules
+../modules/bitmap/switch/vg-module-bitmap-switch.dll modules
+../modules/bitmap/tile/vg-module-bitmap-tile.dll modules
+../modules/bitmap/translate/vg-module-bitmap-translate.dll modules
+../modules/bitmap/twist/vg-module-bitmap-twist.dll modules
+../modules/bitmap/vector-fill/vg-module-bitmap-vector-fill.dll modules
+../modules/bitmap/websocket/vg-module-bitmap-websocket.dll modules
+
+../modules/colour/blend/vg-module-colour-blend.dll modules
+../modules/colour/hsl/vg-module-colour-hsl.dll modules
+../modules/colour/pin/vg-module-colour-pin.dll modules
+../modules/colour/rgb/vg-module-colour-rgb.dll modules
+../modules/colour/switch/vg-module-colour-switch.dll modules
+
+../modules/dmx/artnet-out/vg-module-dmx-artnet-out.dll modules
+../modules/dmx/bitmap-render/vg-module-dmx-bitmap-render.dll modules
+
+../modules/laser/add-blanking-anchors/vg-module-laser-add-blanking-anchors.dll modules
+../modules/laser/add-vertex-repeats/vg-module-laser-add-vertex-repeats.dll modules
+../modules/laser/beamify/vg-module-laser-beamify.dll modules
+../modules/laser/idn-out/vg-module-laser-idn-out.dll modules
+../modules/laser/infill-lines/vg-module-laser-infill-lines.dll modules
+../modules/laser/reorder-segments/vg-module-laser-reorder-segments.dll modules
+../modules/laser/show-blanking/vg-module-laser-show-blanking.dll modules
+
+../modules/maths/binary/vg-module-maths-binary.dll modules
+../modules/maths/limit/vg-module-maths-limit.dll modules
+../modules/maths/polar-position/vg-module-maths-polar-position.dll modules
+../modules/maths/unary/vg-module-maths-unary.dll modules
+../modules/maths/wrap/vg-module-maths-wrap.dll modules
+
+../modules/time-series/average/vg-module-time-series-average.dll modules
+../modules/time-series/last/vg-module-time-series-last.dll modules
+../modules/time-series/offset/vg-module-time-series-offset.dll modules
+../modules/time-series/plot/vg-module-time-series-plot.dll modules
+../modules/time-series/scale/vg-module-time-series-scale.dll modules
+../modules/time-series/web-fetch/vg-module-time-series-web-fetch.dll modules
+
+../modules/trigger/beat/vg-module-trigger-beat.dll modules
+../modules/trigger/count/vg-module-trigger-count.dll modules
+../modules/trigger/latch/vg-module-trigger-latch.dll modules
+../modules/trigger/memory/vg-module-trigger-memory.dll modules
+../modules/trigger/pin/vg-module-trigger-pin.dll modules
+../modules/trigger/selector/vg-module-trigger-selector.dll modules
+../modules/trigger/start/vg-module-trigger-start.dll modules
+
+../modules/vector/clip/vg-module-vector-clip.dll modules
+../modules/vector/fade/vg-module-vector-fade.dll modules
+../modules/vector/figure/vg-module-vector-figure.dll modules
+../modules/vector/oscilloscope/vg-module-vector-oscilloscope.dll modules
+../modules/vector/pin/vg-module-vector-pin.dll modules
+../modules/vector/rotate/vg-module-vector-rotate.dll modules
+../modules/vector/scale/vg-module-vector-scale.dll modules
+../modules/vector/stroke/vg-module-vector-stroke.dll modules
+../modules/vector/svg/vg-module-vector-svg.dll modules
+../modules/vector/switch/vg-module-vector-switch.dll modules
+../modules/vector/translate/vg-module-vector-translate.dll modules
+../modules/vector/websocket/vg-module-vector-websocket.dll modules
+
+../modules/waveform/enum/vg-module-waveform-enum.dll modules
+../modules/waveform/pin/vg-module-waveform-pin.dll modules
+../modules/waveform/switch/vg-module-waveform-switch.dll modules

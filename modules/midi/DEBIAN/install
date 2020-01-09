@@ -1,6 +1,8 @@
 alsa-in/vg-module-midi-alsa-in.so /usr/lib/vigraph/modules/
+alsa-out/vg-module-midi-alsa-out.so /usr/lib/vigraph/modules/
 button-in/vg-module-midi-button-in.so /usr/lib/vigraph/modules/
 control-in/vg-module-midi-control-in.so /usr/lib/vigraph/modules/
+control-out/vg-module-midi-control-out.so /usr/lib/vigraph/modules/
 key-in/vg-module-midi-key-in.so /usr/lib/vigraph/modules/
 keyboard-in/vg-module-midi-keyboard-in.so /usr/lib/vigraph/modules/
 pin/vg-module-midi-pin.so /usr/lib/vigraph/modules/

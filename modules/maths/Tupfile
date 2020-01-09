@@ -6,8 +6,11 @@
 
 NAME     = vg-modules-maths
 TYPE     = package
-DEPENDS  = vg-module-maths-unary \
-           vg-module-maths-binary
+DEPENDS  = vg-module-maths-unary            \
+           vg-module-maths-binary           \
+           vg-module-maths-wrap             \
+           vg-module-maths-limit            \
+           vg-module-maths-polar-position
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

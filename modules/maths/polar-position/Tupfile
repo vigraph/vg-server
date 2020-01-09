@@ -4,7 +4,7 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-polar-position
+NAME    = vg-module-maths-polar-position
 TYPE    = shared
 DEPENDS = vg-dataflow vg-waveform ot-lib
 

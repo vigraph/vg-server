@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/limit/test-limit.cc
+// ViGraph dataflow module: maths/limit/test-limit.cc
 //
 // Tests for limit control
 //
@@ -13,7 +13,7 @@ class LimitTest: public GraphTester
 public:
   LimitTest()
   {
-    loader.load("./vg-module-core-limit.so");
+    loader.load("./vg-module-maths-limit.so");
   }
 };
 
@@ -21,7 +21,7 @@ const auto sample_rate = 1;
 
 TEST_F(LimitTest, TestLimitDoesNothingInRange)
 {
-  auto& lmt = add("core/limit")
+  auto& lmt = add("maths/limit")
               .set("input", 0.5);
   auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
@@ -36,7 +36,7 @@ TEST_F(LimitTest, TestLimitDoesNothingInRange)
 
 TEST_F(LimitTest, TestLimitCapsOverRange)
 {
-  auto& lmt = add("core/limit")
+  auto& lmt = add("maths/limit")
               .set("max", 0.4)
               .set("input", 0.5);
   auto output = vector<Number>{};
@@ -52,7 +52,7 @@ TEST_F(LimitTest, TestLimitCapsOverRange)
 
 TEST_F(LimitTest, TestLimitCollarsUnderRange)
 {
-  auto& lmt = add("core/limit")
+  auto& lmt = add("maths/limit")
               .set("min", 0.6)
               .set("input", 0.5);
   auto output = vector<Number>{};

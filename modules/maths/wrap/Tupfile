@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph 'limit' core module
+# Tupfile for Vigraph 'wrap' control module
 #
 # Copyright (c) 2018-2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-limit
+NAME    = vg-module-maths-wrap
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-lib
 

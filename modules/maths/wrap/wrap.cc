@@ -65,7 +65,7 @@ Dataflow::SimpleModule module
 {
   "wrap",
   "Wrap",
-  "core",
+  "maths",
   {},
   {
     { "min",   &Wrap::min },

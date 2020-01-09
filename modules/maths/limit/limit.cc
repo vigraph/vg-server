@@ -64,7 +64,7 @@ Dataflow::SimpleModule module
 {
   "limit",
   "Limit",
-  "core",
+  "maths",
   {},
   {
     { "min",   &Limit::min },

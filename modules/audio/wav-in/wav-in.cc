@@ -87,6 +87,8 @@ WavIn::WavIn(const DynamicModule& module):
 // Setup
 void WavIn::setup(const SetupContext& context)
 {
+  DynamicElement::setup(context);
+
   Log::Streams log;
 
   if (wav_file == file.get())
@@ -172,14 +174,15 @@ void WavIn::setup(const SetupContext& context)
   // Update module information
   while (outputs.size() > waveforms.size())
   {
-    module.erase_output("channel" + Text::itos(outputs.size()));
+    deregister_output("channel" + Text::itos(outputs.size()),
+                      outputs.back().get());
     outputs.pop_back();
   }
   while (outputs.size() < waveforms.size())
   {
     outputs.emplace_back(new Output<Number>{});
-    module.add_output("channel" + Text::itos(outputs.size()),
-                      outputs.back().get());
+    register_output("channel" + Text::itos(outputs.size()),
+                    outputs.back().get());
   }
 
   log.detail << "Loaded wav file '" << f << "' with " << waveforms.size()

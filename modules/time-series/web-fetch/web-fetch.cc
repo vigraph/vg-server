@@ -44,8 +44,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void WebFetch::setup(const SetupContext&)
+void WebFetch::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   Log::Streams log;
   Web::URL wurl(url);
   Web::HTTPClient client(wurl, 0, user_agent, fetch_timeout, fetch_timeout);

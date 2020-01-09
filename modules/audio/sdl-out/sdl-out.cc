@@ -139,8 +139,10 @@ void SDLSink::callback(Uint8 *stream, int len)
 
 //--------------------------------------------------------------------------
 // Setup
-void SDLSink::setup(const SetupContext&)
+void SDLSink::setup(const SetupContext& context)
 {
+  DynamicElement::setup(context);
+
   Log::Streams log;
   shutdown();
 
@@ -172,29 +174,29 @@ void SDLSink::setup(const SetupContext&)
 
     // Update module information
     if (have.channels < 6 && module.num_inputs() >= 6)
-      module.erase_input("channel6");
+      deregister_input("channel6", &channel6);
     if (have.channels < 5 && module.num_inputs() >= 5)
-      module.erase_input("channel5");
+      deregister_input("channel5", &channel6);
     if (have.channels < 4 && module.num_inputs() >= 4)
-      module.erase_input("channel4");
+      deregister_input("channel4", &channel6);
     if (have.channels < 3 && module.num_inputs() >= 3)
-      module.erase_input("channel3");
+      deregister_input("channel3", &channel6);
     if (have.channels < 2 && module.num_inputs() >= 2)
-      module.erase_input("channel2");
+      deregister_input("channel2", &channel6);
     if (have.channels < 1 && module.num_inputs() >= 1)
-      module.erase_input("channel1");
+      deregister_input("channel1", &channel6);
     if (have.channels >= 1 && module.num_inputs() < 1)
-      module.add_input("channel1", &SDLSink::channel1);
+      register_input("channel1", &channel1);
     if (have.channels >= 2 && module.num_inputs() < 2)
-      module.add_input("channel2", &SDLSink::channel2);
+      register_input("channel2", &channel2);
     if (have.channels >= 3 && module.num_inputs() < 3)
-      module.add_input("channel3", &SDLSink::channel3);
+      register_input("channel3", &channel3);
     if (have.channels >= 4 && module.num_inputs() < 4)
-      module.add_input("channel4", &SDLSink::channel4);
+      register_input("channel4", &channel4);
     if (have.channels >= 5 && module.num_inputs() < 5)
-      module.add_input("channel5", &SDLSink::channel5);
+      register_input("channel5", &channel5);
     if (have.channels >= 6 && module.num_inputs() < 6)
-      module.add_input("channel6", &SDLSink::channel6);
+      register_input("channel6", &channel6);
 
     channel1.set_sample_rate(have.freq);
     channel2.set_sample_rate(have.freq);

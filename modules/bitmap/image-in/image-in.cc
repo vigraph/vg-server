@@ -87,6 +87,8 @@ ImageIn::ImageIn(const SimpleModule& module):
 // Setup
 void ImageIn::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   Log::Streams log;
   auto got = IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
   if (!(got & IMG_INIT_JPG)) log.error << "SDL_image missing JPEG support\n";

@@ -55,8 +55,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup after config
-void ArtNetOut::setup(const SetupContext&)
+void ArtNetOut::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   Log::Streams log;
 
   destination = Net::EndPoint(Net::IPAddress(host_address), host_port);

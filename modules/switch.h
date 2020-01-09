@@ -26,20 +26,22 @@ private:
   vector<shared_ptr<Input<T>>> input_list;
   int active = -1;
 
-  void setup(const SetupContext&) override
+  void setup(const SetupContext& context) override
   {
+    DynamicElement::setup(context);
+
     const auto ninputs = static_cast<unsigned>(max(inputs.get(), 2l));
     while (input_list.size() > ninputs)
     {
       const auto i = input_list.size();
-      module.erase_input("input" + Text::itos(i));
+      deregister_input("input" + Text::itos(i), input_list.back().get());
       input_list.pop_back();
     }
     while (input_list.size() < ninputs)
     {
       input_list.emplace_back(new Input<T>{});
       const auto i = input_list.size();
-      module.add_input("input" + Text::itos(i), input_list.back().get());
+      register_input("input" + Text::itos(i), input_list.back().get());
     }
     if (active >= static_cast<int>(input_list.size()))
       active = -1;
@@ -176,20 +178,22 @@ private:
   map<int, State> states;
   int active = -1;
 
-  void setup(const SetupContext&) override
+  void setup(const SetupContext& context) override
   {
+    DynamicElement::setup(context);
+
     const auto ninputs = static_cast<unsigned>(max(inputs.get(), 2l));
     while (input_list.size() > ninputs)
     {
       const auto i = input_list.size();
-      module.erase_input("input" + Text::itos(i));
+      deregister_input("input" + Text::itos(i), input_list.back().get());
       input_list.pop_back();
     }
     while (input_list.size() < ninputs)
     {
       input_list.emplace_back(new Input<T>{});
       const auto i = input_list.size();
-      module.add_input("input" + Text::itos(i), input_list.back().get());
+      register_input("input" + Text::itos(i), input_list.back().get());
     }
     if (active >= static_cast<int>(input_list.size()))
       active = -1;

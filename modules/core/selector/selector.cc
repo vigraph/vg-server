@@ -41,15 +41,16 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup inputs
-void Selector::setup(const SetupContext&)
+void Selector::setup(const SetupContext& context)
 {
+  DynamicElement::setup(context);
   if (inputs == last_inputs) return;
 
   const auto ninputs = static_cast<size_t>(inputs.get());
   while (input_list.size() > ninputs)
   {
     const auto i = input_list.size();
-    module.erase_input("select" + Text::itos(i));
+    deregister_input("select" + Text::itos(i), input_list.back().get());
     input_list.pop_back();
   }
 
@@ -57,7 +58,7 @@ void Selector::setup(const SetupContext&)
   {
     input_list.emplace_back(new Input<Trigger>{});
     const auto i = input_list.size();
-    module.add_input("select" + Text::itos(i), input_list.back().get());
+    register_input("select" + Text::itos(i), input_list.back().get());
   }
 
   last_inputs = inputs;

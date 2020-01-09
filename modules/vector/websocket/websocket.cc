@@ -143,8 +143,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void WebSocket::setup(const SetupContext&)
+void WebSocket::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   if (!!server) shutdown();
 
   if (port)

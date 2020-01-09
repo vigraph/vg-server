@@ -71,8 +71,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup inputs
-void Blend::setup(const SetupContext&)
+void Blend::setup(const SetupContext& context)
 {
+  DynamicElement::setup(context);
+
   // Do nothing if same type
   if (type == last_type) return;
 
@@ -82,26 +84,26 @@ void Blend::setup(const SetupContext&)
     case BlendType::none: break;
 
     case BlendType::horizontal:
-      module.erase_input("left");
-      module.erase_input("right");
+      deregister_input("left", &left);
+      deregister_input("right", &right);
       break;
 
     case BlendType::vertical:
-      module.erase_input("top");
-      module.erase_input("bottom");
+      deregister_input("top", &top);
+      deregister_input("bottom", &bottom);
       break;
 
     case BlendType::rectangular:
-      module.erase_input("top-left");
-      module.erase_input("top-right");
-      module.erase_input("bottom-left");
-      module.erase_input("bottom-right");
+      deregister_input("top-left", &top_left);
+      deregister_input("top-right", &top_right);
+      deregister_input("bottom-left", &bottom_left);
+      deregister_input("bottom-right", &bottom_right);
       break;
 
     case BlendType::radial:
-      module.erase_input("centre");
-      module.erase_input("edge");
-      module.erase_input("radius");
+      deregister_input("centre", &centre);
+      deregister_input("edge", &edge);
+      deregister_input("radius", &radius);
       break;
   }
 
@@ -111,26 +113,26 @@ void Blend::setup(const SetupContext&)
     case BlendType::none: break;
 
     case BlendType::horizontal:
-      module.add_input("left", &Blend::left);
-      module.add_input("right", &Blend::right);
+      register_input("left", &left);
+      register_input("right", &right);
       break;
 
     case BlendType::vertical:
-      module.add_input("top", &Blend::top);
-      module.add_input("bottom", &Blend::bottom);
+      register_input("top", &top);
+      register_input("bottom", &bottom);
       break;
 
     case BlendType::rectangular:
-      module.add_input("top-left", &Blend::top_left);
-      module.add_input("top-right", &Blend::top_right);
-      module.add_input("bottom-left", &Blend::bottom_left);
-      module.add_input("bottom-right", &Blend::bottom_right);
+      register_input("top-left", &top_left);
+      register_input("top-right", &top_right);
+      register_input("bottom-left", &bottom_left);
+      register_input("bottom-right", &bottom_right);
       break;
 
     case BlendType::radial:
-      module.add_input("centre", &Blend::centre);
-      module.add_input("edge",   &Blend::edge);
-      module.add_input("radius", &Blend::radius);
+      register_input("centre", &centre);
+      register_input("edge",   &edge);
+      register_input("radius", &radius);
       break;
   }
 

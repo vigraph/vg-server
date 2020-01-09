@@ -97,8 +97,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void Oscilloscope::setup(const SetupContext&)
+void Oscilloscope::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   slope.set_sample_rate(sample_rate);
   input.set_sample_rate(sample_rate);
 }

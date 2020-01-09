@@ -43,6 +43,7 @@ class Memory: public SimpleElement
   // Capture sample rate on setup
   void setup(const SetupContext& context) override
   {
+    SimpleElement::setup(context);
     auto tick_interval = context.get_engine().get_tick_interval().seconds();
     if (tick_interval)
       input.set_sample_rate(1.0/tick_interval);

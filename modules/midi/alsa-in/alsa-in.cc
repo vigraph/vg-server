@@ -77,8 +77,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void ALSAIn::setup(const SetupContext&)
+void ALSAIn::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   Log::Streams log;
   shutdown();
 

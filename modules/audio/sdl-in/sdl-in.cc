@@ -109,8 +109,10 @@ void SDLIn::callback(Uint8 *stream, int len)
 
 //--------------------------------------------------------------------------
 // Setup
-void SDLIn::setup(const SetupContext&)
+void SDLIn::setup(const SetupContext& context)
 {
+  DynamicElement::setup(context);
+
   Log::Streams log;
   shutdown();
 
@@ -146,14 +148,15 @@ void SDLIn::setup(const SetupContext&)
     // Update module information
     while (outputs.size() > have.channels)
     {
-      module.erase_output("channel" + Text::itos(outputs.size()));
+      deregister_output("channel" + Text::itos(outputs.size()),
+                        outputs.back().get());
       outputs.pop_back();
     }
     while (outputs.size() < have.channels)
     {
       outputs.emplace_back(new Output<Number>{});
-      module.add_output("channel" + Text::itos(outputs.size()),
-                        outputs.back().get());
+      register_output("channel" + Text::itos(outputs.size()),
+                      outputs.back().get());
     }
 
     // Start capture

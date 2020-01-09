@@ -121,8 +121,9 @@ public:
   using SimpleElement::SimpleElement;
 
   // Setup
-  void setup(const SetupContext&) override
+  void setup(const SetupContext& context) override
   {
+    SimpleElement::setup(context);
     input.set_sample_rate(sample_rate);
   }
 

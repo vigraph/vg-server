@@ -62,8 +62,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup after config
-void IDNOut::setup(const SetupContext&)
+void IDNOut::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   Log::Streams log;
 
   destination = Net::EndPoint(Net::IPAddress(host_address), host_port);

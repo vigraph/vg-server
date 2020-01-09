@@ -42,8 +42,9 @@ public:
 
 //--------------------------------------------------------------------------
 // Sample
-void AverageFilter::setup(const SetupContext&)
+void AverageFilter::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
   if (samples < 1)
     samples = 1;
   while (sample_buffer.size() > static_cast<unsigned>(samples))

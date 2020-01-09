@@ -71,8 +71,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void Sensor::setup(const SetupContext&)
+void Sensor::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   Log::Streams log;
   log.summary << "DSCUSB load sensor connecting to " << device << endl;
 

@@ -58,7 +58,6 @@ bool Clone::connect(const string& out_name,
   {
     if (!graph.graph->connect(out_name, b, in_name))
       return false;
-    b.notify_connection(in_name, *graph.graph, out_name);
   }
   return true;
 }
@@ -74,14 +73,6 @@ vector<ElementInput *> Clone::get_connection_inputs(const string& name)
     inputs.insert(inputs.end(), gi.begin(), gi.end());
   }
   return inputs;
-}
-
-//--------------------------------------------------------------------------
-// Notify of a connection
-void Clone::notify_connection(const string& /*in_name*/,
-                              GraphElement& /*a*/, const string& /*out_name*/)
-{
-  //throw(runtime_error("Unimplemented"));
 }
 
 //--------------------------------------------------------------------------

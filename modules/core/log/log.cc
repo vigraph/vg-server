@@ -41,8 +41,9 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void LogControl::setup(const SetupContext&)
+void LogControl::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
   input.set_sample_rate(25.0);  // Arbitrary, but usable
   trigger.set_sample_rate(25.0);
 }

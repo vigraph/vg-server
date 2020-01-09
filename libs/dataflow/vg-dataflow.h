@@ -1568,18 +1568,6 @@ public:
     return inputs.size() + dynamic_inputs.size();
   }
 
-  void clear_inputs()
-  {
-    inputs.clear();
-    dynamic_inputs.clear();
-  }
-
-  template<typename T, typename C>
-  void add_input(const string& name, Dataflow::Input<T> C::* i)
-  {
-    inputs.emplace(name, i);
-  }
-
   template<typename T>
   void add_input(const string& name, Dataflow::Input<T> *i)
   {
@@ -1612,25 +1600,12 @@ public:
 
   void erase_input(const string& name)
   {
-    inputs.erase(name);
     dynamic_inputs.erase(name);
   }
 
   auto num_outputs() const
   {
     return outputs.size() + dynamic_outputs.size();
-  }
-
-  void clear_outputs()
-  {
-    outputs.clear();
-    dynamic_outputs.clear();
-  }
-
-  template<typename T, typename C>
-  void add_output(const string& name, Dataflow::Output<T> C::* o)
-  {
-    outputs.emplace(name, o);
   }
 
   template<typename T>
@@ -1665,7 +1640,6 @@ public:
 
   void erase_output(const string& name)
   {
-    outputs.erase(name);
     dynamic_outputs.erase(name);
   }
 
@@ -1717,10 +1691,6 @@ public:
 
   // Get connection inputs
   virtual vector<ElementInput *> get_connection_inputs(const string& name) = 0;
-
-  // Notify that connection has been made to input
-  virtual void notify_connection(const string& in_name,
-                                 GraphElement& a, const string& out_name) = 0;
 
   // Handle sample rate being changed
   virtual void update_sample_rate() = 0;
@@ -1835,6 +1805,18 @@ protected:
                         f);
   }
 
+  // Register an input
+  void register_input(ElementInput *input)
+  {
+    inputs.insert(input);
+  }
+
+  // Deregister an input
+  void deregister_input(ElementInput *input)
+  {
+    inputs.erase(input);
+  }
+
 public:
   // Connect an element
   bool connect(const string& out_name,
@@ -1842,10 +1824,6 @@ public:
 
   // Get connection inputs
   vector<ElementInput *> get_connection_inputs(const string& name) override;
-
-  // Notify that connection has been made to input
-  void notify_connection(const string& in_name,
-                         GraphElement& a, const string& out_name) override;
 
   // Handle sample rate change
   void update_sample_rate() override;
@@ -1907,6 +1885,16 @@ public:
     module{_module}
   {}
 
+  //------------------------------------------------------------------------
+  // Setup
+  void setup(const SetupContext&) override
+  {
+    module.for_each_input([this](const string&, const InputMember& im)
+    {
+      this->register_input(&im.get(*this));
+    });
+  }
+
   const Module& get_module() const override
   {
     return module;
@@ -1920,12 +1908,54 @@ class DynamicElement: public Element
 protected:
   DynamicModule module;
 
+  // Register an input
+  template<typename T>
+  void register_input(const string& name, Dataflow::Input<T> *input)
+  {
+    Element::register_input(input);
+    module.add_input(name, input);
+  }
+  using Element::register_input;
+
+  // Deregister an input
+  template<typename T>
+  void deregister_input(const string& name, Dataflow::Input<T> *input)
+  {
+    module.erase_input(name);
+    Element::deregister_input(input);
+  }
+  using Element::deregister_input;
+
+  // Register an output
+  template<typename T>
+  void register_output(const string& name, Dataflow::Output<T> *output)
+  {
+    module.add_output(name, output);
+  }
+
+  // Deregister an output
+  template<typename T>
+  void deregister_output(const string& name, Dataflow::Output<T> *)
+  {
+    module.erase_output(name);
+  }
+
 public:
   //------------------------------------------------------------------------
   // Constructor
   DynamicElement(const DynamicModule& _module):
     module{_module}
   {}
+
+  //------------------------------------------------------------------------
+  // Setup
+  void setup(const SetupContext&) override
+  {
+    module.for_each_input([this](const string&, const InputMember& im)
+    {
+      this->register_input(&im.get(*this));
+    });
+  }
 
   const Module& get_module() const override
   {
@@ -2164,10 +2194,6 @@ public:
   // Get connection inputs
   vector<ElementInput *> get_connection_inputs(const string& name) override;
 
-  // Notify that connection has been made to input
-  void notify_connection(const string& in_name,
-                         GraphElement& a, const string& out_name) override;
-
   // Handle sample rate change
   void update_sample_rate() override {}
 
@@ -2327,10 +2353,6 @@ public:
 
   // Get connection inputs
   vector<ElementInput *> get_connection_inputs(const string& name) override;
-
-  // Notify that connection has been made to input
-  void notify_connection(const string& in_name,
-                         GraphElement& a, const string& out_name) override;
 
   // Handle sample rate change
   void update_sample_rate() override {}

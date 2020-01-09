@@ -59,8 +59,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void ALSAOut::setup(const SetupContext&)
+void ALSAOut::setup(const SetupContext& context)
 {
+  DynamicElement::setup(context);
+
   Log::Streams log;
   shutdown();
 
@@ -134,29 +136,29 @@ void ALSAOut::setup(const SetupContext&)
 
     // Update module information
     if (nchannels < 6 && module.num_inputs() >= 6)
-      module.erase_input("channel6");
+      deregister_input("channel6", &channel6);
     if (nchannels < 5 && module.num_inputs() >= 5)
-      module.erase_input("channel5");
+      deregister_input("channel5", &channel5);
     if (nchannels < 4 && module.num_inputs() >= 4)
-      module.erase_input("channel4");
+      deregister_input("channel4", &channel4);
     if (nchannels < 3 && module.num_inputs() >= 3)
-      module.erase_input("channel3");
+      deregister_input("channel3", &channel3);
     if (nchannels < 2 && module.num_inputs() >= 2)
-      module.erase_input("channel2");
+      deregister_input("channel2", &channel2);
     if (nchannels < 1 && module.num_inputs() >= 1)
-      module.erase_input("channel1");
+      deregister_input("channel1", &channel1);
     if (nchannels >= 1 && module.num_inputs() < 1)
-      module.add_input("channel1", &ALSAOut::channel1);
+      register_input("channel1", &channel1);
     if (nchannels >= 2 && module.num_inputs() < 2)
-      module.add_input("channel2", &ALSAOut::channel2);
+      register_input("channel2", &channel2);
     if (nchannels >= 3 && module.num_inputs() < 3)
-      module.add_input("channel3", &ALSAOut::channel3);
+      register_input("channel3", &channel3);
     if (nchannels >= 4 && module.num_inputs() < 4)
-      module.add_input("channel4", &ALSAOut::channel4);
+      register_input("channel4", &channel4);
     if (nchannels >= 5 && module.num_inputs() < 5)
-      module.add_input("channel5", &ALSAOut::channel5);
+      register_input("channel5", &channel5);
     if (nchannels >= 6 && module.num_inputs() < 6)
-      module.add_input("channel6", &ALSAOut::channel6);
+      register_input("channel6", &channel6);
 
     channel1.set_sample_rate(srate);
     channel2.set_sample_rate(srate);

@@ -37,7 +37,6 @@ bool Element::connect(const string& out_name,
 #endif
 
     o->set_sample_rate(i->get_sample_rate());
-    b.notify_connection(in_name, *this, out_name);
     update_sample_rate();
   }
   return true;
@@ -57,18 +56,6 @@ vector<ElementInput *> Element::get_connection_inputs(const string& name)
   }
 
   return vector<ElementInput *>{i};
-}
-
-//--------------------------------------------------------------------------
-// Notify that connection has been made to input
-void Element::notify_connection(const string& in_name,
-                                GraphElement&, const string&)
-{
-  auto& module = get_module();
-  auto i = module.get_input(*this, in_name);
-  if (!i)
-    return;
-  inputs.insert(i);
 }
 
 //--------------------------------------------------------------------------

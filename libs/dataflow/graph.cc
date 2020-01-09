@@ -68,24 +68,6 @@ vector<ElementInput *> Graph::get_connection_inputs(const string& name)
 }
 
 //--------------------------------------------------------------------------
-// Notify of a connection
-void Graph::notify_connection(const string& in_name,
-                              GraphElement& a, const string& out_name)
-{
-  auto iit = input_pins.find(in_name);
-  if (iit == input_pins.end())
-    return;
-
-  const auto& pin_info = iit->second;
-  auto input_pin = get_element(pin_info.element);
-  if (!input_pin)
-    return;
-
-  // Pass notification to pin
-  input_pin->notify_connection("input", a, out_name);
-}
-
-//--------------------------------------------------------------------------
 // Clone
 Graph *Graph::clone(const SetupContext& context) const
 {

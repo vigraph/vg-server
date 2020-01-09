@@ -53,8 +53,10 @@ public:
 
 //--------------------------------------------------------------------------
 // Setup
-void AssignVoice::setup(const SetupContext&)
+void AssignVoice::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   auto max = 0;
 
   // Remove entries higher than number of voices

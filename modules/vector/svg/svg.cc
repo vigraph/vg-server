@@ -46,6 +46,8 @@ public:
 // Setup
 void SVGSource::setup(const SetupContext& context)
 {
+  SimpleElement::setup(context);
+
   Log::Streams log;
 
   try

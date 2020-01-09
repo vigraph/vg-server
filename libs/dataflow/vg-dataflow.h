@@ -818,7 +818,10 @@ public:
     static auto empty = vector<T>{};
     static auto empty_buffer = Buffer{td, nullptr, empty};
     if (!primary_data)
+    {
+      empty.clear();
       return empty_buffer;
+    }
     return Buffer{td, this, output_data[primary_data].input->data};
   }
 

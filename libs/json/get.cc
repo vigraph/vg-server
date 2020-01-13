@@ -14,21 +14,43 @@ class GetVisitor: public Dataflow::ReadVisitor
 {
 private:
   Value& json;
+  bool recursive{false};
+  bool recurse_this_level{true};
   bool show_transient_values = false;
   const Dataflow::Graph *graph = nullptr;
   const Dataflow::GraphElement *element = nullptr;
 
 public:
-  GetVisitor(Value& _json, bool _show_transient_values,
+  GetVisitor(Value& _json, bool _recursive, bool _recurse_this_level,
+             bool _show_transient_values,
              const Dataflow::Graph *_graph):
-    json{_json}, show_transient_values{_show_transient_values}, graph{_graph}
+    json{_json}, recursive(_recursive), recurse_this_level(_recurse_this_level),
+    show_transient_values{_show_transient_values}, graph{_graph}
   {}
-  GetVisitor(Value& _json, bool _show_transient_values,
+  GetVisitor(Value& _json, bool _recursive, bool _recurse_this_level,
+             bool _show_transient_values,
              const Dataflow::Graph *_graph,
              const Dataflow::GraphElement *_element):
-    json{_json}, show_transient_values{_show_transient_values},
+    json{_json}, recursive(_recursive), recurse_this_level(_recurse_this_level),
+    show_transient_values{_show_transient_values},
     graph{_graph}, element{_element}
   {}
+  // Copy flags from parent Visitor
+  GetVisitor(Value& _json, const GetVisitor *parent,
+             const Dataflow::Graph *_graph):
+    json{_json}, recursive(parent->recursive),
+    recurse_this_level(parent->recurse_this_level),
+    show_transient_values{parent->show_transient_values}, graph{_graph}
+  {}
+  GetVisitor(Value& _json, const GetVisitor *parent,
+             const Dataflow::Graph *_graph,
+             const Dataflow::GraphElement *_element):
+    json{_json}, recursive(parent->recursive),
+    recurse_this_level(parent->recurse_this_level),
+    show_transient_values{parent->show_transient_values},
+    graph{_graph}, element{_element}
+  {}
+
   void visit(const Dataflow::Engine& engine) override;
   void visit(const Dataflow::Graph& graph) override;
   void visit(const Dataflow::Clone& clone) override;
@@ -39,14 +61,17 @@ public:
 };
 
 void get(const Dataflow::Engine& engine, Value& json,
-         const Dataflow::Path& path, bool show_transient_values)
+         const Dataflow::Path& path, bool recursive, bool show_transient_values)
 {
   auto lock = engine.get_read_lock();
 
   auto acceptors = engine.get_visitor_acceptors(path, 0);
   for (auto& a: acceptors)
   {
-    auto visitor = GetVisitor{json, show_transient_values, a.graph ,a.element};
+    // Always recurse to show basics of elements at top level, even if
+    // not recursive
+    auto visitor = GetVisitor{json, recursive, true, show_transient_values,
+                              a.graph ,a.element};
     a.acceptor->accept(visitor);
     return;
   }
@@ -63,17 +88,22 @@ void GetVisitor::visit(const Dataflow::Graph& graph)
   json.set("dynamic", module.is_dynamic() ? Value::Type::TRUE_
                                           : Value::Type::FALSE_);
 
-  const auto& elements = graph.get_elements();
-  if (!elements.empty())
+  if (recurse_this_level)
   {
-    auto& elementsj = json.put("elements", Value::Type::OBJECT);
-    for (const auto& e: elements)
+    const auto& elements = graph.get_elements();
+    if (!elements.empty())
     {
-      const auto& id = e.first;
-      const auto& element = e.second;
-      auto &elementj = elementsj.put(id, Value::Type::OBJECT);
-      auto visitor = GetVisitor{elementj, show_transient_values, &graph};
-      element->accept(visitor);
+      auto& elementsj = json.put("elements", Value::Type::OBJECT);
+      for (const auto& e: elements)
+      {
+        const auto& id = e.first;
+        const auto& element = e.second;
+        auto &elementj = elementsj.put(id, Value::Type::OBJECT);
+        // Explicitly set recurse_this_level on next level only if recursive
+        auto visitor = GetVisitor{elementj, recursive, recursive,
+                                  show_transient_values, &graph};
+        element->accept(visitor);
+      }
     }
   }
 
@@ -84,8 +114,7 @@ void GetVisitor::visit(const Dataflow::Graph& graph)
                           (const string& id, const Dataflow::InputMember& im)
     {
       auto& inputj = inputsj.put(id, Value::Type::OBJECT);
-      auto visitor = GetVisitor{inputj, show_transient_values,
-                                this->graph, &graph};
+      auto visitor = GetVisitor{inputj, this, this->graph, &graph};
       im.accept(visitor);
     });
   }
@@ -97,8 +126,7 @@ void GetVisitor::visit(const Dataflow::Graph& graph)
                            (const string& id, const Dataflow::OutputMember& om)
     {
       auto& outputj = outputsj.put(id, Value::Type::OBJECT);
-      auto visitor = GetVisitor{outputj, show_transient_values,
-                                this->graph, &graph};
+      auto visitor = GetVisitor{outputj, this, this->graph, &graph};
       om.accept(visitor);
     });
   }
@@ -123,8 +151,7 @@ void GetVisitor::visit(const Dataflow::Clone& clone)
                              const Dataflow::SettingMember& sm)
     {
       auto& settingj = settingsj.put(id, Value::Type::OBJECT);
-      auto visitor = GetVisitor{settingj, show_transient_values,
-                                graph, &clone};
+      auto visitor = GetVisitor{settingj, this, graph, &clone};
       sm.accept(visitor);
     });
   }
@@ -145,8 +172,7 @@ void GetVisitor::visit(const Dataflow::Element& element)
                              const Dataflow::SettingMember& sm)
     {
       auto& settingj = settingsj.put(id, Value::Type::OBJECT);
-      auto visitor = GetVisitor{settingj, show_transient_values,
-                                graph, &element};
+      auto visitor = GetVisitor{settingj, this, graph, &element};
       sm.accept(visitor);
     });
   }
@@ -157,8 +183,7 @@ void GetVisitor::visit(const Dataflow::Element& element)
                           (const string& id, const Dataflow::InputMember& im)
     {
       auto& inputj = inputsj.put(id, Value::Type::OBJECT);
-      auto visitor = GetVisitor{inputj, show_transient_values,
-                                graph, &element};
+      auto visitor = GetVisitor{inputj, this, graph, &element};
       im.accept(visitor);
     });
   }
@@ -169,8 +194,7 @@ void GetVisitor::visit(const Dataflow::Element& element)
                            (const string& id, const Dataflow::OutputMember& om)
     {
       auto& outputj = outputsj.put(id, Value::Type::OBJECT);
-      auto visitor = GetVisitor{outputj, show_transient_values,
-                                graph, &element};
+      auto visitor = GetVisitor{outputj, this, graph, &element};
       om.accept(visitor);
     });
   }

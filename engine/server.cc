@@ -57,8 +57,10 @@ int Server::run_priv()
       const auto *licence_e = licence_xml.get_component("vg-engine");
       if (licence_e)
       {
-        // ! read specific parameters when required
         licenced = true;
+
+        if (licence_e->get_child("saving").get_attr_bool("enabled"))
+          engine.enable_saving();
       }
     }
   }

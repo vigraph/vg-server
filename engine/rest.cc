@@ -67,7 +67,7 @@ bool GraphURLHandler::handle_get(const string& path,
   try
   {
     auto json = JSON::Value{JSON::Value::Type::OBJECT};
-    JSON::get(engine, json, path,
+    JSON::get(engine, json, path, false,  // Not recursive
               !request.url.get_query_parameter("transient").empty());
     if (!json)
     {
@@ -387,6 +387,7 @@ bool MetaURLHandler::handle_request(const Web::HTTPMessage& request,
 
 class LayoutURLHandler: public Web::URLHandler
 {
+  Dataflow::Engine& engine;
   File::Path layout_path;
   bool handle_get(Web::HTTPMessage& response);
   bool handle_post(const Web::HTTPMessage& request,
@@ -396,8 +397,8 @@ class LayoutURLHandler: public Web::URLHandler
                       const SSL::ClientDetails& client);
 
 public:
-  LayoutURLHandler(const File::Path& _layout_path):
-    URLHandler("/layout*"), layout_path(_layout_path)
+  LayoutURLHandler(Dataflow::Engine& _engine, const File::Path& _layout_path):
+    URLHandler("/layout*"), engine(_engine), layout_path(_layout_path)
   {}
 };
 
@@ -428,6 +429,16 @@ bool LayoutURLHandler::handle_post(const Web::HTTPMessage& request,
 {
   Log::Streams log;
   log.detail << "REST Layout: POST to " << layout_path << endl;
+
+  // Saving enabled?
+  if (!engine.is_saving_enabled())
+  {
+    Log::Error log;
+    log << "REST Layout saving disabled\n";
+    response.code = 403;
+    response.reason = "Forbidden";
+    return true;
+  }
 
   const auto& error = layout_path.write_all(request.body);
   if (!error.empty())
@@ -500,12 +511,22 @@ public:
 // Returns whether request was valid
 bool CombinedURLHandler::handle_get(Web::HTTPMessage& response)
 {
+  // Saving enabled?
+  if (!engine.is_saving_enabled())
+  {
+    Log::Error log;
+    log << "Combined saving disabled\n";
+    response.code = 403;
+    response.reason = "Forbidden";
+    return true;
+  }
+
   Log::Streams log;
   log.detail << "REST Combined: GET from " << layout_path << endl;
 
   auto json = JSON::Value{JSON::Value::Type::OBJECT};
   auto& graph = json.put("graph", JSON::Value{JSON::Value::Type::OBJECT});
-  JSON::get(engine, graph, Dataflow::Path(""), false);
+  JSON::get(engine, graph, Dataflow::Path(""), true, false); // recursive
 
   string layout_text;
   if (!layout_path.read_all(layout_text))
@@ -633,14 +654,15 @@ bool CombinedURLHandler::handle_request(const Web::HTTPMessage& request,
 
 class VersionURLHandler: public Web::URLHandler
 {
+  Dataflow::Engine& engine;
   bool handle_get(Web::HTTPMessage& response);
   bool handle_request(const Web::HTTPMessage& request,
                       Web::HTTPMessage& response,
                       const SSL::ClientDetails& client);
 
 public:
-  VersionURLHandler(Dataflow::Engine&):
-    URLHandler("/version")
+  VersionURLHandler(Dataflow::Engine& _engine):
+    URLHandler("/version"), engine(_engine)
   {}
 };
 
@@ -655,6 +677,7 @@ bool VersionURLHandler::handle_get(Web::HTTPMessage& response)
   json.put("major", 2);
   json.put("minor", 0);
   json.put("name", "TBC");
+  json.put("saving", engine.is_saving_enabled());
   response.body = json.str(true);
   return true;
 }
@@ -703,7 +726,8 @@ RESTInterface::RESTInterface(const XML::Element& config,
 
   http_server->add(new GraphURLHandler(engine));
   http_server->add(new MetaURLHandler(engine));
-  http_server->add(new LayoutURLHandler(base_dir.resolve(layout_file)));
+  http_server->add(new LayoutURLHandler(engine,
+                                        base_dir.resolve(layout_file)));
   http_server->add(new CombinedURLHandler(engine,
                                           base_dir.resolve(layout_file)));
   http_server->add(new VersionURLHandler(engine));

@@ -60,10 +60,10 @@ WINDOWS/licence.xml
 ../modules/laser/reorder-segments/vg-module-laser-reorder-segments.dll modules
 ../modules/laser/show-blanking/vg-module-laser-show-blanking.dll modules
 
-../modules/maths/binary/vg-module-maths-binary.dll modules
+../modules/maths/binary-ops/vg-module-maths-binary-ops.dll modules
 ../modules/maths/limit/vg-module-maths-limit.dll modules
 ../modules/maths/polar-position/vg-module-maths-polar-position.dll modules
-../modules/maths/unary/vg-module-maths-unary.dll modules
+../modules/maths/unary-ops/vg-module-maths-unary-ops.dll modules
 ../modules/maths/wrap/vg-module-maths-wrap.dll modules
 
 ../modules/time-series/average/vg-module-time-series-average.dll modules

@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph maths binary functions module
+# Tupfile for Vigraph maths unary functions module
 #
 # Copyright (c) 2020 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-maths-binary
+NAME    = vg-module-maths-unary-ops
 TYPE    = shared
 DEPENDS = vg-dataflow ot-lib
 

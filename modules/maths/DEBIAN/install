@@ -1,5 +1,5 @@
-unary/vg-module-maths-unary.so /usr/lib/vigraph/modules/
-binary/vg-module-maths-binary.so /usr/lib/vigraph/modules/
+unary-ops/vg-module-maths-unary-ops.so /usr/lib/vigraph/modules/
+binary-ops/vg-module-maths-binary-ops.so /usr/lib/vigraph/modules/
 limit/vg-module-maths-limit.so /usr/lib/vigraph/modules/
 polar-position/vg-module-maths-polar-position.so /usr/lib/vigraph/modules/
 wrap/vg-module-maths-wrap.so /usr/lib/vigraph/modules/

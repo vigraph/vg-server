@@ -33,8 +33,8 @@ public:
   Input<Number> key{-1};
   Input<MIDI::Event> input;
   Output<Number> velocity;
-  Output<Trigger> start;
-  Output<Trigger> stop;
+  Output<Trigger> note_on;
+  Output<Trigger> note_off;
 };
 
 //--------------------------------------------------------------------------
@@ -42,25 +42,25 @@ public:
 void KeyIn::tick(const TickData& td)
 {
   const auto sample_rate = max(velocity.get_sample_rate(),
-                               max(start.get_sample_rate(),
-                                   stop.get_sample_rate()));
+                               max(note_on.get_sample_rate(),
+                                   note_off.get_sample_rate()));
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(channel, key, input),
-                 tie(velocity, start, stop),
+                 tie(velocity, note_on, note_off),
                  [&](Number c, Number co, const MIDI::Event& i,
-                     Number& v, Trigger& _start, Trigger& _stop)
+                     Number& v, Trigger& on, Trigger& off)
   {
     v = last_velocity;
-    _start = 0;
-    _stop = 0;
+    on = 0;
+    off = 0;
     if (i.type != MIDI::Event::Type::note_on &&
         i.type != MIDI::Event::Type::note_off)
       return;
     if ((c < 0 || i.channel == c) && (co < 0 || i.key == co))
     {
       v = last_velocity = i.value / 127.0;
-      _start = i.type == MIDI::Event::Type::note_on;
-      _stop = i.type == MIDI::Event::Type::note_off;
+      on = i.type == MIDI::Event::Type::note_on;
+      off = i.type == MIDI::Event::Type::note_off;
     }
   });
 }
@@ -78,8 +78,8 @@ Dataflow::SimpleModule module
   },
   {
     { "velocity", &KeyIn::velocity },
-    { "start",    &KeyIn::start },
-    { "stop",     &KeyIn::stop },
+    { "note-on",  &KeyIn::note_on },
+    { "note-off", &KeyIn::note_off },
   }
 };
 

@@ -12,9 +12,9 @@ DEPENDS  = vg-module-midi-alsa-in \
            vg-module-midi-control-in \
            vg-module-midi-control-out \
            vg-module-midi-key-in \
+           vg-module-midi-key-out \
            vg-module-midi-keyboard-in \
            vg-module-midi-pin
-#           vg-module-midi-control-key-out \
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

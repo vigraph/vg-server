@@ -118,7 +118,7 @@ void ALSAOut::run()
         start_time = now - event.t;
       if (event.t > now - start_time)
         this_thread::sleep_for(chrono::milliseconds{
-                                      (now - start_time).milliseconds()});
+                               (event.t - (now - start_time)).milliseconds()});
       vector<uint8_t> data;
       auto writer = ViGraph::MIDI::Writer{data};
       writer.write(event.e);

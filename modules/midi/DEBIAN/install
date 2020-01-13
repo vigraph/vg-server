@@ -4,11 +4,6 @@ button-in/vg-module-midi-button-in.so /usr/lib/vigraph/modules/
 control-in/vg-module-midi-control-in.so /usr/lib/vigraph/modules/
 control-out/vg-module-midi-control-out.so /usr/lib/vigraph/modules/
 key-in/vg-module-midi-key-in.so /usr/lib/vigraph/modules/
+key-out/vg-module-midi-key-out.so /usr/lib/vigraph/modules/
 keyboard-in/vg-module-midi-keyboard-in.so /usr/lib/vigraph/modules/
 pin/vg-module-midi-pin.so /usr/lib/vigraph/modules/
-#services/distributor/vg-module-midi-service-distributor.so /usr/lib/vigraph/modules/
-#controls/linux-alsa/vg-module-midi-control-linux-alsa.so /usr/lib/vigraph/modules/
-#controls/key-in/vg-module-midi-control-key-in.so /usr/lib/vigraph/modules/
-#controls/key-out/vg-module-midi-control-key-out.so /usr/lib/vigraph/modules/
-#controls/control-in/vg-module-midi-control-control-in.so /usr/lib/vigraph/modules/
-#controls/control-out/vg-module-midi-control-control-out.so /usr/lib/vigraph/modules/

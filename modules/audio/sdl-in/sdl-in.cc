@@ -228,7 +228,7 @@ SimpleModule module
   },
   {},
   {
-    // dynamic output channels
+    { "output", &SDLIn::output }
   }
 };
 

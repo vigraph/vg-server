@@ -237,7 +237,7 @@ Dataflow::SimpleModule module
     { "max-recovery", &SDLSink::max_recovery },
   },
   {
-    // dynamic input channels
+    { "input", &SDLSink::input }
   },
   {}
 };

@@ -38,6 +38,20 @@ struct AudioData
     nchannels(_c.size()), channels(_c) {}
   // Special for tests, single item
   AudioData(sample_t s): nchannels(1) { channels[0] = s; }
+
+  // Combine operator
+  AudioData& operator+=(const AudioData& o)
+  {
+    auto same_channels = min(nchannels, o.nchannels);
+    for(auto c=0; c<same_channels; c++)  // Both have
+      channels[c] += o.channels[c];
+    for(auto c=same_channels; c<o.nchannels; c++)  // Only they have
+      channels[c] = o.channels[c];
+    // Ones only we have can be left alone
+
+    nchannels = max(nchannels, o.nchannels);
+    return *this;
+  }
 };
 
 template<> inline

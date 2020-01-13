@@ -30,26 +30,29 @@ public:
   Input<Number> velocity{0};
   Input<Trigger> note_on;
   Input<Trigger> note_off;
-  Output<MIDI::Event> output;
+  Output<MIDIEvents> output;
 };
 
 //--------------------------------------------------------------------------
 // Generate a fragment
 void KeyOut::tick(const TickData& td)
 {
-  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  const auto sample_rate = output.get_sample_rate();
+  const auto nsamples = td.samples_in_tick(sample_rate);
+  const auto sample_duration = Time::Duration{td.sample_duration(sample_rate)};
+  auto t = Time::Duration{td.start};
   sample_iterate(td, nsamples, {},
                  tie(channel, key, velocity, note_on, note_off),
                  tie(output),
                  [&](Number c, Number co, Number v, Trigger on, Trigger off,
-                     MIDI::Event& o)
+                     MIDIEvents& o)
   {
+    o = MIDIEvents{};
     if (off)
-      o = MIDI::Event(MIDI::Event::Type::note_off, c, co, v * 127.0);
+      o.emplace_back(t, MIDI::Event::Type::note_off, c, co, v * 127.0);
     else if (on)
-      o = MIDI::Event(MIDI::Event::Type::note_on, c, co, v * 127.0);
-    else
-      o = MIDI::Event{};
+      o.emplace_back(t, MIDI::Event::Type::note_on, c, co, v * 127.0);
+    t += sample_duration;
   });
 }
 

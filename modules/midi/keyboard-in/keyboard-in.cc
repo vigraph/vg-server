@@ -32,7 +32,7 @@ public:
 
   Input<Number> channel{-1};
   Input<Number> voice{-1};
-  Input<MIDI::Event> input;
+  Input<MIDIEvents> input;
   Output<Number> note;
   Output<Number> velocity;
   Output<Trigger> pressed;
@@ -50,7 +50,7 @@ void KeyboardIn::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(channel, voice, input),
                  tie(note, velocity, pressed, released),
-                 [&](Number channel, Number voice, const MIDI::Event& input,
+                 [&](Number channel, Number voice, const MIDIEvents& input,
                      Number& note, Number& velocity,
                      Trigger& pressed, Trigger& released)
   {
@@ -58,17 +58,22 @@ void KeyboardIn::tick(const TickData& td)
     velocity = last_velocity;
     pressed = 0;
     released = 0;
-    if (input.type != MIDI::Event::Type::note_on &&
-        input.type != MIDI::Event::Type::note_off)
-      return;
-    if ((channel < 0 || input.channel == channel)
-        && (voice < 0 || input.voice == voice))
+    for (auto eit = input.rbegin(); eit != input.rend(); ++eit)
     {
-      note = last_note = MIDI::get_midi_cv(input.key);
-      if (input.type == MIDI::Event::Type::note_on)
-        velocity = last_velocity = input.value / 127.0;
-      pressed = input.type == MIDI::Event::Type::note_on;
-      released = input.type == MIDI::Event::Type::note_off;
+      const auto& e = *eit;
+      if (e.type != MIDI::Event::Type::note_on &&
+          e.type != MIDI::Event::Type::note_off)
+        continue;
+      if ((channel < 0 || e.channel == channel)
+          && (voice < 0 || e.voice == voice))
+      {
+        note = last_note = MIDI::get_midi_cv(e.key);
+        if (e.type == MIDI::Event::Type::note_on)
+          velocity = last_velocity = e.value / 127.0;
+        pressed = e.type == MIDI::Event::Type::note_on;
+        released = e.type == MIDI::Event::Type::note_off;
+        break;
+      }
     }
   });
 }

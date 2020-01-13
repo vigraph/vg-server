@@ -29,8 +29,8 @@ private:
   struct Voice
   {
     int voice = -1;
-    timestamp_t last_used = 0;
-    Voice(int _voice, timestamp_t _last_used):
+    Time::Duration last_used;
+    Voice(int _voice, const Time::Duration& _last_used):
       voice{_voice}, last_used{_last_used}
     {}
     bool operator<(const Voice& b) const
@@ -47,8 +47,8 @@ public:
 
   Setting<Integer> voices;
   Input<Number> channel{-1};
-  Input<MIDI::Event> input;
-  Output<MIDI::Event> output;
+  Input<MIDIEvents> input;
+  Output<MIDIEvents> output;
 };
 
 //--------------------------------------------------------------------------
@@ -90,7 +90,7 @@ void AssignVoice::setup(const SetupContext& context)
   // Add new voices to available pool
   for (auto i = max + 1; i < voices; ++i)
   {
-    available.emplace(i, 0);
+    available.emplace(i, Time::Duration{});
   }
 }
 
@@ -99,49 +99,49 @@ void AssignVoice::setup(const SetupContext& context)
 void AssignVoice::tick(const TickData& td)
 {
   const auto sample_rate = output.get_sample_rate();
-  auto t = td.first_sample_at(sample_rate);
-  const auto sample_duration = td.sample_duration(sample_rate);
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(channel, input), tie(output),
-                 [&](Number c, const MIDI::Event& i, MIDI::Event& o)
+                 [&](Number c, const MIDIEvents& i, MIDIEvents& o)
   {
     o = i;
-    if (c == i.channel)
+    for (auto& e: o)
     {
-      switch (i.type)
+      if (c == e.channel)
       {
-        case MIDI::Event::Type::note_on:
-          {
-            auto it = key_to_voice.find(i.key);
-            if (it != key_to_voice.end())
+        switch (e.type)
+        {
+          case MIDI::Event::Type::note_on:
             {
-              o.voice = it->second;
+              auto it = key_to_voice.find(e.key);
+              if (it != key_to_voice.end())
+              {
+                e.voice = it->second;
+              }
+              else if (!available.empty())
+              {
+                auto at = available.begin();
+                e.voice = at->voice;
+                available.erase(at);
+                key_to_voice.emplace(e.key, e.voice);
+              }
             }
-            else if (!available.empty())
+            break;
+          case MIDI::Event::Type::note_off:
             {
-              auto at = available.begin();
-              o.voice = at->voice;
-              available.erase(at);
-              key_to_voice.emplace(i.key, o.voice);
+              auto it = key_to_voice.find(e.key);
+              if (it != key_to_voice.end())
+              {
+                e.voice = it->second;
+                key_to_voice.erase(it);
+                available.emplace(e.voice, e.time);
+              }
             }
-          }
-          break;
-        case MIDI::Event::Type::note_off:
-          {
-            auto it = key_to_voice.find(i.key);
-            if (it != key_to_voice.end())
-            {
-              o.voice = it->second;
-              key_to_voice.erase(it);
-              available.emplace(o.voice, t);
-            }
-          }
-          break;
-        default:
-          break;
+            break;
+          default:
+            break;
+        }
       }
     }
-    t += sample_duration;
   });
 }
 

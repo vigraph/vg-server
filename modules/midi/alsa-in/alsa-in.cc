@@ -27,13 +27,6 @@ private:
   unique_ptr<ALSAInThread> thread;
   atomic<bool> running{false};
   ViGraph::MIDI::Reader reader;
-  struct MIDIEvent
-  {
-    Time::Duration t;
-    MIDI::Event e;
-    MIDIEvent(const Time::Duration& _t, const MIDI::Event& _e):
-      t{_t}, e{_e} {}
-  };
   MT::Mutex events_mutex;
   queue<MIDIEvent> events;
   Time::Duration event_last_read;
@@ -58,7 +51,7 @@ public:
 
   Setting<string> device{default_device};
 
-  Output<MIDI::Event> output;
+  Output<MIDIEvents> output;
 };
 
 //==========================================================================
@@ -164,27 +157,17 @@ void ALSAIn::tick(const TickData& td)
   else
     last_tick_end = event_last_read;
   auto earliest = last_tick_end - tick_duration;
-  auto i = 0u;
   sample_iterate(td, nsamples, {}, {},
                  tie(output),
-                 [&](MIDI::Event& o)
+                 [&](MIDIEvents& o)
   {
-    o = MIDI::Event{};
-    bool wrote = false;
-    while (!events.empty() && events.front().t < earliest + sample_duration
-           && (!wrote || (events.size() > (nsamples - i))))
+    o = MIDIEvents{};
+    while (!events.empty() && events.front().time < earliest + sample_duration)
     {
-      if (wrote)
-      {
-        Log::Error log;
-        log << "Supressing MIDI event (sample rate may be too low)" << endl;
-      }
-      o = events.front().e;
+      o.emplace_back(events.front());
       events.pop();
-      wrote = true;
     }
     earliest += sample_duration;
-    ++i;
   });
 }
 

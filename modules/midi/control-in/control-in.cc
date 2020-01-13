@@ -33,7 +33,7 @@ public:
   Setting<Number> initial{0};
   Input<Number> channel{-1};
   Input<Number> control{-1};
-  Input<MIDI::Event> input;
+  Input<MIDIEvents> input;
   Output<Number> output;
 };
 
@@ -51,13 +51,18 @@ void ControlIn::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(channel, control, input), tie(output),
-                 [&](Number c, Number co, const MIDI::Event& i, Number& o)
+                 [&](Number c, Number co, const MIDIEvents& i, Number& o)
   {
-    if (i.type == MIDI::Event::Type::control_change &&
-        (c < 0 || i.channel == c) && (co < 0 || i.key == co))
-      o = last_output = (i.value / 127.0);
-    else
-      o = last_output;
+    for (auto eit = i.rbegin(); eit != i.rend(); ++eit)
+    {
+      const auto& e = *eit;
+
+      if (e.type == MIDI::Event::Type::control_change &&
+          (c < 0 || e.channel == c) && (co < 0 || e.key == co))
+        o = last_output = (e.value / 127.0);
+      else
+        o = last_output;
+    }
   });
 }
 

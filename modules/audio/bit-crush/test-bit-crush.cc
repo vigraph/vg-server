@@ -7,6 +7,7 @@
 //==========================================================================
 
 #include "../../module-test.h"
+#include "../audio-module.h"
 #include "vg-geometry.h"
 #include "vg-waveform.h"
 
@@ -25,9 +26,8 @@ const auto samples = 1;
 
 TEST_F(BitCrushTest, TestNoInput)
 {
-  auto& btc = add("audio/bit-crush")
-              .set("input", 0.0);
-  auto actual = vector<Number>{};
+  auto& btc = add("audio/bit-crush");
+  auto actual = vector<AudioData>{};
   auto& snk = add_sink(actual, samples);
   btc.connect("output", snk, "input");
 
@@ -36,7 +36,7 @@ TEST_F(BitCrushTest, TestNoInput)
   EXPECT_EQ(samples, actual.size());
   for(auto i = 0u; i < samples; ++i)
   {
-    EXPECT_DOUBLE_EQ(0.0, actual[i]);
+    EXPECT_DOUBLE_EQ(0.0, actual[i].nchannels);
   }
 }
 
@@ -44,13 +44,14 @@ TEST_F(BitCrushTest, TestBits)
 {
   auto& btc = add("audio/bit-crush")
               .set("bits", 2.0);
-  const auto input = vector<Number>{-1, -0.8, -0.6, -0.4, -0.2, 0,
-                                    0.2, 0.4, 0.6, 0.8, 1};
-  const auto expected = vector<Number>{-1, -1, -1.0/3.0, -1.0/3.0, -1.0/3.0,
-                                       1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0,
-                                       1, 1};
+
+  const auto input = vector<AudioData>{ -1, -0.8, -0.6, -0.4, -0.2, 0,
+                                        0.2, 0.4, 0.6, 0.8, 1 };
+  const auto expected = vector<sample_t>{-1, -1, -1.0/3.0, -1.0/3.0, -1.0/3.0,
+                                         1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0,
+                                         1, 1};
   auto& src = add_source(input);
-  auto actual = vector<Number>{};
+  auto actual = vector<AudioData>{};
   auto& snk = add_sink(actual, input.size());
   src.connect("output", btc, "input");
   btc.connect("output", snk, "input");
@@ -60,7 +61,8 @@ TEST_F(BitCrushTest, TestBits)
   EXPECT_EQ(expected.size(), actual.size());
   for(auto i = 0u; i < actual.size(); ++i)
   {
-    EXPECT_DOUBLE_EQ(expected[i], actual[i]);
+    EXPECT_EQ(1, actual[i].nchannels);
+    EXPECT_DOUBLE_EQ(expected[i], actual[i].channels[0]);
   }
 }
 
@@ -68,10 +70,11 @@ TEST_F(BitCrushTest, TestSampleRate)
 {
   auto& btc = add("audio/bit-crush")
               .set("rate", 2.0);
-  const auto input = vector<Number>{-1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4};
-  const auto expected = vector<Number>{-1, -1, -1, -1, -0.2, -0.2, -0.2, -0.2};
+  const auto input = vector<AudioData>{-1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4};
+  const auto expected = vector<sample_t>{-1, -1, -1, -1,
+                                         -0.2, -0.2, -0.2, -0.2};
   auto& src = add_source(input);
-  auto actual = vector<Number>{};
+  auto actual = vector<AudioData>{};
   auto& snk = add_sink(actual, input.size());
   src.connect("output", btc, "input");
   btc.connect("output", snk, "input");
@@ -81,7 +84,8 @@ TEST_F(BitCrushTest, TestSampleRate)
   EXPECT_EQ(expected.size(), actual.size());
   for(auto i = 0u; i < actual.size(); ++i)
   {
-    EXPECT_DOUBLE_EQ(expected[i], actual[i]);
+    EXPECT_EQ(1, actual[i].nchannels);
+    EXPECT_DOUBLE_EQ(expected[i], actual[i].channels[0]);
   }
 }
 

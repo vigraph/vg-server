@@ -21,7 +21,7 @@ using namespace ViGraph::Geometry;
 class BitCrush: public SimpleElement
 {
 private:
-  Number last_sample = 0;
+  AudioData last_sample;
   unsigned samples_ago = numeric_limits<unsigned>::max() - 1;
 
   // Element virtuals
@@ -37,10 +37,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<Number> input{0.0};
+  Input<AudioData> input;
   Input<Number> rate{default_rate};
   Input<Number> bits{default_bits};
-  Output<Number> output;
+  Output<AudioData> output;
 };
 
 //--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ void BitCrush::tick(const TickData& td)
   const auto sample_rate = output.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(input, rate, bits), tie(output),
-                 [&](Number i, Number r, Number b, Number& o)
+                 [&](const AudioData& i, Number r, Number b, AudioData& o)
   {
     if (!r || ++samples_ago >= sample_rate / r)
     {
@@ -65,7 +65,9 @@ void BitCrush::tick(const TickData& td)
     if (b)
     {
       const auto max = pow(2, b) - 1;
-      o = (2.0 * (round(((o + 1.0) * 0.5) * max) / max)) - 1.0;
+      for(auto c=0; c<o.nchannels; c++)
+        o.channels[c] = (2.0 * (round(((o.channels[c] + 1.0) * 0.5) * max)
+                                / max)) - 1.0;
     }
   });
 }

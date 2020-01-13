@@ -22,7 +22,7 @@ const auto default_max_recovery = 1;
 
 //==========================================================================
 // ALSA out
-class ALSAOut: public DynamicElement
+class ALSAOut: public SimpleElement
 {
 private:
   snd_pcm_t *pcm = nullptr;
@@ -40,7 +40,7 @@ private:
   }
 
 public:
-  using DynamicElement::DynamicElement;
+  using SimpleElement::SimpleElement;
 
   Setting<string> device{default_device};
   Setting<Number> sample_rate{default_sample_rate};
@@ -49,19 +49,14 @@ public:
   Setting<Number> max_delay{default_max_delay};
   Setting<Number> max_recovery{default_max_recovery};
 
-  Input<Number> channel1;
-  Input<Number> channel2;
-  Input<Number> channel3;
-  Input<Number> channel4;
-  Input<Number> channel5;
-  Input<Number> channel6;
+  Input<AudioData> input;
 };
 
 //--------------------------------------------------------------------------
 // Setup
 void ALSAOut::setup(const SetupContext& context)
 {
-  DynamicElement::setup(context);
+  SimpleElement::setup(context);
 
   Log::Streams log;
   shutdown();
@@ -101,6 +96,8 @@ void ALSAOut::setup(const SetupContext& context)
       throw runtime_error(string("hw_params_rate: ")+snd_strerror(status));
     log.detail << "ALSA: sample rate chosen " << srate << endl;
 
+    if (nchannels > AudioData::max_channels)
+      throw runtime_error("Too many channels in ALSA output");
     status = snd_pcm_hw_params_set_channels(pcm, hw_params, nchannels);
     if (status < 0)
       throw runtime_error(string("hw_params:channels: ")+snd_strerror(status));
@@ -132,40 +129,7 @@ void ALSAOut::setup(const SetupContext& context)
     if (status < 0)
       throw runtime_error(string("prepare: ")+snd_strerror(status));
 
-    log.detail << "Created Linux ALSA audio out\n";
-
-    // Update module information
-    if (nchannels < 6 && module.num_inputs() >= 6)
-      deregister_input("channel6", &channel6);
-    if (nchannels < 5 && module.num_inputs() >= 5)
-      deregister_input("channel5", &channel5);
-    if (nchannels < 4 && module.num_inputs() >= 4)
-      deregister_input("channel4", &channel4);
-    if (nchannels < 3 && module.num_inputs() >= 3)
-      deregister_input("channel3", &channel3);
-    if (nchannels < 2 && module.num_inputs() >= 2)
-      deregister_input("channel2", &channel2);
-    if (nchannels < 1 && module.num_inputs() >= 1)
-      deregister_input("channel1", &channel1);
-    if (nchannels >= 1 && module.num_inputs() < 1)
-      register_input("channel1", &channel1);
-    if (nchannels >= 2 && module.num_inputs() < 2)
-      register_input("channel2", &channel2);
-    if (nchannels >= 3 && module.num_inputs() < 3)
-      register_input("channel3", &channel3);
-    if (nchannels >= 4 && module.num_inputs() < 4)
-      register_input("channel4", &channel4);
-    if (nchannels >= 5 && module.num_inputs() < 5)
-      register_input("channel5", &channel5);
-    if (nchannels >= 6 && module.num_inputs() < 6)
-      register_input("channel6", &channel6);
-
-    channel1.set_sample_rate(srate);
-    channel2.set_sample_rate(srate);
-    channel3.set_sample_rate(srate);
-    channel4.set_sample_rate(srate);
-    channel5.set_sample_rate(srate);
-    channel6.set_sample_rate(srate);
+    input.set_sample_rate(srate);
 
     log.detail << "Created ALSA audio out\n";
   }
@@ -181,28 +145,20 @@ void ALSAOut::tick(const TickData& td)
 {
   if (pcm)
   {
-    const auto nsamples = td.samples_in_tick(channel1.get_sample_rate());
+    const auto nsamples = td.samples_in_tick(input.get_sample_rate());
     const auto channels = nchannels;
     output_buffer.clear();
     output_buffer.reserve(nsamples * channels);
     sample_iterate(td, nsamples, {},
-                   tie(channel1, channel2, channel3,
-                       channel4, channel5, channel6), {},
-                   [&](Number c1, Number c2, Number c3,
-                       Number c4, Number c5, Number c6)
+                   tie(input), {},
+                   [&](const AudioData& input)
     {
-      if (channels >= 1)
-        output_buffer.emplace_back(c1);
-      if (channels >= 2)
-        output_buffer.emplace_back(c2);
-      if (channels >= 3)
-        output_buffer.emplace_back(c3);
-      if (channels >= 4)
-        output_buffer.emplace_back(c4);
-      if (channels >= 5)
-        output_buffer.emplace_back(c5);
-      if (channels >= 6)
-        output_buffer.emplace_back(c6);
+      for(auto c=0; c<input.nchannels; c++)
+        output_buffer.emplace_back(input.channels[c]);
+
+      // Zero any we don't get
+      for(auto c=input.nchannels; c<channels; c++)
+        output_buffer.emplace_back(0);
     });
 
     auto n = snd_pcm_writei(pcm, output_buffer.data(),
@@ -227,7 +183,7 @@ void ALSAOut::shutdown()
 
 //--------------------------------------------------------------------------
 // Module definition
-Dataflow::DynamicModule module
+Dataflow::SimpleModule module
 {
   "alsa-out",
   "ALSA Audio output",
@@ -241,7 +197,7 @@ Dataflow::DynamicModule module
     { "max-recovery", &ALSAOut::max_recovery },
   },
   {
-    // dynamic input channels
+    { "input", &ALSAOut::input }
   },
   {}
 };

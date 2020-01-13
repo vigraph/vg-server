@@ -22,11 +22,8 @@ const auto default_max_recovery = 1;
 
 //==========================================================================
 // ALSA out
-class ALSAIn: public DynamicElement
+class ALSAIn: public SimpleElement
 {
-public:
-  const static DynamicModule alsa_in_module;
-
 private:
   snd_pcm_t *pcm = nullptr;
   vector<float> input_buffer;
@@ -44,10 +41,8 @@ private:
     return new ALSAIn{module};
   }
 
-  vector<unique_ptr<Output<Number>>> outputs;
-
 public:
-  using DynamicElement::DynamicElement;
+  using SimpleElement::SimpleElement;
 
   Setting<string> device{default_device};
   Setting<Number> sample_rate{default_sample_rate};
@@ -55,13 +50,15 @@ public:
   Setting<Number> start_threshold{default_start_threshold};
   Setting<Number> max_delay{default_max_delay};
   Setting<Number> max_recovery{default_max_recovery};
+
+  Output<AudioData> output;
 };
 
 //--------------------------------------------------------------------------
 // Setup
 void ALSAIn::setup(const SetupContext& context)
 {
-  DynamicElement::setup(context);
+  SimpleElement::setup(context);
 
   Log::Streams log;
   shutdown();
@@ -102,6 +99,8 @@ void ALSAIn::setup(const SetupContext& context)
     log.detail << "ALSA: sample rate chosen " << srate << endl;
     input_sample_rate = srate;
 
+    if (nchannels > AudioData::max_channels)
+      throw runtime_error("Too many channels in ALSA input");
     status = snd_pcm_hw_params_set_channels(pcm, hw_params, nchannels);
     if (status < 0)
       throw runtime_error(string("hw_params:channels: ")+snd_strerror(status));
@@ -133,22 +132,6 @@ void ALSAIn::setup(const SetupContext& context)
     if (status < 0)
       throw runtime_error(string("prepare: ")+snd_strerror(status));
 
-    log.detail << "Created Linux ALSA audio out\n";
-
-    // Update module information
-    while (outputs.size() > nchannels)
-    {
-      deregister_output("channel" + Text::itos(outputs.size()),
-                        outputs.back().get());
-      outputs.pop_back();
-    }
-    while (outputs.size() < nchannels)
-    {
-      outputs.emplace_back(new Output<Number>{});
-      register_output("channel" + Text::itos(outputs.size()),
-                      outputs.back().get());
-    }
-
     log.detail << "Created ALSA audio in\n";
   }
   catch (const runtime_error& e)
@@ -164,15 +147,8 @@ void ALSAIn::tick(const TickData& td)
   if (pcm)
   {
     pos = fmod(pos, 1);
-    auto sample_rate = double{};
-    auto obuffers = vector<Output<Number>::Buffer>{};
-    obuffers.reserve(outputs.size());
-    for (auto& o: outputs)
-    {
-      if (o->get_sample_rate() > sample_rate)
-        sample_rate = o->get_sample_rate();
-      obuffers.emplace_back(o->get_buffer(td));
-    }
+    auto sample_rate = output.get_sample_rate();
+    auto buffer = output.get_buffer(td);
     const auto nsamples = td.samples_in_tick(sample_rate);
     const auto in_nsamples = td.samples_in_tick(input_sample_rate);
     const auto step = input_sample_rate / sample_rate;
@@ -194,15 +170,16 @@ void ALSAIn::tick(const TickData& td)
       const auto p = fmod(pos, 1);
       const auto i1 = static_cast<unsigned>(pos);
       const auto i2 = i1 + 1;
-      auto c = 0;
-      for (auto& o: obuffers)
+      buffer.data.push_back(AudioData());
+      auto& ad = buffer.data.back();
+      ad.nchannels = channels;
+      for(auto c=0; c<channels; c++)
       {
         const auto c1 = i1 * channels + c;
         const auto c2 = i2 * channels + c;
         const auto s1 = c1 < n ? input_buffer[c1] : 0.0;
         const auto s2 = c2 < n ? input_buffer[c2] : s1;
-        o.data.emplace_back(s1 + ((s2 - s1) * p));
-        ++c;
+        ad.channels[c] = s1 + (s2 - s1) * p;
       }
       pos += step;
     }
@@ -219,7 +196,7 @@ void ALSAIn::shutdown()
 
 //--------------------------------------------------------------------------
 // Module definition
-const DynamicModule ALSAIn::alsa_in_module =
+SimpleModule module
 {
   "alsa-in",
   "ALSA Audio input",
@@ -234,11 +211,11 @@ const DynamicModule ALSAIn::alsa_in_module =
   },
   {},
   {
-    // dynamic output channels
+    { "output", &ALSAIn::output }
   }
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(ALSAIn, ALSAIn::alsa_in_module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(ALSAIn, module)
 

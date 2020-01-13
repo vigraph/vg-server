@@ -28,9 +28,9 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<Number> input{0.0};
+  Input<AudioData> input{0.0};
   Input<Number> gain{1.0};
-  Output<Number> output;
+  Output<AudioData> output;
 };
 
 //--------------------------------------------------------------------------
@@ -39,9 +39,12 @@ void LevelFilter::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input, gain), tie(output),
-                 [&](Number input, Number gain, Number& o)
+                 [&](const AudioData& input, Number gain,
+                     AudioData& o)
   {
-    o = input * gain;
+    o.nchannels = input.nchannels;
+    for(auto c=0; c<input.nchannels; c++)
+      o.channels[c] = input.channels[c] * gain;
   });
 }
 

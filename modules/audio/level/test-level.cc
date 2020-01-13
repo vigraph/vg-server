@@ -7,6 +7,7 @@
 //==========================================================================
 
 #include "../../module-test.h"
+#include "../audio-module.h"
 
 class LevelTest: public GraphTester
 {
@@ -17,53 +18,33 @@ public:
   }
 };
 
-const auto nsamples = 100;
-
-TEST_F(LevelTest, TestSetOnlyInput)
-{
-  const auto expected = vector<Number>(nsamples, 42.0);
-  auto actual = vector<Number>{};
-
-  auto& mlt = add("audio/level")
-              .set("input", 42.0);
-  auto& snk = add_sink(actual, nsamples);
-  mlt.connect("output", snk, "input");
-
-
-  run();
-
-  EXPECT_EQ(expected, actual);
-}
-
-TEST_F(LevelTest, TestSetOnlyGain)
-{
-  const auto expected = vector<Number>(nsamples, 0.0);
-  auto actual = vector<Number>{};
-
-  auto& mlt = add("audio/level")
-              .set("gain", 10.0);
-  auto& snk = add_sink(actual, nsamples);
-  mlt.connect("output", snk, "input");
-
-  run();
-
-  EXPECT_EQ(expected, actual);
-}
-
 TEST_F(LevelTest, TestSetBothInputAndGain)
 {
-  const auto expected = vector<Number>(nsamples, 4.2);
-  auto actual = vector<Number>{};
+  auto& level = add("audio/level");
 
-  auto& mlt = add("audio/level")
-              .set("input", 42.0)
-              .set("gain", 0.1);
-  auto& snk = add_sink(actual, nsamples);
-  mlt.connect("output", snk, "input");
+  const auto input = vector<AudioData>{ -1, -0.8, -0.6, -0.4, -0.2, 0,
+                                        0.2, 0.4, 0.6, 0.8, 1 };
+  const auto gain = vector<Number>{ 1, 1, 1, 0.5, 0.5, 0.5,
+                                    0, 0, 0, 0, 0 };
+  const auto expected = vector<sample_t>{ -1, -0.8, -0.6, -0.2, -0.1, 0,
+                                          0, 0, 0, 0, 0 };
+  auto& isrc = add_source(input);
+  auto& gsrc = add_source(gain);
+  auto actual = vector<AudioData>{};
+  auto& sink = add_sink(actual, input.size());
+
+  isrc.connect("output", level, "input");
+  gsrc.connect("output", level, "gain");
+  level.connect("output", sink, "input");
 
   run();
 
-  EXPECT_EQ(expected, actual);
+  EXPECT_EQ(expected.size(), actual.size());
+  for(auto i = 0u; i < actual.size(); ++i)
+  {
+    EXPECT_EQ(1, actual[i].nchannels);
+    EXPECT_DOUBLE_EQ(expected[i], actual[i].channels[0]) << i;
+  }
 }
 
 int main(int argc, char **argv)

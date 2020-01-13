@@ -44,9 +44,9 @@ public:
   PitchShift(const SimpleModule& module);
 
   // Configuration
-  Input<Number> input{0.0};
+  Input<AudioData> input{0.0};
   Input<Number> pitch{0.0};
-  Output<Number> output;
+  Output<AudioData> output;
 };
 
 //--------------------------------------------------------------------------
@@ -79,9 +79,9 @@ void PitchShift::tick(const TickData& td)
   auto f = vector<float>{};
   f.reserve(nsamples);
   sample_iterate(td, nsamples, {}, tie(input), {},
-                 [&](Number input)
+                 [&](const AudioData& input)
   {
-    f.emplace_back(input);
+    f.emplace_back(input.channels[0]);  // !TODO: multichannel
   });
 
 #if defined(PLATFORM_WINDOWS)
@@ -113,12 +113,12 @@ void PitchShift::tick(const TickData& td)
 
   auto fpos = 0u;
   sample_iterate(td, nsamples, {}, {}, tie(output),
-                 [&](Number& o)
+                 [&](AudioData& o)
   {
     if (fpos < f.size())
-      o = f[fpos++];
+      o = AudioData(f[fpos++]);
     else
-      o = 0;
+      o = AudioData();
   });
 }
 

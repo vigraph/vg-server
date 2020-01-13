@@ -18,9 +18,9 @@ private:
   bool recording = false;
   bool playing = false;
   bool recorded_ready = false;
-  vector<Number> recording_buffer;
-  vector<Number> recorded_buffer;
-  vector<Number> play_buffer;
+  vector<AudioData> recording_buffer;
+  vector<AudioData> recorded_buffer;
+  vector<AudioData> play_buffer;
   uint64_t play_pos = 0;
 
   // Element virtuals
@@ -36,12 +36,12 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<Number> input{0.0};
+  Input<AudioData> input{0.0};
   Input<Trigger> play_start{0.0};
   Input<Trigger> play_stop{0.0};
   Input<Trigger> record_start{0.0};
   Input<Trigger> record_stop{0.0};
-  Output<Number> output;
+  Output<AudioData> output;
 };
 
 //--------------------------------------------------------------------------
@@ -54,9 +54,9 @@ void Loop::tick(const TickData& td)
 
   sample_iterate(td, nsamples, {}, tie(input, play_start, play_stop,
                                    record_start, record_stop), tie(output),
-                 [&](Number i, Trigger pb, Trigger pe,
+                 [&](const AudioData& i, Trigger pb, Trigger pe,
                      Trigger rb, Trigger re,
-                     Number& o)
+                     AudioData& o)
   {
     if (recording)
     {
@@ -134,7 +134,7 @@ void Loop::tick(const TickData& td)
     }
     else
     {
-      o = 0;
+      o = AudioData();
     }
   });
 }

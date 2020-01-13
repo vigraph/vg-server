@@ -1,7 +1,8 @@
 //==========================================================================
 // ViGraph dataflow module: audio/position/position.cc
 //
-// Position module
+// Position module - mono in, stereo out
+// !TODO - generalise
 //
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
@@ -31,25 +32,25 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<Number> input{0.0};
+  Input<AudioData> input;
   Input<Number> x{0.0};
-  Output<Number> left;
-  Output<Number> right;
+  Output<AudioData> output;
 };
 
 //--------------------------------------------------------------------------
 // Tick data
 void Position::tick(const TickData& td)
 {
-  const auto sample_rate = max(left.get_sample_rate(),
-                               right.get_sample_rate());
+  const auto sample_rate = output.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(td, nsamples, {}, tie(input, x), tie(left, right),
-                 [](Number i, Number x, Number& l, Number& r)
+  sample_iterate(td, nsamples, {}, tie(input, x), tie(output),
+                 [](const AudioData& i, Number x,
+                    AudioData& o)
   {
     x = min(max(x, -0.5), 0.5) + 0.5;
-    l = i * cos(x * pi / 2);
-    r = i * sin(x * pi / 2);
+    o.nchannels = 2;
+    o.channels[0] = i.channels[0] * cos(x * pi / 2);
+    o.channels[1] = i.channels[0] * sin(x * pi / 2);
   });
 }
 
@@ -64,8 +65,7 @@ Dataflow::SimpleModule module
     { "x",        &Position::x }
   },
   {
-    { "left",     &Position::left },
-    { "right",    &Position::right }
+    { "output",   &Position::output }
   }
 };
 

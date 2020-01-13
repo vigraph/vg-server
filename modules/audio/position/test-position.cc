@@ -7,6 +7,7 @@
 //==========================================================================
 
 #include "../../module-test.h"
+#include "../audio-module.h"
 #include "vg-geometry.h"
 #include "vg-waveform.h"
 
@@ -25,152 +26,154 @@ const auto samples = 1;
 
 TEST_F(PositionTest, TestNoInput)
 {
-  auto& pos = add("audio/position")
-              .set("input", 0.0);
-  auto left = vector<Number>{};
-  auto right = vector<Number>{};
-  auto& skl = add_sink(left, samples);
-  auto& skr = add_sink(right, samples);
-  pos.connect("left", skl, "input");
-  pos.connect("right", skr, "input");
+  auto& pos = add("audio/position");
+  auto actual = vector<AudioData>{};
+  auto& sink = add_sink(actual, samples);
+
+  pos.connect("output", sink, "input");
 
   run();
 
-  EXPECT_EQ(samples, left.size());
-  EXPECT_EQ(samples, right.size());
+  EXPECT_EQ(samples, actual.size());
   for(auto i = 0u; i < samples; ++i)
   {
-    EXPECT_DOUBLE_EQ(0.0, left[i]);
-    EXPECT_DOUBLE_EQ(0.0, right[i]);
+    EXPECT_EQ(2, actual[i].nchannels);
+    EXPECT_NEAR(0.0, actual[i].channels[0], 1e-20);
+    EXPECT_NEAR(0.0, actual[i].channels[1], 1e-20);
   }
 }
 
 TEST_F(PositionTest, TestCentered)
 {
   auto& pos = add("audio/position")
-              .set("input", 1.0)
               .set("x", 0.0);
-  auto left = vector<Number>{};
-  auto right = vector<Number>{};
-  auto& skl = add_sink(left, samples);
-  auto& skr = add_sink(right, samples);
-  pos.connect("left", skl, "input");
-  pos.connect("right", skr, "input");
+
+  const auto input = vector<AudioData>{ 1 };
+  auto& isrc = add_source(input);
+  isrc.connect("output", pos, "input");
+
+  auto actual = vector<AudioData>{};
+  auto& sink = add_sink(actual, samples);
+  pos.connect("output", sink, "input");
 
   run();
 
-  const auto centered = sin(pi / 4);
+  const auto centered = (float)sin(pi / 4);
 
-  EXPECT_EQ(samples, left.size());
-  EXPECT_EQ(samples, right.size());
+  EXPECT_EQ(samples, actual.size());
   for(auto i = 0u; i < samples; ++i)
   {
-    EXPECT_DOUBLE_EQ(centered, left[i]);
-    EXPECT_DOUBLE_EQ(centered, right[i]);
+    EXPECT_EQ(2, actual[i].nchannels);
+    EXPECT_DOUBLE_EQ(centered, actual[i].channels[0]);
+    EXPECT_DOUBLE_EQ(centered, actual[i].channels[1]);
   }
 }
 
 TEST_F(PositionTest, TestFullRight)
 {
   auto& pos = add("audio/position")
-              .set("input", 1.0)
               .set("x", 0.5);
-  auto left = vector<Number>{};
-  auto right = vector<Number>{};
-  auto& skl = add_sink(left, samples);
-  auto& skr = add_sink(right, samples);
-  pos.connect("left", skl, "input");
-  pos.connect("right", skr, "input");
+
+  const auto input = vector<AudioData>{ 1 };
+  auto& isrc = add_source(input);
+  isrc.connect("output", pos, "input");
+
+  auto actual = vector<AudioData>{};
+  auto& sink = add_sink(actual, samples);
+  pos.connect("output", sink, "input");
 
   run();
 
   const auto l = 0.0;
   const auto r = 1.0;
 
-  EXPECT_EQ(samples, left.size());
-  EXPECT_EQ(samples, right.size());
+  EXPECT_EQ(samples, actual.size());
   for(auto i = 0u; i < samples; ++i)
   {
-    EXPECT_NEAR(l, left[i], 1e-10);
-    EXPECT_NEAR(r, right[i], 1e-10);
+    EXPECT_EQ(2, actual[i].nchannels);
+    EXPECT_NEAR(l, actual[i].channels[0], 1e-10);
+    EXPECT_NEAR(r, actual[i].channels[1], 1e-10);
   }
 }
 
 TEST_F(PositionTest, TestFullLeft)
 {
   auto& pos = add("audio/position")
-              .set("input", 1.0)
               .set("x", -0.5);
-  auto left = vector<Number>{};
-  auto right = vector<Number>{};
-  auto& skl = add_sink(left, samples);
-  auto& skr = add_sink(right, samples);
-  pos.connect("left", skl, "input");
-  pos.connect("right", skr, "input");
+
+  const auto input = vector<AudioData>{ 1 };
+  auto& isrc = add_source(input);
+  isrc.connect("output", pos, "input");
+
+  auto actual = vector<AudioData>{};
+  auto& sink = add_sink(actual, samples);
+  pos.connect("output", sink, "input");
 
   run();
 
   const auto l = 1.0;
   const auto r = 0.0;
 
-  EXPECT_EQ(samples, left.size());
-  EXPECT_EQ(samples, right.size());
+  EXPECT_EQ(samples, actual.size());
   for(auto i = 0u; i < samples; ++i)
   {
-    EXPECT_NEAR(l, left[i], 1e-10);
-    EXPECT_NEAR(r, right[i], 1e-10);
+    EXPECT_EQ(2, actual[i].nchannels);
+    EXPECT_NEAR(l, actual[i].channels[0], 1e-10);
+    EXPECT_NEAR(r, actual[i].channels[1], 1e-10);
   }
 }
 
 TEST_F(PositionTest, TestOutOfBoundsRight)
 {
   auto& pos = add("audio/position")
-              .set("input", 1.0)
               .set("x", 1.5);
-  auto left = vector<Number>{};
-  auto right = vector<Number>{};
-  auto& skl = add_sink(left, samples);
-  auto& skr = add_sink(right, samples);
-  pos.connect("left", skl, "input");
-  pos.connect("right", skr, "input");
+
+  const auto input = vector<AudioData>{ 1 };
+  auto& isrc = add_source(input);
+  isrc.connect("output", pos, "input");
+
+  auto actual = vector<AudioData>{};
+  auto& sink = add_sink(actual, samples);
+  pos.connect("output", sink, "input");
 
   run();
 
   const auto l = 0.0;
   const auto r = 1.0;
 
-  EXPECT_EQ(samples, left.size());
-  EXPECT_EQ(samples, right.size());
+  EXPECT_EQ(samples, actual.size());
   for(auto i = 0u; i < samples; ++i)
   {
-    EXPECT_NEAR(l, left[i], 1e-10);
-    EXPECT_NEAR(r, right[i], 1e-10);
+    EXPECT_EQ(2, actual[i].nchannels);
+    EXPECT_NEAR(l, actual[i].channels[0], 1e-10);
+    EXPECT_NEAR(r, actual[i].channels[1], 1e-10);
   }
 }
 
 TEST_F(PositionTest, TestOutOfBoundsLeft)
 {
   auto& pos = add("audio/position")
-              .set("input", 1.0)
               .set("x", -1.5);
-  auto left = vector<Number>{};
-  auto right = vector<Number>{};
-  auto& skl = add_sink(left, samples);
-  auto& skr = add_sink(right, samples);
-  pos.connect("left", skl, "input");
-  pos.connect("right", skr, "input");
+
+  const auto input = vector<AudioData>{ 1 };
+  auto& isrc = add_source(input);
+  isrc.connect("output", pos, "input");
+
+  auto actual = vector<AudioData>{};
+  auto& sink = add_sink(actual, samples);
+  pos.connect("output", sink, "input");
 
   run();
 
   const auto l = 1.0;
   const auto r = 0.0;
 
-  EXPECT_EQ(samples, left.size());
-  EXPECT_EQ(samples, right.size());
+  EXPECT_EQ(samples, actual.size());
   for(auto i = 0u; i < samples; ++i)
   {
-    EXPECT_NEAR(l, left[i], 1e-10);
-    EXPECT_NEAR(r, right[i], 1e-10);
+    EXPECT_EQ(2, actual[i].nchannels);
+    EXPECT_NEAR(l, actual[i].channels[0], 1e-10);
+    EXPECT_NEAR(r, actual[i].channels[1], 1e-10);
   }
 }
 

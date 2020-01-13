@@ -15,11 +15,8 @@ using namespace ViGraph::Dataflow;
 
 //==========================================================================
 // WavIn
-class WavIn: public DynamicElement
+class WavIn: public SimpleElement
 {
-public:
-  const static DynamicModule wav_in_module;
-
 private:
   vector<vector<Number>> waveforms;
   string wav_file;
@@ -34,8 +31,6 @@ private:
     complete
   } state = State::disabled;
 
-  vector<unique_ptr<Output<Number>>> outputs;
-
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
@@ -47,7 +42,7 @@ private:
   }
 
 public:
-  WavIn(const DynamicModule& module);
+  WavIn(const SimpleModule& module);
 
   Setting<string> file{};
   Setting<bool> loop{false};
@@ -55,13 +50,14 @@ public:
   Input<Trigger> start{0.0};
   Input<Trigger> stop{0.0};
 
+  Output<AudioData> output;
   Output<Trigger> finished;
 };
 
 //--------------------------------------------------------------------------
 // Constructor
-WavIn::WavIn(const DynamicModule& module):
-  DynamicElement(module)
+WavIn::WavIn(const SimpleModule& module):
+  SimpleElement(module)
 {
   Log::Streams log;
   SDL_version linked;
@@ -87,7 +83,7 @@ WavIn::WavIn(const DynamicModule& module):
 // Setup
 void WavIn::setup(const SetupContext& context)
 {
-  DynamicElement::setup(context);
+  SimpleElement::setup(context);
 
   Log::Streams log;
 
@@ -171,20 +167,6 @@ void WavIn::setup(const SetupContext& context)
     wav_nsamples = wc.size();
   }
 
-  // Update module information
-  while (outputs.size() > waveforms.size())
-  {
-    deregister_output("channel" + Text::itos(outputs.size()),
-                      outputs.back().get());
-    outputs.pop_back();
-  }
-  while (outputs.size() < waveforms.size())
-  {
-    outputs.emplace_back(new Output<Number>{});
-    register_output("channel" + Text::itos(outputs.size()),
-                    outputs.back().get());
-  }
-
   log.detail << "Loaded wav file '" << f << "' with " << waveforms.size()
              << " channels\n";
 }
@@ -193,15 +175,8 @@ void WavIn::setup(const SetupContext& context)
 // Process some data
 void WavIn::tick(const TickData& td)
 {
-  auto sample_rate = Number{};
-  auto obuffers = vector<Output<Number>::Buffer>{};
-  obuffers.reserve(outputs.size());
-  for (auto& o: outputs)
-  {
-    if (o->get_sample_rate() > sample_rate)
-      sample_rate = o->get_sample_rate();
-    obuffers.emplace_back(o->get_buffer(td));
-  }
+  auto sample_rate = output.get_sample_rate();
+  auto buffer = output.get_buffer(td);
   const auto nsamples = td.samples_in_tick(sample_rate);
   const auto step = wav_sample_rate / sample_rate;
 
@@ -220,6 +195,10 @@ void WavIn::tick(const TickData& td)
       pos = 0.0;
     }
 
+    buffer.data.push_back(AudioData());
+    auto& ad = buffer.data.back();
+    ad.nchannels = min(waveforms.size(), AudioData::max_channels);
+
     switch (state)
     {
       case State::enabled:
@@ -228,12 +207,12 @@ void WavIn::tick(const TickData& td)
           const auto p = fmod(pos, 1);
           const auto i1 = static_cast<unsigned>(pos);
           const auto i2 = (i1 + 1 >= wav_nsamples) ? 0 : i1 + 1;
-          auto c = 0;
-          for (auto& waveform: waveforms)
+
+          for(auto c=0; c<ad.nchannels; c++)
           {
+            const auto& waveform = waveforms[c];
             const auto s = waveform[i1] + ((waveform[i2] - waveform[i1]) * p);
-            obuffers[c].data.emplace_back(s);
-            ++c;
+            ad.channels[c] = s;
           }
           pos += step;
           if (pos >= wav_nsamples)
@@ -245,10 +224,11 @@ void WavIn::tick(const TickData& td)
           }
         }
         break;
+
       case State::disabled:
       case State::complete:
-        for (auto& ob: obuffers)
-          ob.data.emplace_back(0);
+        for(auto c=0; c<ad.nchannels; c++)
+            ad.channels[c] = 0;
         break;
     }
   });
@@ -256,7 +236,7 @@ void WavIn::tick(const TickData& td)
 
 //--------------------------------------------------------------------------
 // Module definition
-const DynamicModule WavIn::wav_in_module =
+SimpleModule module
 {
   "wav-in",
   "Wav file input",
@@ -277,4 +257,4 @@ const DynamicModule WavIn::wav_in_module =
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(WavIn, WavIn::wav_in_module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(WavIn, module)

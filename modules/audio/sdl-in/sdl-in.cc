@@ -19,11 +19,8 @@ const auto default_channels = 1;
 
 //==========================================================================
 // SDL out
-class SDLIn: public DynamicElement
+class SDLIn: public SimpleElement
 {
-public:
-  const static DynamicModule sdl_in_module;
-
 private:
   SDL_AudioDeviceID dev = 0;
   bool sdl_inited = false;
@@ -42,14 +39,14 @@ private:
     return new SDLIn{module};
   }
 
-  vector<unique_ptr<Output<Number>>> outputs;
-
 public:
-  SDLIn(const DynamicModule& module);
+  SDLIn(const SimpleModule& module);
 
   Setting<string> device{default_device};
   Setting<Number> sample_rate{default_sample_rate};
   Setting<Number> nchannels{default_channels};
+
+  Output<AudioData> output;
 
   // Callback for SDL
   void callback(Uint8 *stream, int len);
@@ -59,8 +56,8 @@ public:
 
 //--------------------------------------------------------------------------
 // Constructor
-SDLIn::SDLIn(const DynamicModule& module):
-  DynamicElement(module)
+SDLIn::SDLIn(const SimpleModule& module):
+  SimpleElement(module)
 {
   Log::Streams log;
   SDL_version linked;
@@ -111,7 +108,7 @@ void SDLIn::callback(Uint8 *stream, int len)
 // Setup
 void SDLIn::setup(const SetupContext& context)
 {
-  DynamicElement::setup(context);
+  SimpleElement::setup(context);
 
   Log::Streams log;
   shutdown();
@@ -121,6 +118,9 @@ void SDLIn::setup(const SetupContext& context)
   try
   {
     log.summary << "Opening audio capture on SDL device '" << device << "'\n";
+
+    if (nchannels > AudioData::max_channels)
+      throw runtime_error("Too many channels in SDL input");
 
     SDL_AudioSpec want;
     SDL_AudioSpec have;
@@ -145,20 +145,6 @@ void SDLIn::setup(const SetupContext& context)
 
     log.detail << "SDL: " << have.channels << " channels\n";
 
-    // Update module information
-    while (outputs.size() > have.channels)
-    {
-      deregister_output("channel" + Text::itos(outputs.size()),
-                        outputs.back().get());
-      outputs.pop_back();
-    }
-    while (outputs.size() < have.channels)
-    {
-      outputs.emplace_back(new Output<Number>{});
-      register_output("channel" + Text::itos(outputs.size()),
-                      outputs.back().get());
-    }
-
     // Start capture
     SDL_PauseAudioDevice(dev, 0);
 
@@ -177,15 +163,8 @@ void SDLIn::tick(const TickData& td)
   if (dev)
   {
     pos = fmod(pos, 1);
-    auto sample_rate = double{};
-    auto obuffers = vector<Output<Number>::Buffer>{};
-    obuffers.reserve(outputs.size());
-    for (auto& o: outputs)
-    {
-      if (o->get_sample_rate() > sample_rate)
-        sample_rate = o->get_sample_rate();
-      obuffers.emplace_back(o->get_buffer(td));
-    }
+    auto sample_rate = output.get_sample_rate();
+    auto buffer = output.get_buffer(td);
     const auto nsamples = td.samples_in_tick(sample_rate);
     const auto step = input_sample_rate / sample_rate;
     const auto channels = nchannels.get();
@@ -197,15 +176,17 @@ void SDLIn::tick(const TickData& td)
       const auto p = fmod(pos, 1);
       const auto i1 = static_cast<unsigned>(pos);
       const auto i2 = i1 + 1;
-      auto c = 0;
-      for (auto& o: obuffers)
+
+      buffer.data.push_back(AudioData());
+      auto& ad = buffer.data.back();
+      ad.nchannels = channels;
+      for(auto c=0; c<channels; c++)
       {
         const auto c1 = i1 * channels + c;
         const auto c2 = i2 * channels + c;
         const auto s1 = c1 < available ? input_buffer[c1] : 0.0;
         const auto s2 = c2 < available ? input_buffer[c2] : s1;
-        o.data.emplace_back(s1 + ((s2 - s1) * p));
-        ++c;
+        ad.channels[c] = s1 + (s2 - s1) * p;
       }
       pos += step;
     }
@@ -235,7 +216,7 @@ SDLIn::~SDLIn()
 
 //--------------------------------------------------------------------------
 // Module definition
-const DynamicModule SDLIn::sdl_in_module =
+SimpleModule module
 {
   "sdl-in",
   "SDL Audio input",
@@ -253,4 +234,4 @@ const DynamicModule SDLIn::sdl_in_module =
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(SDLIn, SDLIn::sdl_in_module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(SDLIn, module)

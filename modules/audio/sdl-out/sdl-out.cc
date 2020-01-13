@@ -21,7 +21,7 @@ const auto default_max_recovery = 1;
 
 //==========================================================================
 // SDL sink
-class SDLSink: public DynamicElement
+class SDLSink: public SimpleElement
 {
 private:
   SDL_AudioDeviceID dev = 0;
@@ -41,7 +41,7 @@ private:
   }
 
 public:
-  SDLSink(const DynamicModule& module);
+  SDLSink(const SimpleModule& module);
 
   Setting<string> device{default_device};
   Setting<Number> nchannels{default_channels};
@@ -49,12 +49,7 @@ public:
   Setting<Number> max_delay{default_max_delay};
   Setting<Number> max_recovery{default_max_recovery};
 
-  Input<Number> channel1;
-  Input<Number> channel2;
-  Input<Number> channel3;
-  Input<Number> channel4;
-  Input<Number> channel5;
-  Input<Number> channel6;
+  Input<AudioData> input;
 
   // Callback for SDL
   void callback(Uint8 *stream, int len);
@@ -64,8 +59,8 @@ public:
 
 //--------------------------------------------------------------------------
 // Constructor
-SDLSink::SDLSink(const DynamicModule& module):
-  DynamicElement(module)
+SDLSink::SDLSink(const SimpleModule& module):
+  SimpleElement(module)
 {
   Log::Streams log;
   SDL_version linked;
@@ -141,12 +136,14 @@ void SDLSink::callback(Uint8 *stream, int len)
 // Setup
 void SDLSink::setup(const SetupContext& context)
 {
-  DynamicElement::setup(context);
+  SimpleElement::setup(context);
 
   Log::Streams log;
   shutdown();
 
   log.summary << "Opening audio output on SDL device '" << device << "'\n";
+  if (nchannels > AudioData::max_channels)
+    throw runtime_error("Too many channels in SDL output");
   log.detail << "SDL: " << nchannels << " channels\n";
 
   try
@@ -172,38 +169,7 @@ void SDLSink::setup(const SetupContext& context)
     // Start playback
     SDL_PauseAudioDevice(dev, 0);
 
-    // Update module information
-    if (have.channels < 6 && module.num_inputs() >= 6)
-      deregister_input("channel6", &channel6);
-    if (have.channels < 5 && module.num_inputs() >= 5)
-      deregister_input("channel5", &channel6);
-    if (have.channels < 4 && module.num_inputs() >= 4)
-      deregister_input("channel4", &channel6);
-    if (have.channels < 3 && module.num_inputs() >= 3)
-      deregister_input("channel3", &channel6);
-    if (have.channels < 2 && module.num_inputs() >= 2)
-      deregister_input("channel2", &channel6);
-    if (have.channels < 1 && module.num_inputs() >= 1)
-      deregister_input("channel1", &channel6);
-    if (have.channels >= 1 && module.num_inputs() < 1)
-      register_input("channel1", &channel1);
-    if (have.channels >= 2 && module.num_inputs() < 2)
-      register_input("channel2", &channel2);
-    if (have.channels >= 3 && module.num_inputs() < 3)
-      register_input("channel3", &channel3);
-    if (have.channels >= 4 && module.num_inputs() < 4)
-      register_input("channel4", &channel4);
-    if (have.channels >= 5 && module.num_inputs() < 5)
-      register_input("channel5", &channel5);
-    if (have.channels >= 6 && module.num_inputs() < 6)
-      register_input("channel6", &channel6);
-
-    channel1.set_sample_rate(have.freq);
-    channel2.set_sample_rate(have.freq);
-    channel3.set_sample_rate(have.freq);
-    channel4.set_sample_rate(have.freq);
-    channel5.set_sample_rate(have.freq);
-    channel6.set_sample_rate(have.freq);
+    input.set_sample_rate(have.freq);
 
     log.detail << "Created SDL audio out\n";
   }
@@ -220,27 +186,20 @@ void SDLSink::tick(const TickData& td)
   if (dev)
   {
     SDL_LockAudioDevice(dev);
-    const auto nsamples = td.samples_in_tick(channel1.get_sample_rate());
+    const auto nsamples = td.samples_in_tick(input.get_sample_rate());
     auto bpos = output_buffer.size();
     const auto channels = nchannels;
     output_buffer.resize(bpos + nsamples * channels);
     sample_iterate(td, nsamples, {},
-                   tie(channel1, channel2, channel3,
-                       channel4, channel5, channel6), {},
-                   [&](Number c1, Number c2, Number c3,
-                       Number c4, Number c5, Number c6)
+                   tie(input), {},
+                   [&](const AudioData& input)
     {
-      output_buffer[bpos++] = c1;
-      if (channels >= 2)
-        output_buffer[bpos++] = c2;
-      if (channels >= 3)
-        output_buffer[bpos++] = c3;
-      if (channels >= 4)
-        output_buffer[bpos++] = c4;
-      if (channels >= 5)
-        output_buffer[bpos++] = c5;
-      if (channels >= 6)
-        output_buffer[bpos++] = c6;
+      for(auto c=0; c<input.nchannels; c++)
+        output_buffer[bpos++] = input.channels[c];
+
+      // Zero any we don't get
+      for(auto c=input.nchannels; c<channels; c++)
+        output_buffer[bpos++] = 0;
     });
     SDL_UnlockAudioDevice(dev);
   }
@@ -265,7 +224,7 @@ SDLSink::~SDLSink()
 
 //--------------------------------------------------------------------------
 // Module definition
-Dataflow::DynamicModule module
+Dataflow::SimpleModule module
 {
   "sdl-out",
   "SDL Audio output",

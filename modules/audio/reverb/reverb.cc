@@ -15,7 +15,7 @@ namespace {
 class Reverb: public SimpleElement
 {
 private:
-  deque<Number> buffer;
+  deque<AudioData> buffer;
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -30,10 +30,10 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<Number> input{0.0};
+  Input<AudioData> input;
   Input<Number> time{0.0};
   Input<Number> feedback{0.0};
-  Output<Number> output;
+  Output<AudioData> output;
 };
 
 //--------------------------------------------------------------------------
@@ -45,7 +45,8 @@ void Reverb::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(sample_rate);
 
   sample_iterate(td, nsamples, {}, tie(input, time, feedback), tie(output),
-                 [&](Number i, Number t, Number f, Number& o)
+                 [&](const AudioData& i, Number t, Number f,
+                     AudioData& o)
   {
     const auto bsamples = static_cast<size_t>(t * sample_rate);
     if (bsamples > buffer.size())
@@ -57,15 +58,14 @@ void Reverb::tick(const TickData& td)
     {
       buffer.resize(bsamples);
     }
+
+    o = i;
     if (bsamples)
     {
-      o = i + buffer.front() * f;
+      for(auto c=0; c<o.nchannels; c++)
+        o.channels[c] += buffer.front().channels[c] * f;
       buffer.pop_front();
       buffer.emplace_back(o);
-    }
-    else
-    {
-      o = i;
     }
   });
 }

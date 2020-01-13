@@ -17,7 +17,7 @@ class UnaryTest: public GraphTester
 public:
   UnaryTest()
   {
-    loader.load("./vg-module-maths-unary.so");
+    loader.load("./vg-module-maths-unary-ops.so");
   }
 
   void test_unary(const string& f, Number input, Number expected)

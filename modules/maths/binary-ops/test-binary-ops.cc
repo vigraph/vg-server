@@ -16,7 +16,7 @@ class BinaryTest: public GraphTester
 public:
   BinaryTest()
   {
-    loader.load("./vg-module-maths-binary.so");
+    loader.load("./vg-module-maths-binary-ops.so");
   }
 
   void test_binary(const string& f, const string& second_input_name,

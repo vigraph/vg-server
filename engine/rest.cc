@@ -472,6 +472,159 @@ bool LayoutURLHandler::handle_request(const Web::HTTPMessage& request,
 }
 
 //==========================================================================
+// /combined URL Handler
+// Operations:  GET, POST
+
+// URL format:
+// /combined                     Entire top-level combined (GET/POST)
+
+class CombinedURLHandler: public Web::URLHandler
+{
+  Dataflow::Engine& engine;
+  File::Path layout_path;
+  bool handle_get(Web::HTTPMessage& response);
+  bool handle_post(const Web::HTTPMessage& request,
+                   Web::HTTPMessage& response);
+  bool handle_request(const Web::HTTPMessage& request,
+                      Web::HTTPMessage& response,
+                      const SSL::ClientDetails& client);
+
+public:
+  CombinedURLHandler(Dataflow::Engine& _engine, const File::Path& _layout_path):
+    URLHandler("/combined*"), engine(_engine), layout_path(_layout_path)
+  {}
+};
+
+//--------------------------------------------------------------------------
+// Handle a GET request
+// Returns whether request was valid
+bool CombinedURLHandler::handle_get(Web::HTTPMessage& response)
+{
+  Log::Streams log;
+  log.detail << "REST Combined: GET from " << layout_path << endl;
+
+  auto json = JSON::Value{JSON::Value::Type::OBJECT};
+  auto& graph = json.put("graph", JSON::Value{JSON::Value::Type::OBJECT});
+  JSON::get(engine, graph, Dataflow::Path(""), false);
+
+  string layout_text;
+  if (!layout_path.read_all(layout_text))
+  {
+    Log::Error log;
+    log << "REST Combined can't read file " << layout_path
+        << ": " << response.body << endl;
+    response.code = 404;
+    response.reason = "Not found";
+  }
+
+  // Parse JSON
+  istringstream iss(layout_text);
+  ObTools::JSON::Parser parser(iss);
+  JSON::Value layout;
+  try
+  {
+    layout = parser.read_value();
+  }
+  catch (ObTools::JSON::Exception& e)
+  {
+    log.error << "REST: JSON parsing failed: " << e.error << endl;
+    return false;
+  }
+
+  json.set("layout", layout);
+  response.body = json.str();
+  response.headers.put("Content-Type", "text/json");
+  response.headers.put("Content-Disposition",
+                       "attachment; filename=vigraph.json");
+
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Handle a POST request
+// Returns whether request was valid
+bool CombinedURLHandler::handle_post(const Web::HTTPMessage& request,
+                                   Web::HTTPMessage& response)
+{
+  Log::Streams log;
+  log.detail << "REST Combined: POST to " << layout_path << endl;
+
+  // Parse JSON
+  istringstream iss(request.body);
+  ObTools::JSON::Parser parser(iss);
+  JSON::Value combined;
+  try
+  {
+    combined = parser.read_value();
+  }
+  catch (ObTools::JSON::Exception& e)
+  {
+    log.error << "REST: JSON parsing failed: " << e.error << endl;
+    return false;
+  }
+
+  const auto& graph = combined["graph"];
+  if (graph.type == JSON::Value::Type::OBJECT)
+  {
+    try
+    {
+      JSON::set(engine, graph, Dataflow::Path(""));
+    }
+    catch (runtime_error& e)
+    {
+      Log::Error log;
+      log << "REST combined graph setting failed: " << e.what() << endl;
+    }
+  }
+
+  const auto& layout = combined["layout"];
+  if (layout.type == JSON::Value::Type::OBJECT)
+  {
+    const auto& error = layout_path.write_all(layout.str());
+    if (!error.empty())
+    {
+      Log::Error log;
+      log << "REST Combined can't write file " << layout_path
+          << ": " << error << endl;
+      response.code = 403;
+      response.reason = "Forbidden";
+    }
+  }
+
+  return true;
+}
+
+//--------------------------------------------------------------------------
+// Handle the request
+bool CombinedURLHandler::handle_request(const Web::HTTPMessage& request,
+                                      Web::HTTPMessage& response,
+                                      const SSL::ClientDetails& /* client */)
+{
+  if (request.method == "GET")
+  {
+    if (!handle_get(response))
+    {
+      response.code = 400;
+      response.reason = "Bad request";
+    }
+  }
+  else if (request.method == "POST")
+  {
+    if (!handle_post(request, response))
+    {
+      response.code = 400;
+      response.reason = "Bad request";
+    }
+  }
+  else
+  {
+    response.code = 405;
+    response.reason = "Method not allowed";
+  }
+  return true;
+}
+
+//==========================================================================
 // /version URL Handler
 // Operations:  GET
 
@@ -551,6 +704,8 @@ RESTInterface::RESTInterface(const XML::Element& config,
   http_server->add(new GraphURLHandler(engine));
   http_server->add(new MetaURLHandler(engine));
   http_server->add(new LayoutURLHandler(base_dir.resolve(layout_file)));
+  http_server->add(new CombinedURLHandler(engine,
+                                          base_dir.resolve(layout_file)));
   http_server->add(new VersionURLHandler(engine));
 
   // Allow cross-origin fetch from anywhere

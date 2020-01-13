@@ -29,7 +29,7 @@ public:
 
   Input<Number> channel{-1};
   Input<Number> control{-1};
-  Input<MIDI::Event> input;
+  Input<MIDIEvents> input;
   Output<Trigger> pressed;
   Output<Trigger> released;
 };
@@ -43,18 +43,23 @@ void ButtonIn::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(channel, control, input),
                  tie(pressed, released),
-                 [&](Number c, Number co, const MIDI::Event& i,
+                 [&](Number c, Number co, const MIDIEvents& i,
                      Trigger& p, Trigger& r)
   {
     p = r = 0;
-    if (i.type == MIDI::Event::Type::control_change &&
-        (c < 0 || i.channel == c) && (co < 0 || i.key == co))
+    for (auto eit = i.rbegin(); eit != i.rend(); ++eit)
     {
-      if (!last_value && i.value)
-        p = 1;
-      else if (last_value && !i.value)
-        r = 1;
-      last_value = i.value;
+      const auto& e = *eit;
+      if (e.type == MIDI::Event::Type::control_change &&
+          (c < 0 || e.channel == c) && (co < 0 || e.key == co))
+      {
+        if (!last_value && e.value)
+          p = 1;
+        else if (last_value && !e.value)
+          r = 1;
+        last_value = e.value;
+        break;
+      }
     }
   });
 }

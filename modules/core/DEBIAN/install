@@ -1,5 +1,6 @@
 clone/vg-module-core-clone.so /usr/lib/vigraph/modules/
 filter/vg-module-core-filter.so /usr/lib/vigraph/modules/
+gate/vg-module-core-gate.so /usr/lib/vigraph/modules/
 graph/vg-module-core-graph.so /usr/lib/vigraph/modules/
 pin/vg-module-core-pin.so /usr/lib/vigraph/modules/
 clone-info/vg-module-core-clone-info.so /usr/lib/vigraph/modules/

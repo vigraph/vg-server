@@ -10,7 +10,7 @@
 
 namespace {
 
-class MIDIPin: public Pin<MIDI::Event>
+class MIDIPin: public Pin<MIDIEvents>
 {
 private:
   // Clone

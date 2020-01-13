@@ -8,6 +8,7 @@ NAME     = vg-modules-trigger
 TYPE     = package
 DEPENDS  = vg-module-trigger-beat     \
            vg-module-trigger-count    \
+           vg-module-trigger-gate     \
            vg-module-trigger-latch    \
            vg-module-trigger-memory   \
            vg-module-trigger-pin      \

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph Gate module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-core-gate
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib vg-waveform
+
+include_rules

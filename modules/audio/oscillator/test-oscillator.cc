@@ -7,6 +7,7 @@
 //==========================================================================
 
 #include "../../module-test.h"
+#include "../audio-module.h"
 #include "vg-waveform.h"
 #include <cmath>
 
@@ -25,7 +26,7 @@ const auto waveform_size = 44100;
 TEST_F(OscillatorTest, TestNoWaveform)
 {
   auto& osc = add("audio/oscillator");
-  auto waveform = vector<Number>{};
+  auto waveform = vector<AudioData>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -34,14 +35,17 @@ TEST_F(OscillatorTest, TestNoWaveform)
   // Should be 44100 samples at 0
   EXPECT_EQ(waveform_size, waveform.size());
   for(auto i=0u; i<waveform.size(); i++)
-    EXPECT_EQ(0.0, waveform[i]);
+  {
+    EXPECT_EQ(1, waveform[i].nchannels);
+    EXPECT_EQ(0.0, waveform[i].channels[0]);
+  }
 }
 
 TEST_F(OscillatorTest, TestDefaultSquareWaveFrequency)
 {
   auto& osc = add("audio/oscillator")
              .set("wave", Waveform::Type::square);
-  auto waveform = vector<Number>{};
+  auto waveform = vector<AudioData>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -54,7 +58,8 @@ TEST_F(OscillatorTest, TestDefaultSquareWaveFrequency)
   auto high = 0;
   for(auto i=0u; i<waveform.size(); i++)
   {
-    auto v = waveform[i];
+    EXPECT_EQ(1, waveform[i].nchannels);
+    auto v = waveform[i].channels[0];
     if (last < 0 && v >= 0) rising++;
     if (v >= 0) high++;
     last = v;
@@ -70,7 +75,7 @@ TEST_F(OscillatorTest, TestDefaultSinWaveFrequency)
 {
   auto& osc = add("audio/oscillator")
              .set("wave", Waveform::Type::sin);
-  auto waveform = vector<Number>{};
+  auto waveform = vector<AudioData>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -82,7 +87,8 @@ TEST_F(OscillatorTest, TestDefaultSinWaveFrequency)
   auto rising = 0;
   for(auto i=0u; i<waveform.size(); i++)
   {
-    auto v = waveform[i];
+    EXPECT_EQ(1, waveform[i].nchannels);
+    auto v = waveform[i].channels[0];
     if (last < 0 && v >= 0) rising++;
     last = v;
 
@@ -98,7 +104,7 @@ TEST_F(OscillatorTest, TestA440SquareWaveFrequency)
   auto& osc = add("audio/oscillator")
              .set("wave", Waveform::Type::square)
              .set("note", 0.75);
-  auto waveform = vector<Number>{};
+  auto waveform = vector<AudioData>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -110,7 +116,8 @@ TEST_F(OscillatorTest, TestA440SquareWaveFrequency)
   auto rising = 0;
   for(auto i=0u; i<waveform.size(); i++)
   {
-    auto v = waveform[i];
+    EXPECT_EQ(1, waveform[i].nchannels);
+    auto v = waveform[i].channels[0];
     if (last < 0 && v >= 0) rising++;
     last = v;
 
@@ -125,7 +132,7 @@ TEST_F(OscillatorTest, TestUpAnOctaveSquareWaveFrequency)
   auto& osc = add("audio/oscillator")
              .set("wave", Waveform::Type::square)
              .set("octave", 1.0);
-  auto waveform = vector<Number>{};
+  auto waveform = vector<AudioData>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -137,7 +144,8 @@ TEST_F(OscillatorTest, TestUpAnOctaveSquareWaveFrequency)
   auto rising = 0;
   for(auto i=0u; i<waveform.size(); i++)
   {
-    auto v = waveform[i];
+    EXPECT_EQ(1, waveform[i].nchannels);
+    auto v = waveform[i].channels[0];
     if (last < 0 && v >= 0) rising++;
     last = v;
 
@@ -152,7 +160,7 @@ TEST_F(OscillatorTest, TestDetunedSquareWaveFrequency)
   auto& osc = add("audio/oscillator")
              .set("wave", Waveform::Type::square)
              .set("detune", 12.0);
-  auto waveform = vector<Number>{};
+  auto waveform = vector<AudioData>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -164,7 +172,8 @@ TEST_F(OscillatorTest, TestDetunedSquareWaveFrequency)
   auto rising = 0;
   for(auto i=0u; i<waveform.size(); i++)
   {
-    auto v = waveform[i];
+    EXPECT_EQ(1, waveform[i].nchannels);
+    auto v = waveform[i].channels[0];
     if (last < 0 && v >= 0) rising++;
     last = v;
 
@@ -179,7 +188,7 @@ TEST_F(OscillatorTest, Test25PercentPulseWidthSquareWave)
   auto& osc = add("audio/oscillator")
              .set("wave", Waveform::Type::square)
              .set("pulse-width", 0.25);
-  auto waveform = vector<Number>{};
+  auto waveform = vector<AudioData>{};
   auto& snk = add_sink(waveform, waveform_size);
   osc.connect("output", snk, "input");
 
@@ -192,7 +201,8 @@ TEST_F(OscillatorTest, Test25PercentPulseWidthSquareWave)
   auto high = 0;
   for(auto i=0u; i<waveform.size(); i++)
   {
-    auto v = waveform[i];
+    EXPECT_EQ(1, waveform[i].nchannels);
+    auto v = waveform[i].channels[0];
     if (last < 0 && v >= 0) rising++;
     if (v >= 0) high++;
     last = v;

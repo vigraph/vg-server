@@ -81,7 +81,7 @@ public:
   Input<Mode> mode{Mode::low_pass};
   Input<AudioData> input{0.0};
   Input<Number> cutoff{1.0};
-  Input<Number> resonance{1.0};
+  Input<Number> resonance{0.0};
   Input<Number> steepness{1.0};
   Output<AudioData> output;
 };
@@ -122,7 +122,8 @@ void Filter::tick(const TickData& td)
     switch (mode)
     {
       case Mode::low_pass:
-        o = buffer.back();
+        o.nchannels = input.nchannels;
+        o.channels = buffer.back().channels;
         break;
 
       case Mode::high_pass:

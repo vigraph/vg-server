@@ -74,32 +74,6 @@ TEST_F(FigureTest, TestClosedAddsExtraPoint)
   ASSERT_EQ(102, frame.points.size());
 }
 
-TEST_F(FigureTest, TestNullWithPosOffset)
-{
-  auto& fig = add("vector/figure")
-              .set("x-pos", 0.1)
-              .set("y-pos", 0.2)
-              .set("z-pos", 0.3);
-
-  auto frames = vector<Frame>{};
-  auto& snk = add_sink(frames, sample_rate);
-  fig.connect("output", snk, "input");
-
-  run();
-
-  ASSERT_EQ(sample_rate, frames.size());
-  const auto& frame = frames[0];
-  ASSERT_EQ(101, frame.points.size());
-  for(auto i=0u; i<frame.points.size(); i++)
-  {
-    const auto& p = frame.points[i];
-    EXPECT_EQ(0.1, p.x);
-    EXPECT_EQ(0.2, p.y);
-    EXPECT_EQ(0.3, p.z);
-    EXPECT_EQ(i ? Colour::white : Colour::black, p.c);
-  }
-}
-
 TEST_F(FigureTest, TestFlatline)
 {
   auto& fig = add("vector/figure")
@@ -157,74 +131,6 @@ TEST_F(FigureTest, TestSawXYZ)
     EXPECT_NEAR(-0.5 + (i-1)/100.0, p.x, 1e-6) << i;
     EXPECT_NEAR(-0.5 + (i-1)/100.0, p.y, 1e-6) << i;
     EXPECT_NEAR(-0.5 + (i-1)/100.0, p.z, 1e-6) << i;
-    EXPECT_TRUE(p.is_lit());
-  }
-}
-
-TEST_F(FigureTest, TestSawXYZScaled)
-{
-  auto& fig = add("vector/figure")
-              .set("x-wave", Waveform::Type::saw)
-              .set("x-scale", 2.0)
-              .set("y-wave", Waveform::Type::saw)
-              .set("y-scale", 4.0)
-              .set("z-wave", Waveform::Type::saw)
-              .set("z-scale", 6.0);
-
-  auto frames = vector<Frame>{};
-  auto& snk = add_sink(frames, sample_rate);
-  fig.connect("output", snk, "input");
-
-  run();
-
-  ASSERT_EQ(sample_rate, frames.size());
-  const auto& frame = frames[0];
-
-  // Should be 100 points along horizontal line (-1.0, -2.0, -3.0)
-  // to (1.0, 2.0, 3.0) plus blank
-  ASSERT_EQ(101, frame.points.size());
-  EXPECT_EQ(Point(-1.0,-2.0,-3.0), frame.points[0]);
-  EXPECT_TRUE(frame.points[0].is_blanked());
-
-  for(auto i=1u; i<frame.points.size(); i++)
-  {
-    const auto& p = frame.points[i];
-    EXPECT_NEAR(-1.0 + 2.0*(i-1)/100.0, p.x, 1e-6) << i;
-    EXPECT_NEAR(-2.0 + 4.0*(i-1)/100.0, p.y, 1e-6) << i;
-    EXPECT_NEAR(-3.0 + 6.0*(i-1)/100.0, p.z, 1e-6) << i;
-    EXPECT_TRUE(p.is_lit());
-  }
-}
-
-TEST_F(FigureTest, TestSawXYZPositioned)
-{
-  auto& fig = add("vector/figure")
-              .set("x-wave", Waveform::Type::saw)
-              .set("x-pos", 1.0)
-              .set("y-wave", Waveform::Type::saw)
-              .set("y-pos", 2.0)
-              .set("z-wave", Waveform::Type::saw)
-              .set("z-pos", 3.0);
-
-  auto frames = vector<Frame>{};
-  auto& snk = add_sink(frames, sample_rate);
-  fig.connect("output", snk, "input");
-
-  run();
-
-  ASSERT_EQ(sample_rate, frames.size());
-  const auto& frame = frames[0];
-
-  ASSERT_EQ(101, frame.points.size());
-  EXPECT_EQ(Point(0.5,1.5,2.5), frame.points[0]);
-  EXPECT_TRUE(frame.points[0].is_blanked());
-
-  for(auto i=1u; i<frame.points.size(); i++)
-  {
-    const auto& p = frame.points[i];
-    EXPECT_NEAR(0.5 + (i-1)/100.0, p.x, 1e-6) << i;
-    EXPECT_NEAR(1.5 + (i-1)/100.0, p.y, 1e-6) << i;
-    EXPECT_NEAR(2.5 + (i-1)/100.0, p.z, 1e-6) << i;
     EXPECT_TRUE(p.is_lit());
   }
 }

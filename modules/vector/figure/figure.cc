@@ -12,8 +12,6 @@
 //    ?-freq: wave iterations per frame (default 1)
 //    ?-phase: wave phase offset, degrees/360 (0..1) (default 0)
 //    ?-pulse-width: wave pulse width
-//    ?-pos:  centre position, 0..1 (default 0.5)
-//    ?-scale: wave amplitude, 0..1 (default 1)
 //
 // Point beam:
 //   figure points=1
@@ -60,22 +58,16 @@ public:
   Input<Number> x_freq{1.0};
   Input<Number> x_phase{0.0};
   Input<Number> x_pulse_width{0.5};
-  Input<Number> x_pos{0.0};
-  Input<Number> x_scale{1.0};
 
   Input<Waveform::Type> y_waveform;
   Input<Number> y_freq{1.0};
   Input<Number> y_phase{0.0};
   Input<Number> y_pulse_width{0.5};
-  Input<Number> y_pos{0.0};
-  Input<Number> y_scale{1.0};
 
   Input<Waveform::Type> z_waveform;
   Input<Number> z_freq{1.0};
   Input<Number> z_phase{0.0};
   Input<Number> z_pulse_width{0.5};
-  Input<Number> z_pos{0.0};
-  Input<Number> z_scale{1.0};
 
   Input<Number> points{default_points};
   Input<Number> closed{0.0};
@@ -90,17 +82,17 @@ void Figure::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {},
-                 tie(x_waveform, x_freq, x_phase, x_pulse_width, x_pos, x_scale,
-                     y_waveform, y_freq, y_phase, y_pulse_width, y_pos, y_scale,
-                     z_waveform, z_freq, z_phase, z_pulse_width, z_pos, z_scale,
+                 tie(x_waveform, x_freq, x_phase, x_pulse_width,
+                     y_waveform, y_freq, y_phase, y_pulse_width,
+                     z_waveform, z_freq, z_phase, z_pulse_width,
                      points, closed),
                  tie(output),
                  [&](Waveform::Type x_wf, Number x_freq, Number x_phase,
-                     Number x_pw, Number x_pos, Number x_scale,
+                     Number x_pw,
                      Waveform::Type y_wf, Number y_freq, Number y_phase,
-                     Number y_pw, Number y_pos, Number y_scale,
+                     Number y_pw,
                      Waveform::Type z_wf, Number z_freq, Number z_phase,
-                     Number z_pw, Number z_pos, Number z_scale,
+                     Number z_pw,
                      Number points, Number closed,
                      Frame& output)
   {
@@ -119,15 +111,15 @@ void Figure::tick(const TickData& td)
     {
       // Note wrapped before because phase fix can put them over 1.0
       if (x_theta >= 1) x_theta -= floor(x_theta);
-      auto x = Waveform::get_value(x_wf, x_pw, x_theta)/2*x_scale+x_pos;
+      auto x = Waveform::get_value(x_wf, x_pw, x_theta)/2;
       x_theta += x_freq/points;
 
       if (y_theta >= 1) y_theta -= floor(y_theta);
-      auto y = Waveform::get_value(y_wf, y_pw, y_theta)/2*y_scale+y_pos;
+      auto y = Waveform::get_value(y_wf, y_pw, y_theta)/2;
       y_theta += y_freq/points;
 
       if (z_theta >= 1) z_theta -= floor(z_theta);
-      auto z = Waveform::get_value(z_wf, z_pw, z_theta)/2*z_scale+z_pos;
+      auto z = Waveform::get_value(z_wf, z_pw, z_theta)/2;
       z_theta += z_freq/points;
 
       // Double first point with extra blank to start
@@ -154,22 +146,16 @@ Dataflow::SimpleModule module
     { "x-freq",        &Figure::x_freq        },
     { "x-phase",       &Figure::x_phase       },
     { "x-pulse-width", &Figure::x_pulse_width },
-    { "x-pos",         &Figure::x_pos         },
-    { "x-scale",       &Figure::x_scale       },
 
     { "y-wave",        &Figure::y_waveform    },
     { "y-freq",        &Figure::y_freq        },
     { "y-phase",       &Figure::y_phase       },
     { "y-pulse-width", &Figure::y_pulse_width },
-    { "y-pos",         &Figure::y_pos         },
-    { "y-scale",       &Figure::y_scale       },
 
     { "z-wave",        &Figure::z_waveform    },
     { "z-freq",        &Figure::z_freq        },
     { "z-phase",       &Figure::z_phase       },
     { "z-pulse-width", &Figure::z_pulse_width },
-    { "z-pos",         &Figure::z_pos         },
-    { "z-scale",       &Figure::z_scale       },
 
     { "points",        &Figure::points        },
     { "closed",        &Figure::closed        }

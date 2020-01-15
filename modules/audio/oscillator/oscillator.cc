@@ -49,7 +49,7 @@ public:
   Input<Trigger> stop{0.0};     // Trigger to stop
 
   // Output
-  Output<Number> output;
+  Output<AudioData> output;
 };
 
 //--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ void OscillatorSource::tick(const TickData& td)
                  [&](Waveform::Type waveform, Number note, Number octave,
                      Number detune, Number pulse_width,
                      Trigger _start, Trigger _stop,
-                     Number& output)
+                     AudioData& output)
   {
     if (_stop)
     {
@@ -80,12 +80,15 @@ void OscillatorSource::tick(const TickData& td)
       }
     }
 
+    output.nchannels = 1;
+
     switch (state)
     {
       case State::enabled:
       case State::completing:
       {
-        output = Waveform::get_value(waveform, pulse_width, theta-floor(theta));
+        output.channels[0] =
+          Waveform::get_value(waveform, pulse_width, theta-floor(theta));
         auto cv = note + octave + detune/12;
         auto freq = Music::cv_to_frequency(cv);
         theta += freq / sample_rate;
@@ -99,7 +102,7 @@ void OscillatorSource::tick(const TickData& td)
       }
 
       case State::disabled:
-        output = 0;
+        output.channels[0] = 0;
         break;
     }
   });

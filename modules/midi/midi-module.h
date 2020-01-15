@@ -40,13 +40,10 @@ struct MIDIEvent: public MIDI::Event
 using MIDIEvents = vector<MIDIEvent>;
 
 // Combine
-MIDIEvents operator+=(const MIDIEvents& a, const MIDIEvents& b)
+MIDIEvents& operator+=(MIDIEvents& a, const MIDIEvents& b)
 {
-  MIDIEvents result;
-  result.insert(result.end(), a.begin(), a.end());
-  result.insert(result.end(), b.begin(), b.end());
-  sort(result.begin(), result.end());
-  return result;
+  a.insert(a.end(), b.begin(), b.end());
+  return a;
 }
 
 template<> inline

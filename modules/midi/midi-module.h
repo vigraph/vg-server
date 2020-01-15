@@ -12,6 +12,7 @@
 #include "../module.h"
 #include "vg-dataflow.h"
 #include "vg-midi.h"
+#include <algorithm>
 
 namespace ViGraph { namespace Dataflow {
 
@@ -28,9 +29,25 @@ struct MIDIEvent: public MIDI::Event
             uint8_t key, uint16_t value):
     MIDI::Event{type, channel, key, value}, time{_time}
   {}
+
+  // Comparison operator
+  bool operator<(const MIDIEvent& b) const
+  {
+    return time < b.time;
+  }
 };
 
 using MIDIEvents = vector<MIDIEvent>;
+
+// Combine
+MIDIEvents operator+=(const MIDIEvents& a, const MIDIEvents& b)
+{
+  MIDIEvents result;
+  result.insert(result.end(), a.begin(), a.end());
+  result.insert(result.end(), b.begin(), b.end());
+  sort(result.begin(), result.end());
+  return result;
+}
 
 template<> inline
 string get_module_type<MIDIEvents>() { return "midi"; }

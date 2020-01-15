@@ -24,6 +24,8 @@ private:
     return new KeyIn{module};
   }
 
+  queue<MIDIEvent> buffer;
+
 public:
   using SimpleElement::SimpleElement;
 
@@ -55,9 +57,19 @@ void KeyIn::tick(const TickData& td)
     v = 0;
     on = 0;
     off = 0;
-    for (auto eit = i.rbegin(); eit != i.rend(); ++eit)
+    bool sent = false;
+    if (!buffer.empty())
     {
-      const auto& e = *eit;
+      const auto& e = buffer.front();
+      k = e.key;
+      v = e.value / 127.0;
+      on = e.type == MIDI::Event::Type::note_on;
+      off = e.type == MIDI::Event::Type::note_off;
+      buffer.pop();
+      sent = true;
+    }
+    for (const auto& e: i)
+    {
       if (e.type != MIDI::Event::Type::note_on &&
           e.type != MIDI::Event::Type::note_off)
         continue;
@@ -65,10 +77,18 @@ void KeyIn::tick(const TickData& td)
           (min < 0 || e.key >= min) &&
           (max < 0 || e.key <= max))
       {
-        k = e.key;
-        v = e.value / 127.0;
-        on = e.type == MIDI::Event::Type::note_on;
-        off = e.type == MIDI::Event::Type::note_off;
+        if (sent)
+        {
+          buffer.emplace(e);
+        }
+        else
+        {
+          k = e.key;
+          v = e.value / 127.0;
+          on = e.type == MIDI::Event::Type::note_on;
+          off = e.type == MIDI::Event::Type::note_off;
+          sent = true;
+        }
         break;
       }
     }

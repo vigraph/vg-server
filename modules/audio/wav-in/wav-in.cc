@@ -251,7 +251,7 @@ SimpleModule module
   },
   {
     { "finished", &WavIn::finished  },
-    // + dynamic output channels
+    { "output",   &WavIn::output }
   }
 };
 

@@ -32,22 +32,30 @@ void del(Dataflow::Engine& engine, const Dataflow::Path& path)
 {
   auto lock = engine.get_write_lock();
 
-  const auto parent = path.parent();
-  const auto id = path.leaf();
-  const auto type = path.type();
-  auto acceptors = engine.get_visitor_acceptors(parent, 0);
-  if (acceptors.empty())
-    throw runtime_error("Path not found");
-
-  auto visitor = DeleteVisitor{id, type};
-  for (auto& a: acceptors)
+  try
   {
-    if (!a.acceptor)
+    const auto parent = path.parent();
+    const auto id = path.leaf();
+    const auto type = path.type();
+    auto acceptors = engine.get_visitor_acceptors(parent, 0);
+    if (acceptors.empty())
       throw runtime_error("Path not found");
-    a.acceptor->accept(visitor);
-  }
 
-  engine.update_elements();
+    auto visitor = DeleteVisitor{id, type};
+    for (auto& a: acceptors)
+    {
+      if (!a.acceptor)
+        throw runtime_error("Path not found");
+      a.acceptor->accept(visitor);
+    }
+
+    engine.update_elements();
+  }
+  catch (...)
+  {
+    engine.update_elements();
+    throw;
+  }
 }
 
 

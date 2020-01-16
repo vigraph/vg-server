@@ -591,12 +591,15 @@ private:
     {
       if (i == it)
         continue;
-      auto c = it->second.data.begin();
-      for (const auto& b: i->second.data)
+      if (!it->second.data.empty())
       {
-        *c += b;
-        if (++c == it->second.data.end())
-          break;
+        auto c = it->second.data.begin();
+        for (const auto& b: i->second.data)
+        {
+          *c += b;
+          if (++c == it->second.data.end())
+            break;
+        }
       }
     }
     combined = true;

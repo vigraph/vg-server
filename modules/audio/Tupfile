@@ -14,6 +14,7 @@ DEPENDS  = vg-module-audio-alsa-in \
            vg-module-audio-level \
            vg-module-audio-loop \
            vg-module-audio-oscillator \
+           vg-module-audio-pin \
            vg-module-audio-pitch-shift \
            vg-module-audio-position \
            vg-module-audio-reverb \

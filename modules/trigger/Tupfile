@@ -12,6 +12,7 @@ DEPENDS  = vg-module-trigger-beat     \
            vg-module-trigger-latch    \
            vg-module-trigger-memory   \
            vg-module-trigger-pin      \
+           vg-module-trigger-resample \
            vg-module-trigger-selector \
            vg-module-trigger-start
 

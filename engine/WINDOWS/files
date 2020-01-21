@@ -85,6 +85,7 @@ WINDOWS/licence.xml
 ../modules/vector/fade/vg-module-vector-fade.dll modules
 ../modules/vector/figure/vg-module-vector-figure.dll modules
 ../modules/vector/oscilloscope/vg-module-vector-oscilloscope.dll modules
+../modules/vector/graph/vg-module-vector-graph.dll modules
 ../modules/vector/pin/vg-module-vector-pin.dll modules
 ../modules/vector/rotate/vg-module-vector-rotate.dll modules
 ../modules/vector/scale/vg-module-vector-scale.dll modules

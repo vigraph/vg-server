@@ -16,6 +16,7 @@ DEPENDS  = vg-module-vector-translate    \
            vg-module-vector-figure       \
            vg-module-vector-switch       \
            vg-module-vector-pin          \
+           vg-module-vector-graph        \
            vg-module-vector-oscilloscope \
            vg-module-vector-websocket
 

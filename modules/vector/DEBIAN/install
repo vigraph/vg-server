@@ -8,6 +8,7 @@ svg/vg-module-vector-svg.so /usr/lib/vigraph/modules/
 figure/vg-module-vector-figure.so /usr/lib/vigraph/modules/
 switch/vg-module-vector-switch.so /usr/lib/vigraph/modules/
 pin/vg-module-vector-pin.so /usr/lib/vigraph/modules/
+graph/vg-module-vector-graph.so /usr/lib/vigraph/modules/
 oscilloscope/vg-module-vector-oscilloscope.so /usr/lib/vigraph/modules/
 websocket/vg-module-vector-websocket.so /usr/lib/vigraph/modules/
 

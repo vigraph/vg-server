@@ -58,6 +58,8 @@ void GraphSink::setup(const SetupContext& context)
 {
   SimpleElement::setup(context);
   input.set_sample_rate(sample_rate);
+  start.set_sample_rate(sample_rate);
+  clear.set_sample_rate(sample_rate);
 }
 
 //--------------------------------------------------------------------------

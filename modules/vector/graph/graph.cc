@@ -8,6 +8,7 @@
 
 #include "../vector-module.h"
 #include <cmath>
+#include <cfloat>
 
 namespace {
 
@@ -40,6 +41,7 @@ public:
   Setting<Number> sample_rate{default_sample_rate};
   Setting<Number> points{default_points};
   Setting<bool> scroll{false};
+  Setting<bool> auto_range{false};
 
   // Input
   Input<Number> input;
@@ -101,10 +103,26 @@ void GraphSink::tick(const TickData& td)
       running = true;
     }
 
+    auto low{0.0};
+    auto high{1.0};
+
+    if (auto_range && !buffer.empty())
+    {
+      low = DBL_MAX;
+      high = DBL_MIN;
+      for(auto v: buffer)
+      {
+        if (v < low) low = v;
+        if (v > high) high = v;
+      }
+
+      if (low == high) high++;
+    }
+
     for(auto i=0u; i<buffer.size(); i++)
     {
-      const auto x = static_cast<double>(i) / points - 0.5;
-      const auto y = buffer[i] - 0.5;
+      const auto x = static_cast<double>(i) / (points>1 ? points-1 : 1) - 0.5;
+      const auto y = (buffer[i]-low)/(high-low) - 0.5;
 
       // Double first point with extra blank to start
       if (!i) output.points.emplace_back(x, y);
@@ -123,6 +141,7 @@ Dataflow::SimpleModule module
   {
     { "sample-rate",  &GraphSink::sample_rate },
     { "scroll",       &GraphSink::scroll },
+    { "auto-range",   &GraphSink::auto_range },
     { "points",       &GraphSink::points }
   },
   {

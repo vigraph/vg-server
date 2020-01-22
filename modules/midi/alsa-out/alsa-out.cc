@@ -29,7 +29,8 @@ private:
   MT::Queue<MIDIEvent> events;
 
   friend class ALSAOutThread;
-  Time::Duration start_time;
+  MT::Mutex zero_time_mutex;
+  Time::Duration zero_time;
   void run();
 
   // Source/Element virtuals
@@ -101,18 +102,21 @@ void ALSAOut::run()
 {
   Log::Streams log;
 
+  auto zt = Time::Duration{};
   while (running)
   {
     if (events.poll())
     {
+      if (!zt)
+      {
+        MT::Lock lock{zero_time_mutex};
+        zt = zero_time;
+      }
       const auto event = events.wait();
       const auto now = Time::Duration::clock();
-      if (!start_time)
-        start_time = now - event.time;
-      if (event.time > now - start_time)
-        this_thread::sleep_for(chrono::milliseconds{
-                               (event.time - (now - start_time))
-                               .milliseconds()});
+      const auto time_until = zt + event.time - now;
+      if (time_until > Time::Duration{})
+        this_thread::sleep_for(chrono::milliseconds{time_until.milliseconds()});
       vector<uint8_t> data;
       auto writer = ViGraph::MIDI::Writer{data};
       writer.write(event);
@@ -129,6 +133,11 @@ void ALSAOut::run()
 // Process some data
 void ALSAOut::tick(const TickData& td)
 {
+  {
+    MT::Lock lock{zero_time_mutex};
+    if (!zero_time)
+      zero_time = Time::Duration::clock() - Time::Duration{td.start};
+  }
   const auto sample_rate = input.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(input), {},

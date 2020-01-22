@@ -46,6 +46,12 @@ void Engine::update_elements()
 // Tick the engine
 void Engine::tick(const Time::Duration& t)
 {
+  // Lock for whole tick process
+  // Leaving the timing / tick skipping outside of the lock can result
+  // in skipping ticks introduce jitter into real time / tick time differences
+  // That affects things like MIDI output which rate paces using tick time
+  // against clock time
+  MT::RWReadLock lock(graph_mutex);
   if (!start_time) start_time = t;
 
   const auto latest_tick_number = static_cast<unsigned long>((t - start_time)
@@ -68,7 +74,6 @@ void Engine::tick(const Time::Duration& t)
       const auto td = TickData{tick_start, tick_end};
 
       // Tick the graph
-      MT::RWReadLock lock(graph_mutex);
       auto ticked = list<Element *>{};
       auto last_count = tick_elements.size() + 1;
       while (!tick_elements.empty())

@@ -88,48 +88,59 @@ void GraphSink::tick(const TickData& td)
     }
   }
 
-  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(td, nsamples, {},
-                 tie(start, clear),
-                 tie(output),
-                 [&](Trigger _start, Trigger clear,
-                     Frame& output)
+  // Check trigger inputs in parallel to preserve ordering
+  const auto& cl = clear.get_buffer();
+  const auto& st = start.get_buffer();
+  const auto insamples = max(cl.size(), st.size())+1;  // In case both 0
+  sample_iterate(td, insamples, {}, tie(clear, start), {},
+                 [&](Trigger _clear, Trigger _start)
   {
-    if (clear)
+    if (_clear)
     {
       buffer.clear();
       running = false;
     }
-    else if (_start || !start.connected())
-    {
+
+    if (_start || !start.connected())
       running = true;
-    }
+  });
 
-    auto low{0.0};
-    auto high{1.0};
+  // Auto-ranging
+  auto low{0.0};
+  auto high{1.0};
 
-    if (auto_range && !buffer.empty())
+  if (auto_range && !buffer.empty())
+  {
+    low = DBL_MAX;
+    high = DBL_MIN;
+    for(auto v: buffer)
     {
-      low = DBL_MAX;
-      high = DBL_MIN;
-      for(auto v: buffer)
-      {
-        if (v < low) low = v;
-        if (v > high) high = v;
-      }
-
-      if (low == high) high++;
+      if (v < low) low = v;
+      if (v > high) high = v;
     }
 
-    for(auto i=0u; i<buffer.size(); i++)
-    {
-      const auto x = static_cast<double>(i) / (points>1 ? points-1 : 1) - 0.5;
-      const auto y = (buffer[i]-low)/(high-low) - 0.5;
+    if (low == high) high++;
+  }
 
-      // Double first point with extra blank to start
-      if (!i) output.points.emplace_back(x, y);
-      output.points.emplace_back(x, y, Colour::white);
-    }
+  // Construct the frame
+  vector<Point> pts;
+  for(auto i=0u; i<buffer.size(); i++)
+  {
+    const auto x = static_cast<double>(i) / (points>1 ? points-1 : 1) - 0.5;
+    const auto y = (buffer[i]-low)/(high-low) - 0.5;
+
+    // Double first point with extra blank to start
+    if (!i) pts.emplace_back(x, y);
+    pts.emplace_back(x, y, Colour::white);
+  }
+
+  // Copy to all output samples
+  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  sample_iterate(td, nsamples, {}, {},
+                 tie(output),
+                 [&](Frame& output)
+  {
+    output.points = pts;
   });
 }
 

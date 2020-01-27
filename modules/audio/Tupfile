@@ -11,6 +11,7 @@ DEPENDS  = vg-module-audio-alsa-in \
            vg-module-audio-bit-crush \
            vg-module-audio-delay \
            vg-module-audio-envelope \
+           vg-module-audio-filter \
            vg-module-audio-level \
            vg-module-audio-loop \
            vg-module-audio-oscillator \

@@ -18,18 +18,12 @@ namespace ViGraph { namespace Module { namespace Audio {
 // - plus easy to read to/from WAV, CD and audio IO
 using sample_t = float;           // Unsigned linear PCM -1.0..1.0
 const unsigned int sample_rate = 44100;
-
-}}};
-
-using namespace ViGraph::Module::Audio;
-
-namespace ViGraph { namespace Dataflow {
+const size_t max_channels = 8;
 
 //--------------------------------------------------------------------------
 // Audio data
 struct AudioData
 {
-  static const size_t max_channels = 8;
   int nchannels{0};                         // Number of samples valid in...
   array<sample_t, max_channels> channels;
 
@@ -53,6 +47,12 @@ struct AudioData
     return *this;
   }
 };
+
+}}};
+
+using namespace ViGraph::Module::Audio;
+
+namespace ViGraph { namespace Dataflow {
 
 template<> inline
 string get_module_type<AudioData>() { return "audio"; }

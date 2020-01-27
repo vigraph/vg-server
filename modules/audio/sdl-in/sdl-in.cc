@@ -119,7 +119,7 @@ void SDLIn::setup(const SetupContext& context)
   {
     log.summary << "Opening audio capture on SDL device '" << device << "'\n";
 
-    if (nchannels > AudioData::max_channels)
+    if (nchannels > max_channels)
       throw runtime_error("Too many channels in SDL input");
 
     SDL_AudioSpec want;

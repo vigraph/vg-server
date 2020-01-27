@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph MIDI key in module
+# Tupfile for Vigraph MIDI assign voice module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-midi-key-in
+NAME    = vg-module-midi-assign-voice
 TYPE    = shared
 DEPENDS = vg-dataflow vg-midi ot-lib
 

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph MIDI arpeggiate module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-midi-arpeggiate
+TYPE    = shared
+DEPENDS = vg-dataflow vg-midi ot-lib
+
+include_rules

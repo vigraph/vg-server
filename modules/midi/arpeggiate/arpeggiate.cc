@@ -29,7 +29,7 @@ private:
     Event(const MIDIEvent& me): MIDIEvent(me) {}
   };
   vector<Event> events;
-  decltype(events.size()) current = -1;
+  int current = -1;
   bool holding = false;
 
   // Release marked events
@@ -104,10 +104,27 @@ void Arpeggiate::tick(const TickData& td)
       {
         o.emplace_back(events[current]);
         o.back().type = MIDI::Event::Type::note_off;
+        if (!holding)
+        {
+          while (events[current].release)
+          {
+            events.erase(events.begin() + current);
+            if (events.empty())
+            {
+              current = -1;
+              break;
+            }
+            if (current >= static_cast<int>(events.size()))
+              current = 0;
+          }
+        }
       }
-      if (++current >= events.size())
-        current = 0;
-      o.emplace_back(events[current]);
+      if (!events.empty())
+      {
+        if (++current >= static_cast<int>(events.size()))
+          current = 0;
+        o.emplace_back(events[current]);
+      }
     }
   });
 }

@@ -42,7 +42,10 @@ public:
 // Tick data
 void Latch::tick(const TickData& td)
 {
-  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
+  const auto sample_rate = max(output.get_sample_rate(),
+                               max(enabled.get_sample_rate(),
+                                   disabled.get_sample_rate()));
+  const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {},
                  tie(set, clear, toggle),
                  tie(output, enabled, disabled),

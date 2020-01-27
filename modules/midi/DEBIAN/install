@@ -1,6 +1,7 @@
 alsa-in/vg-module-midi-alsa-in.so /usr/lib/vigraph/modules/
 alsa-out/vg-module-midi-alsa-out.so /usr/lib/vigraph/modules/
 arpeggiate/vg-module-midi-arpeggiate.so /usr/lib/vigraph/modules/
+assign-voice/vg-module-midi-assign-voice.so /usr/lib/vigraph/modules/
 button-in/vg-module-midi-button-in.so /usr/lib/vigraph/modules/
 control-in/vg-module-midi-control-in.so /usr/lib/vigraph/modules/
 control-out/vg-module-midi-control-out.so /usr/lib/vigraph/modules/

@@ -9,6 +9,7 @@ TYPE     = package
 DEPENDS  = vg-module-midi-alsa-in \
            vg-module-midi-alsa-out \
            vg-module-midi-arpeggiate \
+           vg-module-midi-assign-voice \
            vg-module-midi-button-in \
            vg-module-midi-control-in \
            vg-module-midi-control-out \

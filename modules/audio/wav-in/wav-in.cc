@@ -197,7 +197,7 @@ void WavIn::tick(const TickData& td)
 
     buffer.data.push_back(AudioData());
     auto& ad = buffer.data.back();
-    ad.nchannels = min(waveforms.size(), AudioData::max_channels);
+    ad.nchannels = min(waveforms.size(), max_channels);
 
     switch (state)
     {

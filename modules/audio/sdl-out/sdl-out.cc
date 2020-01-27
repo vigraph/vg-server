@@ -142,7 +142,7 @@ void SDLSink::setup(const SetupContext& context)
   shutdown();
 
   log.summary << "Opening audio output on SDL device '" << device << "'\n";
-  if (nchannels > AudioData::max_channels)
+  if (nchannels > max_channels)
     throw runtime_error("Too many channels in SDL output");
   log.detail << "SDL: " << nchannels << " channels\n";
 

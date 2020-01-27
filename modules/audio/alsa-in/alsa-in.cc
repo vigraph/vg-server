@@ -99,7 +99,7 @@ void ALSAIn::setup(const SetupContext& context)
     log.detail << "ALSA: sample rate chosen " << srate << endl;
     input_sample_rate = srate;
 
-    if (nchannels > AudioData::max_channels)
+    if (nchannels > max_channels)
       throw runtime_error("Too many channels in ALSA input");
     status = snd_pcm_hw_params_set_channels(pcm, hw_params, nchannels);
     if (status < 0)

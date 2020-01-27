@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph MIDI Switch module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-midi-switch
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib vg-midi
+
+include_rules

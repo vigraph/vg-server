@@ -16,16 +16,24 @@
 // DMX state type
 struct DMXState
 {
-  vector<uint8_t> channels;
+  using channel_t = uint32_t; // Universe*512 + chan
+                              // (Universe actually Art-Net port address)
+  using value_t = uint8_t;
+  map<channel_t, vector<value_t> > regions; // Non-overlapping contiguous
+                                            // regions by start channel
+
+  // Set an individual channel, optionally applying Highest Takes Precedence
+  // (HTP) to existing value
+  void set(channel_t ch, value_t value, bool htp=false);
 
   // Combine with another one
-  DMXState& operator+=(const DMXState& o)
-  {
-    // Highest Takes Priority - max of either side
-    for(auto i=0u; i<min(channels.size(), o.channels.size()); i++)
-      channels[i] = max(channels[i], o.channels[i]);
-    return *this;
-  }
+  DMXState& operator+=(const DMXState& o);
+
+  // Set from JSON
+  void set_from_json(const JSON::Value& json);
+
+  // Get as JSON
+  JSON::Value get_as_json() const;
 };
 
 typedef shared_ptr<DMXState> DMXStatePtr;
@@ -40,19 +48,12 @@ string get_module_type<DMXState>() { return "dmx"; }
 template<> inline void set_from_json(DMXState& dmx,
                                      const JSON::Value& json)
 {
-  if (json.type == JSON::Value::ARRAY)
-  {
-    for(const JSON::Value& chan: json.a)
-      dmx.channels.push_back(chan.as_int());
-  }
+  dmx.set_from_json(json);
 }
 
 template<> inline JSON::Value get_as_json(const DMXState& dmx)
 {
-  JSON::Value value{JSON::Value::ARRAY};
-  for(const auto& chan: dmx.channels)
-    value.add(chan);
-  return value;
+  return dmx.get_as_json();
 }
 
 }} //namespaces

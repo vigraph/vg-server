@@ -37,6 +37,8 @@ public:
   Setting<Integer> pad_extra{0};
   Setting<bool> pad_reverse{false};
   Setting<Integer> reverse_every{0};
+  Setting<Integer> universe{0};
+  Setting<Integer> channel{1};
 
   // Input
   Input<Bitmap::Group> input;
@@ -58,6 +60,9 @@ void BitmapRender::tick(const TickData& td)
     bitmap.fill(Colour::black);
     input.compose(bitmap);
 
+    auto chan = universe * 512ul + channel - 1;
+    auto& channels = output.regions[chan];
+
     const auto& pixels = bitmap.get_pixels();
     auto pad_count=0u;
     auto pad_flip = 0u;
@@ -75,13 +80,16 @@ void BitmapRender::tick(const TickData& td)
       }
 
       const auto& pixel = pixels[i];
-      output.channels.push_back(pixel.r * 255.0);
-      output.channels.push_back(pixel.g * 255.0);
-      output.channels.push_back(pixel.b * 255.0);
+      channels.push_back(pixel.r * 255.0);
+      channels.push_back(pixel.g * 255.0);
+      channels.push_back(pixel.b * 255.0);
 
       if (pad_every && 3*++pad_count >= (unsigned)pad_every)
       {
-        output.channels.resize(output.channels.size()+pad_extra);
+        // ! Note we pad rather than starting a new region, to minimise
+        // the number of regions (Art-Net packets) assuming the pad_extra
+        // is reasonably small
+        channels.resize(channels.size()+pad_extra);
         pad_count = 0;
         if (pad_reverse) pad_flip = 1-pad_flip;
       }
@@ -102,7 +110,9 @@ Dataflow::SimpleModule module
     { "pad-every", &BitmapRender::pad_every },
     { "pad-extra", &BitmapRender::pad_extra },
     { "pad-reverse", &BitmapRender::pad_reverse },
-    { "reverse-every", &BitmapRender::reverse_every }
+    { "reverse-every", &BitmapRender::reverse_every },
+    { "universe", &BitmapRender::universe  },
+    { "channel", &BitmapRender::channel },
   },
   {
     { "input",  &BitmapRender::input  }

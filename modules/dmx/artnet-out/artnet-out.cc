@@ -14,7 +14,6 @@ namespace {
 using namespace ViGraph::Dataflow;
 const auto default_source_address = "0.0.0.0";
 const auto default_frame_rate = 25;
-const auto default_universe{0};
 
 //==========================================================================
 // ArtNetOut filter
@@ -47,7 +46,6 @@ public:
   Setting<Integer> host_port{ArtNet::udp_port};
   Setting<string> source_address{default_source_address};
   Setting<Number> frame_rate{default_frame_rate};
-  Setting<Number> universe{default_universe};
 
   // Input
   Input<DMXState> input;
@@ -84,41 +82,52 @@ void ArtNetOut::tick(const TickData& td)
   sample_iterate(td, nsamples, {}, tie(input), {},
                  [&](const DMXState& input)
   {
-    // Can spread over multiple Universes
-    for(int u=universe; ;u++)
+    // Each region is a separate packet, maybe spread over multiple
+    // universes
+    for(const auto& rit: input.regions)
     {
-      auto& sequence = universe_sequences[u];
-      if (!sequence) sequence++;  // Avoid 0
-      ArtNet::DMXPacket dmx_packet(sequence++, u);
+      auto start_chan = rit.first;
+      // Using the basic packet we have to start on an universe boundary
+      // so we may have to pad the first packet
+      auto first_padding = start_chan % 512ul;
 
-      auto start_chan = u*512ul;
-      auto this_length = min(512ul, input.channels.size()-start_chan);
-      dmx_packet.data.resize(this_length);
-      copy(input.channels.begin()+start_chan,
-           input.channels.begin()+start_chan+this_length,
-           dmx_packet.data.begin());
-
-      auto size = dmx_packet.length();
-
-      // Create a packet
-      vector<unsigned char> packet;
-      packet.resize(size);
-      Channel::BlockWriter bw(packet.data(), size);
-      dmx_packet.write(bw);
-
-      // Send it
-      try
+      const auto& values = rit.second;
+      for(auto u=0; ;u++)
       {
-        socket->sendto(packet.data(), size, 0, destination);
-      }
-      catch (Net::SocketError e)
-      {
-        Log::Error log;
-        log << "ArtNet transmit socket error: " << e.get_string() << endl;
-        return;
-      }
+        auto& sequence = universe_sequences[u];
+        if (!sequence) sequence++;  // Avoid 0
+        ArtNet::DMXPacket dmx_packet(sequence++, u);
 
-      if (start_chan + this_length >= input.channels.size()) break;
+        auto padding = u ? 0 : first_padding;
+        auto copy_start = u*512ul+padding-first_padding;
+        auto packet_length = min(512ul, values.size()-copy_start+padding);
+        auto copy_length = min(512ul-padding, values.size()-copy_start);
+        dmx_packet.data.resize(packet_length, 0);
+        copy(values.begin()+copy_start,
+             values.begin()+copy_start+copy_length,
+             dmx_packet.data.begin()+padding);
+        auto size = dmx_packet.length();
+
+        // Create a packet
+        vector<unsigned char> packet;
+        packet.resize(size);
+        Channel::BlockWriter bw(packet.data(), size);
+        dmx_packet.write(bw);
+
+        // Send it
+        try
+        {
+          socket->sendto(packet.data(), size, 0, destination);
+        }
+        catch (Net::SocketError e)
+        {
+          Log::Error log;
+          log << "ArtNet transmit socket error: " << e.get_string() << endl;
+          return;
+        }
+
+        if (copy_start + copy_length >= values.size()) break;
+      }
     }
   });
 }
@@ -142,9 +151,8 @@ Dataflow::SimpleModule module
   {
     { "address",         &ArtNetOut::host_address      },
     { "port",            &ArtNetOut::host_port         },
-    { "source=address",  &ArtNetOut::source_address    },
-    { "frame-rate",      &ArtNetOut::frame_rate        },
-    { "universe",        &ArtNetOut::universe          }
+    { "source-address",  &ArtNetOut::source_address    },
+    { "frame-rate",      &ArtNetOut::frame_rate        }
   },
   {
     { "input",           &ArtNetOut::input }

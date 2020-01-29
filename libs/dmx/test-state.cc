@@ -88,6 +88,43 @@ TEST(DMXStateTest, TestGetInRange)
   EXPECT_EQ(7, state.get(99, 7));
 }
 
+TEST(DMXStateTest, TestFlatteningSingleUniverse)
+{
+  State state;
+  state.set(0, 1);
+  map<int, UniverseData> universes;
+  state.flatten(universes);
+  ASSERT_EQ(1, universes.size());
+  EXPECT_EQ(1, universes[0].channels[0]);
+  for(auto i=1u; i<DMX::channels_per_universe; i++)
+    EXPECT_EQ(0, universes[0].channels[i]) << i;
+}
+
+TEST(DMXStateTest, TestFlatteningMultipleUniverses)
+{
+  State state;
+  state.set(0, 1);
+  state.set(511, 2);
+  state.set(512, 3);
+  state.set(1024, 4);
+  map<int, UniverseData> universes;
+  state.flatten(universes);
+  ASSERT_EQ(3, universes.size());
+
+  EXPECT_EQ(1, universes[0].channels[0]);
+  for(auto i=1u; i<511; i++)
+    EXPECT_EQ(0, universes[0].channels[i]) << i;
+  EXPECT_EQ(2, universes[0].channels[511]);
+
+  EXPECT_EQ(3, universes[1].channels[0]);
+  for(auto i=1u; i<512; i++)
+    EXPECT_EQ(0, universes[1].channels[i]) << i;
+
+  EXPECT_EQ(4, universes[2].channels[0]);
+  for(auto i=1u; i<512; i++)
+    EXPECT_EQ(0, universes[2].channels[i]) << i;
+}
+
 TEST(DMXStateTest, TestMergeOverlappingHTP)
 {
   State state1, state2;

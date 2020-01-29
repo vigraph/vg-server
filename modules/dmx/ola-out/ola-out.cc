@@ -21,12 +21,7 @@ class OLAOut: public SimpleElement
 {
 private:
   ola::client::OlaClientWrapper ola_client;
-  struct BufferInfo
-  {
-    bool modified = false;
-    ola::DmxBuffer buffer;
-  };
-  map<unsigned, BufferInfo> buffers;
+  map<int, DMX::UniverseData> last_universes;
 
   // Element virtuals
   void setup(const SetupContext& context) override;
@@ -72,11 +67,30 @@ void OLAOut::setup(const SetupContext& context)
 // Tick data
 void OLAOut::tick(const TickData& td)
 {
+  auto client = ola_client.GetClient();
+  if (!client) return;
+
   const auto nsamples = td.samples_in_tick(frame_rate);
   sample_iterate(td, nsamples, {}, tie(input), {},
-                 [&](const DMX::State& )//input)
+                 [&](const DMX::State& input)
   {
+    // Get a flat list of affected universes, padded with 0's
+    map<int, DMX::UniverseData> universes;
+    input.flatten(universes);
 
+    // Send one buffer per universe
+    for(const auto& uit: universes)
+    {
+      auto u = uit.first;
+      const auto& ud = uit.second;
+      auto& last_ud = last_universes[u];  // Will create 0 on first use
+      if (ud == last_ud) continue;        // Don't send if not change
+      last_ud = ud;
+
+      ola::DmxBuffer buffer;
+      buffer.Set(ud.channels.data(), ud.channels.size());
+      client->SendDMX(u, buffer, {});
+    }
   });
 }
 

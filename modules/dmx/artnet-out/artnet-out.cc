@@ -48,7 +48,7 @@ public:
   Setting<Number> frame_rate{default_frame_rate};
 
   // Input
-  Input<DMXState> input;
+  Input<DMX::State> input;
 };
 
 //--------------------------------------------------------------------------
@@ -80,7 +80,7 @@ void ArtNetOut::tick(const TickData& td)
 
   const auto nsamples = td.samples_in_tick(frame_rate);
   sample_iterate(td, nsamples, {}, tie(input), {},
-                 [&](const DMXState& input)
+                 [&](const DMX::State& input)
   {
     // Each region is a separate packet, maybe spread over multiple
     // universes
@@ -89,7 +89,7 @@ void ArtNetOut::tick(const TickData& td)
       auto start_chan = rit.first;
       // Using the basic packet we have to start on an universe boundary
       // so we may have to pad the first packet
-      auto first_padding = start_chan % 512ul;
+      auto first_padding = start_chan % DMX::channels_per_universe;
 
       const auto& values = rit.second;
       for(auto u=0; ;u++)
@@ -99,9 +99,11 @@ void ArtNetOut::tick(const TickData& td)
         ArtNet::DMXPacket dmx_packet(sequence++, u);
 
         auto padding = u ? 0 : first_padding;
-        auto copy_start = u*512ul+padding-first_padding;
-        auto packet_length = min(512ul, values.size()-copy_start+padding);
-        auto copy_length = min(512ul-padding, values.size()-copy_start);
+        auto copy_start = u*DMX::channels_per_universe+padding-first_padding;
+        auto packet_length = min(DMX::channels_per_universe,
+                                 values.size()-copy_start+padding);
+        auto copy_length = min(DMX::channels_per_universe-padding,
+                               values.size()-copy_start);
         dmx_packet.data.resize(packet_length, 0);
         copy(values.begin()+copy_start,
              values.begin()+copy_start+copy_length,

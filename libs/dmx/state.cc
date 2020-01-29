@@ -1,17 +1,19 @@
 //==========================================================================
-// ViGraph dmx graphics modules: state.cc
+// ViGraph DMX library: state.cc
 //
-// State structure for DMX graphics modules
+// State structure for DMX
 //
 // Copyright (c) 2020 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "dmx-module.h"
+#include "vg-dmx.h"
+
+namespace ViGraph { namespace DMX {
 
 //--------------------------------------------------------------------------
 // Set an individual channel, optionally applying Highest Takes Precedence
 // (HTP) to existing value
-void DMXState::set(channel_t ch, value_t value, bool htp)
+void State::set(channel_t ch, value_t value, bool htp)
 {
   // Look for existing or adjacent coverage
   for(auto& rit: regions)
@@ -44,7 +46,7 @@ void DMXState::set(channel_t ch, value_t value, bool htp)
 
 //--------------------------------------------------------------------------
 // Combine with another one with HTP
-DMXState& DMXState::operator+=(const DMXState& o)
+State& State::operator+=(const State& o)
 {
   // Apply every channel in 'o' to ourselves
   for(const auto& rit: o.regions)
@@ -58,7 +60,7 @@ DMXState& DMXState::operator+=(const DMXState& o)
 
 //--------------------------------------------------------------------------
 // Set from JSON
-void DMXState::set_from_json(const JSON::Value& json)
+void State::set_from_json(const JSON::Value& json)
 {
   if (json.type == JSON::Value::ARRAY)
   {
@@ -77,7 +79,7 @@ void DMXState::set_from_json(const JSON::Value& json)
 
 //--------------------------------------------------------------------------
 // Get as JSON
-JSON::Value DMXState::get_as_json() const
+JSON::Value State::get_as_json() const
 {
   JSON::Value value{JSON::Value::ARRAY};
   for(const auto& rit: regions)
@@ -90,3 +92,5 @@ JSON::Value DMXState::get_as_json() const
   }
   return value;
 }
+
+}} // namespaces

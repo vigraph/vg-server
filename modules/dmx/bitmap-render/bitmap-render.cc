@@ -44,7 +44,7 @@ public:
   Input<Bitmap::Group> input;
 
   // Output
-  Output<DMXState> output;
+  Output<DMX::State> output;
 };
 
 //--------------------------------------------------------------------------
@@ -54,13 +54,13 @@ void BitmapRender::tick(const TickData& td)
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input), tie(output),
                  [&](const Bitmap::Group& input,
-                     DMXState& output)
+                     DMX::State& output)
   {
     Bitmap::Rectangle bitmap(width, height);
     bitmap.fill(Colour::black);
     input.compose(bitmap);
 
-    auto chan = universe * 512ul + channel - 1;
+    auto chan = DMX::channel_number(universe, channel);
     auto& channels = output.regions[chan];
 
     const auto& pixels = bitmap.get_pixels();

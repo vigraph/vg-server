@@ -6,6 +6,6 @@
 
 NAME    = vg-module-dmx-bitmap-render
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry vg-bitmap
+DEPENDS = vg-dataflow vg-geometry vg-bitmap vg-dmx
 
 include_rules

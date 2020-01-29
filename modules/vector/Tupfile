@@ -6,22 +6,22 @@
 
 NAME     = vg-modules-vector
 TYPE     = package
-DEPENDS  = vg-module-vector-translate    \
-           vg-module-vector-scale        \
-           vg-module-vector-rotate       \
-           vg-module-vector-clip         \
-           vg-module-vector-stroke       \
+DEPENDS  = vg-module-vector-clip         \
            vg-module-vector-fade         \
-           vg-module-vector-svg          \
            vg-module-vector-figure       \
-           vg-module-vector-switch       \
-           vg-module-vector-pin          \
            vg-module-vector-graph        \
            vg-module-vector-oscilloscope \
+           vg-module-vector-pattern      \
+           vg-module-vector-pin          \
+           vg-module-vector-rotate       \
+           vg-module-vector-scale        \
+           vg-module-vector-stroke       \
+           vg-module-vector-svg          \
+           vg-module-vector-switch       \
+           vg-module-vector-translate    \
            vg-module-vector-websocket
 
 #           vg-module-vector-filter-depth-fade \
-#           vg-module-vector-filter-pattern \
 #           vg-module-vector-filter-sum \
 #           vg-module-vector-filter-perspective \
 #           vg-module-vector-filter-collision-detect \

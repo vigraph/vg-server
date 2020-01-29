@@ -34,7 +34,8 @@ public:
   Setting<Integer> channel{1};
 
   // Input
-  Input<Number> input; // 0..1
+  Input<Number> value;    // 0..255
+  Input<Number> input;    // 0..1
 
   // Output
   Output<DMX::State> output;
@@ -45,13 +46,16 @@ public:
 void SetValue::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(td, nsamples, {}, tie(input), tie(output),
-                 [&](Number input,
+  sample_iterate(td, nsamples, {}, tie(input, value), tie(output),
+                 [&](Number _input, Number value,
                      DMX::State& output)
   {
     auto chan = DMX::channel_number(universe, channel);
     auto& channels = output.regions[chan];
-    channels.push_back(input * DMX::max_value);
+    if (input.connected())
+      channels.push_back(_input * DMX::max_value);
+    else
+      channels.push_back(value);
   });
 }
 
@@ -64,9 +68,10 @@ Dataflow::SimpleModule module
   "dmx",
   {
     { "universe", &SetValue::universe  },
-    { "channel", &SetValue::channel },
+    { "channel", &SetValue::channel }
   },
   {
+    { "value", &SetValue::value },
     { "input",  &SetValue::input  }
   },
   {

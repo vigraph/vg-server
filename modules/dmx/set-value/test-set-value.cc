@@ -20,7 +20,7 @@ public:
 
 const auto sample_rate = 1;
 
-TEST_F(SetValueTest, TestWithNoInput)
+TEST_F(SetValueTest, TestWithNoInputNoValue)
 {
   auto& setv = add("dmx/set-value")
     .set("universe", Integer{10})
@@ -40,11 +40,33 @@ TEST_F(SetValueTest, TestWithNoInput)
   EXPECT_EQ(0, state.regions[vchan][0]);
 }
 
-TEST_F(SetValueTest, TestWithInput)
+TEST_F(SetValueTest, TestWithNoInputWithValue)
 {
   auto& setv = add("dmx/set-value")
     .set("universe", Integer{10})
-    .set("channel", Integer{7});
+    .set("channel", Integer{7})
+    .set("value", 42.0);
+
+  auto states = vector<DMX::State>{};
+  auto& sink = add_sink(states, sample_rate);
+  setv.connect("output", sink, "input");
+
+  run();
+
+  ASSERT_EQ(sample_rate, states.size());
+  auto& state = states[0];
+  auto vchan = DMX::channel_number(10, 7);
+  ASSERT_EQ(1, state.regions.size());
+  ASSERT_EQ(1, state.regions[vchan].size()) << vchan;
+  EXPECT_EQ(42, state.regions[vchan][0]);
+}
+
+TEST_F(SetValueTest, TestWithInputAndValue)
+{
+  auto& setv = add("dmx/set-value")
+    .set("universe", Integer{10})
+    .set("channel", Integer{7})
+    .set("value", Integer{42});
 
   auto input_data = vector<Number>(1);
   input_data[0] = 0.5;

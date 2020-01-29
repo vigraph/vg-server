@@ -63,6 +63,23 @@ value_t State::get(channel_t ch, value_t def) const
 }
 
 //--------------------------------------------------------------------------
+// Flatten to a set of full universe buffers
+void State::flatten(map<int, UniverseData>& universes) const
+{
+  for(const auto& rit: regions)
+  {
+    auto chan = rit.first;
+    for(auto v: rit.second)
+    {
+      auto u = chan / DMX::channels_per_universe;
+      auto& ud = universes[u];
+      ud.channels[chan % DMX::channels_per_universe] = v;
+      chan++;
+    }
+  }
+}
+
+//--------------------------------------------------------------------------
 // Combine with another one with HTP
 State& State::operator+=(const State& o)
 {

@@ -82,53 +82,39 @@ void ArtNetOut::tick(const TickData& td)
   sample_iterate(td, nsamples, {}, tie(input), {},
                  [&](const DMX::State& input)
   {
-    // Each region is a separate packet, maybe spread over multiple
-    // universes
-    for(const auto& rit: input.regions)
+    // Get a flat list of affected universes, padded with 0's
+    map<int, DMX::UniverseData> universes;
+    input.flatten(universes);
+
+    // Send one packet per universe
+    for(const auto& uit: universes)
     {
-      auto start_chan = rit.first;
-      // Using the basic packet we have to start on an universe boundary
-      // so we may have to pad the first packet
-      auto first_padding = start_chan % DMX::channels_per_universe;
+      auto u = uit.first;
+      const auto& ud = uit.second;
 
-      const auto& values = rit.second;
-      for(auto u=0; ;u++)
+      auto& sequence = universe_sequences[u];
+      if (!sequence) sequence++;  // Avoid 0
+      ArtNet::DMXPacket dmx_packet(sequence++, u);
+      dmx_packet.data.resize(DMX::channels_per_universe, 0);
+      copy(ud.channels.begin(), ud.channels.end(), dmx_packet.data.begin());
+      auto size = dmx_packet.length();
+
+      // Create a packet
+      vector<unsigned char> packet;
+      packet.resize(size);
+      Channel::BlockWriter bw(packet.data(), size);
+      dmx_packet.write(bw);
+
+      // Send it
+      try
       {
-        auto& sequence = universe_sequences[u];
-        if (!sequence) sequence++;  // Avoid 0
-        ArtNet::DMXPacket dmx_packet(sequence++, u);
-
-        auto padding = u ? 0 : first_padding;
-        auto copy_start = u*DMX::channels_per_universe+padding-first_padding;
-        auto packet_length = min(DMX::channels_per_universe,
-                                 values.size()-copy_start+padding);
-        auto copy_length = min(DMX::channels_per_universe-padding,
-                               values.size()-copy_start);
-        dmx_packet.data.resize(packet_length, 0);
-        copy(values.begin()+copy_start,
-             values.begin()+copy_start+copy_length,
-             dmx_packet.data.begin()+padding);
-        auto size = dmx_packet.length();
-
-        // Create a packet
-        vector<unsigned char> packet;
-        packet.resize(size);
-        Channel::BlockWriter bw(packet.data(), size);
-        dmx_packet.write(bw);
-
-        // Send it
-        try
-        {
-          socket->sendto(packet.data(), size, 0, destination);
-        }
-        catch (Net::SocketError e)
-        {
-          Log::Error log;
-          log << "ArtNet transmit socket error: " << e.get_string() << endl;
-          return;
-        }
-
-        if (copy_start + copy_length >= values.size()) break;
+        socket->sendto(packet.data(), size, 0, destination);
+      }
+      catch (Net::SocketError e)
+      {
+        Log::Error log;
+        log << "ArtNet transmit socket error: " << e.get_string() << endl;
+        return;
       }
     }
   });

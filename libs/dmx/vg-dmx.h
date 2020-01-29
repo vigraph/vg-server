@@ -34,6 +34,14 @@ inline channel_t channel_number(int u, int c)
 }
 
 //==========================================================================
+// Universe data - all channel data for a single universe
+// Used for export to drivers
+struct UniverseData
+{
+  array<value_t, channels_per_universe> channels;
+};
+
+//==========================================================================
 // DMX state type
 struct State
 {
@@ -46,6 +54,9 @@ struct State
 
   // Get value of an individual channel, or def if not set
   value_t get(channel_t ch, value_t def=0) const;
+
+  // Flatten to a set of full universe buffers
+  void flatten(map<int, UniverseData>& universes) const;
 
   // Combine with another one
   State& operator+=(const State& o);

@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for ViGraph Art-Net protocol library
+# Tupfile for Vigraph DMX OLA output module
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-artnet
-TYPE    = lib
-DEPENDS = ot-chan vg-dmx
+NAME    = vg-module-dmx-ola-out
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry vg-dmx
 
 include_rules

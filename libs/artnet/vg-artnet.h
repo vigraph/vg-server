@@ -11,6 +11,7 @@
 #define __VG_ARTNET_H
 
 #include "ot-chan.h"
+#include "vg-dmx.h"
 
 namespace ViGraph { namespace ArtNet {
 
@@ -117,7 +118,7 @@ struct DMXPacket: public Packet
 {
   uint8_t sequence;
   uint16_t port_address;  // Net(7), Subnet(4), Universe(4)
-  vector<uint8_t> data;
+  vector<DMX::value_t> data;
 
   // Constructor
   DMXPacket(uint8_t _sequence, uint16_t _port_address):

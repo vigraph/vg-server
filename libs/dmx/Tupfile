@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for ViGraph Art-Net protocol library
+# Tupfile for ViGraph DMX library
 #
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-artnet
+NAME    = vg-dmx
 TYPE    = lib
-DEPENDS = ot-chan vg-dmx
+DEPENDS = ot-json
 
 include_rules

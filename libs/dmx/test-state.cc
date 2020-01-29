@@ -1,17 +1,19 @@
 //==========================================================================
-// ViGraph dataflow module: dmx/test-state.cc
+// ViGraph DMX library: test-state.cc
 //
-// Tests for DMXState structure
+// Tests for DMX::State structure
 //
 // Copyright (c) 2020 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include <gtest/gtest.h>
-#include "dmx-module.h"
+#include "vg-dmx.h"
+
+using namespace ViGraph::DMX;
 
 TEST(DMXStateTest, TestSetIndividual)
 {
-  DMXState state;
+  State state;
   state.set(17, 42);
   ASSERT_EQ(1, state.regions.size());
   ASSERT_TRUE(state.regions.find(17) != state.regions.end());
@@ -21,7 +23,7 @@ TEST(DMXStateTest, TestSetIndividual)
 
 TEST(DMXStateTest, TestSetSparse)
 {
-  DMXState state;
+  State state;
   state.set(17, 42);
   state.set(23, 99);
   ASSERT_EQ(2, state.regions.size());
@@ -35,7 +37,7 @@ TEST(DMXStateTest, TestSetSparse)
 
 TEST(DMXStateTest, TestSetExistingNoHTP)
 {
-  DMXState state;
+  State state;
   state.set(17, 42);
   state.set(17, 7);
   ASSERT_EQ(1, state.regions.size());
@@ -46,7 +48,7 @@ TEST(DMXStateTest, TestSetExistingNoHTP)
 
 TEST(DMXStateTest, TestSetExistingWithHTPUnder)
 {
-  DMXState state;
+  State state;
   state.set(17, 42);
   state.set(17, 7, true);
   ASSERT_EQ(1, state.regions.size());
@@ -57,7 +59,7 @@ TEST(DMXStateTest, TestSetExistingWithHTPUnder)
 
 TEST(DMXStateTest, TestSetExistingWithHTPOver)
 {
-  DMXState state;
+  State state;
   state.set(17, 42);
   state.set(17, 99, true);
   ASSERT_EQ(1, state.regions.size());
@@ -66,9 +68,29 @@ TEST(DMXStateTest, TestSetExistingWithHTPOver)
   EXPECT_EQ(99, state.regions[17][0]);
 }
 
+TEST(DMXStateTest, TestGetIndividual)
+{
+  State state;
+  state.set(17, 42);
+  EXPECT_EQ(42, state.get(17));
+  EXPECT_EQ(0, state.get(99));
+  EXPECT_EQ(7, state.get(99, 7));
+}
+
+TEST(DMXStateTest, TestGetInRange)
+{
+  State state;
+  state.set(16, 1);
+  state.set(17, 42);
+  state.set(18, 2);
+  EXPECT_EQ(42, state.get(17));
+  EXPECT_EQ(0, state.get(99));
+  EXPECT_EQ(7, state.get(99, 7));
+}
+
 TEST(DMXStateTest, TestMergeOverlappingHTP)
 {
-  DMXState state1, state2;
+  State state1, state2;
   state1.set(0, 1);
   state1.set(1, 2);
   state2.set(0, 3);
@@ -82,7 +104,7 @@ TEST(DMXStateTest, TestMergeOverlappingHTP)
 
 TEST(DMXStateTest, TestGetAsJSON)
 {
-  DMXState state;
+  State state;
   state.set(0, 1);
   state.set(1, 2);
   state.set(17, 42);
@@ -120,7 +142,7 @@ TEST(DMXStateTest, TestSetFromJSON)
   auto& v17 = r17.put("values", JSON::Value::ARRAY);
   v17.add(42);
 
-  DMXState state;
+  State state;
   state.set_from_json(json);
 
   ASSERT_EQ(2, state.regions.size());
@@ -135,12 +157,6 @@ TEST(DMXStateTest, TestSetFromJSON)
 
 int main(int argc, char **argv)
 {
-  if (argc > 1 && string(argv[1]) == "-v")
-  {
-    auto chan_out = new Log::StreamChannel{&cout};
-    Log::logger.connect(chan_out);
-  }
-
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

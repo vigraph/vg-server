@@ -7,11 +7,11 @@
 NAME     = vg-modules-dmx
 TYPE     = package
 DEPENDS  = vg-module-dmx-artnet-out \
+           vg-module-dmx-ola-in \
+           vg-module-dmx-ola-out \
            vg-module-dmx-bitmap-render \
            vg-module-dmx-set-value \
            vg-module-dmx-get-value
-
-#           vg-module-dmx-control-ola \
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

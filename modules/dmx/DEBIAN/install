@@ -1,7 +1,7 @@
 artnet-out/vg-module-dmx-artnet-out.so /usr/lib/vigraph/modules/
 bitmap-render/vg-module-dmx-bitmap-render.so /usr/lib/vigraph/modules/
 set-value/vg-module-dmx-set-value.so /usr/lib/vigraph/modules/
+get-value/vg-module-dmx-get-value.so /usr/lib/vigraph/modules/
 
-#services/distributor/vg-module-dmx-service-distributor.so /usr/lib/vigraph/modules/
 #controls/ola/vg-module-dmx-control-ola.so /usr/lib/vigraph/module
-#controls/channel-in/vg-module-dmx-control-channel-in.so /usr/lib/vigraph/modules/
+

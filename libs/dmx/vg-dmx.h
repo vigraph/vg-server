@@ -18,13 +18,14 @@ using namespace std;
 using namespace ViGraph;
 using namespace ObTools;
 
-// Constants
-static const size_t channels_per_universe{512};
-
 // Typedefs
 using channel_t = uint32_t; // Universe*512 + chan
                             // (Universe actually Art-Net port address)
 using value_t = uint8_t;
+
+// Constants
+static const size_t channels_per_universe{512};
+static const value_t max_value{255};
 
 // Virtual channel (0..) from universe (0..) and channel (1..)
 inline channel_t channel_number(int u, int c)
@@ -42,6 +43,9 @@ struct State
   // Set an individual channel, optionally applying Highest Takes Precedence
   // (HTP) to existing value
   void set(channel_t ch, value_t value, bool htp=false);
+
+  // Get value of an individual channel, or def if not set
+  value_t get(channel_t ch, value_t def=0) const;
 
   // Combine with another one
   State& operator+=(const State& o);

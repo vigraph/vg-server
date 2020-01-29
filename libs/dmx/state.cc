@@ -45,6 +45,24 @@ void State::set(channel_t ch, value_t value, bool htp)
 }
 
 //--------------------------------------------------------------------------
+// Get value of an individual channel, or def if not set
+value_t State::get(channel_t ch, value_t def) const
+{
+  for(auto& rit: regions)
+  {
+    auto start = rit.first;
+    // Stop if passed
+    if (ch < start) return def;
+
+    auto& channels = rit.second;
+    auto end = start + channels.size();
+    if (ch < end) return channels[ch-start];
+  }
+
+  return def;
+}
+
+//--------------------------------------------------------------------------
 // Combine with another one with HTP
 State& State::operator+=(const State& o)
 {

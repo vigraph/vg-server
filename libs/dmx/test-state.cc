@@ -68,6 +68,26 @@ TEST(DMXStateTest, TestSetExistingWithHTPOver)
   EXPECT_EQ(99, state.regions[17][0]);
 }
 
+TEST(DMXStateTest, TestGetIndividual)
+{
+  State state;
+  state.set(17, 42);
+  EXPECT_EQ(42, state.get(17));
+  EXPECT_EQ(0, state.get(99));
+  EXPECT_EQ(7, state.get(99, 7));
+}
+
+TEST(DMXStateTest, TestGetInRange)
+{
+  State state;
+  state.set(16, 1);
+  state.set(17, 42);
+  state.set(18, 2);
+  EXPECT_EQ(42, state.get(17));
+  EXPECT_EQ(0, state.get(99));
+  EXPECT_EQ(7, state.get(99, 7));
+}
+
 TEST(DMXStateTest, TestMergeOverlappingHTP)
 {
   State state1, state2;

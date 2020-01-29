@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph dataflow module: dmx/set-value/set-value.cc
+// ViGraph dataflow module: dmx/get-value/get-value.cc
 //
-// Set a single DMX channel
+// Get a single DMX channel
 //
 // Copyright (c) 2020 Paul Clark.  All rights reserved
 //==========================================================================
@@ -13,17 +13,17 @@ namespace {
 using namespace ViGraph::Dataflow;
 
 //==========================================================================
-// SetValue filter
-class SetValue: public SimpleElement
+// GetValue filter
+class GetValue: public SimpleElement
 {
 private:
   // Element virtuals
   void tick(const TickData& td) override;
 
   // Clone
-  SetValue *create_clone() const override
+  GetValue *create_clone() const override
   {
-    return new SetValue{module};
+    return new GetValue{module};
   }
 
 public:
@@ -34,24 +34,23 @@ public:
   Setting<Integer> channel{1};
 
   // Input
-  Input<Number> input; // 0..1
+  Input<DMX::State> input;
 
   // Output
-  Output<DMX::State> output;
+  Output<Number> output; // 0..1
 };
 
 //--------------------------------------------------------------------------
 // Tick data
-void SetValue::tick(const TickData& td)
+void GetValue::tick(const TickData& td)
 {
   const auto nsamples = td.samples_in_tick(output.get_sample_rate());
   sample_iterate(td, nsamples, {}, tie(input), tie(output),
-                 [&](Number input,
-                     DMX::State& output)
+                 [&](const DMX::State& input,
+                     Number& output)
   {
     auto chan = DMX::channel_number(universe, channel);
-    auto& channels = output.regions[chan];
-    channels.push_back(input * DMX::max_value);
+    output = static_cast<Number>(input.get(chan)) / DMX::max_value;
   });
 }
 
@@ -59,22 +58,22 @@ void SetValue::tick(const TickData& td)
 // Module definition
 Dataflow::SimpleModule module
 {
-  "set-value",
-  "DMX channel output",
+  "get-value",
+  "DMX value input",
   "dmx",
   {
-    { "universe", &SetValue::universe  },
-    { "channel", &SetValue::channel },
+    { "universe", &GetValue::universe  },
+    { "channel", &GetValue::channel },
   },
   {
-    { "input",  &SetValue::input  }
+    { "input",  &GetValue::input  }
   },
   {
-    { "output", &SetValue::output }
+    { "output", &GetValue::output }
   }
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(SetValue, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(GetValue, module)
 

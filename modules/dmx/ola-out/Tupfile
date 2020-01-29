@@ -6,6 +6,6 @@
 
 NAME    = vg-module-dmx-ola-out
 TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry vg-dmx
+DEPENDS = vg-dataflow vg-geometry vg-dmx ext-ola
 
 include_rules

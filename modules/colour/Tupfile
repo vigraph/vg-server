@@ -10,7 +10,8 @@ DEPENDS  = vg-module-colour-rgb    \
            vg-module-colour-hsl    \
            vg-module-colour-pin    \
            vg-module-colour-switch \
-           vg-module-colour-blend
+           vg-module-colour-blend  \
+           vg-module-colour-split
 
 
 PACKAGE  = $(NAME)

@@ -7,6 +7,7 @@
 //==========================================================================
 
 #include "../vector-module.h"
+#include "../../audio/audio-module.h"
 #include <cmath>
 
 namespace {
@@ -66,7 +67,7 @@ namespace {
 class Oscilloscope: public SimpleElement
 {
 private:
-  vector<Number> buffer;
+  vector<AudioData> buffer;
 
   // Element virtuals
   void setup(const SetupContext& context) override;
@@ -89,7 +90,7 @@ public:
   Input<Number> level{0};
 
   // Input
-  Input<Number> input;
+  Input<AudioData> input;
 
   // Output
   Output<Frame> output;
@@ -133,6 +134,10 @@ void Oscilloscope::tick(const TickData& td)
       for (; i < iend && (!max || added <= max); ++i)
       {
         bool add = started;
+        const auto last = i && buffer[i - 1].nchannels
+                          ? buffer[i - 1].channels[0]
+                          : 0;
+        const auto current = buffer[i].nchannels ? buffer[i].channels[0] : 0;
         switch (s)
         {
           case Slope::free:
@@ -141,7 +146,7 @@ void Oscilloscope::tick(const TickData& td)
           case Slope::rising:
             if (!started)
             {
-              if (i && buffer[i - 1] < lev && buffer[i] >= lev)
+              if (i && last < lev && current >= lev)
               {
                 started = true;
                 istart = i;
@@ -152,7 +157,7 @@ void Oscilloscope::tick(const TickData& td)
           case Slope::falling:
             if (!started)
             {
-              if (i && buffer[i - 1] > lev && buffer[i] <= lev)
+              if (i && last > lev && current <= lev)
               {
                 started = true;
                 istart = i;
@@ -165,7 +170,7 @@ void Oscilloscope::tick(const TickData& td)
         {
           const auto x = static_cast<double>(i - istart)
                          / (max ? max : (iend - istart)) - 0.5;
-          out_data.points.emplace_back(x, buffer[i] * 0.5, 0, Colour::white);
+          out_data.points.emplace_back(x, current * 0.5, 0, Colour::white);
           ++added;
         }
       }

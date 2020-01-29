@@ -46,6 +46,23 @@ MIDIEvents& operator+=(MIDIEvents& a, const MIDIEvents& b)
   return a;
 }
 
+// Downsample
+template<>
+inline void downsample(const vector<MIDIEvents>& from, vector<MIDIEvents>& to)
+{
+  const auto fsize = from.size();
+  const auto tsize = to.size();
+  for (auto i = 0u; i < tsize; ++i)
+  {
+    auto t = MIDIEvents{};
+    const auto b = (i * fsize) / tsize;
+    const auto e = ((i + 1) * fsize) / tsize;
+    for (auto j = b; j < e; ++j)
+      t.insert(t.end(), from[j].begin(), from[j].end());
+    to[i] = t;
+  }
+}
+
 template<> inline
 string get_module_type<MIDIEvents>() { return "midi"; }
 

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph DMX single value set module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-dmx-set-value
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib vg-dmx
+
+include_rules

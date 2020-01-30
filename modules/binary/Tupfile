@@ -6,8 +6,7 @@
 
 NAME     = vg-modules-binary
 TYPE     = package
-DEPENDS  = vg-module-trigger-beat     \
-           vg-module-trigger-start
+DEPENDS  = vg-module-binary-test
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

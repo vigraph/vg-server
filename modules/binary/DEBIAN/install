@@ -1,1 +1,1 @@
-beat/vg-module-binary-beat.so /usr/lib/vigraph/modules/
+test/vg-module-binary-test.so /usr/lib/vigraph/modules/

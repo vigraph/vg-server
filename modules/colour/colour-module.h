@@ -23,7 +23,11 @@ string get_module_type<Colour::RGB>() { return "colour"; }
 template<> inline void set_from_json(Colour::RGB& c,
                                      const JSON::Value& json)
 {
-  if (json.type == JSON::Value::OBJECT)
+  if (json.type == JSON::Value::STRING)
+  {
+    c = Colour::RGB(json.as_str());
+  }
+  else if (json.type == JSON::Value::OBJECT)
   {
     c = Colour::RGB(json["r"].as_float(),
                     json["g"].as_float(),

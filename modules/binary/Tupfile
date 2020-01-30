@@ -1,0 +1,19 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow binary modules
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-binary
+TYPE     = package
+DEPENDS  = vg-module-binary-test
+
+PACKAGE  = $(NAME)
+VERSION  = 2.0.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

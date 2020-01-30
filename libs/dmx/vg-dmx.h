@@ -39,6 +39,9 @@ inline channel_t channel_number(int u, int c)
 struct UniverseData
 {
   array<value_t, channels_per_universe> channels;
+
+  bool operator==(const UniverseData& o) const
+  { return channels == o.channels; }
 };
 
 //==========================================================================

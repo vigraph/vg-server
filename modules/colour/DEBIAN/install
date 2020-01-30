@@ -3,3 +3,4 @@ hsl/vg-module-colour-hsl.so /usr/lib/vigraph/modules/
 pin/vg-module-colour-pin.so /usr/lib/vigraph/modules/
 switch/vg-module-colour-switch.so /usr/lib/vigraph/modules/
 blend/vg-module-colour-blend.so /usr/lib/vigraph/modules/
+split/vg-module-colour-split.so /usr/lib/vigraph/modules/

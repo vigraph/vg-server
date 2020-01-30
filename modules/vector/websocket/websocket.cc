@@ -77,7 +77,19 @@ void WebSocketDisplayServer::handle_websocket(
   log.detail << "Handling WebSocket display protocol\n";
 
   Web::WebSocketServer ws(stream);
-  for(;;)
+
+  // Thread to watch for close requests from client
+  atomic<bool> closed{false};
+  thread read_thread{[&closed, &ws]()
+  {
+    string msg;
+    // Throw away valid messages (if any), exit on failure or close
+    while (ws.read(msg))
+      ;
+    closed = true;
+  }};
+
+  while (!closed)
   {
     const FrameQueueEntry& fqe = frame_queue.wait();
     if (!fqe.frame) // Shutdown on 0 frame
@@ -108,6 +120,9 @@ void WebSocketDisplayServer::handle_websocket(
       break;
     }
   }
+
+  read_thread.join();
+  log.detail << "WebSocket display connection closed\n";
 }
 
 //==========================================================================

@@ -16,6 +16,7 @@ class Pattern: public DynamicElement
 {
 private:
   vector<shared_ptr<Input<Colour::RGB>>> colour_list;
+  vector<shared_ptr<Input<Number>>> proportion_list;
 
   // Element virtuals
   void setup(const SetupContext& context) override;
@@ -62,6 +63,19 @@ void Pattern::setup(const SetupContext& context)
     const auto i = colour_list.size();
     register_input("colour" + Text::itos(i), colour_list.back().get());
   }
+  while (proportion_list.size() > ncolours)
+  {
+    const auto i = proportion_list.size();
+    deregister_input("proportion" + Text::itos(i),
+                     proportion_list.back().get());
+    proportion_list.pop_back();
+  }
+  while (proportion_list.size() < ncolours)
+  {
+    proportion_list.emplace_back(new Input<Number>{1});
+    const auto i = proportion_list.size();
+    register_input("proportion" + Text::itos(i), proportion_list.back().get());
+  }
 }
 
 //--------------------------------------------------------------------------
@@ -73,6 +87,11 @@ void Pattern::tick(const TickData& td)
   auto colours = vector<const vector<Colour::RGB> *>{};
   for (const auto& col: colour_list)
     colours.emplace_back(&col->get_buffer());
+  auto proportions = vector<pair<const Input<Number> *,
+                                 const vector<Number> *>>{};
+  for (const auto& prop: proportion_list)
+    proportions.emplace_back(prop.get(), &prop->get_buffer());
+  vector<Number> props(nc);
   auto c = 0u;
   sample_iterate(td, nsamples, {}, tie(phase, repeats, input), tie(output),
                  [&](Number phase, Number repeats, const Frame& input,
@@ -100,23 +119,40 @@ void Pattern::tick(const TickData& td)
 
           // Theta can become 1.0 due to rounding in the above
           if (theta >= 1.0) theta = 1.0 - 1e-10;
-          auto cindex = static_cast<unsigned int>(floor(theta*nc));
+          auto total_props = Number{};
+          auto pi = 0u;
+          for (const auto& prop: proportions)
+          {
+            const auto val = max(numeric_limits<Number>::min(),
+                                 safe_input_buffer_get(*prop.first,
+                                                       *prop.second, c));
+            props[pi++] = val;
+            total_props += val;
+          }
+          auto cindex = 0u;
+          auto pt = Number{};
+          for (const auto& prop: props)
+          {
+            if (pt + prop > theta * total_props)
+              break;
+            pt += prop;
+            ++cindex;
+          }
           if (cindex >= nc)
           {
             p.c = Colour::black;  // Double safety
             continue;
           }
 
-          const auto colour = colours[cindex]->size() < c
-                              ? (*colours[cindex])[c]
-                              : colour_list[cindex]->get();
+          const auto colour = safe_input_buffer_get(*colour_list[cindex],
+                                                    *colours[cindex], c);
           if (blend)
           {
             auto next_cindex = (cindex+1)%nc;
-            auto factor = theta*nc - cindex;
-            const auto next_colour = colours[next_cindex]->size() < c
-                                     ? (*colours[next_cindex])[c]
-                                     : colour_list[next_cindex]->get();
+            auto factor = (theta * total_props - pt) / props[cindex];
+            const auto next_colour = safe_input_buffer_get(
+                                                *colour_list[next_cindex],
+                                                *colours[next_cindex], c);
             p.c = colour.blend_with(next_colour, factor);
           }
           else

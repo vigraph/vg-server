@@ -217,6 +217,91 @@ TEST_F(PatternTest, TestBlendOneRepeat)
   }
 }
 
+TEST_F(PatternTest, TestProportionalAlternatingOneRepeat)
+{
+  auto& pat = add("vector/pattern")
+              .set("colours", Integer{2});
+  setup(pat);
+  pat.set("colour1", Colour::RGB{1, 0, 0})
+     .set("proportion1", Number{3})
+     .set("colour2", Colour::RGB{0, 1, 0})
+     .set("proportion2", Number{7});
+
+  auto fr_data = vector<Frame>(1);
+  fr_data.front().points.resize(10, Point{Vector{}, Colour::RGB{1}});
+  auto& src = add_source(fr_data);
+  src.connect("output", pat, "input");
+
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  pat.connect("output", snk, "input");
+
+  run();
+
+  ASSERT_EQ(sample_rate, frames.size());
+  const auto& frame = frames.front();
+
+  // Should be 10 points at (0,0), 3 red, 7 green
+  ASSERT_EQ(10, frame.points.size());
+  for(auto i=0; i<3; i++)
+  {
+    const auto&p = frame.points[i];
+    EXPECT_EQ(1.0, p.c.r) << i;
+    EXPECT_EQ(0.0, p.c.g) << i;
+    EXPECT_EQ(0.0, p.c.b) << i;
+  }
+  for(auto i=3; i<10; i++)
+  {
+    const auto&p = frame.points[i];
+    EXPECT_EQ(0.0, p.c.r) << i;
+    EXPECT_EQ(1.0, p.c.g) << i;
+    EXPECT_EQ(0.0, p.c.b) << i;
+  }
+}
+
+TEST_F(PatternTest, TestProportionalBlendOneRepeat)
+{
+  auto& pat = add("vector/pattern")
+              .set("colours", Integer{2})
+              .set("blend", true);
+  setup(pat);
+  pat.set("colour1", Colour::RGB{1, 0, 0})
+     .set("proportion1", Number{3})
+     .set("colour2", Colour::RGB{0, 1, 0})
+     .set("proportion2", Number{7});
+
+  auto fr_data = vector<Frame>(1);
+  fr_data.front().points.resize(10, Point{Vector{}, Colour::RGB{1}});
+  auto& src = add_source(fr_data);
+  src.connect("output", pat, "input");
+
+  auto frames = vector<Frame>{};
+  auto& snk = add_sink(frames, sample_rate);
+  pat.connect("output", snk, "input");
+
+  run();
+
+  ASSERT_EQ(sample_rate, frames.size());
+  const auto& frame = frames.front();
+
+  // Should be 10 points at (0,0), alternating blue, yellow
+  ASSERT_EQ(10, frame.points.size());
+  for(auto i=0; i<3; i++)
+  {
+    const auto&p = frame.points[i];
+    EXPECT_DOUBLE_EQ(1-i/3.0, p.c.r) << i;
+    EXPECT_DOUBLE_EQ(i/3.0, p.c.g) << i;
+    EXPECT_DOUBLE_EQ(0.0, p.c.b) << i;
+  }
+  for(auto i=3; i<10; i++)
+  {
+    const auto&p = frame.points[i];
+    EXPECT_DOUBLE_EQ((i-3)/7.0, p.c.r) << i;
+    EXPECT_DOUBLE_EQ(1-(i-3)/7.0, p.c.g) << i;
+    EXPECT_DOUBLE_EQ(0.0, p.c.b) << i;
+  }
+}
+
 int main(int argc, char **argv)
 {
   if (argc > 1 && string(argv[1]) == "-v")

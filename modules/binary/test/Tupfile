@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph <test> binary module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-binary-test
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib
+
+include_rules

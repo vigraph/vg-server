@@ -1754,6 +1754,18 @@ public:
   virtual ~GraphElement() {}
 };
 
+//--------------------------------------------------------------------------
+// Fetch a value safely from an input buffer
+template <typename T>
+inline T safe_input_buffer_get(const Input<T>& input, const vector<T>& buffer,
+                               unsigned pos)
+{
+  return buffer.empty() ? input.get()
+                        : buffer.size() > pos
+                          ? buffer[pos]
+                          : buffer.back();
+}
+
 //==========================================================================
 // Graph element - just has an ID and a parent graph
 class Element: public GraphElement
@@ -1782,10 +1794,7 @@ private:
     for (auto i = 0u; i < count; ++i)
     {
       f(get<Sc>(settings)...,
-        (get<Ic>(inputs).empty() ? get<Ic>(is).get()
-                                 : (get<Ic>(inputs).size() > i
-                                   ? get<Ic>(inputs)[i]
-                                   : get<Ic>(inputs).back()))...,
+        safe_input_buffer_get(get<Ic>(is), get<Ic>(inputs), i)...,
         get<Oc>(outputs).data[i]...
        );
     }

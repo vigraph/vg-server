@@ -32,7 +32,9 @@ namespace
 // /graph/<id>.<prop>         Property or output of top level element
 // /graph/<id>/<sid>.<prop>   Property or output of nested element
 // /graph/<id>/<prop>.<sprop> Nested property of element
-
+// GET parameters:
+//    transient = <anything>  Get dynamic values on inputs
+//    recursive = <anything>  Recurse to subgraphs / clones
 class GraphURLHandler: public Web::URLHandler
 {
   Dataflow::Engine& engine;
@@ -67,7 +69,8 @@ bool GraphURLHandler::handle_get(const string& path,
   try
   {
     auto json = JSON::Value{JSON::Value::Type::OBJECT};
-    JSON::get(engine, json, path, false,  // Not recursive
+    JSON::get(engine, json, path,
+              !request.url.get_query_parameter("recursive").empty(),
               !request.url.get_query_parameter("transient").empty());
     if (!json)
     {

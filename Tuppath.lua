@@ -31,8 +31,8 @@ function get_dependency_path(name)
     return 'modules/audio/' .. string.sub(name, 17)
   elseif string.sub(name, 1, 14) == 'vg-module-dmx-' then
     return 'modules/dmx/' .. string.sub(name, 15)
-  elseif string.sub(name, 1, 17) == 'vg-module-sensor-' then
-    return 'modules/sensor/' .. string.sub(name, 18)
+  elseif string.sub(name, 1, 14) == 'vg-module-iot-' then
+    return 'modules/iot/' .. string.sub(name, 15)
   elseif string.sub(name, 1, 22) == 'vg-module-time-series-' then
     return 'modules/time-series/' .. string.sub(name, 23)
   elseif string.sub(name, 1, 17) == 'vg-module-bitmap-' then

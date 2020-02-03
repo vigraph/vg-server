@@ -1,12 +1,12 @@
 #===========================================================================
-# Tupfile for ViGraph dataflow miscellaneous sensor modules
+# Tupfile for ViGraph dataflow IoT modules
 #
-# Copyright (c) 2019 Paul Clark. All rights reserved
+# Copyright (c) 2020 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME     = vg-modules-sensor
+NAME     = vg-modules-iot
 TYPE     = package
-DEPENDS  = vg-module-sensor-load-dscusb
+DEPENDS  = vg-module-iot-load-dscusb
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

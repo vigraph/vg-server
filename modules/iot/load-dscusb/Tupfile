@@ -4,7 +4,7 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-sensor-load-dscusb
+NAME    = vg-module-iot-load-dscusb
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-lib ot-serial
 PLATFORMS = linux

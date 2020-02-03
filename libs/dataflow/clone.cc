@@ -167,7 +167,7 @@ void Clone::reset()
 
 //--------------------------------------------------------------------------
 // Collect list of all elements
-void Clone::collect_elements(list<Element *>& els)
+void Clone::collect_elements(vector<Element *>& els)
 {
   for (auto& graph: clones)
     graph.graph->collect_elements(els);

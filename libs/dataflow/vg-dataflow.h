@@ -1730,7 +1730,7 @@ public:
   virtual void reset() = 0;
 
   // Collect list of all elements
-  virtual void collect_elements(list<Element *>& elements) = 0;
+  virtual void collect_elements(vector<Element *>& elements) = 0;
 
   // Clone element
   virtual GraphElement *clone(const SetupContext& context) const = 0;
@@ -1784,7 +1784,7 @@ private:
   {
     auto settings = make_tuple(get<Sc>(ss).get()...);
     (void)settings;
-    auto inputs = make_tuple(get<Ic>(is).get_buffer()...);
+    auto inputs = tie(get<Ic>(is).get_buffer()...);
     (void)inputs;
     auto outputs = make_tuple(get<Oc>(os).get_buffer(td)...);
     (void)outputs;
@@ -1850,7 +1850,7 @@ public:
   void reset() override;
 
   // Collect list of all elements
-  void collect_elements(list<Element *>& elements) override
+  void collect_elements(vector<Element *>& elements) override
   {
     elements.push_back(this);
   }
@@ -2271,7 +2271,7 @@ public:
   }
 
   // Collect list of all elements
-  void collect_elements(list<Element *>& els) override
+  void collect_elements(vector<Element *>& els) override
   {
     for (auto it: elements)
       it.second->collect_elements(els);
@@ -2382,7 +2382,7 @@ public:
   void reset() override;
 
   // Collect list of all elements
-  void collect_elements(list<Element *>& els) override;
+  void collect_elements(vector<Element *>& els) override;
 
   // Get graphs
   vector<Graph *> get_graphs() const;
@@ -2572,7 +2572,7 @@ class Engine: public VisitorAcceptor
   // Graph structure
   mutable MT::RWMutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
-  list<Element *> tick_elements;
+  vector<Element *> tick_elements;
   Time::Duration tick_interval = default_tick_interval;
   Time::Duration start_time;
   uint64_t tick_number{0};

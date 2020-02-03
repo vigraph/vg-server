@@ -74,40 +74,34 @@ void Engine::tick(const Time::Duration& t)
       const auto td = TickData{tick_start, tick_end};
 
       // Tick the graph
-      auto ticked = list<Element *>{};
-      auto last_count = tick_elements.size() + 1;
-      while (!tick_elements.empty())
+      auto ticked = 0u;
+      auto last_count = ticked;
+      const auto to_tick = tick_elements.size();
+      while (ticked < to_tick)
       {
-        if (tick_elements.size() == last_count)
+        for (auto i = ticked; i < to_tick; ++i)
+        {
+          if (tick_elements[i]->ready())
+          {
+            tick_elements[i]->tick(td);
+            iter_swap(tick_elements.begin() + i,
+                      tick_elements.begin() + ticked);
+            ++ticked;
+          }
+        }
+        if (ticked == last_count)
         {
           Log::Error elog;
           elog << "Deadlock detected in tick. Remaining elements:" << endl;
-          for (const auto& e: tick_elements)
-          {
-            elog << "  " << e->get_id() << endl;
-            ticked.push_back(e);
-          }
+          for (auto i = ticked; i < to_tick; ++i)
+            elog << "  " << tick_elements[i]->get_id() << endl;
           break;
         }
-        last_count = tick_elements.size();
-        for (auto it = tick_elements.begin(); it != tick_elements.end();)
-        {
-          if ((*it)->ready())
-          {
-            (*it)->tick(td);
-            ticked.push_back(*it);
-            it = tick_elements.erase(it);
-          }
-          else
-          {
-            ++it;
-          }
-        }
+        last_count = ticked;
       }
-      tick_elements = ticked;
 
       // Reset all
-      for(auto it: tick_elements)
+      for (auto it: tick_elements)
         it->reset();
     }
     catch (const runtime_error& e)

@@ -151,7 +151,7 @@ Dataflow::SimpleModule module
 {
   "load-dscusb",
   "DSCUSB Load",
-  "sensor",
+  "iot",
   {
     { "device",   &Sensor::device },
     { "interval", &Sensor::interval }

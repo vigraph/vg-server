@@ -176,12 +176,12 @@ void WavIn::setup(const SetupContext& context)
 void WavIn::tick(const TickData& td)
 {
   auto sample_rate = output.get_sample_rate();
-  auto buffer = output.get_buffer(td);
   const auto nsamples = td.samples_in_tick(sample_rate);
   const auto step = wav_sample_rate / sample_rate;
+  const auto nchannels = min(waveforms.size(), max_channels);
 
-  sample_iterate(td, nsamples, {}, tie(start, stop), tie(finished),
-                 [&](Trigger _start, Trigger _stop, Trigger &f)
+  sample_iterate(td, nsamples, {}, tie(start, stop), tie(output, finished),
+                 [&](Trigger _start, Trigger _stop, AudioData& ad, Trigger &f)
   {
     f = 0;
     if (_stop)
@@ -195,9 +195,7 @@ void WavIn::tick(const TickData& td)
       pos = 0.0;
     }
 
-    buffer.data.push_back(AudioData());
-    auto& ad = buffer.data.back();
-    ad.nchannels = min(waveforms.size(), max_channels);
+    ad.nchannels = nchannels;
 
     switch (state)
     {

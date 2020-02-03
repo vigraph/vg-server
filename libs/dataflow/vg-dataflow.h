@@ -1784,7 +1784,7 @@ private:
   {
     auto settings = make_tuple(get<Sc>(ss).get()...);
     (void)settings;
-    auto inputs = make_tuple(get<Ic>(is).get_buffer()...);
+    auto inputs = tie(get<Ic>(is).get_buffer()...);
     (void)inputs;
     auto outputs = make_tuple(get<Oc>(os).get_buffer(td)...);
     (void)outputs;

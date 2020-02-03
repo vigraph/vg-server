@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph <set> binary module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-binary-set
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib
+
+include_rules

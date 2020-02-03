@@ -6,7 +6,9 @@
 
 NAME     = vg-modules-binary
 TYPE     = package
-DEPENDS  = vg-module-binary-test
+DEPENDS  = vg-module-binary-clear \
+           vg-module-binary-set \
+           vg-module-binary-test
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

@@ -1,1 +1,3 @@
+clear/vg-module-binary-clear.so /usr/lib/vigraph/modules/
+set/vg-module-binary-set.so /usr/lib/vigraph/modules/
 test/vg-module-binary-test.so /usr/lib/vigraph/modules/

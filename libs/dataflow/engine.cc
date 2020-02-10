@@ -41,8 +41,6 @@ void Engine::update_elements()
 {
   tick_elements.clear();
   graph->collect_elements(tick_elements);
-  parallel_state.state.resize(tick_elements.size(),
-                              ParallelState::State::waiting);
 }
 
 //--------------------------------------------------------------------------
@@ -166,7 +164,6 @@ void Engine::set_threads(unsigned nthreads)
           if (parallel_state.shutdown)
             return;
 
-          auto els_ticked = 0;
           auto nels = tick_elements.size();
           while (true)
           {
@@ -177,16 +174,11 @@ void Engine::set_threads(unsigned nthreads)
               i = parallel_state.ticked;
               for (; i < nels; ++i)
               {
-                if (parallel_state.state[i] == ParallelState::State::waiting &&
-                    parallel_state.tick_elements[i]->ready())
+                if (parallel_state.tick_elements[i]->ready())
                 {
-                  parallel_state.state[i] = ParallelState::State::running;
                   el = parallel_state.tick_elements[i];
                   iter_swap(parallel_state.tick_elements.begin() + i,
                             parallel_state.tick_elements.begin() +
-                            parallel_state.ticked);
-                  iter_swap(parallel_state.state.begin() + i,
-                            parallel_state.state.begin() +
                             parallel_state.ticked);
                   i = parallel_state.ticked;
                   ++parallel_state.ticked;
@@ -205,9 +197,7 @@ void Engine::set_threads(unsigned nthreads)
             }
 
             el->tick(parallel_state.td);
-            ++els_ticked;
             MT::Lock lock{parallel_state.mutex};
-            parallel_state.state[i] = ParallelState::State::complete;
             for (auto g = 0u; g < parallel_state.go.size(); ++g)
             {
               if (g != n && parallel_state.complete_threads[g])
@@ -242,8 +232,6 @@ void Engine::parallel_tick_elements(const TickData& td)
   // Reset all
   for (auto it: tick_elements)
     it->reset();
-  for (auto& state: parallel_state.state)
-    state = ParallelState::State::waiting;
   for (auto&& c: parallel_state.complete_threads)
     c = false;
 }

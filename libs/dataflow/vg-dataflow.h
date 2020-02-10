@@ -2584,13 +2584,6 @@ private:
     TickData td;
     MT::Mutex mutex;
     vector<Element *>& tick_elements;
-    enum class State
-    {
-      waiting,
-      running,
-      complete,
-    };
-    vector<State> state;
     unsigned ticked = 0;
     ParallelState(vector<Element *>& _tick_elements):
       tick_elements{_tick_elements}

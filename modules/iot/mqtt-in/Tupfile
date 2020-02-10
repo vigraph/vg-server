@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for Vigraph MQTT input interface
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-sensor-mqtt-in
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-lib ext-mosquittopp
+PLATFORMS = linux
+
+include_rules

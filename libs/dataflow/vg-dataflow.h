@@ -175,6 +175,7 @@ struct TickData
   timestamp_t start = 0;
   timestamp_t end = 0;
 
+  TickData() {}
   TickData(timestamp_t _start, timestamp_t _end):
     start{_start}, end{_end}
   {}
@@ -576,9 +577,10 @@ private:
   {
     GraphElement *element = nullptr;
     vector<T> data;
-    bool ready = false;
+    atomic<bool> ready{false};
   };
   map<Output<T> *, Data> input_data;
+  vector<T> dummy_buffer;
   bool combined = false;
 
 
@@ -654,9 +656,8 @@ public:
 
   const vector<T>& get_buffer()
   {
-    static auto empty = vector<T>{};
     if (input_data.empty())
-      return empty;
+      return dummy_buffer;
 
     auto it = input_data.begin();
     if (!combined && input_data.size() > 1)
@@ -736,6 +737,7 @@ private:
     {}
   };
   map<Input<T> *, OutputData> output_data;
+  vector<T> dummy_buffer;
   Input<T> *primary_data = nullptr;
 
   void set_primary_data()
@@ -818,12 +820,10 @@ public:
   };
   Buffer get_buffer(const TickData& td)
   {
-    static auto empty = vector<T>{};
-    static auto empty_buffer = Buffer{td, nullptr, empty};
     if (!primary_data)
     {
-      empty.clear();
-      return empty_buffer;
+      dummy_buffer.clear();
+      return Buffer{td, nullptr, dummy_buffer};
     }
     return Buffer{td, this, output_data[primary_data].input->data};
   }
@@ -2497,7 +2497,8 @@ class Pin: public SimpleElement
 private:
   void tick(const TickData& td) override
   {
-    output.get_buffer(td).data = input.get_buffer();
+    auto buffer = output.get_buffer(td);
+    buffer.data = input.get_buffer();
   }
 public:
   using SimpleElement::SimpleElement;
@@ -2569,15 +2570,51 @@ public:
 // Engine class - wrapper containing Graph tree and Element registry
 class Engine: public VisitorAcceptor
 {
+private:
   // Graph structure
   mutable MT::RWMutex graph_mutex;
   unique_ptr<Dataflow::Graph> graph;
   vector<Element *> tick_elements;
+  struct ParallelState
+  {
+    atomic<bool> shutdown{false};
+    deque<MT::Condition> go;
+    vector<bool> complete_threads;
+    MT::Condition complete;
+    TickData td;
+    MT::Mutex mutex;
+    vector<Element *>& tick_elements;
+    enum class State
+    {
+      waiting,
+      running,
+      complete,
+    };
+    vector<State> state;
+    unsigned ticked = 0;
+    ParallelState(vector<Element *>& _tick_elements):
+      tick_elements{_tick_elements}
+    {}
+  } parallel_state{tick_elements};
+  vector<thread> threads;
   Time::Duration tick_interval = default_tick_interval;
   Time::Duration start_time;
   uint64_t tick_number{0};
   SetupContext context;
   bool saving_enabled{false};
+
+  //------------------------------------------------------------------------
+  // Handle deadlock
+  void handle_deadlock(const vector<Element *>::const_iterator& begin,
+                       const vector<Element *>::const_iterator& end);
+
+  //------------------------------------------------------------------------
+  // Serial tick of elements
+  void serial_tick_elements(const TickData& td);
+
+  //------------------------------------------------------------------------
+  // parallel tick of elements
+  void parallel_tick_elements(const TickData& td);
 
 public:
   Registry element_registry;
@@ -2588,6 +2625,10 @@ public:
   {
     graph->set_id("root");
   }
+
+  //------------------------------------------------------------------------
+  // Set the number of threads
+  void set_threads(unsigned threads);
 
   //------------------------------------------------------------------------
   // Set/get the tick interval

@@ -8,6 +8,7 @@
 
 #include "vg-dataflow.h"
 #include "ot-log.h"
+#include <algorithm>
 
 namespace ViGraph { namespace Dataflow {
 
@@ -40,6 +41,8 @@ void Engine::update_elements()
 {
   tick_elements.clear();
   graph->collect_elements(tick_elements);
+  parallel_state.state.resize(tick_elements.size(),
+                              ParallelState::State::waiting);
 }
 
 //--------------------------------------------------------------------------
@@ -72,37 +75,10 @@ void Engine::tick(const Time::Duration& t)
     try
     {
       const auto td = TickData{tick_start, tick_end};
-
-      // Tick the graph
-      auto ticked = 0u;
-      auto last_count = ticked;
-      const auto to_tick = tick_elements.size();
-      while (ticked < to_tick)
-      {
-        for (auto i = ticked; i < to_tick; ++i)
-        {
-          if (tick_elements[i]->ready())
-          {
-            tick_elements[i]->tick(td);
-            iter_swap(tick_elements.begin() + i,
-                      tick_elements.begin() + ticked);
-            ++ticked;
-          }
-        }
-        if (ticked == last_count)
-        {
-          Log::Error elog;
-          elog << "Deadlock detected in tick. Remaining elements:" << endl;
-          for (auto i = ticked; i < to_tick; ++i)
-            elog << "  " << tick_elements[i]->get_id() << endl;
-          break;
-        }
-        last_count = ticked;
-      }
-
-      // Reset all
-      for (auto it: tick_elements)
-        it->reset();
+      if (threads.empty())
+        serial_tick_elements(td);
+      else
+        parallel_tick_elements(td);
     }
     catch (const runtime_error& e)
     {
@@ -115,12 +91,175 @@ void Engine::tick(const Time::Duration& t)
 }
 
 //--------------------------------------------------------------------------
+// Handle deadlock
+void Engine::handle_deadlock(const vector<Element *>::const_iterator& begin,
+                             const vector<Element *>::const_iterator& end)
+{
+  Log::Error elog;
+  elog << "Deadlock detected in tick. Remaining elements:" << endl;
+  for_each(begin, end, [&](Element * el)
+  {
+    elog << "  " << el->get_id() << endl;
+  });
+}
+
+//--------------------------------------------------------------------------
+// Serial tick of elements
+void Engine::serial_tick_elements(const TickData& td)
+{
+  auto ticked = 0u;
+  auto last_count = ticked;
+  const auto to_tick = tick_elements.size();
+  while (ticked < to_tick)
+  {
+    for (auto i = ticked; i < to_tick; ++i)
+    {
+      if (tick_elements[i]->ready())
+      {
+        tick_elements[i]->tick(td);
+        iter_swap(tick_elements.begin() + i, tick_elements.begin() + ticked);
+        ++ticked;
+      }
+    }
+    if (ticked == last_count)
+    {
+      handle_deadlock(tick_elements.begin() + ticked, tick_elements.end());
+      break;
+    }
+
+    last_count = ticked;
+  }
+
+  // Reset all
+  for (auto it: tick_elements)
+    it->reset();
+}
+
+//--------------------------------------------------------------------------
+// Set the number of threads
+void Engine::set_threads(unsigned nthreads)
+{
+  parallel_state.shutdown = true;
+  for (auto& go: parallel_state.go)
+    go.signal();
+  for (auto& t: threads)
+    t.join();
+  threads.clear();
+  parallel_state.go.clear();
+  parallel_state.complete.clear();
+  parallel_state.complete_threads.clear();
+
+  parallel_state.shutdown = false;
+  if (nthreads > 1)
+  {
+    while (threads.size() < nthreads)
+    {
+      const auto n = threads.size();
+      parallel_state.go.emplace_back();
+      parallel_state.complete_threads.emplace_back();
+      threads.emplace_back([&, n]()
+      {
+        while (true)
+        {
+          parallel_state.go[n].wait();
+          parallel_state.go[n].clear();
+          if (parallel_state.shutdown)
+            return;
+
+          auto els_ticked = 0;
+          auto nels = tick_elements.size();
+          while (true)
+          {
+            Element *el = nullptr;
+            auto i = 0u;
+            {
+              MT::Lock lock{parallel_state.mutex};
+              i = parallel_state.ticked;
+              for (; i < nels; ++i)
+              {
+                if (parallel_state.state[i] == ParallelState::State::waiting &&
+                    parallel_state.tick_elements[i]->ready())
+                {
+                  parallel_state.state[i] = ParallelState::State::running;
+                  el = parallel_state.tick_elements[i];
+                  iter_swap(parallel_state.tick_elements.begin() + i,
+                            parallel_state.tick_elements.begin() +
+                            parallel_state.ticked);
+                  iter_swap(parallel_state.state.begin() + i,
+                            parallel_state.state.begin() +
+                            parallel_state.ticked);
+                  i = parallel_state.ticked;
+                  ++parallel_state.ticked;
+                  break;
+                }
+              }
+              if (!el)
+              {
+                parallel_state.complete_threads[n] = true;
+                if (find(begin(parallel_state.complete_threads),
+                         end(parallel_state.complete_threads), false)
+                    == end(parallel_state.complete_threads))
+                  parallel_state.complete.signal();
+                break;
+              }
+            }
+
+            el->tick(parallel_state.td);
+            ++els_ticked;
+            MT::Lock lock{parallel_state.mutex};
+            parallel_state.state[i] = ParallelState::State::complete;
+            for (auto g = 0u; g < parallel_state.go.size(); ++g)
+            {
+              if (g != n && parallel_state.complete_threads[g])
+              {
+                parallel_state.complete_threads[g] = false;
+                parallel_state.go[g].signal();
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+}
+
+
+//--------------------------------------------------------------------------
+// Parallel tick of elements
+void Engine::parallel_tick_elements(const TickData& td)
+{
+  parallel_state.td = td;
+  parallel_state.ticked = 0;
+  for (auto& go: parallel_state.go)
+    go.signal();
+  parallel_state.complete.wait();
+  parallel_state.complete.clear();
+
+  if (parallel_state.ticked < tick_elements.size())
+    handle_deadlock(tick_elements.begin() + parallel_state.ticked,
+                    tick_elements.end());
+
+  // Reset all
+  for (auto it: tick_elements)
+    it->reset();
+  for (auto& state: parallel_state.state)
+    state = ParallelState::State::waiting;
+  for (auto&& c: parallel_state.complete_threads)
+    c = false;
+}
+
+//--------------------------------------------------------------------------
 // Shut down the graph
 void Engine::shutdown()
 {
   // Shut down graph
   MT::RWWriteLock lock(graph_mutex);
   graph->shutdown();
+  parallel_state.shutdown = true;
+  for (auto& go: parallel_state.go)
+    go.signal();
+  for (auto& t: threads)
+    t.join();
 }
 
 //--------------------------------------------------------------------------

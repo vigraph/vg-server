@@ -18,7 +18,8 @@ const auto default_section = "core";
 
 //--------------------------------------------------------------------------
 // Constructor
-Server::Server(const string& _licence_file): licence_file{_licence_file}
+Server::Server(const string& _licence_file):
+  licence_file{_licence_file}
 {
 }
 
@@ -164,6 +165,10 @@ void Server::reconfigure()
 
   // Shutdown any existing graph
   engine.shutdown();
+
+  // Get number of threads
+  unsigned threads = config_xml.get_child("thread").get_attr_int("count", 0);
+  engine.set_threads(threads);
 
   // Get tick interval from frequency
   double freq = config_xml.get_child("tick").get_attr_real("frequency",

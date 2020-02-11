@@ -6,7 +6,9 @@
 
 NAME     = vg-modules-iot
 TYPE     = package
-DEPENDS  = vg-module-iot-load-dscusb
+DEPENDS  = vg-module-iot-load-dscusb \
+           vg-module-iot-mqtt-in \
+           vg-module-iot-mqtt-out
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph MQTT input interface
+# Tupfile for Vigraph MQTT output interface
 #
 # Copyright (c) 2020 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-iot-mqtt-in
+NAME    = vg-module-iot-mqtt-out
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-lib ext-mosquittopp
 PLATFORMS = linux

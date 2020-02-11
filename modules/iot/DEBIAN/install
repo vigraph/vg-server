@@ -1,1 +1,3 @@
 load-dscusb/vg-module-iot-load-dscusb.so /usr/lib/vigraph/modules
+mqtt-in/vg-module-iot-mqtt-in.so /usr/lib/vigraph/modules
+mqtt-out/vg-module-iot-mqtt-out.so /usr/lib/vigraph/modules

@@ -198,12 +198,15 @@ void Engine::set_threads(unsigned nthreads)
 
             el->tick(parallel_state.td);
             MT::Lock lock{parallel_state.mutex};
-            for (auto g = 0u; g < parallel_state.go.size(); ++g)
+            if (parallel_state.ticked < nels)
             {
-              if (g != n && parallel_state.complete_threads[g])
+              for (auto g = 0u; g < parallel_state.go.size(); ++g)
               {
-                parallel_state.complete_threads[g] = false;
-                parallel_state.go[g].signal();
+                if (g != n && parallel_state.complete_threads[g])
+                {
+                  parallel_state.complete_threads[g] = false;
+                  parallel_state.go[g].signal();
+                }
               }
             }
           }

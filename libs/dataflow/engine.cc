@@ -150,11 +150,11 @@ void Engine::set_threads(unsigned nthreads)
   parallel_state.shutdown = false;
   if (nthreads > 1)
   {
+    parallel_state.go.resize(nthreads);
+    parallel_state.complete_threads.resize(nthreads);
     while (threads.size() < nthreads)
     {
       const auto n = threads.size();
-      parallel_state.go.emplace_back();
-      parallel_state.complete_threads.emplace_back();
       threads.emplace_back([&, n]()
       {
         while (true)

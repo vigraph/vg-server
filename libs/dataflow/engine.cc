@@ -168,11 +168,9 @@ void Engine::set_threads(unsigned nthreads)
           while (true)
           {
             Element *el = nullptr;
-            auto i = 0u;
             {
               MT::Lock lock{parallel_state.mutex};
-              i = parallel_state.ticked;
-              for (; i < nels; ++i)
+              for (auto i = parallel_state.ticked; i < nels; ++i)
               {
                 if (parallel_state.tick_elements[i]->ready())
                 {
@@ -180,7 +178,6 @@ void Engine::set_threads(unsigned nthreads)
                   iter_swap(parallel_state.tick_elements.begin() + i,
                             parallel_state.tick_elements.begin() +
                             parallel_state.ticked);
-                  i = parallel_state.ticked;
                   ++parallel_state.ticked;
                   break;
                 }

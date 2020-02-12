@@ -504,7 +504,7 @@ public:
   void set(const T& _value) { value = _value; }
   Setting<T>& operator=(const T& _value) { value = _value; return *this; }
 
-  T get() const { return value; }
+  const T& get() const { return value; }
   operator T() const { return value; }
   bool operator==(const T& o) const { return value == o; }
   bool operator!=(const T& o) const { return value != o; }
@@ -816,6 +816,11 @@ public:
     vector<T>& data;
     Buffer(const TickData& _td, Output<T> * _out, vector<T>& _data):
       td{_td}, out{_out}, data{_data} {}
+    Buffer(Buffer&& b):
+      td{b.td}, out{b.out}, data{b.data}
+    {
+      b.out = nullptr;
+    }
     ~Buffer() { if (out) out->complete(td); }
   };
   Buffer get_buffer(const TickData& td)
@@ -1757,8 +1762,9 @@ public:
 //--------------------------------------------------------------------------
 // Fetch a value safely from an input buffer
 template <typename T>
-inline T safe_input_buffer_get(const Input<T>& input, const vector<T>& buffer,
-                               unsigned pos)
+inline const T& safe_input_buffer_get(const Input<T>& input,
+                                      const vector<T>& buffer,
+                                      unsigned pos)
 {
   return buffer.empty() ? input.get()
                         : buffer.size() > pos
@@ -1782,7 +1788,7 @@ private:
                            const tuple<Os...>& os, index_sequence<Oc...>,
                            const F& f)
   {
-    auto settings = make_tuple(get<Sc>(ss).get()...);
+    auto settings = tie(get<Sc>(ss).get()...);
     (void)settings;
     auto inputs = tie(get<Ic>(is).get_buffer()...);
     (void)inputs;

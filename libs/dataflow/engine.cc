@@ -168,8 +168,9 @@ void Engine::set_threads(unsigned nthreads)
           while (true)
           {
             Element *el = nullptr;
+            auto ticked = 0u;
             {
-              MT::Lock lock{parallel_state.mutex};
+              MT::Lock lock{parallel_state.tick_elements_mutex};
               for (auto i = parallel_state.ticked; i < nels; ++i)
               {
                 if (parallel_state.tick_elements[i]->ready())
@@ -178,24 +179,26 @@ void Engine::set_threads(unsigned nthreads)
                   iter_swap(parallel_state.tick_elements.begin() + i,
                             parallel_state.tick_elements.begin() +
                             parallel_state.ticked);
-                  ++parallel_state.ticked;
+                  ticked = ++parallel_state.ticked;
                   break;
                 }
               }
-              if (!el)
-              {
-                parallel_state.complete_threads[n] = true;
-                if (find(begin(parallel_state.complete_threads),
-                         end(parallel_state.complete_threads), false)
-                    == end(parallel_state.complete_threads))
-                  parallel_state.complete.signal();
-                break;
-              }
+            }
+            if (!el)
+            {
+              MT::Lock lock{parallel_state.complete_threads_mutex};
+              parallel_state.complete_threads[n] = true;
+              if (find(begin(parallel_state.complete_threads),
+                       end(parallel_state.complete_threads), false)
+                  == end(parallel_state.complete_threads))
+                parallel_state.complete.signal();
+              break;
             }
 
             el->tick(parallel_state.td);
-            MT::Lock lock{parallel_state.mutex};
-            if (parallel_state.ticked < nels)
+
+            MT::Lock lock{parallel_state.complete_threads_mutex};
+            if (ticked < nels)
             {
               for (auto g = 0u; g < parallel_state.go.size(); ++g)
               {

@@ -10,7 +10,9 @@ DEPENDS  = vg-module-maths-unary-ops        \
            vg-module-maths-binary-ops       \
            vg-module-maths-wrap             \
            vg-module-maths-limit            \
-           vg-module-maths-polar-position
+           vg-module-maths-polar-position   \
+           vg-module-maths-differentiate    \
+           vg-module-maths-integrate
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph 'differentiate' maths module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-maths-differentiate
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib
+
+include_rules

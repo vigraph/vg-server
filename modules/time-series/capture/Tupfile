@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph time-series capture module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-time-series-capture
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib
+
+include_rules

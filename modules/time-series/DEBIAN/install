@@ -4,3 +4,4 @@ scale/vg-module-time-series-scale.so /usr/lib/vigraph/modules
 last/vg-module-time-series-last.so /usr/lib/vigraph/modules
 average/vg-module-time-series-average.so /usr/lib/vigraph/modules
 plot/vg-module-time-series-plot.so /usr/lib/vigraph/modules
+capture/vg-module-time-series-capture.so /usr/lib/vigraph/modules

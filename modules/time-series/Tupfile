@@ -11,7 +11,8 @@ DEPENDS  = vg-module-time-series-web-fetch \
            vg-module-time-series-scale \
            vg-module-time-series-last \
            vg-module-time-series-average \
-           vg-module-time-series-plot
+           vg-module-time-series-plot \
+           vg-module-time-series-capture
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

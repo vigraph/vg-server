@@ -2585,10 +2585,11 @@ private:
   {
     atomic<bool> shutdown{false};
     deque<MT::Condition> go;
+    MT::Mutex complete_threads_mutex;
     vector<bool> complete_threads;
     MT::Condition complete;
     TickData td;
-    MT::Mutex mutex;
+    MT::Mutex tick_elements_mutex;
     vector<Element *>& tick_elements;
     unsigned ticked = 0;
     ParallelState(vector<Element *>& _tick_elements):

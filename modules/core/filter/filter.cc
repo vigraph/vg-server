@@ -52,6 +52,7 @@ template<> inline JSON::Value get_as_json(const Mode& mode)
     case Mode::band_pass:
       return "band-pass";
   }
+  return "";
 }
 
 }} // namespaces

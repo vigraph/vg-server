@@ -46,8 +46,8 @@ public:
   Input<Number> phase{0};
 
   // Triggers
-  Input<Trigger> start{0.0};    // Trigger to start
-  Input<Trigger> stop{0.0};     // Trigger to stop
+  Input<Trigger> start{0};    // Trigger to start
+  Input<Trigger> stop{0};     // Trigger to stop
 
   // Output
   Output<Number> output;

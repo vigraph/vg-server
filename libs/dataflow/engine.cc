@@ -155,7 +155,7 @@ void Engine::set_threads(unsigned nthreads)
     while (threads.size() < nthreads)
     {
       const auto n = threads.size();
-      threads.emplace_back([&, n]()
+      threads.emplace_back([&, n, nthreads]()
       {
         while (true)
         {
@@ -200,7 +200,7 @@ void Engine::set_threads(unsigned nthreads)
             MT::Lock lock{parallel_state.complete_threads_mutex};
             if (ticked < nels)
             {
-              for (auto g = 0u; g < parallel_state.go.size(); ++g)
+              for (auto g = 0u; g < nthreads; ++g)
               {
                 if (g != n && parallel_state.complete_threads[g])
                 {

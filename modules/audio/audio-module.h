@@ -48,7 +48,7 @@ struct AudioData
   }
 };
 
-}}};
+}}}
 
 using namespace ViGraph::Module::Audio;
 

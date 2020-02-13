@@ -47,8 +47,8 @@ public:
   Setting<string> file{};
   Setting<bool> loop{false};
 
-  Input<Trigger> start{0.0};
-  Input<Trigger> stop{0.0};
+  Input<Trigger> start{0};
+  Input<Trigger> stop{0};
 
   Output<AudioData> output;
   Output<Trigger> finished;

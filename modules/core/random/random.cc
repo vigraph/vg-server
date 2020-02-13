@@ -35,7 +35,7 @@ public:
   Input<Number> max{1.0};
 
   // Triggers
-  Input<Trigger> trigger{0.0};
+  Input<Trigger> trigger{0};
 
   // Outputs
   Output<Number> output;

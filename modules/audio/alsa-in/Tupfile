@@ -7,5 +7,6 @@
 NAME      = vg-module-audio-alsa-in
 TYPE      = shared
 DEPENDS   = vg-dataflow ext-asound
+PLATFORMS = linux
 
 include_rules

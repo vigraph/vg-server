@@ -30,7 +30,7 @@ private:
   {
     DynamicElement::setup(context);
 
-    const auto ninputs = static_cast<unsigned>(max(inputs.get(), 2l));
+    const auto ninputs = max(static_cast<unsigned>(inputs.get()), 2u);
     while (input_list.size() > ninputs)
     {
       const auto i = input_list.size();
@@ -182,7 +182,7 @@ private:
   {
     DynamicElement::setup(context);
 
-    const auto ninputs = static_cast<unsigned>(max(inputs.get(), 2l));
+    const auto ninputs = max(static_cast<unsigned>(inputs.get()), 2u);
     while (input_list.size() > ninputs)
     {
       const auto i = input_list.size();

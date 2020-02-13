@@ -35,8 +35,8 @@ public:
   Input<Number> period{0.0};   // Period to stay active
 
   // Triggers
-  Input<Trigger> start{0.0};    // Trigger to start
-  Input<Trigger> reset{0.0};    // Stop and reset
+  Input<Trigger> start{0};    // Trigger to start
+  Input<Trigger> reset{0};    // Stop and reset
 
   // Outputs
   Output<Trigger> finished;     // Trigger output on completion

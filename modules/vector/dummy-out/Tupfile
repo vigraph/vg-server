@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph vector dummy-out module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-vector-dummy-out
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib vg-geometry
+
+include_rules

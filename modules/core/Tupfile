@@ -18,6 +18,7 @@ DEPENDS  = vg-module-core-clone         \
            vg-module-core-memory        \
            vg-module-core-timer         \
            vg-module-core-interpolator  \
+           vg-module-core-switch        \
            vg-module-core-log
 
 PACKAGE  = $(NAME)

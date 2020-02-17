@@ -88,6 +88,8 @@ WINDOWS/licence.xml
 ../modules/midi/key-out/vg-module-midi-key-out.dll modules
 ../modules/midi/pin/vg-module-midi-pin.dll modules
 ../modules/midi/switch/vg-module-midi-switch.dll modules
+../modules/midi/winmm-in/vg-module-midi-winmm-in.dll modules
+../modules/midi/winmm-out/vg-module-midi-winmm-out.dll modules
 
 ../modules/time-series/average/vg-module-time-series-average.dll modules
 ../modules/time-series/capture/vg-module-time-series-capture.dll modules

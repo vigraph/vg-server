@@ -90,6 +90,7 @@ WINDOWS/licence.xml
 ../modules/midi/switch/vg-module-midi-switch.dll modules
 
 ../modules/time-series/average/vg-module-time-series-average.dll modules
+../modules/time-series/capture/vg-module-time-series-capture.dll modules
 ../modules/time-series/last/vg-module-time-series-last.dll modules
 ../modules/time-series/offset/vg-module-time-series-offset.dll modules
 ../modules/time-series/plot/vg-module-time-series-plot.dll modules

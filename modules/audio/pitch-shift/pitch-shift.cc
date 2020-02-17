@@ -109,19 +109,16 @@ void PitchShift::tick(const TickData& td)
                            : 0;
 
   f.clear();
-  if (max_samples)
+  if (max_samples && available_samples > max_samples)
   {
     f.resize(max_samples * nchannels);
-    if (available_samples > max_samples)
-    {
 #if defined(PLATFORM_WINDOWS)
-      const auto samples = soundtouch_receiveSamples(sound_touch.get(),
-                                                     &f[0], max_samples);
+    const auto samples = soundtouch_receiveSamples(sound_touch.get(),
+                                                   &f[0], max_samples);
 #else
-      const auto samples = sound_touch.receiveSamples(&f[0], max_samples);
+    const auto samples = sound_touch.receiveSamples(&f[0], max_samples);
 #endif
-      f.resize(samples * nchannels);
-    }
+    f.resize(samples * nchannels);
   }
 
   auto fpos = 0u;

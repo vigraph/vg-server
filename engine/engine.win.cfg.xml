@@ -30,6 +30,11 @@
   <log level="2" file="%LOCALAPPDATA%\ViGraph Create Pro\log\engine.log"
        timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
 
+  <!-- Resources -->
+  <resources>
+    <directory path="%LOCALAPPDATA%\ViGraph Create Pro\resources" />
+  </resources>
+
   <!-- Loadable modules -->
   <modules>
     <!-- Search paths, recursive for all .so -->
@@ -39,10 +44,6 @@
   <!-- Tick frequency (Hz, 25) -->
   <tick frequency="25"/>
 
-  <!-- Sample rate - note this can be reduced to the tick frequency if there
-       is no audio, to save control plane processing -->
-  <sample rate="44100"/>
-
   <!-- Built-in web server for UI -->
   <file-server>
 
@@ -50,7 +51,7 @@
     <http port="33380"/>
 
     <!-- Root directory for files -->
-    <file path="web"/>
+    <directory path="web"/>
 
   </file-server>
 
@@ -59,6 +60,9 @@
 
     <!-- HTTP port -->
     <http port="33381"/>
+
+    <!-- URL prefix, including leading and trailing / -->
+    <url prefix="/"/>
 
     <!-- Layout file -->
     <layout file="layout.json"/>

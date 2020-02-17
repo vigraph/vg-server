@@ -25,7 +25,6 @@ private:
   snd_rawmidi_t *midi_out{nullptr};
   unique_ptr<ALSAOutThread> thread;
   atomic<bool> running{false};
-  ViGraph::MIDI::Reader reader;
   MT::Queue<MIDIEvent> events;
 
   friend class ALSAOutThread;
@@ -120,7 +119,14 @@ void ALSAOut::run()
       vector<uint8_t> data;
       auto writer = ViGraph::MIDI::Writer{data};
       writer.write(event);
+      const auto write_start = Time::Duration::clock();
       snd_rawmidi_write(midi_out, &data[0], data.size());
+      const auto write_end = Time::Duration::clock();
+      if (write_end - write_start > Time::Duration{1})
+      {
+        Log::Error log;
+        log << "WRITE TIME: " << (write_end - write_start).iso() << endl;
+      }
     }
     else
     {

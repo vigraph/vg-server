@@ -13,6 +13,10 @@
 #include "vg-dataflow.h"
 #include "vg-midi.h"
 #include <algorithm>
+#if defined(PLATFORM_WINDOWS)
+#include <windows.h>
+#include <mmsystem.h>
+#endif
 
 namespace ViGraph { namespace Dataflow {
 
@@ -135,6 +139,38 @@ template<> inline JSON::Value get_as_json(const MIDIEvents& events)
   }
   return json;
 }
+
+#if defined(PLATFORM_WINDOWS)
+
+//--------------------------------------------------------------------------
+// Get error string
+string get_winmm_error(MMRESULT result)
+{
+  switch (result)
+  {
+    case MMSYSERR_ALLOCATED:
+      return "The specified resource is already allocated";
+    case MMSYSERR_BADDEVICEID:
+      return "The specified device identifier is out of range";
+    case MMSYSERR_INVALFLAG:
+      return "The flags specified by dwFlags are invalid";
+    case MMSYSERR_INVALPARAM:
+      return "The specified pointer or structure is invalid";
+    case MMSYSERR_NOMEM:
+      return "The system is unable to allocate or lock memory";
+    case MIDIERR_BADOPENMODE:
+      return "The application sent a message without a status byte "
+             "to a stream handle";
+    case MIDIERR_NOTREADY:
+      return "The hardware is busy with other data";
+    case MMSYSERR_INVALHANDLE:
+      return "The specified device handle is invalid";
+    default:
+      return string{"Unknown error: "} + Text::itos(result);
+  }
+}
+
+#endif
 
 //==========================================================================
 }} //namespaces

@@ -1,11 +1,10 @@
 //==========================================================================
-// Write data to an ALSA MIDI device
+// Write data to an WinMM MIDI device
 //
 // Copyright (c) 2020 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../midi-module.h"
-#include <alsa/asoundlib.h>
 #include "vg-midi.h"
 
 namespace {
@@ -15,19 +14,19 @@ using namespace ViGraph::Dataflow;
 const auto default_device = "default";
 const auto sample_rate = 1000.0;
 
-class ALSAOutThread;
+class WinMMOutThread;
 
 //==========================================================================
-// ALSAOut
-class ALSAOut: public SimpleElement
+// WinMMOut
+class WinMMOut: public SimpleElement
 {
 private:
-  snd_rawmidi_t *midi_out{nullptr};
-  unique_ptr<ALSAOutThread> thread;
+  HMIDIOUT midi_out{nullptr};
+  unique_ptr<WinMMOutThread> thread;
   atomic<bool> running{false};
   MT::Queue<MIDIEvent> events;
 
-  friend class ALSAOutThread;
+  friend class WinMMOutThread;
   MT::Mutex zero_time_mutex;
   Time::Duration zero_time;
   void run();
@@ -38,9 +37,9 @@ private:
   void shutdown() override;
 
   // Clone
-  ALSAOut *create_clone() const override
+  WinMMOut *create_clone() const override
   {
-    return new ALSAOut{module};
+    return new WinMMOut{module};
   }
 
 public:
@@ -52,22 +51,44 @@ public:
 };
 
 //==========================================================================
-// ALSAOut thread
-class ALSAOutThread: public MT::Thread
+// WinMMOut thread
+class WinMMOutThread: public MT::Thread
 {
 private:
-  ALSAOut& out;
+  WinMMOut& out;
 
   void run() override
   { out.run(); }
 
 public:
-  ALSAOutThread(ALSAOut& _out): out{_out} {}
+  WinMMOutThread(WinMMOut& _out): out{_out} {}
 };
 
 //--------------------------------------------------------------------------
+// Get devices
+vector<string> get_devices()
+{
+  auto devices = vector<string>{};
+  auto seen_count = map<string, int>{};
+  const auto num_out = midiOutGetNumDevs();
+  auto out_caps = MIDIOUTCAPS{};
+  for (auto i = 0u; i < num_out; ++i)
+  {
+    if (midiOutGetDevCaps(i, &out_caps, sizeof(out_caps)) == MMSYSERR_NOERROR)
+    {
+      auto name = string{out_caps.szPname};
+      auto seen = ++seen_count[name];
+      if (seen > 1)
+        name += " (" + Text::itos(seen) + ")";
+      devices.emplace_back(name);
+    }
+  }
+  return devices;
+}
+
+//--------------------------------------------------------------------------
 // Setup
-void ALSAOut::setup(const SetupContext& context)
+void WinMMOut::setup(const SetupContext& context)
 {
   SimpleElement::setup(context);
 
@@ -76,28 +97,52 @@ void ALSAOut::setup(const SetupContext& context)
 
   input.set_sample_rate(sample_rate);
 
-  log.summary << "Opening MIDI output on ALSA device '" << device << "'\n";
-  log.detail << "ALSA library version: " << SND_LIB_VERSION_STR << endl;
+  const auto devices = get_devices();
+  auto d = 0u;
+  for (; d < devices.size(); ++d)
+  {
+    if (device == devices[d])
+      break;
+  }
+  if (d >= devices.size())
+  {
+    log.error << "Unknown MIDI out device: '" << device << "'" << endl;
+    log.summary << "Available MIDI out devices:" << endl;
+    if (devices.empty())
+    {
+      log.summary << "  No MIDI out devices found." << endl;
+    }
+    else
+    {
+      for (const auto& d: devices)
+      {
+        log.summary << "  '" << d << "'" << endl;
+      }
+    }
+  }
 
-  auto status = snd_rawmidi_open(nullptr, &midi_out, device.get().c_str(),
-                                 SND_RAWMIDI_SYNC | SND_RAWMIDI_NONBLOCK);
+
+  log.summary << "Opening MIDI output on WinMM device '" << device << "'\n";
+
+  const auto status = midiOutOpen(&midi_out, d,
+                                  reinterpret_cast<DWORD_PTR>(nullptr),
+                                  reinterpret_cast<DWORD_PTR>(nullptr),
+                                  CALLBACK_NULL);
   if (status)
   {
-    log.error << "Can't open MIDI device: " << snd_strerror(status) << endl;
+    log.error << "Can't open MIDI device: " << get_winmm_error(status) << endl;
+    midi_out = nullptr;
     return;
   }
 
-  // Clear anything buffered
-  snd_rawmidi_drop(midi_out);
-
-  thread.reset(new ALSAOutThread(*this));
+  thread.reset(new WinMMOutThread(*this));
   running = true;
   thread->start();
 }
 
 //--------------------------------------------------------------------------
 // Run background
-void ALSAOut::run()
+void WinMMOut::run()
 {
   Log::Streams log;
 
@@ -119,13 +164,14 @@ void ALSAOut::run()
       vector<uint8_t> data;
       auto writer = ViGraph::MIDI::Writer{data};
       writer.write(event);
-      const auto write_start = Time::Duration::clock();
-      snd_rawmidi_write(midi_out, &data[0], data.size());
-      const auto write_end = Time::Duration::clock();
-      if (write_end - write_start > Time::Duration{1})
+      auto d = DWORD{};
+      for (auto i = 0u; i < data.size() && i < sizeof(DWORD); ++i)
+        d |= data[i] << (i * 8);
+      auto result = midiOutShortMsg(midi_out, d);
+      if (result != MMSYSERR_NOERROR)
       {
         Log::Error log;
-        log << "WRITE TIME: " << (write_end - write_start).iso() << endl;
+        log << "MIDI send error: " << get_winmm_error(result) << endl;
       }
     }
     else
@@ -137,7 +183,7 @@ void ALSAOut::run()
 
 //--------------------------------------------------------------------------
 // Process some data
-void ALSAOut::tick(const TickData& td)
+void WinMMOut::tick(const TickData& td)
 {
   {
     MT::Lock lock{zero_time_mutex};
@@ -156,15 +202,15 @@ void ALSAOut::tick(const TickData& td)
 
 //--------------------------------------------------------------------------
 // Shut down
-void ALSAOut::shutdown()
+void WinMMOut::shutdown()
 {
   Log::Detail log;
-  log << "Shutting down ALSA MIDI output\n";
+  log << "Shutting down WinMM MIDI output\n";
 
   running = false;
   if (thread) thread->join();
 
-  if (midi_out) snd_rawmidi_close(midi_out);
+  if (midi_out) midiOutClose(midi_out);
   midi_out = nullptr;
 }
 
@@ -172,18 +218,18 @@ void ALSAOut::shutdown()
 // Module definition
 Dataflow::DynamicModule module
 {
-  "alsa-out",
-  "ALSA MIDI output",
+  "winmm-out",
+  "WinMM MIDI output",
   "midi",
   {
-    { "device", &ALSAOut::device },
+    { "device", &WinMMOut::device },
   },
   {
-    { "input", &ALSAOut::input },
+    { "input", &WinMMOut::input },
   },
   {},
 };
 
 } // anon
 
-VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(ALSAOut, module)
+VIGRAPH_ENGINE_ELEMENT_MODULE_INIT(WinMMOut, module)

@@ -50,7 +50,8 @@ void Pattern::setup(const SetupContext& context)
 {
   DynamicElement::setup(context);
 
-  const auto ncolours = max(static_cast<unsigned>(colours.get()), 0u);
+  const auto ncolours = static_cast<unsigned>(max(colours.get(),
+                                              decltype(colours.get()){0}));
   while (colour_list.size() > ncolours)
   {
     const auto i = colour_list.size();

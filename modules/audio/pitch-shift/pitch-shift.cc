@@ -95,32 +95,33 @@ void PitchShift::tick(const TickData& td)
   soundtouch_setPitchSemiTones(sound_touch.get(), pitch);
   if (!f.empty())
     soundtouch_putSamples(sound_touch.get(), &f[0], f.size() / nchannels);
-  const auto max_samples = nchannels
-                           ?  min(soundtouch_numSamples(sound_touch.get())
-                                  / nchannels,
-                                  static_cast<unsigned>(nsamples))
-                           : 0;
+  const auto available_samples = soundtouch_numSamples(sound_touch.get())
+                                 / nchannels;
 #else
   sound_touch.setPitchSemiTones(pitch);
   if (!f.empty())
     sound_touch.putSamples(&f[0], f.size() / nchannels);
+  const auto available_samples = sound_touch.numSamples() / nchannels;
+#endif
   const auto max_samples = nchannels
-                           ? min(sound_touch.numSamples() / nchannels,
+                           ? min(available_samples,
                                  static_cast<unsigned>(nsamples))
                            : 0;
-#endif
 
   f.clear();
   if (max_samples)
   {
     f.resize(max_samples * nchannels);
+    if (available_samples > max_samples)
+    {
 #if defined(PLATFORM_WINDOWS)
-    const auto samples = soundtouch_receiveSamples(sound_touch.get(),
-                                                   &f[0], max_samples);
+      const auto samples = soundtouch_receiveSamples(sound_touch.get(),
+                                                     &f[0], max_samples);
 #else
-    const auto samples = sound_touch.receiveSamples(&f[0], max_samples);
+      const auto samples = sound_touch.receiveSamples(&f[0], max_samples);
 #endif
-    f.resize(samples * nchannels);
+      f.resize(samples * nchannels);
+    }
   }
 
   auto fpos = 0u;

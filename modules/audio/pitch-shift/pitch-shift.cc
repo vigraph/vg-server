@@ -109,7 +109,7 @@ void PitchShift::tick(const TickData& td)
                            : 0;
 
   f.clear();
-  if (max_samples && available_samples > max_samples)
+  if (max_samples)
   {
     f.resize(max_samples * nchannels);
 #if defined(PLATFORM_WINDOWS)

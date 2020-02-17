@@ -29,9 +29,9 @@ private:
 public:
   using SimpleElement::SimpleElement;
 
-  Input<Trigger> set{0.0};
-  Input<Trigger> clear{0.0};
-  Input<Trigger> toggle{0.0};
+  Input<Trigger> set{0};
+  Input<Trigger> clear{0};
+  Input<Trigger> toggle{0};
 
   Output<Number> output;
   Output<Trigger> enabled;

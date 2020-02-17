@@ -39,7 +39,7 @@ public:
   Input<Number> period{0.0};
 
   // Triggers
-  Input<Trigger> start{0.0};    // Trigger to start
+  Input<Trigger> start{0};    // Trigger to start
 
   // Outputs
   Output<Number> output;

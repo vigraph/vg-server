@@ -34,7 +34,7 @@ public:
   Input<Number> delta{1.0};
   Input<Trigger> up{0};
   Input<Trigger> down{0};
-  Input<Trigger> reset{0.0};
+  Input<Trigger> reset{0};
 
   // Outputs
   Output<Number> output;

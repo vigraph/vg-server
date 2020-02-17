@@ -35,7 +35,7 @@ public:
   Setting<Number> input_rate{1000.0};
 
   // Inputs
-  Input<Trigger> input{0.0};
+  Input<Trigger> input{0};
 
   // Outputs
   Output<Trigger> output;

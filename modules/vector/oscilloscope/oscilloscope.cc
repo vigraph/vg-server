@@ -56,6 +56,7 @@ template<> inline JSON::Value get_as_json(const Slope& slope)
     case Slope::falling:
       return "falling";
   }
+  return {};
 }
 
 }} // namespaces

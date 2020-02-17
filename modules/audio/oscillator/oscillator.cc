@@ -45,8 +45,8 @@ public:
   Input<Number> pulse_width{0.5};
 
   // Triggers
-  Input<Trigger> start{0.0};    // Trigger to start
-  Input<Trigger> stop{0.0};     // Trigger to stop
+  Input<Trigger> start{0};    // Trigger to start
+  Input<Trigger> stop{0};     // Trigger to stop
 
   // Output
   Output<AudioData> output;

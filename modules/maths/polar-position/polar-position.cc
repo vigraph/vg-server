@@ -6,9 +6,8 @@
 // Copyright (c) 2019 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "../maths-module.h"
 #define _USE_MATH_DEFINES
-#include <cmath>
+#include "../maths-module.h"
 
 namespace {
 

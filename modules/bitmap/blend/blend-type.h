@@ -57,6 +57,7 @@ template<> inline JSON::Value get_as_json(const BlendType& type)
     case BlendType::radial:
       return "radial";
   }
+  return {};
 }
 
 }} //namespaces

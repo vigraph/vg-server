@@ -42,7 +42,7 @@ public:
   using SimpleElement::SimpleElement;
 
   // Triggers
-  Input<Trigger> input{0.0};
+  Input<Trigger> input{0};
 
   // Outputs
   Output<Trigger> output;

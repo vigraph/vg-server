@@ -50,9 +50,9 @@ public:
   Input<Number> release{0.0};  // Time to release
 
   // Triggers
-  Input<Trigger> start{0.0};   // Trigger to start attack
-  Input<Trigger> stop{0.0};    // Trigger to start release
-  Input<Trigger> reset{0.0};   // Hard reset
+  Input<Trigger> start{0};   // Trigger to start attack
+  Input<Trigger> stop{0};    // Trigger to start release
+  Input<Trigger> reset{0};   // Hard reset
 
   // Outputs
   Output<Number> output;       // Value output
@@ -111,34 +111,28 @@ void Envelope::tick(const TickData& td)
         break;
 
       case State::attack:
-        if (delta >= attack)
-        {
-          state = State::decay;
-          state_changed_time = sample_time;
-          delta = 0;
-          release_start_value = output = 1.0;
-          // ! Fall through to decay
-        }
-        else
+        if (delta < attack)
         {
           release_start_value = output =
             attack_start_value + (1-attack_start_value)*delta/attack;
           break;
         }
+        state = State::decay;
+        state_changed_time = sample_time;
+        delta = 0;
+        release_start_value = output = 1.0;
+        // Fall through
 
       case State::decay:
-        if (delta >= decay)
-        {
-          state = State::sustain;
-          state_changed_time = sample_time;
-          // ! Fall through to sustain
-        }
-        else
+        if (decay < delta)
         {
           release_start_value = attack_start_value = output =
             1.0-(1.0-sustain)*delta/decay;
           break;
         }
+        state = State::sustain;
+        state_changed_time = sample_time;
+        // Fall through
 
       case State::sustain:
         attack_start_value = release_start_value = sustain;

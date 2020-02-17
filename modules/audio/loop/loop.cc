@@ -37,10 +37,10 @@ public:
 
   // Configuration
   Input<AudioData> input{0.0};
-  Input<Trigger> play_start{0.0};
-  Input<Trigger> play_stop{0.0};
-  Input<Trigger> record_start{0.0};
-  Input<Trigger> record_stop{0.0};
+  Input<Trigger> play_start{0};
+  Input<Trigger> play_stop{0};
+  Input<Trigger> record_start{0};
+  Input<Trigger> record_stop{0};
   Output<AudioData> output;
 };
 

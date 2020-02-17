@@ -67,6 +67,9 @@ DECLARE_UNARY(ACos, acos)
 DECLARE_UNARY(ATan, atan)
 DECLARE_UNARY(Log10, log10)
 DECLARE_UNARY(Log, log)
+#if defined(PLATFORM_WINDOWS)
+inline double exp10(double x) { return pow(10, x); }
+#endif
 DECLARE_UNARY(Exp10, exp10)
 DECLARE_UNARY(Exp, exp)
 DECLARE_UNARY(Sqrt, sqrt)

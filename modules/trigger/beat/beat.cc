@@ -41,8 +41,8 @@ public:
   Input<Number> offset{0.0};
 
   // Triggers
-  Input<Trigger> start{0.0};    // Trigger to start
-  Input<Trigger> stop{0.0};     // Trigger to stop
+  Input<Trigger> start{0};    // Trigger to start
+  Input<Trigger> stop{0};     // Trigger to stop
 
   // Outputs
   Output<Trigger> output;       // Trigger output

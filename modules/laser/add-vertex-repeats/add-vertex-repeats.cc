@@ -11,8 +11,8 @@
 
 namespace {
 
-const double default_repeats = 3;
-const double default_max_angle = 30;
+const auto default_repeats = 3;
+const auto default_max_angle = 30.0;
 
 //==========================================================================
 // Add Vertex Repeats

@@ -4,8 +4,9 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-dmx-ola-in
-TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry vg-dmx ext-ola
+NAME      = vg-module-dmx-ola-in
+TYPE      = shared
+DEPENDS   = vg-dataflow vg-geometry vg-dmx ext-ola
+PLATFORMS = linux
 
 include_rules

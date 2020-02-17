@@ -53,10 +53,10 @@ public:
 // Constructor
 PitchShift::PitchShift(const SimpleModule& module):
   SimpleElement{module}
-{
 #if defined(PLATFORM_WINDOWS)
-  soundtouch.reset(soundtouch_createInstance());
+  , sound_touch(soundtouch_createInstance(), soundtouch_destroyInstance)
 #endif
+{
 }
 
 //--------------------------------------------------------------------------

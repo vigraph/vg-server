@@ -124,7 +124,7 @@ void Envelope::tick(const TickData& td)
         // Fall through
 
       case State::decay:
-        if (decay < delta)
+        if (delta < decay)
         {
           release_start_value = attack_start_value = output =
             1.0-(1.0-sustain)*delta/decay;

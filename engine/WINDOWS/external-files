@@ -12,3 +12,4 @@
 ../../../ui/web/build/service-worker.js web
 ../../../ui/web/build/static/css/*.css web\static\css
 ../../../ui/web/build/static/js/*.js web\static\js
+../../../ui/web/build/static/media/* web\static\media

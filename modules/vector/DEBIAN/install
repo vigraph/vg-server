@@ -1,8 +1,6 @@
 clip/vg-module-vector-clip.so /usr/lib/vigraph/modules/
 fade/vg-module-vector-fade.so /usr/lib/vigraph/modules/
 figure/vg-module-vector-figure.so /usr/lib/vigraph/modules/
-graph/vg-module-vector-graph.so /usr/lib/vigraph/modules/
-oscilloscope/vg-module-vector-oscilloscope.so /usr/lib/vigraph/modules/
 pattern/vg-module-vector-pattern.so /usr/lib/vigraph/modules/
 pin/vg-module-vector-pin.so /usr/lib/vigraph/modules/
 rotate/vg-module-vector-rotate.so /usr/lib/vigraph/modules/

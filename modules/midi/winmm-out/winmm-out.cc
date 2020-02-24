@@ -119,6 +119,7 @@ void WinMMOut::setup(const SetupContext& context)
         log.summary << "  '" << d << "'" << endl;
       }
     }
+    return;
   }
 
 

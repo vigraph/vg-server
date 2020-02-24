@@ -127,13 +127,13 @@ void ALSAIn::run()
         this_thread::sleep_for(chrono::milliseconds{100});
         continue;
       }
+      MT::Lock lock{events_mutex};
       event_last_read = Time::Duration::clock();
 
       for(auto i=0; i<n; i++)
         reader.add(bytes[i]);
 
       auto ev = reader.get();
-      MT::Lock lock{events_mutex};
       while (ev.type != MIDI::Event::Type::none)
       {
         events.emplace(event_last_read, ev);
@@ -156,7 +156,15 @@ void ALSAIn::tick(const TickData& td)
     last_tick_end += tick_duration;
   else
     last_tick_end = event_last_read;
+  if (!sample_rate)
+  {
+    while (!events.empty())
+      events.pop();
+    auto o = output.get_buffer(td);
+    return;
+  }
   auto earliest = last_tick_end - tick_duration;
+  auto sample_time = Time::Duration{td.start};
   sample_iterate(td, nsamples, {}, {},
                  tie(output),
                  [&](MIDIEvents& o)
@@ -165,8 +173,10 @@ void ALSAIn::tick(const TickData& td)
     while (!events.empty() && events.front().time < earliest + sample_duration)
     {
       o.emplace_back(events.front());
+      o.back().time = sample_time;
       events.pop();
     }
+    sample_time += sample_duration;
     earliest += sample_duration;
   });
 }

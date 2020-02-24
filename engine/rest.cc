@@ -18,7 +18,6 @@ namespace
 {
   const int default_http_port{33380};
   const string server_ident{"ViGraph Engine Server REST interface"};
-  const string default_layout_file{"layout.json"};
 }
 
 //==========================================================================
@@ -391,7 +390,7 @@ bool MetaURLHandler::handle_request(const Web::HTTPMessage& request,
 class LayoutURLHandler: public Web::URLHandler
 {
   Dataflow::Engine& engine;
-  File::Path layout_path;
+  Layout& layout;
   bool handle_get(Web::HTTPMessage& response);
   bool handle_post(const Web::HTTPMessage& request,
                    Web::HTTPMessage& response);
@@ -400,8 +399,8 @@ class LayoutURLHandler: public Web::URLHandler
                       const SSL::ClientDetails& client);
 
 public:
-  LayoutURLHandler(Dataflow::Engine& _engine, const File::Path& _layout_path):
-    URLHandler("/layout*"), engine(_engine), layout_path(_layout_path)
+  LayoutURLHandler(Dataflow::Engine& _engine, Layout& _layout):
+    URLHandler("/layout*"), engine(_engine), layout(_layout)
   {}
 };
 
@@ -411,16 +410,8 @@ public:
 bool LayoutURLHandler::handle_get(Web::HTTPMessage& response)
 {
   Log::Streams log;
-  log.detail << "REST Layout: GET from " << layout_path << endl;
-
-  if (!layout_path.read_all(response.body))
-  {
-    Log::Error log;
-    log << "REST Layout can't read file " << layout_path
-        << ": " << response.body << endl;
-    response.code = 404;
-    response.reason = "Not found";
-  }
+  log.detail << "REST Layout: GET" << endl;
+  response.body = layout.get_layout();
   return true;
 }
 
@@ -428,30 +419,11 @@ bool LayoutURLHandler::handle_get(Web::HTTPMessage& response)
 // Handle a POST request
 // Returns whether request was valid
 bool LayoutURLHandler::handle_post(const Web::HTTPMessage& request,
-                                   Web::HTTPMessage& response)
+                                   Web::HTTPMessage&)
 {
   Log::Streams log;
-  log.detail << "REST Layout: POST to " << layout_path << endl;
-
-  // Saving enabled?
-  if (!engine.is_saving_enabled())
-  {
-    Log::Error log;
-    log << "REST Layout saving disabled\n";
-    response.code = 403;
-    response.reason = "Forbidden";
-    return true;
-  }
-
-  const auto& error = layout_path.write_all(request.body);
-  if (!error.empty())
-  {
-    Log::Error log;
-    log << "REST Layout can't write file " << layout_path
-        << ": " << error << endl;
-    response.code = 403;
-    response.reason = "Forbidden";
-  }
+  log.detail << "REST Layout: POST" << endl;
+  layout.set_layout(request.body);
   return true;
 }
 
@@ -495,7 +467,7 @@ bool LayoutURLHandler::handle_request(const Web::HTTPMessage& request,
 class CombinedURLHandler: public Web::URLHandler
 {
   Dataflow::Engine& engine;
-  File::Path layout_path;
+  Layout &layout;
   bool handle_get(Web::HTTPMessage& response);
   bool handle_post(const Web::HTTPMessage& request,
                    Web::HTTPMessage& response);
@@ -504,8 +476,8 @@ class CombinedURLHandler: public Web::URLHandler
                       const SSL::ClientDetails& client);
 
 public:
-  CombinedURLHandler(Dataflow::Engine& _engine, const File::Path& _layout_path):
-    URLHandler("/combined*"), engine(_engine), layout_path(_layout_path)
+  CombinedURLHandler(Dataflow::Engine& _engine, Layout& _layout):
+    URLHandler("/combined*"), engine(_engine), layout(_layout)
   {}
 };
 
@@ -525,21 +497,13 @@ bool CombinedURLHandler::handle_get(Web::HTTPMessage& response)
   }
 
   Log::Streams log;
-  log.detail << "REST Combined: GET from " << layout_path << endl;
+  log.detail << "REST Combined: GET" << endl;
 
   auto json = JSON::Value{JSON::Value::Type::OBJECT};
   auto& graph = json.put("graph", JSON::Value{JSON::Value::Type::OBJECT});
   JSON::get(engine, graph, Dataflow::Path(""), true, false); // recursive
 
-  string layout_text;
-  if (!layout_path.read_all(layout_text))
-  {
-    Log::Error log;
-    log << "REST Combined can't read file " << layout_path
-        << ": " << response.body << endl;
-    response.code = 404;
-    response.reason = "Not found";
-  }
+  string layout_text = layout.get_layout();
 
   // Parse JSON
   istringstream iss(layout_text);
@@ -568,10 +532,10 @@ bool CombinedURLHandler::handle_get(Web::HTTPMessage& response)
 // Handle a POST request
 // Returns whether request was valid
 bool CombinedURLHandler::handle_post(const Web::HTTPMessage& request,
-                                   Web::HTTPMessage& response)
+                                   Web::HTTPMessage&)
 {
   Log::Streams log;
-  log.detail << "REST Combined: POST to " << layout_path << endl;
+  log.detail << "REST Combined: POST" << endl;
 
   // Parse JSON
   istringstream iss(request.body);
@@ -601,19 +565,9 @@ bool CombinedURLHandler::handle_post(const Web::HTTPMessage& request,
     }
   }
 
-  const auto& layout = combined["layout"];
-  if (layout.type == JSON::Value::Type::OBJECT)
-  {
-    const auto& error = layout_path.write_all(layout.str());
-    if (!error.empty())
-    {
-      Log::Error log;
-      log << "REST Combined can't write file " << layout_path
-          << ": " << error << endl;
-      response.code = 403;
-      response.reason = "Forbidden";
-    }
-  }
+  const auto& lo = combined["layout"];
+  if (lo.type == JSON::Value::Type::OBJECT)
+    layout.set_layout(lo.str());
 
   return true;
 }
@@ -713,14 +667,10 @@ bool VersionURLHandler::handle_request(const Web::HTTPMessage& request,
 // Constructor
 RESTInterface::RESTInterface(const XML::Element& config,
                              Dataflow::Engine& engine,
-                             const File::Directory& base_dir)
+                             const File::Directory&)
 {
   Log::Streams log;
   XML::ConstXPathProcessor xpath(config);
-
-  // Config
-  const auto& layout_file = config.get_child("layout")
-                                  .get_attr("file", default_layout_file);
 
   // Start HTTP server
   int hport = xpath.get_value_int("http/@port", default_http_port);
@@ -729,10 +679,8 @@ RESTInterface::RESTInterface(const XML::Element& config,
 
   http_server->add(new GraphURLHandler(engine));
   http_server->add(new MetaURLHandler(engine));
-  http_server->add(new LayoutURLHandler(engine,
-                                        base_dir.resolve(layout_file)));
-  http_server->add(new CombinedURLHandler(engine,
-                                          base_dir.resolve(layout_file)));
+  http_server->add(new LayoutURLHandler(engine, layout));
+  http_server->add(new CombinedURLHandler(engine, layout));
   http_server->add(new VersionURLHandler(engine));
 
   // Allow cross-origin fetch from anywhere

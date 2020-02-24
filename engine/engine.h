@@ -26,11 +26,36 @@ using namespace ViGraph;
 typedef bool vg_init_fn_t(Log::Channel&, Dataflow::Engine&);
 
 //==========================================================================
+// Layout Holder
+class Layout
+{
+private:
+  mutable MT::Mutex mutex;
+  string layout;
+
+public:
+  string get_layout() const
+  {
+    MT::Lock lock{mutex};
+    return layout;
+  }
+
+  void set_layout(const string& new_layout)
+  {
+    MT::Lock lock{mutex};
+    layout = new_layout;
+  }
+};
+
+//==========================================================================
 // REST Interface
 class RESTInterface
 {
+private:
   unique_ptr<Web::SimpleHTTPServer> http_server;
   unique_ptr<Net::TCPServerThread> http_server_thread;
+
+  Layout layout;
 
 public:
   RESTInterface(const XML::Element& config, Dataflow::Engine& _engine,

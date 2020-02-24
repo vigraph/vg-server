@@ -87,11 +87,11 @@ int main(int argc, char **argv)
         case MIDI::Event::Type::none:
           break;
 
-        case MIDI::Event::Type::note_off:
+        case MIDI::Event::Type::note_on:
           cout << "ON\t" << (int)event.key << "\t@" << (int)event.value;
           break;
 
-        case MIDI::Event::Type::note_on:
+        case MIDI::Event::Type::note_off:
           cout << "OFF\t" << (int)event.key << "\t@" << (int)event.value;
           break;
 

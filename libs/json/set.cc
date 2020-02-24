@@ -90,7 +90,9 @@ Dataflow::GraphElement *create_element(
   }
   else
   {
-    throw(runtime_error{"Unknown element type: " + type});
+    Log::Error elog;
+    elog << "Unknown element type: " << type << " ignored\n";
+    return nullptr;
   }
 }
 

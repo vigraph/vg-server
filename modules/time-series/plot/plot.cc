@@ -12,7 +12,7 @@
 
 namespace {
 
-const auto default_points{100.0};
+const auto default_points{1000.0};
 
 //==========================================================================
 // Plot filter

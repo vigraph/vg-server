@@ -9,8 +9,6 @@ TYPE     = package
 DEPENDS  = vg-module-vector-clip         \
            vg-module-vector-fade         \
            vg-module-vector-figure       \
-           vg-module-vector-graph        \
-           vg-module-vector-oscilloscope \
            vg-module-vector-pattern      \
            vg-module-vector-pin          \
            vg-module-vector-rotate       \

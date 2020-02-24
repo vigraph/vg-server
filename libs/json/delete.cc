@@ -80,9 +80,11 @@ void DeleteVisitor::visit(Dataflow::Graph& graph)
   }
 }
 
-void DeleteVisitor::visit(Dataflow::Clone&)
+void DeleteVisitor::visit(Dataflow::Clone& clone)
 {
-  throw(runtime_error{"Cannot delete"});
+  const auto& graphs = clone.get_graphs();
+  for (auto& g: graphs)
+    g->accept(*this);
 }
 
 void DeleteVisitor::visit(Dataflow::Element&)

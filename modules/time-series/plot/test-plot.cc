@@ -23,7 +23,7 @@ const auto sample_rate = 1;
 
 TEST_F(PlotTest, TestSimpleSeriesAutoscaled)
 {
-  auto& plot = add("time-series/plot");
+  auto& plot = add("time-series/plot").set("points", 100.0);
 
   auto datacs = vector<DataCollection>(1);
   auto& datac = datacs[0];
@@ -60,7 +60,8 @@ TEST_F(PlotTest, TestSimpleSeriesAutoscaled)
 TEST_F(PlotTest, TestSimpleSeriesNotAutoScaled)
 {
   auto& plot = add("time-series/plot")
-              .set("auto", false);
+              .set("auto", false)
+              .set("points", 100.0);
 
   auto datacs = vector<DataCollection>(1);
   auto& datac = datacs[0];

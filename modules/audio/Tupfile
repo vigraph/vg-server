@@ -22,6 +22,7 @@ DEPENDS  = vg-module-audio-alsa-in \
            vg-module-audio-reverb \
            vg-module-audio-sdl-in \
            vg-module-audio-sdl-out \
+           vg-module-audio-switch \
            vg-module-audio-wav-in
 
 PACKAGE  = $(NAME)

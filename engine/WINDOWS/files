@@ -31,6 +31,7 @@ WINDOWS/licence.xml
 ../modules/audio/reverb/vg-module-audio-reverb.dll modules
 ../modules/audio/sdl-in/vg-module-audio-sdl-in.dll modules
 ../modules/audio/sdl-out/vg-module-audio-sdl-out.dll modules
+../modules/audio/switch/vg-module-audio-switch.dll modules
 ../modules/audio/wav-in/vg-module-audio-wav-in.dll modules
 
 ../modules/binary/clear/vg-module-binary-clear.dll modules

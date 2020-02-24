@@ -389,7 +389,6 @@ bool MetaURLHandler::handle_request(const Web::HTTPMessage& request,
 
 class LayoutURLHandler: public Web::URLHandler
 {
-  Dataflow::Engine& engine;
   Layout& layout;
   bool handle_get(Web::HTTPMessage& response);
   bool handle_post(const Web::HTTPMessage& request,
@@ -399,8 +398,8 @@ class LayoutURLHandler: public Web::URLHandler
                       const SSL::ClientDetails& client);
 
 public:
-  LayoutURLHandler(Dataflow::Engine& _engine, Layout& _layout):
-    URLHandler("/layout*"), engine(_engine), layout(_layout)
+  LayoutURLHandler(Layout& _layout):
+    URLHandler("/layout*"), layout(_layout)
   {}
 };
 
@@ -679,7 +678,7 @@ RESTInterface::RESTInterface(const XML::Element& config,
 
   http_server->add(new GraphURLHandler(engine));
   http_server->add(new MetaURLHandler(engine));
-  http_server->add(new LayoutURLHandler(engine, layout));
+  http_server->add(new LayoutURLHandler(layout));
   http_server->add(new CombinedURLHandler(engine, layout));
   http_server->add(new VersionURLHandler(engine));
 

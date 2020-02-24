@@ -73,6 +73,8 @@ void Capture::tick(const TickData& td)
   const auto& sto = start.get_buffer();
   const auto insamples = max(cl.size(), max(sta.size(), sto.size()))+1;
                                                             // In case all 0
+  auto sample{0};
+  auto start_sample{0};
   sample_iterate(td, insamples, {}, tie(clear, start, stop), {},
                  [&](Trigger _clear, Trigger _start, Trigger _stop)
   {
@@ -83,16 +85,26 @@ void Capture::tick(const TickData& td)
     }
 
     if (_start || !start.connected())
+    {
+      // If explicitly asked to start and finished previous, start a new
+      // capture at this sample
+      if (!running && _start)
+      {
+        buffer.clear();
+        start_sample = sample;
+      }
       running = true;
+    }
 
     if (_stop) running = false;  // Note allow stop even if start NC
+    sample++;
   });
 
   // Capture input into buffer, if running
   if (running && samples)
   {
     const auto& in = input.get_buffer();
-    buffer.insert(buffer.end(), in.begin(), in.end());
+    buffer.insert(buffer.end(), in.begin()+start_sample, in.end());
 
     if (buffer.size() >= (size_t)samples)
     {

@@ -16,7 +16,8 @@ DEPENDS  = vg-module-bitmap-rectangle \
            vg-module-bitmap-tile \
            vg-module-bitmap-twist \
            vg-module-bitmap-pin \
-           vg-module-bitmap-switch
+           vg-module-bitmap-switch \
+           vg-module-bitmap-sdl-out
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

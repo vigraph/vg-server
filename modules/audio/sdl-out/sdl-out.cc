@@ -15,9 +15,7 @@ using namespace ViGraph::Dataflow;
 
 const auto default_device{"default"};
 const auto default_channels = 2;
-const auto default_buffer_size = 4096;
-const auto default_max_delay = 4000;
-const auto default_max_recovery = 1;
+const auto default_buffer_size = 64;
 
 //==========================================================================
 // SDL sink
@@ -46,8 +44,6 @@ public:
   Setting<string> device{default_device};
   Setting<Number> nchannels{default_channels};
   Setting<Number> buffer_size{default_buffer_size};
-  Setting<Number> max_delay{default_max_delay};
-  Setting<Number> max_recovery{default_max_recovery};
 
   Input<AudioData> input;
 
@@ -233,8 +229,6 @@ Dataflow::SimpleModule module
     { "device", &SDLSink::device },
     { "channels", &SDLSink::nchannels },
     { "buffer-size", &SDLSink::buffer_size },
-    { "max-delay", &SDLSink::max_delay },
-    { "max-recovery", &SDLSink::max_recovery },
   },
   {
     { "input", &SDLSink::input }

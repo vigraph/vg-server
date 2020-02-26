@@ -44,6 +44,7 @@ public:
   Setting<Number> frame_rate{default_frame_rate};
   Setting<Integer> width{default_width};
   Setting<Integer> height{default_height};
+  Setting<bool> full_screen{false};
 
   Input<Bitmap::Group> input;
 
@@ -101,7 +102,7 @@ void SDLWindow::setup(const SetupContext& context)
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         width, height,
-        SDL_WINDOW_RESIZABLE);
+        full_screen?SDL_WINDOW_FULLSCREEN:SDL_WINDOW_RESIZABLE);
     if (!window) throw runtime_error(string("window: ")+SDL_GetError());
 
     renderer = SDL_CreateRenderer(window, -1, 0);
@@ -200,7 +201,8 @@ Dataflow::SimpleModule module
   {
     { "width",  &SDLWindow::width },
     { "height", &SDLWindow::height },
-    { "frame-rate",  &SDLWindow::frame_rate }
+    { "frame-rate",  &SDLWindow::frame_rate },
+    { "full-screen",  &SDLWindow::full_screen }
   },
   {
     { "input", &SDLWindow::input }

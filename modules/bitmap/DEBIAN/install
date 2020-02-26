@@ -9,3 +9,4 @@ switch/vg-module-bitmap-switch.so /usr/lib/vigraph/modules/
 blend/vg-module-bitmap-blend.so /usr/lib/vigraph/modules/
 tile/vg-module-bitmap-tile.so /usr/lib/vigraph/modules/
 twist/vg-module-bitmap-twist.so /usr/lib/vigraph/modules/
+sdl-out/vg-module-bitmap-sdl-out.so /usr/lib/vigraph/modules/

@@ -50,6 +50,7 @@ WINDOWS/licence.xml
 ../modules/bitmap/twist/vg-module-bitmap-twist.dll modules
 ../modules/bitmap/vector-fill/vg-module-bitmap-vector-fill.dll modules
 ../modules/bitmap/websocket/vg-module-bitmap-websocket.dll modules
+../modules/bitmap/sdl-out/vg-module-bitmap-sdl-out.dll modules
 
 ../modules/colour/blend/vg-module-colour-blend.dll modules
 ../modules/colour/hsl/vg-module-colour-hsl.dll modules

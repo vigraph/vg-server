@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph SDL bitmap out module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-module-bitmap-sdl-out
+TYPE      = shared
+DEPENDS   = vg-dataflow vg-bitmap ext-pkg-sdl2
+
+include_rules

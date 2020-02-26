@@ -100,8 +100,8 @@ struct RGBA: public RGB
   RGBA(const string& s);
 
   // Tests
-  bool is_opaque() { return a == 1.0; }
-  bool is_transparent() { return a == 0.0; }
+  bool is_opaque() const { return a == 1.0; }
+  bool is_transparent() const { return a == 0.0; }
 
   // Equality
   bool operator==(const RGBA& o) const
@@ -130,6 +130,68 @@ struct RGBA: public RGB
 
   // Get as a string
   string str() const;
+};
+
+//==========================================================================
+// RGB+alpha colour packed into 32-bit as RGBA 8888, R is LSB, A is MSB
+struct PackedRGBA
+{
+  using packed_t=uint32_t;
+  packed_t packed;
+
+  // Constructors
+  PackedRGBA(): packed(0) {}
+  PackedRGBA(packed_t p): packed(p) {}
+  PackedRGBA(const RGBA& c)
+  {
+    packed =  static_cast<packed_t>(c.r * 255.0)
+           | (static_cast<packed_t>(c.g * 255.0) << 8)
+           | (static_cast<packed_t>(c.b * 255.0) << 16)
+           | (static_cast<packed_t>(c.a * 255.0) << 24);
+  }
+
+  // Unpack to RGBA
+  RGBA unpack() const
+  {
+    return RGBA(static_cast<intens_t>( packed        & 0xff)/255.0,
+                static_cast<intens_t>((packed >>  8) & 0xff)/255.0,
+                static_cast<intens_t>((packed >> 16) & 0xff)/255.0,
+                static_cast<intens_t>((packed >> 24) & 0xff)/255.0);
+  }
+
+  // Equality
+  bool operator==(const PackedRGBA& o) const
+  { return packed==o.packed; }
+
+  bool operator!=(const PackedRGBA& o) const
+  { return packed!=o.packed; }
+
+  // Tests
+  bool is_opaque() const { return (packed & 0xFF000000ul) == 0xFF000000ul; }
+  bool is_transparent() const { return (packed & 0xFF000000ul) == 0; }
+
+  // Blend between this and another colour
+  PackedRGBA blend_with(const PackedRGBA& o) const
+  {
+    // Quick wins
+    if (is_transparent()) return o;
+    if (is_opaque()) return *this;
+
+    // Unpack, blend and repack
+    return PackedRGBA(unpack().blend_with(o.unpack()));
+  }
+
+  // Same, in place
+  void blend_over(PackedRGBA& o) const
+  {
+    // Quick wins
+    if (is_transparent()) { return; }
+    if (is_opaque()) { o=*this; return; }
+
+    // Slow train
+    o = PackedRGBA(unpack().blend_with(o.unpack()));
+  }
+
 };
 
 //==========================================================================

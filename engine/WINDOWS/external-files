@@ -3,6 +3,7 @@
 /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll
 /home/shared/tools/windows/openssl/libcrypto-3-x64.dll
 /home/shared/tools/windows/sdl/SDL2.dll
+/home/shared/tools/windows/sdl/SDL2_image.dll
 /home/shared/tools/windows/soundtouch/SoundTouchDLL_x64.dll
 
 ../../../ui/web/build/asset-manifest.json web

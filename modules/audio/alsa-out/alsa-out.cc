@@ -17,8 +17,6 @@ const auto default_device{"default"};
 const auto default_sample_rate{44100};
 const auto default_channels = 2;
 const auto default_start_threshold = 2000;
-const auto default_max_delay = 4000;
-const auto default_max_recovery = 1;
 
 //==========================================================================
 // ALSA out
@@ -46,8 +44,6 @@ public:
   Setting<Number> sample_rate{default_sample_rate};
   Setting<Number> nchannels{default_channels};
   Setting<Number> start_threshold{default_start_threshold};
-  Setting<Number> max_delay{default_max_delay};
-  Setting<Number> max_recovery{default_max_recovery};
 
   Input<AudioData> input;
 };
@@ -193,8 +189,6 @@ Dataflow::SimpleModule module
     { "sample-rate", &ALSAOut::sample_rate },
     { "channels", &ALSAOut::nchannels },
     { "start-threshold", &ALSAOut::start_threshold },
-    { "max-delay", &ALSAOut::max_delay },
-    { "max-recovery", &ALSAOut::max_recovery },
   },
   {
     { "input", &ALSAOut::input }

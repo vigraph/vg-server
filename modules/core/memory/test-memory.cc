@@ -61,6 +61,31 @@ TEST_F(MemoryTest, TestInitialValue)
   EXPECT_EQ(0, output[2]);
 }
 
+TEST_F(MemoryTest, TestInitialValueAndReset)
+{
+  auto& memory = add("core/memory").set("initial", 42.0);
+
+  auto input_data = vector<Number>(3);
+  input_data[0] = 1.0;
+  auto& is = add_source(input_data);
+  is.connect("output", memory, "input");
+
+  auto reset_data = vector<Trigger>{0,1,0};
+  auto& rs = add_source(reset_data);
+  rs.connect("output", memory, "reset");
+
+  auto output = vector<Number>{};
+  auto& sink = add_sink(output, sample_rate);
+  memory.connect("output", sink, "input");
+
+  run(3);
+
+  ASSERT_EQ(3, output.size());
+  EXPECT_EQ(42.0, output[0]);
+  EXPECT_EQ(1, output[1]);
+  EXPECT_EQ(42.0, output[2]);
+}
+
 TEST_F(MemoryTest, TestLooping)
 {
   auto& memory = add("core/memory");

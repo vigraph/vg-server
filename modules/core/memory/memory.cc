@@ -26,6 +26,18 @@ class Memory: public SimpleElement
   // Read the input before it is reset, for next time
   void reset() override
   {
+    // Check for reset first
+    // Note this overrides even if an input comes in later
+    const auto& rs = i_reset.get_buffer();
+    for(auto r: rs)
+    {
+      if (r)
+      {
+        last_value = initial;
+        return;
+      }
+    }
+
     const auto& in = input.get_buffer();
     if (in.size())
     {
@@ -34,6 +46,7 @@ class Memory: public SimpleElement
       for(auto v: in) last_value += v;
       last_value /= in.size();
     }
+
     Element::reset();
   }
 
@@ -46,7 +59,10 @@ class Memory: public SimpleElement
     SimpleElement::setup(context);
     auto tick_interval = context.get_engine().get_tick_interval().seconds();
     if (tick_interval)
+    {
       input.set_sample_rate(1.0/tick_interval);
+      i_reset.set_sample_rate(1.0/tick_interval);
+    }
     last_value = initial;
   }
 
@@ -64,6 +80,7 @@ public:
 
   // Input
   Input<Number> input{0.0};
+  Input<Trigger> i_reset{0};
 
   // Outputs
   Output<Number> output;
@@ -95,7 +112,8 @@ Dataflow::SimpleModule module
     { "initial", &Memory::initial }
   },
   {
-    { "input", &Memory::input }
+    { "input", &Memory::input },
+    { "reset", &Memory::i_reset }
   },
   {
     { "output", &Memory::output }

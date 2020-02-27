@@ -46,7 +46,7 @@ TEST_F(FillTest, TestDefaultFillIsWhite)
   ASSERT_EQ(1, outbg.items.size());
   auto rect = outbg.items[0].rect;
   for(const auto& p: rect.get_pixels())
-    EXPECT_EQ(Colour::white, p);
+    EXPECT_EQ(Colour::PackedRGBA(Colour::white), p);
 }
 
 TEST_F(FillTest, TestSpecifiedFill)
@@ -79,7 +79,7 @@ TEST_F(FillTest, TestSpecifiedFill)
   ASSERT_EQ(1, outbg.items.size());
   auto rect = outbg.items[0].rect;
   for(const auto& p: rect.get_pixels())
-    EXPECT_EQ(Colour::red, p);
+    EXPECT_EQ(Colour::PackedRGBA(Colour::red), p);
 }
 
 int main(int argc, char **argv)

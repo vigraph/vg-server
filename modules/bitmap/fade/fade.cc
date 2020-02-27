@@ -29,7 +29,7 @@ public:
   using SimpleElement::SimpleElement;
 
   // Configuration
-  Input<Number> alpha;
+  Input<Number> alpha{1.0};
 
   // Input
   Input<Bitmap::Group> input;

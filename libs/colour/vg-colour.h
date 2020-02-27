@@ -166,9 +166,15 @@ struct PackedRGBA
   bool operator!=(const PackedRGBA& o) const
   { return packed!=o.packed; }
 
+  // Get byte values of each channel
+  uint8_t r8() const { return static_cast<uint8_t>(packed & 0xff); }
+  uint8_t g8() const { return static_cast<uint8_t>((packed >> 8) & 0xff); }
+  uint8_t b8() const { return static_cast<uint8_t>((packed >> 16) & 0xff); }
+  uint8_t a8() const { return static_cast<uint8_t>((packed >> 24) & 0xff); }
+
   // Tests
-  bool is_opaque() const { return (packed & 0xFF000000ul) == 0xFF000000ul; }
-  bool is_transparent() const { return (packed & 0xFF000000ul) == 0; }
+  bool is_opaque() const { return packed >= 0xFF000000ul; }
+  bool is_transparent() const { return packed < 0x01000000ul; }
 
   // Blend between this and another colour
   PackedRGBA blend_with(const PackedRGBA& o) const
@@ -192,6 +198,21 @@ struct PackedRGBA
     o = PackedRGBA(unpack().blend_with(o.unpack()));
   }
 
+  // Fade with an alpha value - combines with existing alpha
+  void fade(intens_t alpha)
+  {
+    auto old_alpha = static_cast<intens_t>(a8())/255.0;
+    alpha *= old_alpha;
+    packed = (packed & 0xFFFFFF) | (static_cast<packed_t>(alpha * 255.0) << 24);
+  }
+
+  // Colourise - set colour, keeping existing alpha
+  void colourise(const RGB& c)
+  {
+    PackedRGBA pc(c);
+    packed &= 0xFF000000ul;                // strip colour, keeping alpha
+    packed |= (pc.packed & 0x00FFFFFFul);  // add back
+  }
 };
 
 //==========================================================================

@@ -25,7 +25,7 @@ class Rectangle
 {
 private:
   int width{0};                 // Safe default
-  vector<Colour::RGBA> pixels;  // In raster order
+  vector<Colour::PackedRGBA> pixels;  // In raster order
 
 public:
   // Constructors
@@ -39,9 +39,9 @@ public:
   Vector size() const { return Vector(width, get_height()); }
 
   // Pixel access
-  vector<Colour::RGBA>& get_pixels() { return pixels; }
+  vector<Colour::PackedRGBA>& get_pixels() { return pixels; }
   Colour::RGBA get(int x, int y) const
-  { return pixels[y*width+x]; }
+  { return pixels[y*width+x].unpack(); }
   Colour::RGBA operator()(int x, int y) const
   { return get(x,y); }
 
@@ -50,15 +50,15 @@ public:
 
   // Fill to a colour
   void fill(const Colour::RGBA& c)
-  { for(auto& p: pixels) p=c; }
+  { Colour::PackedRGBA pc(c); for(auto& p: pixels) p=pc; }
 
   // Set all pixels to a colour, maintaining existing alpha
   void colourise(const Colour::RGB& c)
-  { for(auto& p: pixels) { p.r=c.r; p.g=c.g; p.b=c.b; } }
+  { for(auto& p: pixels) p.colourise(c); }
 
   // Fade to an alpha (combines with existing)
   void fade(double alpha)
-  { for(auto& p: pixels) p.a *= alpha; }
+  { for(auto& p: pixels) p.fade(alpha); }
 
   // Fill a set of polygons
   // Closes polygons demarcated by blanked points, colour from final point

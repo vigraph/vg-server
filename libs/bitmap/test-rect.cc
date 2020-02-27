@@ -39,7 +39,7 @@ TEST(RectangleTest, TestUnsetPixelsAreTransparent)
 TEST(RectangleTest, TestSetPixel)
 {
   Bitmap::Rectangle b(3, 5);
-  Colour::RGBA c(Colour::red, 0.5);
+  Colour::RGBA c(Colour::red, 0.2);  // 0.2 represents exactly * 255
   b.set(2,3,c);
   EXPECT_EQ(c, b.get(2,3));
 }
@@ -47,7 +47,7 @@ TEST(RectangleTest, TestSetPixel)
 TEST(RectangleTest, TestFill)
 {
   Bitmap::Rectangle b(3, 2);
-  Colour::RGBA c(Colour::red, 0.5);
+  Colour::RGBA c(Colour::red, 0.2);
   b.fill(c);
   for(int i=0; i<b.get_height(); i++)
     for(int j=0; j<b.get_width(); j++)
@@ -57,10 +57,10 @@ TEST(RectangleTest, TestFill)
 TEST(RectangleTest, TestFade)
 {
   Bitmap::Rectangle b(3, 2);
-  Colour::RGBA c(Colour::red, 0.5);
+  Colour::RGBA c(Colour::red, 0.4);
   b.fill(c);
   b.fade(0.5);
-  Colour::RGBA c2(Colour::red, 0.25);
+  Colour::RGBA c2(Colour::red, 0.2);
   for(int i=0; i<b.get_height(); i++)
     for(int j=0; j<b.get_width(); j++)
       EXPECT_EQ(c2, b.get(j,i));
@@ -316,7 +316,7 @@ TEST(RectangleTest, TestBlitOffsetClippedAllRound)
 TEST(RectangleTest, TestApplyAlpha)
 {
   Bitmap::Rectangle src(3, 2);
-  Colour::RGBA cs(Colour::red, 0.5);
+  Colour::RGBA cs(Colour::red, 0.2);
   src.fill(cs);
 
   Bitmap::Rectangle dest(3, 2);
@@ -325,7 +325,7 @@ TEST(RectangleTest, TestApplyAlpha)
 
   src.apply(Vector(), dest);
 
-  Colour::RGBA combined(0.5, 0, 0.5, 1.0);
+  Colour::RGBA combined(0.2, 0, 0.8, 1.0);
 
   for(int i=0; i<dest.get_height(); i++)
     for(int j=0; j<dest.get_width(); j++)

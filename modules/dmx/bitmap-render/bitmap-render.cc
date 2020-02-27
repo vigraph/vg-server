@@ -80,9 +80,9 @@ void BitmapRender::tick(const TickData& td)
       }
 
       const auto& pixel = pixels[i];
-      channels.push_back(pixel.r * 255.0);
-      channels.push_back(pixel.g * 255.0);
-      channels.push_back(pixel.b * 255.0);
+      channels.push_back(pixel.r8());
+      channels.push_back(pixel.g8());
+      channels.push_back(pixel.b8());
 
       if (pad_every && 3*++pad_count >= (unsigned)pad_every)
       {

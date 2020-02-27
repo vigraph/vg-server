@@ -96,7 +96,7 @@ Graph *Graph::clone(const SetupContext& context) const
     g->add_output_pin(op.first, op.second.element, op.second.connection);
   }
 
-  // Element connections
+  // Element connections - internal only
   for (auto& els: pairs)
   {
     auto orig = els.first;
@@ -104,7 +104,7 @@ Graph *Graph::clone(const SetupContext& context) const
     auto& m = orig->get_module();
     if (m.has_outputs())
     {
-      m.for_each_output([&orig, &clone, &g]
+      m.for_each_output([&orig, &clone, &g, this]
                         (const string& id, const OutputMember& output)
       {
         auto& op = output.get(*orig);
@@ -112,6 +112,8 @@ Graph *Graph::clone(const SetupContext& context) const
         for (const auto& conn: conns)
         {
           const auto& eid = conn.element->get_id();
+          if (this->get_element(eid) != conn.element)
+            continue; // Connection to element outside graph
           auto e = g->get_element(eid);
           if (!e)
             continue;
@@ -232,11 +234,12 @@ void Graph::setup(const SetupContext& context)
 
 //------------------------------------------------------------------------
 // Get a particular element by ID
-GraphElement *Graph::get_element(const string& id)
+GraphElement *Graph::get_element(const string& id) const
 {
   MT::RWReadLock lock(mutex);
-  if (elements.find(id) != elements.end())
-    return elements[id].get();
+  const auto it = elements.find(id);
+  if (it != elements.end())
+    return it->second.get();
   else
     return nullptr;
 }

@@ -2255,7 +2255,7 @@ public:
 
   //------------------------------------------------------------------------
   // Get a particular element by ID
-  GraphElement *get_element(const string& id);
+  GraphElement *get_element(const string& id) const;
 
   //------------------------------------------------------------------------
   // Remove an element

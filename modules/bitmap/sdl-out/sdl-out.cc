@@ -105,6 +105,8 @@ void SDLWindow::setup(const SetupContext& context)
         full_screen?SDL_WINDOW_FULLSCREEN:SDL_WINDOW_RESIZABLE);
     if (!window) throw runtime_error(string("window: ")+SDL_GetError());
 
+    SDL_RaiseWindow(window);
+
     renderer = SDL_CreateRenderer(window, -1, 0);
     if (!renderer) throw runtime_error(string("renderer: ")+SDL_GetError());
 

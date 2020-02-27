@@ -87,13 +87,13 @@ TEST(GroupTest, TestCompositionWithSingleRectAlphaToSetBackground)
 {
   Bitmap::Group group;
   Bitmap::Rectangle rect(5, 3);
-  rect.fill(Colour::RGBA(Colour::red, 0.5));
+  rect.fill(Colour::RGBA(Colour::red, 0.2));
   group.add(rect);
   Bitmap::Rectangle comp(5, 3);
   comp.fill(Colour::blue);
   group.compose(comp);
 
-  Colour::RGBA combined(0.5, 0, 0.5, 1.0);
+  Colour::RGBA combined(0.2, 0, 0.8, 1.0);
   for(int i=0; i<comp.get_height(); i++)
     for(int j=0; j<comp.get_width(); j++)
       EXPECT_EQ(combined, comp.get(j,i));

@@ -103,9 +103,9 @@ void WebSocketDisplayServer::handle_websocket(
     writer.write_nbo_32(rect->get_height());
     for(const auto& p: rect->get_pixels())
     {
-      writer.write_byte(static_cast<uint8_t>(p.r*255));
-      writer.write_byte(static_cast<uint8_t>(p.g*255));
-      writer.write_byte(static_cast<uint8_t>(p.b*255));
+      writer.write_byte(p.r8());
+      writer.write_byte(p.g8());
+      writer.write_byte(p.b8());
     }
 
     if (!ws.write_binary(msg))

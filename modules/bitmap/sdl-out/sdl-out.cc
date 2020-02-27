@@ -111,7 +111,7 @@ void SDLWindow::setup(const SetupContext& context)
     if (!renderer) throw runtime_error(string("renderer: ")+SDL_GetError());
 
     texture = SDL_CreateTexture(renderer,
-                                SDL_PIXELFORMAT_RGB24,
+                                SDL_PIXELFORMAT_ABGR8888,
                                 SDL_TEXTUREACCESS_STREAMING,
                                 width, height);
     if (!texture) throw runtime_error(string("texture: ")+SDL_GetError());
@@ -147,16 +147,12 @@ void SDLWindow::tick(const TickData& td)
       return;
     }
 
-    if (pitch == width * 3)
+    if (pitch == width * 4)
     {
-      uint8_t *cpixels = reinterpret_cast<uint8_t *>(pixels);
+      uint32_t *wpixels = reinterpret_cast<uint32_t *>(pixels);
       const auto& ipixels = frame.get_pixels();
       for(const auto& p: ipixels)
-      {
-        *cpixels++ = static_cast<uint32_t>(p.r * 255.0);
-        *cpixels++ = static_cast<uint32_t>(p.g * 255.0);
-        *cpixels++ = static_cast<uint32_t>(p.b * 255.0);
-      }
+        *wpixels++ = p.packed;
     }
     else
     {

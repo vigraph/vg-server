@@ -65,7 +65,7 @@ TEST_F(BlendTest, TestHorizontal)
     for(auto j=0u; j<3; j++)
     {
       auto c = b0.rect(i, j);
-      EXPECT_NEAR(i/4.0, c.r, 1e-8) << i << "," << j;
+      EXPECT_NEAR(i/4.0, c.r, 0.01) << i << "," << j;
       EXPECT_EQ(0, c.g) << i << "," << j;
       EXPECT_EQ(0, c.b) << i << "," << j;
     }
@@ -115,7 +115,7 @@ TEST_F(BlendTest, TestVertical)
     for(auto j=0u; j<3; j++)
     {
       auto c = b0.rect(i, j);
-      EXPECT_NEAR(j/2.0, c.r, 1e-8) << i << "," << j;
+      EXPECT_NEAR(j/2.0, c.r, 0.01) << i << "," << j;
       EXPECT_EQ(0, c.g) << i << "," << j;
       EXPECT_EQ(0, c.b) << i << "," << j;
     }
@@ -177,9 +177,9 @@ TEST_F(BlendTest, TestRectangular)
     for(auto j=0u; j<3; j++)
     {
       auto c = b0.rect(i, j);
-      EXPECT_NEAR(i/4.0*(2.0-j)/2.0, c.r, 1e-8) << i << "," << j;
-      EXPECT_NEAR(j/2.0*i/4.0, c.g, 1e-8) << i << "," << j;
-      EXPECT_NEAR(j/2.0*(4.0-i)/4.0, c.b, 1e-8) << i << "," << j;
+      EXPECT_NEAR(i/4.0*(2.0-j)/2.0, c.r, 0.01) << i << "," << j;
+      EXPECT_NEAR(j/2.0*i/4.0, c.g, 0.01) << i << "," << j;
+      EXPECT_NEAR(j/2.0*(4.0-i)/4.0, c.b, 0.01) << i << "," << j;
     }
   }
 }

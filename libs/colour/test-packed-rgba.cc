@@ -14,20 +14,20 @@ namespace {
 using namespace ViGraph;
 using namespace std;
 
-TEST(ColourTest, TestRGBADefaultConstruction)
+TEST(PackedRGBATest, TestRGBADefaultConstruction)
 {
   Colour::PackedRGBA pc;
   EXPECT_EQ(0, pc.packed);
 }
 
-TEST(ColourTest, TestRGBAExplicitConstruction)
+TEST(PackedRGBATest, TestRGBAExplicitConstruction)
 {
   Colour::RGBA c(0,0.5,0.75,1.0);
   Colour::PackedRGBA pc(c);
   EXPECT_EQ(0xFFBF7F00ul, pc.packed);
 }
 
-TEST(ColourTest, TestUnpacking)
+TEST(PackedRGBATest, TestUnpacking)
 {
   Colour::PackedRGBA pc(0xFFC08000ul);
   Colour::RGBA c = pc.unpack();
@@ -37,7 +37,7 @@ TEST(ColourTest, TestUnpacking)
   EXPECT_EQ(1.0, c.a);
 }
 
-TEST(ColourTest, TestEquality)
+TEST(PackedRGBATest, TestEquality)
 {
   Colour::PackedRGBA c1(Colour::red);
   Colour::PackedRGBA c2(Colour::red);
@@ -46,7 +46,16 @@ TEST(ColourTest, TestEquality)
   EXPECT_NE(c1, c3);
 }
 
-TEST(ColourTest, TestOpaqueTransparent)
+TEST(PackedRGBATest, TestByteAccessors)
+{
+  Colour::PackedRGBA pc(0x01020304ul);
+  EXPECT_EQ(1, pc.a8());
+  EXPECT_EQ(2, pc.b8());
+  EXPECT_EQ(3, pc.g8());
+  EXPECT_EQ(4, pc.r8());
+}
+
+TEST(PackedRGBATest, TestOpaqueTransparent)
 {
   Colour::PackedRGBA pc1(0xFF000000ul);
   ASSERT_TRUE(pc1.is_opaque());
@@ -61,7 +70,7 @@ TEST(ColourTest, TestOpaqueTransparent)
   ASSERT_FALSE(pc3.is_transparent());
 }
 
-TEST(ColourTest, TestBlend)
+TEST(PackedRGBATest, TestBlend)
 {
   Colour::RGB a(0.2, 0.4, 0.6);
   Colour::RGB b(0.4, 0.6, 0.8);
@@ -83,7 +92,7 @@ TEST(ColourTest, TestBlend)
   EXPECT_NEAR(0.7, c.b, 0.01);
 }
 
-TEST(ColourTest, TestRGBABlendOver)
+TEST(PackedRGBATest, TestRGBABlendOver)
 {
   Colour::RGB a(0.2, 0.4, 0.6);
   Colour::RGB b(0.4, 0.6, 0.8);
@@ -108,6 +117,23 @@ TEST(ColourTest, TestRGBABlendOver)
   EXPECT_NEAR(0.3, c.r, 0.01);
   EXPECT_NEAR(0.5, c.g, 0.01);
   EXPECT_NEAR(0.7, c.b, 0.01);
+}
+
+TEST(PackedRGBATest, TestFade)
+{
+  Colour::PackedRGBA c(0x80010203ul);
+  c.fade(0.5);
+  Colour::PackedRGBA faded_c(0x40010203ul);
+  EXPECT_EQ(faded_c, c);
+}
+
+TEST(PackedRGBATest, TestColourise)
+{
+  Colour::PackedRGBA c(0x80010203ul);
+  Colour::RGB red(1.0, 0, 0);
+  c.colourise(red);
+  Colour::PackedRGBA new_c(0x800000FFul);
+  EXPECT_EQ(new_c, c);
 }
 
 } // anonymous namespace

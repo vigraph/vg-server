@@ -45,12 +45,12 @@ TEST_F(FadeTest, TestDefaultFadeHasNoEffect)
   ASSERT_EQ(1, outbg.items.size());
   auto rect = outbg.items[0].rect;
   for(const auto& p: rect.get_pixels())
-    EXPECT_EQ(Colour::red, p);
+    EXPECT_EQ(Colour::PackedRGBA(Colour::red), p);
 }
 
-TEST_F(FadeTest, TestFade50)
+TEST_F(FadeTest, TestFade20)
 {
-  auto& trans = add("bitmap/fade").set("alpha", 0.5);
+  auto& trans = add("bitmap/fade").set("alpha", 0.2);
 
   auto bg_data = vector<Bitmap::Group>(1);
   auto& bg = bg_data[0];
@@ -72,9 +72,9 @@ TEST_F(FadeTest, TestFade50)
   const auto& outbg = outbgs[0];
   ASSERT_EQ(1, outbg.items.size());
   auto rect = outbg.items[0].rect;
-  Colour::RGBA half_red(Colour::red, 0.5);
+  Colour::PackedRGBA fifth_red(Colour::RGBA(Colour::red, 0.2));
   for(const auto& p: rect.get_pixels())
-    EXPECT_EQ(half_red, p);
+    EXPECT_EQ(fifth_red, p);
 }
 
 int main(int argc, char **argv)

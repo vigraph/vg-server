@@ -37,6 +37,7 @@ namespace
 class GraphURLHandler: public Web::URLHandler
 {
   Dataflow::Engine& engine;
+  MainThreadRunner& runner;
   bool handle_get(const string& path, const Web::HTTPMessage& request,
                   Web::HTTPMessage& response);
   bool handle_put(const string& path, const Web::HTTPMessage& request,
@@ -50,8 +51,8 @@ class GraphURLHandler: public Web::URLHandler
                       const SSL::ClientDetails& client);
 
 public:
-  GraphURLHandler(Dataflow::Engine& _engine):
-    URLHandler("/graph*"), engine(_engine)
+  GraphURLHandler(Dataflow::Engine& _engine, MainThreadRunner& _runner):
+    URLHandler("/graph*"), engine(_engine), runner{_runner}
   {}
 };
 
@@ -114,7 +115,11 @@ bool GraphURLHandler::handle_put(const string& path,
 
   try
   {
-    JSON::set(engine, value, path);
+    auto f = runner.run_function([&]()
+    {
+      JSON::set(engine, value, path);
+    });
+    f.get();
   }
   catch (runtime_error& e)
   {
@@ -153,7 +158,11 @@ bool GraphURLHandler::handle_post(const string& path,
 
   try
   {
-    JSON::set(engine, value, path);
+    auto f = runner.run_function([&]()
+    {
+      JSON::set(engine, value, path);
+    });
+    f.get();
   }
   catch (runtime_error& e)
   {
@@ -178,7 +187,11 @@ bool GraphURLHandler::handle_delete(const string& path,
 
   try
   {
-    JSON::del(engine, path);
+    auto f = runner.run_function([&]()
+    {
+      JSON::del(engine, path);
+    });
+    f.get();
   }
   catch (runtime_error& e)
   {
@@ -666,6 +679,7 @@ bool VersionURLHandler::handle_request(const Web::HTTPMessage& request,
 // Constructor
 RESTInterface::RESTInterface(const XML::Element& config,
                              Dataflow::Engine& engine,
+                             MainThreadRunner& runner,
                              const File::Directory&)
 {
   Log::Streams log;
@@ -676,7 +690,7 @@ RESTInterface::RESTInterface(const XML::Element& config,
   log.summary << "REST: Starting HTTP server at port " << hport << endl;
   http_server.reset(new Web::SimpleHTTPServer(hport, server_ident));
 
-  http_server->add(new GraphURLHandler(engine));
+  http_server->add(new GraphURLHandler(engine, runner));
   http_server->add(new MetaURLHandler(engine));
   http_server->add(new LayoutURLHandler(layout));
   http_server->add(new CombinedURLHandler(engine, layout));

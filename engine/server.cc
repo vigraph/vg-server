@@ -107,7 +107,35 @@ int Server::tick()
       load_graph(graph_file);
   }
   engine.tick(now);
+  SDL_PumpEvents();
+
+  // Handle queued functions
+  MT::Lock lock{functions_mutex};
+  while (!functions.empty())
+  {
+    auto ff = move(functions.front());
+    functions.pop();
+    try
+    {
+      ff.func();
+      ff.promise.set_value(true);
+    }
+    catch (...)
+    {
+      ff.promise.set_exception(current_exception());
+    }
+  }
+
   return 0;
+}
+
+//--------------------------------------------------------------------------
+// Run a function on the main thread
+future<bool> Server::run_function(function<void()> func)
+{
+  MT::Lock lock{functions_mutex};
+  functions.emplace(func);
+  return functions.back().get_future();
 }
 
 //--------------------------------------------------------------------------
@@ -220,7 +248,7 @@ void Server::reconfigure()
   // (re-)create the REST interface
   rest.reset();
   const XML::Element& rest_e = config_xml.get_child("rest");
-  if (!!rest_e) rest.reset(new RESTInterface(rest_e, engine,
+  if (!!rest_e) rest.reset(new RESTInterface(rest_e, engine, *this,
                                              config_file.dirname()));
 
   // (re-)create the file server

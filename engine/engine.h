@@ -48,6 +48,20 @@ public:
 };
 
 //==========================================================================
+// Abstract main thread runner interface
+class MainThreadRunner
+{
+public:
+  //------------------------------------------------------------------------
+  // Run a function on the main thread
+  virtual future<bool> run_function(function<void()> func) = 0;
+
+  //------------------------------------------------------------------------
+  // Destructor
+  virtual ~MainThreadRunner() {}
+};
+
+//==========================================================================
 // REST Interface
 class RESTInterface
 {
@@ -59,7 +73,7 @@ private:
 
 public:
   RESTInterface(const XML::Element& config, Dataflow::Engine& _engine,
-                const File::Directory& base_dir);
+                MainThreadRunner& runner, const File::Directory& base_dir);
   ~RESTInterface();
 };
 
@@ -78,7 +92,7 @@ public:
 //==========================================================================
 // Global state
 // Singleton instance of server-wide state
-class Server: public Daemon::Application
+class Server: public Daemon::Application, public MainThreadRunner
 {
   XML::Element config_xml;
   File::Path config_file;
@@ -104,6 +118,17 @@ class Server: public Daemon::Application
 
   // Basic file server
   unique_ptr<FileServer> file_server;
+
+  // Function queue
+  MT::Mutex functions_mutex;
+  struct FutureFunction
+  {
+    function<void()> func;
+    promise<bool> promise;
+    FutureFunction(function<void()> _func): func{_func} {}
+    auto get_future() { return promise.get_future(); }
+  };
+  queue<FutureFunction> functions;
 
   // Internal
   bool load_module(const File::Path& path);
@@ -141,6 +166,10 @@ public:
   //------------------------------------------------------------------------
   // Main loop iteration function
   int tick() override;
+
+  //------------------------------------------------------------------------
+  // Run a function on the main thread
+  future<bool> run_function(function<void()> func) override;
 
   //------------------------------------------------------------------------
   // Global configuration - called only at startup

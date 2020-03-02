@@ -6,13 +6,7 @@
 
 NAME     = vg-engine
 TYPE     = exe
-DEPENDS  = ot-daemon ot-soap ot-g2d \
-           vg-dataflow vg-json vg-geometry vg-licence vg-compiler \
-           ot-lib \
-           ext-pkg-sdl2
-
-WINDOWS-LFLAGS  = -mwindows
-WINDOWS-DEPENDS = ext-ole32 ext-comctl32 ext-oleaut32 ext-uuid
+DEPENDS  = ot-daemon vg-service
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

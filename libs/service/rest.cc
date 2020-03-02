@@ -1,18 +1,16 @@
 //==========================================================================
-// ViGraph dataflow engine server: rest.cc
+// HTTP REST interface for service
 //
-// HTTP REST interface for engine server
-//
-// Copyright (c) 2018 Paul Clark.  All rights reserved
+// Copyright (c) 2018-2020 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "engine.h"
+#include "vg-service.h"
 #include "vg-licence.h"
 #include "vg-json.h"
 #include "ot-log.h"
 #include "ot-web.h"
 
-namespace ViGraph { namespace Engine {
+namespace ViGraph { namespace Service {
 
 namespace
 {

@@ -1,0 +1,13 @@
+#===========================================================================
+# Tupfile for ViGraph service library
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-service
+TYPE    = lib
+DEPENDS = ot-soap ot-g2d ot-lib \
+          vg-dataflow vg-json vg-geometry vg-licence vg-compiler \
+          ext-pkg-sdl2
+
+include_rules

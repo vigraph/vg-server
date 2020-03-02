@@ -1,18 +1,16 @@
 //==========================================================================
-// ViGraph dataflow engine server: file-server.cc
+// HTTP file server for engine service
 //
-// HTTP file server for engine server
-//
-// Copyright (c) 2019 Paul Clark.  All rights reserved
+// Copyright (c) 2019-2020 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "engine.h"
+#include "vg-service.h"
 #include "vg-licence.h"
 #include "ot-log.h"
 #include "ot-web.h"
 #include "ot-json.h"
 
-namespace ViGraph { namespace Engine {
+namespace ViGraph { namespace Service {
 
 namespace
 {

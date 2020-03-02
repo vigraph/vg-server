@@ -1,18 +1,16 @@
 //==========================================================================
-// ViGraph dataflow engine server: server.cc
+// Singleton server object for engine service
 //
-// Singleton server object for engine server
-//
-// Copyright (c) 2017 Paul Clark.  All rights reserved
+// Copyright (c) 2017-2020 Paul Clark.  All rights reserved
 //==========================================================================
 
-#include "engine.h"
+#include "vg-service.h"
 #include "vg-licence.h"
 #include "vg-compiler.h"
 #include "vg-json.h"
 #include <SDL.h>
 
-namespace ViGraph { namespace Engine {
+namespace ViGraph { namespace Service {
 
 const auto default_section = "core";
 

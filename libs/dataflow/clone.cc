@@ -48,6 +48,20 @@ void Clone::register_info(const Graph& graph, CloneInfo *info)
 }
 
 //--------------------------------------------------------------------------
+// Deregister a clone info
+void Clone::deregister_info(const Graph& graph, CloneInfo *info)
+{
+  for (auto& g: clones)
+  {
+    if (g.graph.get() == &graph)
+    {
+      g.infos.erase(info);
+      return;
+    }
+  }
+}
+
+//--------------------------------------------------------------------------
 // Connect an element
 bool Clone::connect(const string& out_name,
                     GraphElement& b, const string& in_name)

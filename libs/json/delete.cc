@@ -15,9 +15,12 @@ class DeleteVisitor: public Dataflow::WriteVisitor
 private:
   const string id;
   const Dataflow::Path::PartType type;
+  Dataflow::Clone *clone = nullptr;
+
 public:
-  DeleteVisitor(const string& _id, Dataflow::Path::PartType _type):
-    id{_id}, type{_type}
+  DeleteVisitor(const string& _id, Dataflow::Path::PartType _type,
+                Dataflow::Clone *_clone = nullptr):
+    id{_id}, type{_type}, clone{_clone}
   {}
   void visit(Dataflow::Engine& engine) override;
   void visit(Dataflow::Graph& graph) override;
@@ -69,6 +72,16 @@ void DeleteVisitor::visit(Dataflow::Graph& graph)
   switch (type)
   {
     case Dataflow::Path::PartType::element:
+      if (clone)
+      {
+        auto element = graph.get_element(id);
+        if (element)
+        {
+          auto info = dynamic_cast<Dataflow::CloneInfo *>(element);
+          if (info)
+            clone->deregister_info(graph, info);
+        }
+      }
       graph.remove(id);
       break;
     case Dataflow::Path::PartType::attribute:
@@ -82,9 +95,10 @@ void DeleteVisitor::visit(Dataflow::Graph& graph)
 
 void DeleteVisitor::visit(Dataflow::Clone& clone)
 {
+  auto v = DeleteVisitor{id, type, &clone};
   const auto& graphs = clone.get_graphs();
   for (auto& g: graphs)
-    g->accept(*this);
+    g->accept(v);
 }
 
 void DeleteVisitor::visit(Dataflow::Element&)

@@ -2380,6 +2380,10 @@ public:
   void register_info(const Graph& graph, CloneInfo *info);
 
   //------------------------------------------------------------------------
+  // Deregister a clone info
+  void deregister_info(const Graph& graph, CloneInfo *info);
+
+  //------------------------------------------------------------------------
   // Final setup for elements and calculate topology
   void setup(const SetupContext& context) override;
 

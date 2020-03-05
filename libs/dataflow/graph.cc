@@ -139,7 +139,17 @@ Graph *Graph::clone(const SetupContext& context) const
         const auto& emodule = conn.element->get_module();
         const auto& eoutput = emodule.get_output_id(*conn.element,
                                                     *conn.output);
-        conn.element->connect(eoutput, *g, ip.first);
+        // Find the matching reverse connection in order to use the element
+        // that sees us as - which should be the clone
+        const auto revconns = conn.output->get_connections();
+        for (auto &rconn: revconns)
+        {
+          if (rconn.input == &i)
+          {
+            conn.element->connect(eoutput, *rconn.element, ip.first);
+            break;
+          }
+        }
       }
     }
   }

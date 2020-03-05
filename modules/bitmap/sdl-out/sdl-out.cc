@@ -26,10 +26,12 @@ private:
   SDL_Window *window{0};
   SDL_Renderer *renderer{0};
   SDL_Texture *texture{0};
+  Bitmap::Rectangle frame;
 
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
+  void reset() override;
   void shutdown() override;
 
   // Clone
@@ -118,6 +120,7 @@ void SDLWindow::setup(const SetupContext& context)
 
     log.detail << "Created SDL bitmap out\n";
     input.set_sample_rate(frame_rate);
+    frame.resize(width, height);
   }
   catch (const runtime_error& e)
   {
@@ -126,18 +129,12 @@ void SDLWindow::setup(const SetupContext& context)
 }
 
 //--------------------------------------------------------------------------
-// Process some data
-void SDLWindow::tick(const TickData& td)
+// Reset after tick.  We actually do the render here because SDL is not
+// thread-safe, and this is called from the main thread
+void SDLWindow::reset()
 {
-  const auto sample_rate = input.get_sample_rate();
-  const auto nsamples = td.samples_in_tick(sample_rate);
-  sample_iterate(td, nsamples, {}, tie(input), {},
-                 [&](const Bitmap::Group& input)
+  if (texture)
   {
-    Bitmap::Rectangle frame(width, height);
-    frame.fill(Colour::black);
-    input.compose(frame);
-
     void *pixels;
     int pitch;
     if (SDL_LockTexture(texture, NULL, &pixels, &pitch))
@@ -161,10 +158,25 @@ void SDLWindow::tick(const TickData& td)
     }
 
     SDL_UnlockTexture(texture);
-
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
+  }
+
+  SimpleElement::reset();
+}
+
+//--------------------------------------------------------------------------
+// Process some data
+void SDLWindow::tick(const TickData& td)
+{
+  const auto sample_rate = input.get_sample_rate();
+  const auto nsamples = td.samples_in_tick(sample_rate);
+  sample_iterate(td, nsamples, {}, tie(input), {},
+                 [&](const Bitmap::Group& input)
+  {
+    frame.fill(Colour::black);
+    input.compose(frame);
   });
 }
 
@@ -172,6 +184,8 @@ void SDLWindow::tick(const TickData& td)
 // Shut down
 void SDLWindow::shutdown()
 {
+  Log::Detail log;
+  log << "Closing SDL window\n";
   if (texture) SDL_DestroyTexture(texture);
   texture = 0;
   if (renderer) SDL_DestroyRenderer(renderer);

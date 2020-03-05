@@ -38,6 +38,13 @@ public:
   int get_height() const { return width ? pixels.size() / width : 0; }
   Vector size() const { return Vector(width, get_height()); }
 
+  // Resize
+  void resize(int _width, int _height)
+  {
+    width = _width;
+    pixels.resize(_width * _height);
+  }
+
   // Pixel access
   vector<Colour::PackedRGBA>& get_pixels() { return pixels; }
   Colour::RGBA get(int x, int y) const

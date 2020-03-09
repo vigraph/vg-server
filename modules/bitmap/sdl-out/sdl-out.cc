@@ -47,6 +47,8 @@ public:
   Setting<Integer> width{default_width};
   Setting<Integer> height{default_height};
   Setting<bool> full_screen{false};
+  Setting<bool> accelerate{true};
+  Setting<bool> vsync{true};
 
   Input<Bitmap::Group> input;
 
@@ -109,7 +111,9 @@ void SDLWindow::setup(const SetupContext& context)
 
     SDL_RaiseWindow(window);
 
-    renderer = SDL_CreateRenderer(window, -1, 0);
+    renderer = SDL_CreateRenderer(window, -1,
+                                  (accelerate?SDL_RENDERER_ACCELERATED:0) |
+                                  (vsync?SDL_RENDERER_PRESENTVSYNC:0));
     if (!renderer) throw runtime_error(string("renderer: ")+SDL_GetError());
 
     texture = SDL_CreateTexture(renderer,
@@ -215,10 +219,12 @@ Dataflow::SimpleModule module
   "SDL bitmap window",
   "bitmap",
   {
-    { "width",  &SDLWindow::width },
-    { "height", &SDLWindow::height },
+    { "width",       &SDLWindow::width },
+    { "height",      &SDLWindow::height },
     { "frame-rate",  &SDLWindow::frame_rate },
-    { "full-screen",  &SDLWindow::full_screen }
+    { "full-screen", &SDLWindow::full_screen },
+    { "accelerate",  &SDLWindow::accelerate },
+    { "vsync",       &SDLWindow::vsync }
   },
   {
     { "input", &SDLWindow::input }

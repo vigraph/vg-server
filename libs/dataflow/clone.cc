@@ -165,10 +165,6 @@ void Clone::setup(const SetupContext& context)
   }
 
   update_clone_infos();
-
-  // Setup clones
-  for (const auto& graph: clones)
-    graph.graph->setup(context);
 }
 
 //--------------------------------------------------------------------------

@@ -82,10 +82,6 @@ Dataflow::GraphElement *create_element(
       if (info)
         clone->register_info(graph, info);
     }
-
-    auto visitor = SetVisitor{engine, json, SetVisitor::Phase::setup,
-                              id, &graph, clone};
-    element->accept(visitor);
     return element;
   }
   else
@@ -199,7 +195,14 @@ void SetVisitor::visit(Dataflow::Graph& graph)
             const auto& id = it.first;
             const auto& elementj = it.second;
 
-            create_element(engine, graph, clone, id, elementj);
+            auto el = create_element(engine, graph, clone, id, elementj);
+            if (el)
+            {
+              auto visitor = SetVisitor{engine, elementj,
+                                        SetVisitor::Phase::setup,
+                                        id, &graph, clone};
+              el->accept(visitor);
+            }
           }
         }
 

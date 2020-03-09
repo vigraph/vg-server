@@ -126,18 +126,18 @@ Graph *Graph::clone(const SetupContext& context) const
 
   // Connect inputs to graph
   auto& module = get_module();
+  auto& gmodule = g->get_module();
   for (const auto &ip: input_pins)
   {
     auto im = module.get_input(ip.first);
-    if (im)
+    auto gim = gmodule.get_input(ip.first);
+    if (im && gim)
     {
       auto& i = im->get(*this);
+      auto& gi = gim->get(*g);
       const auto conns = i.get_connections();
       for (auto& conn: conns)
       {
-        const auto& emodule = conn.element->get_module();
-        const auto& eoutput = emodule.get_output_id(*conn.element,
-                                                    *conn.output);
         // Find the matching reverse connection in order to use the element
         // that sees us as - which should be the clone
         const auto revconns = conn.output->get_connections();
@@ -145,7 +145,7 @@ Graph *Graph::clone(const SetupContext& context) const
         {
           if (rconn.input == &i)
           {
-            conn.element->connect(eoutput, *rconn.element, ip.first);
+            conn.output->connect(conn.element, {rconn.element, &gi});
             break;
           }
         }

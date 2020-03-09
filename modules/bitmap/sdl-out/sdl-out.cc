@@ -184,13 +184,16 @@ void SDLWindow::tick(const TickData& td)
 // Shut down
 void SDLWindow::shutdown()
 {
-  Log::Detail log;
-  log << "Closing SDL window\n";
   if (texture) SDL_DestroyTexture(texture);
   texture = 0;
   if (renderer) SDL_DestroyRenderer(renderer);
   renderer = 0;
-  if (window) SDL_DestroyWindow(window);
+  if (window)
+  {
+    Log::Detail log;
+    log << "Closing SDL window\n";
+    SDL_DestroyWindow(window);
+  }
   window = 0;
 }
 

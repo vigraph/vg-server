@@ -34,7 +34,7 @@ private:
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
-  void shutdown() override;
+  void shutdown();
 
   // Clone
   WinMMIn *create_clone() const override
@@ -50,6 +50,8 @@ public:
   Setting<string> device{default_device};
 
   Output<MIDIEvents> output;
+
+  ~WinMMIn() { shutdown(); }
 };
 
 //--------------------------------------------------------------------------

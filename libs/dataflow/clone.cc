@@ -184,11 +184,11 @@ void Clone::collect_elements(vector<Element *>& els)
 }
 
 //--------------------------------------------------------------------------
-// Shutdown all elements
-void Clone::shutdown()
+// Remove all elements
+void Clone::clear()
 {
   for (auto& graph: clones)
-    graph.graph->shutdown();
+    graph.graph->clear();
 }
 
 //--------------------------------------------------------------------------

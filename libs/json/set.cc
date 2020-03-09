@@ -184,7 +184,7 @@ void SetVisitor::visit(Dataflow::Graph& graph)
   {
     case Phase::setup:
       {
-        graph.shutdown();
+        graph.clear();
 
         // Contained elements
         auto& elementsj = json.get("elements");
@@ -284,7 +284,7 @@ void SetVisitor::visit(Dataflow::Clone& clone)
   {
     case Phase::setup:
       {
-        clone.shutdown();
+        clone.clear();
         // Settings
         const auto& module = Dataflow::clone_module;
         auto& settingsj = json.get("settings");

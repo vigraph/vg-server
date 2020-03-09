@@ -27,7 +27,6 @@ void Graph::remove(const string& id)
   auto it = elements.find(id);
   if (it == elements.end())
     throw(runtime_error{"Element not found: " + id});
-  it->second->shutdown();
   elements.erase(it);
 }
 
@@ -255,14 +254,10 @@ GraphElement *Graph::get_element(const string& id) const
 }
 
 //------------------------------------------------------------------------
-// Shutdown all elements
-void Graph::shutdown()
+// Remove all elements
+void Graph::clear()
 {
   MT::RWWriteLock lock(mutex);
-  for(const auto it: elements)
-    it.second->shutdown();
-
-  // Remove all elements before modules unloaded
   elements.clear();
 }
 

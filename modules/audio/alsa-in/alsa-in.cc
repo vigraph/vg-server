@@ -33,7 +33,7 @@ private:
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
-  void shutdown() override;
+  void shutdown();
 
   // Clone
   ALSAIn *create_clone() const override
@@ -52,6 +52,8 @@ public:
   Setting<Number> max_recovery{default_max_recovery};
 
   Output<AudioData> output;
+
+  ~ALSAIn() { shutdown(); }
 };
 
 //--------------------------------------------------------------------------

@@ -31,7 +31,7 @@ private:
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
-  void shutdown() override;
+  void shutdown();
 
   // Clone
   SDLIn *create_clone() const override
@@ -209,6 +209,7 @@ void SDLIn::shutdown()
 // Destructor
 SDLIn::~SDLIn()
 {
+  shutdown();
   if (sdl_inited)
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
   sdl_inited = false;

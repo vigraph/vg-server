@@ -41,7 +41,7 @@ private:
     return new Sensor{module};
   }
 
-  void shutdown() override;
+  void shutdown();
 
 public:
   using SimpleElement::SimpleElement;
@@ -52,6 +52,8 @@ public:
 
   // Outputs
   Output<Number> output;
+
+  ~Sensor() { shutdown(); }
 };
 
 //==========================================================================

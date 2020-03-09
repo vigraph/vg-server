@@ -40,7 +40,7 @@ private:
     return new MQTTOut{module};
   }
 
-  void shutdown() override;
+  void shutdown();
 
 public:
   using SimpleElement::SimpleElement;
@@ -53,6 +53,8 @@ public:
 
   // Inputs
   Input<Number> input;
+
+  ~MQTTOut() { shutdown(); }
 };
 
 //--------------------------------------------------------------------------

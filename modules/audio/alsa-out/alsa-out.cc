@@ -29,7 +29,7 @@ private:
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
-  void shutdown() override;
+  void shutdown();
 
   // Clone
   ALSAOut *create_clone() const override
@@ -46,6 +46,8 @@ public:
   Setting<Number> start_threshold{default_start_threshold};
 
   Input<AudioData> input;
+
+  ~ALSAOut() { shutdown(); }
 };
 
 //--------------------------------------------------------------------------

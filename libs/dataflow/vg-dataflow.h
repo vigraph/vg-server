@@ -1752,9 +1752,6 @@ public:
                                               Graph *graph,
                                               Clone *clone) = 0;
 
-  // Clean shutdown
-  virtual void shutdown() {}
-
   // Virtual destructor
   virtual ~GraphElement() {}
 };
@@ -2312,8 +2309,8 @@ public:
   }
 
   //------------------------------------------------------------------------
-  // Shutdown all elements
-  void shutdown() override;
+  // Remove all elements
+  void clear();
 };
 
 class CloneInfo;
@@ -2426,8 +2423,8 @@ public:
   }
 
   //------------------------------------------------------------------------
-  // Shutdown all elements
-  void shutdown() override;
+  // Remove all elements
+  void clear();
 };
 
 //==========================================================================

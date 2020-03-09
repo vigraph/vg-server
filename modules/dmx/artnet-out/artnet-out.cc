@@ -36,7 +36,7 @@ private:
     return new ArtNetOut{module};
   }
 
-  void shutdown() override;
+  void shutdown();
 
 public:
   using SimpleElement::SimpleElement;
@@ -49,6 +49,9 @@ public:
 
   // Input
   Input<DMX::State> input;
+
+  // Destructor
+  ~ArtNetOut() { shutdown(); }
 };
 
 //--------------------------------------------------------------------------

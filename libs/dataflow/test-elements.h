@@ -24,7 +24,6 @@ private:
   }
 
 public:
-  bool shutdown_called = false;
   Output<double> output;
   string *tick_order{nullptr};
 
@@ -39,12 +38,6 @@ public:
     for (auto i = 0u; i < nsamples; ++i)
       buffer.data.push_back(td.start + 1);
     if (tick_order) *tick_order += get_id();
-  }
-
-  // Shutdown
-  void shutdown() override
-  {
-    shutdown_called = true;
   }
 };
 
@@ -184,11 +177,6 @@ public:
     engine.set_tick_interval(Time::Duration{1.0});
     engine.setup();
     engine.update_elements();
-  }
-
-  void shutdown()
-  {
-    engine.get_graph().shutdown();
   }
 };
 

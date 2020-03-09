@@ -245,7 +245,7 @@ void Engine::shutdown()
 {
   // Shut down graph
   MT::RWWriteLock lock(graph_mutex);
-  graph->shutdown();
+  graph->clear();
   parallel_state.shutdown = true;
   for (auto& go: parallel_state.go)
     go.signal();

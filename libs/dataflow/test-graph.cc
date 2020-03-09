@@ -108,20 +108,6 @@ TEST_F(GraphTest, TestGraphTickOrderingWithoutRouting)
   EXPECT_EQ("S1S2", tick_order);
 }
 
-TEST_F(GraphTest, TestGraphShutdown)
-{
-  TestGraph graph(engine);
-  graph.add("test/test-source", "S");
-  graph.setup();
-
-  auto source = graph.get<TestSource>("S");
-  ASSERT_FALSE(!source);
-
-  ASSERT_FALSE(source->shutdown_called);
-  graph.shutdown();
-  ASSERT_TRUE(source->shutdown_called);
-}
-
 } // anonymous namespace
 
 int main(int argc, char **argv)

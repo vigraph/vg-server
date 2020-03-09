@@ -26,7 +26,7 @@ private:
   // Element virtuals
   void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
-  void shutdown() override;
+  void shutdown();
 
   // Clone
   OLAOut *create_clone() const override
@@ -42,6 +42,8 @@ public:
 
   // Input
   Input<DMX::State> input;
+
+  ~OLAOut() { shutdown(); }
 };
 
 //--------------------------------------------------------------------------

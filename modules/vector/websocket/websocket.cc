@@ -143,7 +143,7 @@ private:
     return new WebSocket{module};
   }
 
-  void shutdown() override;
+  void shutdown();
 
 public:
   using SimpleElement::SimpleElement;
@@ -154,6 +154,9 @@ public:
 
   // Input
   Input<Frame> input;
+
+  // Destructor
+  ~WebSocket() { shutdown(); }
 };
 
 //--------------------------------------------------------------------------

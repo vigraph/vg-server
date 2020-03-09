@@ -32,7 +32,7 @@ private:
   void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
   void reset() override;
-  void shutdown() override;
+  void shutdown();
 
   // Clone
   SDLWindow *create_clone() const override
@@ -198,6 +198,7 @@ void SDLWindow::shutdown()
 // Destructor
 SDLWindow::~SDLWindow()
 {
+  shutdown();
   if (sdl_inited)
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
   sdl_inited = false;

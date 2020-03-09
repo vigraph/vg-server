@@ -39,7 +39,7 @@ private:
     return new IDNOut{module};
   }
 
-  void shutdown() override;
+  void shutdown();
 
   // Internal
   void transmit(const Frame& frame, timestamp_t timestamp, double sample_rate);
@@ -58,6 +58,9 @@ public:
 
   // Input
   Input<Frame> input;
+
+  // Destructor
+  ~IDNOut() { shutdown(); }
 };
 
 //--------------------------------------------------------------------------

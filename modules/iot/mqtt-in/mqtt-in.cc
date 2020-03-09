@@ -42,7 +42,7 @@ private:
     return new MQTTIn{module};
   }
 
-  void shutdown() override;
+  void shutdown();
 
 public:
   using SimpleElement::SimpleElement;
@@ -54,6 +54,8 @@ public:
 
   // Outputs
   Output<Number> output;
+
+  ~MQTTIn() { shutdown(); }
 };
 
 //--------------------------------------------------------------------------

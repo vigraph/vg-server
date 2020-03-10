@@ -22,7 +22,7 @@ const auto sample_rate = 1;
 
 TEST_F(SliceTest, TestDefaultSliceHasNoEffect)
 {
-  auto& trans = add("vector/slice");
+  auto& slice = add("vector/slice");
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
@@ -31,11 +31,11 @@ TEST_F(SliceTest, TestDefaultSliceHasNoEffect)
     fr.points.push_back(Point(i, i*2, i*3, Colour::white));
 
   auto& frs = add_source(fr_data);
-  frs.connect("output", trans, "input");
+  frs.connect("output", slice, "input");
 
   auto frames = vector<Frame>{};
   auto& snk = add_sink(frames, sample_rate);
-  trans.connect("output", snk, "input");
+  slice.connect("output", snk, "input");
 
   run();
 
@@ -56,7 +56,7 @@ TEST_F(SliceTest, TestDefaultSliceHasNoEffect)
 
 TEST_F(SliceTest, TestChangingStartAndLengthRemovesPointsAtStart)
 {
-  auto& trans = add("vector/slice")
+  auto& slice = add("vector/slice")
     .set("start", 0.5)
     .set("length", 0.5);
 
@@ -67,11 +67,11 @@ TEST_F(SliceTest, TestChangingStartAndLengthRemovesPointsAtStart)
     fr.points.push_back(Point(i, i*2, i*3, Colour::white));
 
   auto& frs = add_source(fr_data);
-  frs.connect("output", trans, "input");
+  frs.connect("output", slice, "input");
 
   auto frames = vector<Frame>{};
   auto& snk = add_sink(frames, sample_rate);
-  trans.connect("output", snk, "input");
+  slice.connect("output", snk, "input");
 
   run();
 
@@ -93,7 +93,7 @@ TEST_F(SliceTest, TestChangingStartAndLengthRemovesPointsAtStart)
 
 TEST_F(SliceTest, TestChangingLengthRemovesPointsAtEnd)
 {
-  auto& trans = add("vector/slice").set("length", 0.5);
+  auto& slice = add("vector/slice").set("length", 0.5);
 
   auto fr_data = vector<Frame>(1);
   auto& fr = fr_data[0];
@@ -102,11 +102,11 @@ TEST_F(SliceTest, TestChangingLengthRemovesPointsAtEnd)
     fr.points.push_back(Point(i, i*2, i*3, Colour::white));
 
   auto& frs = add_source(fr_data);
-  frs.connect("output", trans, "input");
+  frs.connect("output", slice, "input");
 
   auto frames = vector<Frame>{};
   auto& snk = add_sink(frames, sample_rate);
-  trans.connect("output", snk, "input");
+  slice.connect("output", snk, "input");
 
   run();
 
@@ -127,7 +127,7 @@ TEST_F(SliceTest, TestChangingLengthRemovesPointsAtEnd)
 
 TEST_F(SliceTest, TestChangingStartOnlyRotates)
 {
-  auto& trans = add("vector/slice")
+  auto& slice = add("vector/slice")
     .set("start", 0.5);
 
   auto fr_data = vector<Frame>(1);
@@ -137,11 +137,11 @@ TEST_F(SliceTest, TestChangingStartOnlyRotates)
     fr.points.push_back(Point(i, i*2, i*3, Colour::white));
 
   auto& frs = add_source(fr_data);
-  frs.connect("output", trans, "input");
+  frs.connect("output", slice, "input");
 
   auto frames = vector<Frame>{};
   auto& snk = add_sink(frames, sample_rate);
-  trans.connect("output", snk, "input");
+  slice.connect("output", snk, "input");
 
   run();
 
@@ -163,7 +163,7 @@ TEST_F(SliceTest, TestChangingStartOnlyRotates)
 
 TEST_F(SliceTest, TestSillyValuesDontBreak)
 {
-  auto& trans = add("vector/slice")
+  auto& slice = add("vector/slice")
     .set("start", -1.0)
     .set("length", 2.0);
 
@@ -174,11 +174,11 @@ TEST_F(SliceTest, TestSillyValuesDontBreak)
     fr.points.push_back(Point(i, i*2, i*3, Colour::white));
 
   auto& frs = add_source(fr_data);
-  frs.connect("output", trans, "input");
+  frs.connect("output", slice, "input");
 
   auto frames = vector<Frame>{};
   auto& snk = add_sink(frames, sample_rate);
-  trans.connect("output", snk, "input");
+  slice.connect("output", snk, "input");
 
   run();
 

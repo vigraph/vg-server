@@ -6,13 +6,15 @@
 
 NAME     = vg-modules-vector
 TYPE     = package
-DEPENDS  = vg-module-vector-clip         \
+DEPENDS  = vg-module-vector-add          \
+           vg-module-vector-clip         \
            vg-module-vector-fade         \
            vg-module-vector-figure       \
            vg-module-vector-pattern      \
            vg-module-vector-pin          \
            vg-module-vector-rotate       \
            vg-module-vector-scale        \
+           vg-module-vector-slice        \
            vg-module-vector-stroke       \
            vg-module-vector-svg          \
            vg-module-vector-switch       \
@@ -20,7 +22,6 @@ DEPENDS  = vg-module-vector-clip         \
            vg-module-vector-websocket
 
 #           vg-module-vector-filter-depth-fade \
-#           vg-module-vector-filter-sum \
 #           vg-module-vector-filter-perspective \
 #           vg-module-vector-filter-collision-detect \
 #           vg-module-vector-service-collision-detector \

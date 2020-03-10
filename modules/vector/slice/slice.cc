@@ -3,7 +3,7 @@
 //
 // Slice filter
 //
-// Copyright (c) 2029 Paul Clark.  All rights reserved
+// Copyright (c) 2020 Paul Clark.  All rights reserved
 //==========================================================================
 
 #include "../vector-module.h"

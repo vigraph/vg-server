@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph vector add module
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-vector-add
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-lib
+
+include_rules

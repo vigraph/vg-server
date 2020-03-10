@@ -276,7 +276,7 @@ void CloneInfo::tick(const TickData& td)
 {
   number.get_buffer(td).data.push_back(clone_number);
   total.get_buffer(td).data.push_back(clone_total);
-  const auto f = clone_total ? (clone_number - 1.0) / clone_total : 0.0;
+  const auto f = clone_total ? clone_number / clone_total : 0.0;
   fraction.get_buffer(td).data.push_back(f);
 }
 

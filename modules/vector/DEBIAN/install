@@ -1,5 +1,6 @@
 add/vg-module-vector-add.so /usr/lib/vigraph/modules/
 clip/vg-module-vector-clip.so /usr/lib/vigraph/modules/
+collision-detector/vg-module-vector-collision-detector.so /usr/lib/vigraph/modules/
 fade/vg-module-vector-fade.so /usr/lib/vigraph/modules/
 figure/vg-module-vector-figure.so /usr/lib/vigraph/modules/
 pattern/vg-module-vector-pattern.so /usr/lib/vigraph/modules/

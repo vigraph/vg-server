@@ -50,18 +50,19 @@ void Rectangle::expand_to_include(const Point& p)
   else if (p.z > p1.z) p1.z = p.z;
 }
 
-// Become the bounding box of a vector of Points
-void Rectangle::become_bounding_box(std::vector<Point>& points)
+// Become the bounding box of a range of points
+void Rectangle::become_bounding_box(std::vector<Point>::const_iterator begin,
+                                    std::vector<Point>::const_iterator end)
 {
   bool first = true;
-  for(const auto& p: points)
+  for(auto it=begin; it!=end; it++)
   {
     if (first)
     {
-      p0 = p1 = p;  // Special, reset to first point
+      p0 = p1 = *it;  // Special, reset to first point
       first = false;
     }
-    else expand_to_include(p);
+    else expand_to_include(*it);
   }
 }
 

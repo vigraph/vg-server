@@ -14,6 +14,19 @@ namespace {
 using namespace ViGraph;
 using namespace ViGraph::Geometry;
 
+TEST(RectangleTest, TestRectangleIsNull)
+{
+  Point p0(0,0,0);
+  Point p1(1,2,-3);
+  Rectangle r1(p0, p0);
+  EXPECT_TRUE(r1.is_null());
+  EXPECT_TRUE(!r1);
+
+  Rectangle r2(p0, p1);
+  EXPECT_FALSE(r2.is_null());
+  EXPECT_FALSE(!r2);
+}
+
 TEST(RectangleTest, TestRectangleNormalises)
 {
   Point p0(0,0,0);

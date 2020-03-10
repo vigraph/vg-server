@@ -173,6 +173,10 @@ struct Rectangle
   Rectangle(const Point& _p0, const Point& _p1):
     p0(_p0), p1(_p1) { normalise(); }
 
+  // Is null
+  bool is_null() { return p0==p1; }
+  bool operator!() { return is_null(); }
+
   // Normalise so p0 < p1
   void normalise();
 
@@ -189,8 +193,13 @@ struct Rectangle
   // Expand to include a point
   void expand_to_include(const Point& p);
 
+  // Become the bounding box of a range of points
+  void become_bounding_box(std::vector<Point>::const_iterator begin,
+                           std::vector<Point>::const_iterator end);
+
   // Become the bounding box of a vector of Points
-  void become_bounding_box(std::vector<Point>& points);
+  void become_bounding_box(std::vector<Point>& points)
+  { become_bounding_box(points.begin(), points.end()); }
 };
 
 std::ostream& operator<<(std::ostream& s, const Rectangle& r);

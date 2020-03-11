@@ -111,6 +111,7 @@ WINDOWS/licence.xml
 ../modules/trigger/selector/vg-module-trigger-selector.dll modules
 ../modules/trigger/start/vg-module-trigger-start.dll modules
 
+../modules/vector/add/vg-module-vector-add.dll modules
 ../modules/vector/clip/vg-module-vector-clip.dll modules
 ../modules/vector/fade/vg-module-vector-fade.dll modules
 ../modules/vector/figure/vg-module-vector-figure.dll modules
@@ -118,6 +119,7 @@ WINDOWS/licence.xml
 ../modules/vector/pin/vg-module-vector-pin.dll modules
 ../modules/vector/rotate/vg-module-vector-rotate.dll modules
 ../modules/vector/scale/vg-module-vector-scale.dll modules
+../modules/vector/slice/vg-module-vector-slice.dll modules
 ../modules/vector/stroke/vg-module-vector-stroke.dll modules
 ../modules/vector/svg/vg-module-vector-svg.dll modules
 ../modules/vector/switch/vg-module-vector-switch.dll modules

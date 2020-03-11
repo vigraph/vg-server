@@ -1,10 +1,13 @@
+add/vg-module-vector-add.so /usr/lib/vigraph/modules/
 clip/vg-module-vector-clip.so /usr/lib/vigraph/modules/
+collision-detector/vg-module-vector-collision-detector.so /usr/lib/vigraph/modules/
 fade/vg-module-vector-fade.so /usr/lib/vigraph/modules/
 figure/vg-module-vector-figure.so /usr/lib/vigraph/modules/
 pattern/vg-module-vector-pattern.so /usr/lib/vigraph/modules/
 pin/vg-module-vector-pin.so /usr/lib/vigraph/modules/
 rotate/vg-module-vector-rotate.so /usr/lib/vigraph/modules/
 scale/vg-module-vector-scale.so /usr/lib/vigraph/modules/
+slice/vg-module-vector-slice.so /usr/lib/vigraph/modules/
 stroke/vg-module-vector-stroke.so /usr/lib/vigraph/modules/
 svg/vg-module-vector-svg.so /usr/lib/vigraph/modules/
 switch/vg-module-vector-switch.so /usr/lib/vigraph/modules/
@@ -12,9 +15,7 @@ translate/vg-module-vector-translate.so /usr/lib/vigraph/modules/
 websocket/vg-module-vector-websocket.so /usr/lib/vigraph/modules/
 
 #filters/collision-detect/vg-module-vector-filter-collision-detect.so /usr/lib/vigraph/modules/
-#filters/fade/vg-module-vector-filter-fade.so /usr/lib/vigraph/modules/
 #filters/depth-fade/vg-module-vector-filter-depth-fade.so /usr/lib/vigraph/modules/
 #filters/perspective/vg-module-vector-filter-perspective.so /usr/lib/vigraph/modules/
-#filters/sum/vg-module-vector-filter-sum.so /usr/lib/vigraph/modules/
 #services/collision-detector/vg-module-vector-service-collision-detector.so /usr/lib/vigraph/modules/
 #sinks/extract-rgb/vg-module-vector-sink-extract-rgb.so /usr/lib/vigraph/modules/

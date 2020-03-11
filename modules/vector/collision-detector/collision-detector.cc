@@ -18,6 +18,7 @@ class CollisionDetector: public SimpleElement
 private:
   Frame last_subject;
   Frame last_object;
+  bool last_bang{false};
 
   // Element virtuals
   void tick(const TickData& td) override;
@@ -73,13 +74,14 @@ public:
 
   // Output
   Output<Trigger> collided;
+  Output<Number> collision;
 };
 
 //--------------------------------------------------------------------------
 // Tick data
 void CollisionDetector::tick(const TickData& td)
 {
-  bool collision = false;
+  bool bang = false;
 
   // Accumulate bounding boxes of subjects
   vector<Rectangle> subject_bbs;
@@ -89,23 +91,28 @@ void CollisionDetector::tick(const TickData& td)
   vector<Rectangle> object_bbs;
   get_bounding_boxes(last_object, object_bbs);
 
-  // Now N*M match for overlap
+  // Now N*M match for overlap, but not exact fit - this allows feedback
+  // from a clone where the subject is one of the clones to be reentered
+  // as objects, and the subject won't continually collide with itself
   for(const auto& sbb: subject_bbs)
     for(const auto& obb: object_bbs)
-      if (sbb.overlaps(obb))
+      if (sbb.overlaps(obb) && sbb != obb)
       {
-        collision = true;
+        bang = true;
         goto done;  // Yeah I know, but no labelled break!
       }
   done:
 
-  const auto sample_rate = collided.get_sample_rate();
+  const auto sample_rate = max(collided.get_sample_rate(),
+                               collision.get_sample_rate());
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, {},
-                 tie(collided),
-                 [&](Trigger& collided)
+                 tie(collided, collision),
+                 [&](Trigger& collided, Number& collision)
   {
-    collided = collision?1:0;
+    collided = (bang && !last_bang)?1:0;
+    collision = bang?1.0:0.0;
+    last_bang = bang;
   });
 
 }
@@ -153,7 +160,8 @@ Dataflow::SimpleModule module
     { "object",  &CollisionDetector::object  }
   },
   {
-    { "collided", &CollisionDetector::collided }
+    { "collided",  &CollisionDetector::collided },
+    { "collision", &CollisionDetector::collision }
   }
 };
 

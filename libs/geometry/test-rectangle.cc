@@ -27,6 +27,21 @@ TEST(RectangleTest, TestRectangleIsNull)
   EXPECT_FALSE(!r2);
 }
 
+TEST(RectangleTest, TestRectangleEquality)
+{
+  Point p0(0,0,0);
+  Point p1(1,2,3);
+  Rectangle r1(p0, p1);
+  Rectangle r2(p0, p1);
+  EXPECT_EQ(r1, r2);
+  EXPECT_FALSE(r1 != r2);
+
+  Point p2(4,5,6);
+  Rectangle r3(p0, p2);
+  EXPECT_NE(r1, r3);
+  EXPECT_FALSE(r1 == r3);
+}
+
 TEST(RectangleTest, TestRectangleNormalises)
 {
   Point p0(0,0,0);

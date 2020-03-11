@@ -177,6 +177,12 @@ struct Rectangle
   bool is_null() { return p0==p1; }
   bool operator!() { return is_null(); }
 
+  // Comparison
+  bool operator==(const Rectangle& o) const
+  { return p0==o.p0 && p1==o.p1; }
+  bool operator!=(const Rectangle& o) const
+  { return p0!=o.p0 || p1!=o.p1; }
+
   // Normalise so p0 < p1
   void normalise();
 

@@ -9,6 +9,9 @@ TYPE     = exe
 DEPENDS  = vg-service ot-daemon \
            ext-pkg-Qt5Gui ext-pkg-Qt5Widgets ext-pkg-Qt5WebKitWidgets
 
+WINDOWS-LFLAGS  = -mwindows
+WINDOWS-DEPENDS = ext-ole32 ext-comctl32 ext-oleaut32 ext-uuid
+
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0
 REVISION = 1~dev1

@@ -1,0 +1,13 @@
+Source: vg-desktop
+Section: Audio
+Priority: optional
+Maintainer:  ViGraph Support <support@vigraph.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: http://www.vigraph.com/
+
+Package: vg-desktop
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: ViGraph dataflow engine
+ Realtime modular dataflow engine for audio and graphics.

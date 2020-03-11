@@ -1,4 +1,4 @@
-vg-engine.exe
+vg-desktop.exe
 WINDOWS/engine.cfg.xml
 WINDOWS/licence.xml
 ../modules/core/average/vg-module-core-average.dll modules

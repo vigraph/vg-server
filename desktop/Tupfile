@@ -1,0 +1,20 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow engine desktop application
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-desktop
+TYPE     = exe
+DEPENDS  = vg-service ot-daemon \
+           ext-pkg-Qt5Gui ext-pkg-Qt5Widgets ext-pkg-Qt5WebKitWidgets
+
+PACKAGE  = $(NAME)
+VERSION  = 2.0.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

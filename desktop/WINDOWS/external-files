@@ -1,10 +1,53 @@
 /usr/lib/gcc/x86_64-w64-mingw32/8.3-posix/libgcc_s_seh-1.dll
-/usr/lib/gcc/x86_64-w64-mingw32/8.3-posix/libstdc++-6.dll
 /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll
 /home/shared/tools/windows/openssl/libcrypto-3-x64.dll
 /home/shared/tools/windows/sdl/SDL2.dll
 /home/shared/tools/windows/sdl/SDL2_image.dll
 /home/shared/tools/windows/soundtouch/SoundTouchDLL_x64.dll
+/home/shared/tools/windows/qt/mingw64/bin/libbrotlicommon.dll
+/home/shared/tools/windows/qt/mingw64/bin/libbrotlidec.dll
+/home/shared/tools/windows/qt/mingw64/bin/libbz2-1.dll
+/home/shared/tools/windows/qt/mingw64/bin/libdouble-conversion.dll
+/home/shared/tools/windows/qt/mingw64/bin/libfreetype-6.dll
+/home/shared/tools/windows/qt/mingw64/bin/libglib-2.0-0.dll
+/home/shared/tools/windows/qt/mingw64/bin/libgraphite2.dll
+/home/shared/tools/windows/qt/mingw64/bin/libharfbuzz-0.dll
+/home/shared/tools/windows/qt/mingw64/bin/libiconv-2.dll
+/home/shared/tools/windows/qt/mingw64/bin/libicudt65.dll
+/home/shared/tools/windows/qt/mingw64/bin/libicuin65.dll
+/home/shared/tools/windows/qt/mingw64/bin/libicuuc65.dll
+/home/shared/tools/windows/qt/mingw64/bin/libintl-8.dll
+/home/shared/tools/windows/qt/mingw64/bin/libjpeg-8.dll
+/home/shared/tools/windows/qt/mingw64/bin/liblzma-5.dll
+/home/shared/tools/windows/qt/mingw64/bin/libpcre-1.dll
+/home/shared/tools/windows/qt/mingw64/bin/libpcre2-16-0.dll
+/home/shared/tools/windows/qt/mingw64/bin/libpng16-16.dll
+/home/shared/tools/windows/qt/mingw64/bin/libsqlite3-0.dll
+/home/shared/tools/windows/qt/mingw64/bin/libstdc++-6.dll
+/home/shared/tools/windows/qt/mingw64/bin/libwebp-7.dll
+/home/shared/tools/windows/qt/mingw64/bin/libwoff2common.dll
+/home/shared/tools/windows/qt/mingw64/bin/libwoff2dec.dll
+/home/shared/tools/windows/qt/mingw64/bin/libxml2-2.dll
+/home/shared/tools/windows/qt/mingw64/bin/libxslt-1.dll
+/home/shared/tools/windows/qt/mingw64/bin/libzstd.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5Core.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5Gui.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5Multimedia.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5MultimediaWidgets.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5Network.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5OpenGL.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5Positioning.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5PrintSupport.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5Qml.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5QmlModels.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5Quick.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5Sensors.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5WebChannel.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5WebKit.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5WebKitWidgets.dll
+/home/shared/tools/windows/qt/mingw64/bin/Qt5Widgets.dll
+/home/shared/tools/windows/qt/mingw64/bin/zlib1.dll
+/home/shared/tools/windows/qt/mingw64/share/qt5/plugins/platforms/qwindows.dll platforms
 
 ../../../ui/web/build/asset-manifest.json web
 ../../../ui/web/build/favicon.ico web

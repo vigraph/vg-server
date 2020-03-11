@@ -572,6 +572,7 @@ class Input: public Setting<T>, public virtual ElementInput
 private:
   friend class Output<T>;
 
+  T last_value;
   double sample_rate = 0.0;
   struct Data
   {
@@ -622,6 +623,11 @@ public:
   void set_from(const ElementSetting& setting) override
   {
     Setting<T>::set_from(setting);
+  }
+
+  const T& get_last_value() const
+  {
+    return last_value;
   }
 
   double get_sample_rate() const override
@@ -678,7 +684,7 @@ public:
 
       // Store last value
       if (!it->second.data.empty())
-        this->set(it->second.data.back());
+        last_value = it->second.data.back();
     }
     combined = false;
 
@@ -1763,7 +1769,7 @@ inline const T& safe_input_buffer_get(const Input<T>& input,
                                       const vector<T>& buffer,
                                       unsigned pos)
 {
-  return buffer.empty() ? input.get()
+  return buffer.empty() ? input.get_last_value()
                         : buffer.size() > pos
                           ? buffer[pos]
                           : buffer.back();

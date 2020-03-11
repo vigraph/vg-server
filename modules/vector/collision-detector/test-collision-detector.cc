@@ -50,11 +50,21 @@ TEST_F(CollisionDetectorTest, TestNoCollision)
   auto& snk = add_sink(collided, sample_rate);
   cd.connect("collided", snk, "input");
 
-  run(2);  // test is 1 tick behind
+  auto collision = vector<Number>{};
+  auto& snk2 = add_sink(collision, sample_rate);
+  cd.connect("collision", snk2, "input");
 
-  ASSERT_EQ(2, collided.size());
+  run(3);  // test is 1 tick behind
+
+  ASSERT_EQ(3, collided.size());
   ASSERT_FALSE(collided[0]);
   ASSERT_FALSE(collided[1]);
+  ASSERT_FALSE(collided[2]);
+
+  ASSERT_EQ(3, collision.size());
+  ASSERT_FALSE(collision[0]);
+  ASSERT_FALSE(collision[1]);
+  ASSERT_FALSE(collision[2]);
 }
 
 TEST_F(CollisionDetectorTest, TestCollision)
@@ -87,11 +97,60 @@ TEST_F(CollisionDetectorTest, TestCollision)
   auto& snk = add_sink(collided, sample_rate);
   cd.connect("collided", snk, "input");
 
-  run(2);  // test is 1 tick behind
+  auto collision = vector<Number>{};
+  auto& snk2 = add_sink(collision, sample_rate);
+  cd.connect("collision", snk2, "input");
 
-  ASSERT_EQ(2, collided.size());
+  run(3);  // test is 1 tick behind
+
+  ASSERT_EQ(3, collided.size());
   ASSERT_FALSE(collided[0]);
   ASSERT_TRUE(collided[1]);
+  ASSERT_FALSE(collided[2]);  // only triggered once
+
+  ASSERT_EQ(3, collision.size());
+  ASSERT_FALSE(collision[0]);
+  ASSERT_TRUE(collision[1]);
+  ASSERT_TRUE(collision[2]);  // still there
+}
+
+TEST_F(CollisionDetectorTest, TestNoCollisionWithSelf)
+{
+  auto& cd = add("vector/collision-detector");
+
+  auto subj_data = vector<Frame>(1);
+  auto& subj = subj_data[0];
+  subj.points.push_back(Point(0, 0));  // Closed square
+  subj.points.push_back(Point(1, 0, Colour::white));
+  subj.points.push_back(Point(1, 1, Colour::white));
+  subj.points.push_back(Point(0, 1, Colour::white));
+  subj.points.push_back(Point(0, 0, Colour::white));
+
+  auto& subjs = add_source(subj_data);
+  subjs.connect("output", cd, "subject");
+
+  auto& objs = add_source(subj_data);  // note same again
+  objs.connect("output", cd, "object");
+
+  auto collided = vector<Trigger>{};
+  auto& snk = add_sink(collided, sample_rate);
+  cd.connect("collided", snk, "input");
+
+  auto collision = vector<Number>{};
+  auto& snk2 = add_sink(collision, sample_rate);
+  cd.connect("collision", snk2, "input");
+
+  run(3);  // test is 1 tick behind
+
+  ASSERT_EQ(3, collided.size());
+  ASSERT_FALSE(collided[0]);
+  ASSERT_FALSE(collided[1]);
+  ASSERT_FALSE(collided[2]);
+
+  ASSERT_EQ(3, collision.size());
+  ASSERT_FALSE(collision[0]);
+  ASSERT_FALSE(collision[1]);
+  ASSERT_FALSE(collision[2]);
 }
 
 int main(int argc, char **argv)

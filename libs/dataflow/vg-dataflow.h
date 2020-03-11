@@ -1769,10 +1769,20 @@ inline const T& safe_input_buffer_get(const Input<T>& input,
                                       const vector<T>& buffer,
                                       unsigned pos)
 {
-  return buffer.empty() ? input.get_last_value()
-                        : buffer.size() > pos
-                          ? buffer[pos]
-                          : buffer.back();
+  if (buffer.empty())
+  {
+    if (input.connected())
+      return input.get_last_value();
+    else
+      return input.get();
+  }
+  else
+  {
+    if (buffer.size() > pos)
+      return buffer[pos];
+    else
+      return buffer.back();
+  }
 }
 
 //==========================================================================

@@ -35,6 +35,21 @@ const auto default_log_file = "/var/log/vigraph/engine.log";
 const auto pid_file         = "/var/run/vg-engine.pid";
 }
 
+class WebPage: public QWebPage
+{
+public:
+  using QWebPage::QWebPage;
+
+  void javaScriptConsoleMessage(const QString& message, int line_number,
+                                const QString& source_id)
+  {
+    Log::Detail detail;
+    detail << "JS (" << source_id.toUtf8().constData()
+           << ":" << line_number
+           << "): " << message.toUtf8().constData() << endl;
+  }
+};
+
 int main(int argc, char **argv)
 {
   QApplication app{argc, argv};
@@ -59,7 +74,9 @@ int main(int argc, char **argv)
 #endif
     shell.start(argc, argv);
   }};
+  WebPage webpage;
   QWebView webview;
+  webview.setPage(&webpage);
   webview.setUrl(QUrl{application_url});
   webview.show();
   const int result = app.exec();

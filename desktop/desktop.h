@@ -96,14 +96,10 @@ public:
   // Clean up
   void cleanup() override
   {
+    app.closeAllWindows();
     return server.cleanup();
   }
-
-  //------------------------------------------------------------------------
-  // Virtual Destructor
-  ~Server() { app.closeAllWindows(); }
 };
-
 
 
 //==========================================================================

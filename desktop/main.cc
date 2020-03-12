@@ -17,6 +17,7 @@ namespace {
 const auto server_name    = "ViGraph dataflow desktop application";
 const auto server_version = VERSION;
 
+const auto window_name = "ViGraph Create Pro";
 #if defined(PLATFORM_WINDOWS)
 const auto application_name = "ViGraph";
 #else
@@ -24,7 +25,6 @@ const auto application_name = "vigraph";
 #endif
 const auto application_url = "http://localhost:33380/";
 
-//const auto application_dir = "vigraph";
 const auto default_licence = "licence.xml";
 const auto default_config = "desktop.cfg.xml";
 const auto config_file_root = "desktop";
@@ -67,8 +67,11 @@ int main(int argc, char **argv)
     shell.start(argc, argv);
   }};
   started.wait();
+  auto icon = QIcon{":/vigraph.ico"};
   WebPage webpage;
   QWebView webview;
+  webview.setWindowTitle(window_name);
+  webview.setWindowIcon(icon);
   webview.setPage(&webpage);
   webview.setUrl(QUrl{application_url});
   webview.show();

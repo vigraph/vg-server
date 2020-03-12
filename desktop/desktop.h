@@ -26,12 +26,14 @@ class Server: public Daemon::Application
 private:
   Service::Server server;
   QApplication& app;
+  MT::Semaphore& started;
 
 public:
   //------------------------------------------------------------------------
   // Constructor
-  Server(const string& licence_file, QApplication& _app):
-    server{licence_file}, app{_app} {}
+  Server(const string& licence_file, QApplication& _app,
+         MT::Semaphore& _started):
+    server{licence_file}, app{_app}, started{_started} {}
 
   //------------------------------------------------------------------------
   // Time to sleep until next tick (microseconds)
@@ -56,7 +58,9 @@ public:
   // Pre main loop function
   int pre_run() override
   {
-    return server.pre_run();
+    int result = server.pre_run();
+    started.signal();
+    return result;
   }
 
   //------------------------------------------------------------------------

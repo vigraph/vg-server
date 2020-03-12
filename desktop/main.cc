@@ -16,7 +16,7 @@ namespace {
 const auto server_name    = "ViGraph dataflow engine daemon";
 const auto server_version = VERSION;
 
-const auto application_url = "http://192.168.0.104:3000/";
+const auto application_url = "http://localhost:33380/";
 
 #if defined(PLATFORM_WINDOWS)
 const auto default_licence = "licence.xml";
@@ -53,6 +53,7 @@ public:
 int main(int argc, char **argv)
 {
   QApplication app{argc, argv};
+  MT::Semaphore started;
 #if defined(PLATFORM_WINDOWS)
   winsock_initialise();
   wchar_t p[MAX_PATH];
@@ -60,12 +61,12 @@ int main(int argc, char **argv)
   const auto path = File::Path(Text::UTF8::encode(&p[0]));
   const auto licence_file = path.dirname() + "\\" + default_licence;
   const auto config_file = path.dirname() + "\\" + default_config_file;
-  Server server(licence_file, app);
+  Server server(licence_file, app, started);
   Daemon::Shell shell(server, server_name, server_version,
                       config_file, config_file_root,
                       default_log_file, pid_file);
 #else
-  Server server(default_licence, app);
+  Server server(default_licence, app, started);
   Daemon::Shell shell(server, server_name, server_version,
                       default_config_file, config_file_root,
                       default_log_file, pid_file);
@@ -74,6 +75,7 @@ int main(int argc, char **argv)
   {
     shell.start(argc, argv);
   }};
+  started.wait();
   WebPage webpage;
   QWebView webview;
   webview.setPage(&webpage);

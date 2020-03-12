@@ -1,3 +1,3 @@
-vg-engine usr/sbin
-engine.cfg.xml etc/vigraph
+vg-desktop usr/bin
+desktop.cfg.xml etc/vigraph
 licences/demo.2020Q1/licence.xml etc/vigraph

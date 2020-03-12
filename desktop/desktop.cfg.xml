@@ -1,0 +1,70 @@
+<!--
+  Configuration file for ViGraph dataflow desktop application (vg-desktop)
+  Release version
+
+  Copyright (c) Paul Clark 2017-2019.
+  All rights reserved.
+-->
+
+<desktop>
+  <!-- Logging configuration
+
+       'level' is one of:
+
+         0 - Silence
+         1 - Errors only
+         2 - Session start/stop
+         3 - Details & intermediate changes
+         4 - Debug
+         5 - Everything imaginable
+
+       Production builds are only capable of outputting to level 3
+
+       'file' (default desktop.log) gives log file
+
+       'timestamp' gives strftime(3) format for timestamp prefix.
+       with extensions: %*S = seconds+milliseconds, %*L = log level
+       Plain text can also be added.  If empty, nothing is added
+  -->
+  <log level="2" file="desktop.log" timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
+
+  <!-- Drop to ordinary user priviledge, special user -->
+  <security user="vigraph" group="vigraph"/>
+
+  <!-- Resources -->
+  <resources>
+    <directory path="." />
+  </resources>
+
+  <!-- Loadable modules -->
+  <modules>
+    <!-- Search paths, recursive for all .so -->
+    <directory path="/usr/lib/vigraph/modules"/>
+  </modules>
+
+  <!-- Tick frequency (Hz, 25) -->
+  <tick frequency="25"/>
+
+  <!-- Built-in web server for UI -->
+  <file-server>
+
+    <!-- HTTP port -->
+    <http port="33380"/>
+
+    <!-- Root directory for files -->
+    <directory path="/usr/share/vigraph/web"/>
+
+  </file-server>
+
+  <!-- HTTP REST interface -->
+  <rest>
+
+    <!-- HTTP port -->
+    <http port="33381"/>
+
+    <!-- Layout file -->
+    <layout file="/var/lib/vigraph/layout.json"/>
+
+  </rest>
+
+</desktop>

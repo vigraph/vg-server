@@ -7,32 +7,28 @@
 #include "desktop.h"
 #include "vg-service.h"
 #include <QApplication>
+#include <QStandardPaths>
 #include <QWebView>
 #include "ot-daemon.h"
 
 using namespace ViGraph::Engine;
 
 namespace {
-const auto server_name    = "ViGraph dataflow engine daemon";
+const auto server_name    = "ViGraph dataflow desktop application";
 const auto server_version = VERSION;
 
+#if defined(PLATFORM_WINDOWS)
+const auto application_name = "ViGraph";
+#else
+const auto application_name = "vigraph";
+#endif
 const auto application_url = "http://localhost:33380/";
 
-#if defined(PLATFORM_WINDOWS)
+//const auto application_dir = "vigraph";
 const auto default_licence = "licence.xml";
-const auto default_config_file = "engine.cfg.xml";
-#else
-const auto default_licence = "/etc/vigraph/licence.xml";
-#ifdef DEBUG
-const auto default_config_file = "engine.cfg.xml";
-#else
-const auto default_config_file = "/etc/vigraph/engine.cfg.xml";
-#endif
-#endif
-
-const auto config_file_root = "engine";
-const auto default_log_file = "/var/log/vigraph/engine.log";
-const auto pid_file         = "/var/run/vg-engine.pid";
+const auto default_config = "desktop.cfg.xml";
+const auto config_file_root = "desktop";
+const auto default_log = "desktop.log";
 }
 
 class WebPage: public QWebPage
@@ -52,25 +48,20 @@ public:
 
 int main(int argc, char **argv)
 {
+  QApplication::setApplicationName(application_name);
   QApplication app{argc, argv};
+  auto config_dir = File::Directory{QStandardPaths::writableLocation(
+                      QStandardPaths::AppConfigLocation).toUtf8().constData()};
+  auto data_dir = File::Directory{QStandardPaths::writableLocation(
+                      QStandardPaths::AppDataLocation).toUtf8().constData()};
+  auto licence = config_dir.resolve(File::Path{default_licence}).str();
+  auto config = config_dir.resolve(File::Path{default_config}).str();
+  auto log = data_dir.resolve(File::Path{default_log}).str();
   MT::Semaphore started;
-#if defined(PLATFORM_WINDOWS)
-  winsock_initialise();
-  wchar_t p[MAX_PATH];
-  GetModuleFileNameW(nullptr, p, MAX_PATH);
-  const auto path = File::Path(Text::UTF8::encode(&p[0]));
-  const auto licence_file = path.dirname() + "\\" + default_licence;
-  const auto config_file = path.dirname() + "\\" + default_config_file;
-  Server server(licence_file, app, started);
+  Server server(licence, app, started);
   Daemon::Shell shell(server, server_name, server_version,
-                      config_file, config_file_root,
-                      default_log_file, pid_file);
-#else
-  Server server(default_licence, app, started);
-  Daemon::Shell shell(server, server_name, server_version,
-                      default_config_file, config_file_root,
-                      default_log_file, pid_file);
-#endif
+                      config, config_file_root,
+                      log, {});
   auto t = thread{[&]()
   {
     shell.start(argc, argv);

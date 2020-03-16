@@ -112,7 +112,7 @@ public:
   // Clean up
   void cleanup() override
   {
-    app.closeAllWindows();
+    app.quit();
     return server.cleanup();
   }
 };

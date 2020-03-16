@@ -10,6 +10,7 @@
 #include <QStandardPaths>
 #include <QWebView>
 #include <QSystemTrayIcon>
+#include <QMenu>
 #include "ot-daemon.h"
 
 using namespace ViGraph::Engine;
@@ -31,6 +32,9 @@ const auto default_config = "desktop.cfg.xml";
 const auto config_file_root = "desktop";
 const auto default_log = "desktop.log";
 }
+
+//==========================================================================
+// Full mode
 
 //--------------------------------------------------------------------------
 // Custom webpage class for logging javascript console
@@ -63,16 +67,27 @@ int run_full(QApplication& app, const QIcon& icon)
   return app.exec();
 }
 
+//==========================================================================
+// Systray mode
+
 //--------------------------------------------------------------------------
 // System tray application mode
 int run_systray(QApplication& app, const QIcon& icon)
 {
   QSystemTrayIcon systray{icon};
+  QMenu menu{};
+  QAction quit_action{"Quit", nullptr};
+  QObject::connect(&quit_action, &QAction::triggered, &app, [&app]
+  {
+    app.quit();
+  });
+  menu.addAction(&quit_action);
+  systray.setContextMenu(&menu);
   systray.show();
   return app.exec();
 }
 
-//--------------------------------------------------------------------------
+//==========================================================================
 // Main
 int main(int argc, char **argv)
 {

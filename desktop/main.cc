@@ -11,6 +11,7 @@
 #include <QWebView>
 #include <QSystemTrayIcon>
 #include <QMenu>
+#include <QDesktopServices>
 #include "ot-daemon.h"
 
 using namespace ViGraph::Engine;
@@ -74,16 +75,30 @@ int run_full(QApplication& app, const QIcon& icon)
 // System tray application mode
 int run_systray(QApplication& app, const QIcon& icon)
 {
-  QSystemTrayIcon systray{icon};
-  QMenu menu{};
-  QAction quit_action{"Quit", nullptr};
-  QObject::connect(&quit_action, &QAction::triggered, &app, [&app]
+  // Edit diagram
+  QAction edit_action{"Edit Diagram"};
+  QObject::connect(&edit_action, &QAction::triggered, []
+  {
+    QDesktopServices::openUrl(QUrl{application_url});
+  });
+
+  // Quit
+  QAction quit_action{"Quit"};
+  QObject::connect(&quit_action, &QAction::triggered, [&app]
   {
     app.quit();
   });
+
+  QMenu menu{};
+  menu.addAction(&edit_action);
   menu.addAction(&quit_action);
+
+  QSystemTrayIcon systray{icon};
   systray.setContextMenu(&menu);
   systray.show();
+
+  edit_action.trigger();
+
   return app.exec();
 }
 

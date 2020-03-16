@@ -12,6 +12,7 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QDesktopServices>
+#include <QMessageBox>
 #include "ot-daemon.h"
 
 using namespace ViGraph::Engine;
@@ -20,18 +21,36 @@ namespace {
 const auto server_name    = "ViGraph dataflow desktop application";
 const auto server_version = VERSION;
 
-const auto window_name = "ViGraph Create Pro";
+const auto full_app_name = "ViGraph Create Pro";
 #if defined(PLATFORM_WINDOWS)
-const auto application_name = "ViGraph";
+const auto short_app_name = "ViGraph";
 #else
-const auto application_name = "vigraph";
+const auto short_app_name = "vigraph";
 #endif
+const auto website_url = "http://vigraph.com/";
+const auto copyright_url = "http://localhost:33380/copyright.html";
 const auto application_url = "http://localhost:33380/";
 
 const auto default_licence = "licence.xml";
 const auto default_config = "desktop.cfg.xml";
 const auto config_file_root = "desktop";
 const auto default_log = "desktop.log";
+
+const auto about_text = string{}
+  + "<style>"
+  + "a:link { color: rgb(0, 208, 224); }"
+  + "</style>"
+  + "<body>"
+  + "<table><td><img src=\":/vigraph.ico\"/></td>"
+  + "<td>"
+  + "<p><strong>" + full_app_name + "</strong></p>"
+  + "<p>Version: " + VERSION + "</p>"
+  + "<p>Website: <a href=\"" + website_url + "\">" + website_url + "</a></p>"
+  + "<p><a href=\"" + copyright_url + "\">Copyright and Licences</a></p>"
+  + "</td></table></body>";
+const auto about_style = string{}
+  + "background-color: black;"
+  + "color: white;";
 }
 
 //==========================================================================
@@ -60,7 +79,7 @@ int run_full(QApplication& app, const QIcon& icon)
 {
   WebPage webpage;
   QWebView webview;
-  webview.setWindowTitle(window_name);
+  webview.setWindowTitle(full_app_name);
   webview.setWindowIcon(icon);
   webview.setPage(&webpage);
   webview.setUrl(QUrl{application_url});
@@ -75,11 +94,27 @@ int run_full(QApplication& app, const QIcon& icon)
 // System tray application mode
 int run_systray(QApplication& app, const QIcon& icon)
 {
+  app.setQuitOnLastWindowClosed(false); // otherwise closing about quits app
+  QMenu menu{};
+
   // Edit diagram
   QAction edit_action{"Edit Diagram"};
   QObject::connect(&edit_action, &QAction::triggered, []
   {
     QDesktopServices::openUrl(QUrl{application_url});
+  });
+
+  // About
+  QAction about_action{"About"};
+  QObject::connect(&about_action, &QAction::triggered, [&menu, &icon]
+  {
+    QMessageBox about{&menu};
+    about.setWindowTitle((string{"About "} + full_app_name).c_str());
+    about.setWindowIcon(icon);
+    about.setTextFormat(Qt::RichText);
+    about.setStyleSheet(about_style.c_str());
+    about.setText(about_text.c_str());
+    about.exec();
   });
 
   // Quit
@@ -89,8 +124,8 @@ int run_systray(QApplication& app, const QIcon& icon)
     app.quit();
   });
 
-  QMenu menu{};
   menu.addAction(&edit_action);
+  menu.addAction(&about_action);
   menu.addAction(&quit_action);
 
   QSystemTrayIcon systray{icon};
@@ -106,7 +141,7 @@ int run_systray(QApplication& app, const QIcon& icon)
 // Main
 int main(int argc, char **argv)
 {
-  QApplication::setApplicationName(application_name);
+  QApplication::setApplicationName(short_app_name);
   QApplication app{argc, argv};
   auto config_dir = File::Directory{QStandardPaths::writableLocation(
                       QStandardPaths::AppConfigLocation).toUtf8().constData()};

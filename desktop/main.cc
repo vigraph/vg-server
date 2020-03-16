@@ -39,6 +39,7 @@ const auto default_log = "desktop.log";
 const auto about_text = string{}
   + "<style>"
   + "a:link { color: rgb(0, 208, 224); }"
+  + "td { vertical-align: middle; }"
   + "</style>"
   + "<body>"
   + "<table><td><img src=\":/vigraph.ico\"/></td>"

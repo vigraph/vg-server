@@ -22,7 +22,7 @@ void read(Path& path, const string& s)
   {
     path.read(s);
   }
-  catch (runtime_error e)
+  catch (const runtime_error& e)
   {
     FAIL() << "Exception in SVG read: " << e.what() << endl;
     throw e;
@@ -35,7 +35,7 @@ void read(Path& path, const XML::Element& xml)
   {
     path.read(xml);
   }
-  catch (runtime_error e)
+  catch (const runtime_error& e)
   {
     FAIL() << "Exception in SVG read: " << e.what() << endl;
     throw e;

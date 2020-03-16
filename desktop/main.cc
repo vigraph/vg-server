@@ -65,6 +65,7 @@ int main(int argc, char **argv)
   auto t = thread{[&]()
   {
     shell.start(argc, argv);
+    started.signal(); // In case of exit before start up achieved
   }};
   started.wait();
   auto icon = QIcon{":/vigraph.ico"};

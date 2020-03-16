@@ -9,6 +9,7 @@
 #include <QApplication>
 #include <QStandardPaths>
 #include <QWebView>
+#include <QSystemTrayIcon>
 #include "ot-daemon.h"
 
 using namespace ViGraph::Engine;
@@ -31,6 +32,8 @@ const auto config_file_root = "desktop";
 const auto default_log = "desktop.log";
 }
 
+//--------------------------------------------------------------------------
+// Custom webpage class for logging javascript console
 class WebPage: public QWebPage
 {
 public:
@@ -46,6 +49,31 @@ public:
   }
 };
 
+//--------------------------------------------------------------------------
+// Full application mode
+int run_full(QApplication& app, const QIcon& icon)
+{
+  WebPage webpage;
+  QWebView webview;
+  webview.setWindowTitle(window_name);
+  webview.setWindowIcon(icon);
+  webview.setPage(&webpage);
+  webview.setUrl(QUrl{application_url});
+  webview.show();
+  return app.exec();
+}
+
+//--------------------------------------------------------------------------
+// System tray application mode
+int run_systray(QApplication& app, const QIcon& icon)
+{
+  QSystemTrayIcon systray{icon};
+  systray.show();
+  return app.exec();
+}
+
+//--------------------------------------------------------------------------
+// Main
 int main(int argc, char **argv)
 {
   QApplication::setApplicationName(application_name);
@@ -69,14 +97,17 @@ int main(int argc, char **argv)
   }};
   started.wait();
   auto icon = QIcon{":/vigraph.ico"};
-  WebPage webpage;
-  QWebView webview;
-  webview.setWindowTitle(window_name);
-  webview.setWindowIcon(icon);
-  webview.setPage(&webpage);
-  webview.setUrl(QUrl{application_url});
-  webview.show();
-  const int result = app.exec();
+  const auto mode = server.get_application_mode();
+  int result = 1000;
+  switch (mode)
+  {
+    case Mode::systray:
+      result = run_systray(app, icon);
+      break;
+    case Mode::full:
+      result = run_full(app, icon);
+      break;
+  }
   shell.shutdown();
   t.join();
   return result;

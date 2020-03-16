@@ -19,6 +19,14 @@ using namespace ObTools;
 using namespace ViGraph;
 
 //==========================================================================
+// Desktop application mode
+enum class Mode
+{
+  systray,
+  full
+};
+
+//==========================================================================
 // Global state
 // Singleton instance of server-wide state
 class Server: public Daemon::Application
@@ -27,6 +35,7 @@ private:
   Service::Server server;
   QApplication& app;
   MT::Semaphore& started;
+  Mode mode = Mode::systray;
 
 public:
   //------------------------------------------------------------------------
@@ -45,7 +54,14 @@ public:
                    const string& config_filename) override
   {
     server.read_config(config, config_filename);
+    const auto xpath = XML::ConstXPathProcessor{config.get_root()};
+    if (xpath.get_value("application/@mode", "systray") == "full")
+      mode = Mode::full;
   }
+
+  //------------------------------------------------------------------------
+  // Get application mode
+  Mode get_application_mode() const { return mode; }
 
   //------------------------------------------------------------------------
   // Prerun function for child process

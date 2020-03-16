@@ -7,6 +7,8 @@
 //==========================================================================
 
 #include "../../module.h"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #include "mosquittopp.h"
 
 namespace {
@@ -153,6 +155,7 @@ Dataflow::SimpleModule module
   },
   {}
 };
+#pragma clang diagnostic pop
 
 } // anon
 

@@ -128,9 +128,9 @@ int run_systray(QApplication& app, const QIcon& icon)
 
   // About
   QAction about_action{"About"};
-  QObject::connect(&about_action, &QAction::triggered, [&menu, &icon]
+  QObject::connect(&about_action, &QAction::triggered, [&icon]
   {
-    About about{&menu, icon};
+    About about{nullptr, icon};
     about.exec();
   });
 

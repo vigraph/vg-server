@@ -36,6 +36,7 @@ const auto default_config = "desktop.cfg.xml";
 const auto config_file_root = "desktop";
 const auto default_log = "desktop.log";
 
+const auto about_title = string{"About "} + full_app_name;
 const auto about_text = string{}
   + "<style>"
   + "a:link { color: rgb(0, 208, 224); }"
@@ -92,6 +93,26 @@ int run_full(QApplication& app, const QIcon& icon)
 // Systray mode
 
 //--------------------------------------------------------------------------
+// About message box
+class About: public QMessageBox
+{
+public:
+  About(QWidget *parent, const QIcon& icon):
+    QMessageBox{parent}
+  {
+    setWindowTitle(about_title.c_str());
+    setWindowIcon(icon);
+    setTextFormat(Qt::RichText);
+    setStyleSheet(about_style.c_str());
+    setText(about_text.c_str());
+    setStandardButtons(QMessageBox::NoButton);
+  }
+
+  // Allows window to close without buttons
+  void closeEvent(QCloseEvent *) {}
+};
+
+//--------------------------------------------------------------------------
 // System tray application mode
 int run_systray(QApplication& app, const QIcon& icon)
 {
@@ -109,12 +130,7 @@ int run_systray(QApplication& app, const QIcon& icon)
   QAction about_action{"About"};
   QObject::connect(&about_action, &QAction::triggered, [&menu, &icon]
   {
-    QMessageBox about{&menu};
-    about.setWindowTitle((string{"About "} + full_app_name).c_str());
-    about.setWindowIcon(icon);
-    about.setTextFormat(Qt::RichText);
-    about.setStyleSheet(about_style.c_str());
-    about.setText(about_text.c_str());
+    About about{&menu, icon};
     about.exec();
   });
 

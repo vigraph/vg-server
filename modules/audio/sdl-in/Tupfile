@@ -7,5 +7,6 @@
 NAME      = vg-module-audio-sdl-in
 TYPE      = shared
 DEPENDS   = vg-dataflow ext-pkg-sdl2
+PLATFORMS = posix
 
 include_rules

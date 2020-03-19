@@ -4,8 +4,9 @@
 # Copyright (c) 2019 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-bitmap-websocket
-TYPE    = shared
-DEPENDS = vg-dataflow ot-lib ot-web vg-bitmap
+NAME      = vg-module-bitmap-websocket
+TYPE      = shared
+DEPENDS   = vg-dataflow ot-lib ot-web vg-bitmap
+PLATFORMS = posix
 
 include_rules

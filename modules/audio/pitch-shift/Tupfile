@@ -7,6 +7,7 @@
 NAME      = vg-module-audio-pitch-shift
 TYPE      = shared
 DEPENDS   = vg-dataflow
+PLATFORMS = posix
 LINUX-DEPENDS = ext-pkg-soundtouch
 WINDOWS-DEPENDS = ext-SoundTouch_x64
 

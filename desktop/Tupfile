@@ -4,10 +4,11 @@
 # Copyright (c) 2020 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME     = vg-desktop
-TYPE     = exe
-DEPENDS  = vg-service ot-daemon \
-           ext-pkg-Qt5Gui ext-pkg-Qt5Widgets ext-pkg-Qt5WebKitWidgets
+NAME      = vg-desktop
+TYPE      = exe
+DEPENDS   = vg-service ot-daemon \
+            ext-pkg-Qt5Gui ext-pkg-Qt5Widgets ext-pkg-Qt5WebKitWidgets
+PLATFORMS = posix
 
 WINDOWS-LFLAGS  = -mwindows
 WINDOWS-DEPENDS = ext-ole32 ext-comctl32 ext-oleaut32 ext-uuid

@@ -10,6 +10,7 @@
 #define __VG_DMX_H
 
 #include "ot-json.h"
+#include <array>
 
 namespace ViGraph { namespace DMX {
 

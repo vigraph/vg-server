@@ -224,7 +224,7 @@ vector<Point> Optimiser::reorder_segments(const vector<Point>& points)
 
   // Copy points out in order
   vector<Point> new_points;
-  for(const auto it: ordered_segments)
+  for(const auto& it: ordered_segments)
     new_points.insert(new_points.end(), points.begin()+it.first,
                       points.begin()+it.second+1);
 

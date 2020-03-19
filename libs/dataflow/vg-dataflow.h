@@ -280,7 +280,7 @@ public:
     if (!path.empty())
     {
       auto _parts = Text::split(path, '/');
-      for (const auto p: _parts)
+      for (const auto& p: _parts)
       {
         if (p.empty())
           continue;

@@ -10,6 +10,7 @@
 #define __VIGRAPH_AUDIO_MODULE_H
 
 #include "../module.h"
+#include <array>
 
 namespace ViGraph { namespace Module { namespace Audio {
 

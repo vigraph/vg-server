@@ -289,10 +289,16 @@ Registry::NewFactory<Triangle, decltype(triangle_module)>
     triangle_factory{triangle_module};
 Registry::NewFactory<Random, decltype(random_module)>
     random_factory{random_module};
+#if defined(PLATFORM_WEB)
+extern "C" bool vg_init(Log::Channel&, Dataflow::Engine& engine)
+{
+  Log::Streams log;
+#else
 extern "C" bool vg_init(Log::Channel& logger, Dataflow::Engine& engine)
 {
-  Log::logger.connect(new Log::ReferencedChannel{logger});
   Log::Streams log;
+  Log::logger.connect(new Log::ReferencedChannel{logger});
+#endif
   log.summary << "  Module: " << none_module.get_full_type() << endl;
   engine.element_registry.add(none_module.get_section(), none_module.get_id(),
                               none_factory);

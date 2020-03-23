@@ -5,6 +5,7 @@
 //==========================================================================
 
 #include "vg-dataflow.h"
+#include "ot-lib.h"
 
 using namespace std;
 using namespace ObTools;
@@ -12,13 +13,59 @@ using namespace ViGraph;
 
 namespace {
 const auto tick_interval = Time::Duration{0.04};
+const auto module_dir = "modules";
+typedef bool vg_init_fn_t(Log::Channel&, Dataflow::Engine&);
+const auto log_level = Log::Level::detail;
+const auto log_time_format = "%a %d %b %H:%M:%*S [%*L]: ";
+const auto log_hold_time = Time::Duration{"1 min"};
 }
 
 
 int main(int, char **)
 {
+  auto chan_out = Log::StreamChannel{&cout};
+  Log::logger.connect_full(&chan_out, log_level,
+                           log_time_format, log_hold_time);
+
+  Log::Streams log;
   Dataflow::Engine engine{};
   engine.set_tick_interval(tick_interval);
+
+  const auto dir = File::Directory{module_dir};
+  if (dir.is_dir())
+  {
+    log.summary << "Searching directory " << dir << " for modules\n";
+    list<File::Path> paths;
+    dir.inspect_recursive(paths, "*.wasm");
+    for (const auto& path: paths)
+    {
+      log.detail << "Loading module " << path << endl;
+      auto mod = make_unique<Lib::Library>(path.str());
+      if (!*mod)
+      {
+        log.error << "Can't open dynamic library " << path << ": "
+                  << mod->get_error() << endl;
+        continue;
+      }
+
+      auto fn = mod->get_function<vg_init_fn_t *>("vg_init");
+      if (!fn)
+      {
+        log.error << "No 'vg_init' symbol in dynamic library " << path << endl;
+        continue;
+      }
+
+      // Pass our logger in, so the module can connect its own, and the
+      // registries
+      if (!fn(Log::logger, engine))
+      {
+        log.error << "Module " << path << " initialisation failed\n";
+        continue;
+      }
+    }
+  }
+
+
   auto next_tick = Time::Duration::clock();
   while (true)
   {

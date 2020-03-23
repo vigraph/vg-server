@@ -1,5 +1,3 @@
-vg-web.js
-vg-web.wasm
 ../modules/core/average/vg-module-core-average.wasm modules
 ../modules/core/clock/vg-module-core-clock.wasm modules
 ../modules/core/clone/vg-module-core-clone.wasm modules

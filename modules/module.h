@@ -22,11 +22,18 @@ using namespace ViGraph::Dataflow;
 #define VIGRAPH_MODULE_NEW_FACTORY(_class, _module) \
 Registry::NewFactory<_class, decltype(_module)> _new_factory##_class{_module};
 
+#if defined(PLATFORM_WEB)
+#define VIGRAPH_MODULE_INIT_START                                             \
+extern "C" bool vg_init(Log::Channel&, Dataflow::Engine& engine)       \
+{                                                                             \
+  Log::Streams log;
+#else
 #define VIGRAPH_MODULE_INIT_START                                             \
 extern "C" bool vg_init(Log::Channel& logger, Dataflow::Engine& engine)       \
 {                                                                             \
   Log::logger.connect(new Log::ReferencedChannel{logger});                    \
   Log::Streams log;
+#endif
 
 #define VIGRAPH_MODULE_INIT_REGISTER(_class, _module)                         \
   log.summary << "  Module: " << _module.get_full_type() << endl;             \

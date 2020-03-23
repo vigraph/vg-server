@@ -1,0 +1,20 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow web assembly
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-web
+TYPE      = exe
+DEPENDS   = vg-dataflow
+PLATFORMS = web
+
+PACKAGE  = $(NAME)
+VERSION  = 2.0.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

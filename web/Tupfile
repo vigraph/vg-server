@@ -6,7 +6,7 @@
 
 NAME      = vg-web
 TYPE      = exe
-DEPENDS   = vg-dataflow ot-lib
+DEPENDS   = vg-dataflow vg-json ot-lib
 PLATFORMS = web
 
 PACKAGE  = $(NAME)

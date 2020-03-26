@@ -5,7 +5,9 @@
 //==========================================================================
 
 #include "vg-dataflow.h"
+#include "vg-json.h"
 #include "ot-lib.h"
+#include <sstream>
 
 using namespace std;
 using namespace ObTools;
@@ -19,7 +21,6 @@ const auto log_level = Log::Level::detail;
 const auto log_time_format = "%a %d %b %H:%M:%*S [%*L]: ";
 const auto log_hold_time = Time::Duration{"1 min"};
 }
-
 
 int main(int, char **)
 {
@@ -55,8 +56,6 @@ int main(int, char **)
         continue;
       }
 
-      // Pass our logger in, so the module can connect its own, and the
-      // registries
       if (!fn(Log::logger, engine))
       {
         log.error << "Module " << path << " initialisation failed\n";
@@ -65,6 +64,60 @@ int main(int, char **)
     }
   }
 
+  auto iss = istringstream{R"(
+{
+  "elements":
+  {
+    "log":
+    {
+      "settings":
+      {
+        "text":
+        {
+          "value": "Log triggered"
+        }
+      },
+      "type": "core/log"
+    },
+    "start":
+    {
+      "outputs":
+      {
+        "output":
+        {
+          "connections":
+          [
+            {
+              "element": "log",
+              "input": "trigger"
+            }
+          ]
+        }
+      },
+      "type": "trigger/start"
+    }
+  }
+}
+  )"};
+  ObTools::JSON::Parser parser(iss);
+  ObTools::JSON::Value value;
+  try
+  {
+    value = parser.read_value();
+  }
+  catch (ObTools::JSON::Exception& e)
+  {
+    log.error << "JSON parsing failed: " << e.error << endl;
+  }
+
+  try
+  {
+    ViGraph::JSON::set(engine, value, string{});
+  }
+  catch (runtime_error& e)
+  {
+    log.error << "Graph load failed: " << e.what() << endl;
+  }
 
   auto next_tick = Time::Duration::clock();
   while (true)

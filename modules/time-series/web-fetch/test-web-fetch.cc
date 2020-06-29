@@ -23,7 +23,7 @@ const auto sample_rate = 1;
 TEST_F(WebFetchTest, TestFetchWoodForTreesWTIData)
 {
   auto& web = add("time-series/web-fetch")
-              .set("url", string("http://woodfortrees.org/data/wti"))
+              .set("url", string("https://woodfortrees.org/data/wti"))
               .set("name", string("WTI"));
 
   auto datacs = vector<DataCollection>{};
@@ -49,7 +49,7 @@ TEST_F(WebFetchTest, TestFetchWoodForTreesWTIData)
   }
 
   EXPECT_EQ("WTI", data.name);
-  EXPECT_EQ("http://woodfortrees.org/data/wti", data.source);
+  EXPECT_EQ("https://woodfortrees.org/data/wti", data.source);
 }
 
 int main(int argc, char **argv)

@@ -6,7 +6,7 @@
 
 NAME      = vg-module-time-series-web-fetch
 TYPE      = shared
-DEPENDS   = vg-dataflow ot-log ot-lib ot-web
+DEPENDS   = vg-dataflow ot-log ot-lib ot-web ot-ssl-openssl
 PLATFORMS = posix
 
 include_rules

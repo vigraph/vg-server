@@ -8,6 +8,7 @@
 
 #include "../time-series-module.h"
 #include "ot-web.h"
+#include "ot-ssl-openssl.h"
 
 namespace {
 
@@ -50,7 +51,8 @@ void WebFetch::setup(const SetupContext& context)
 
   Log::Streams log;
   Web::URL wurl(url);
-  Web::HTTPClient client(wurl, 0, user_agent, fetch_timeout, fetch_timeout);
+  SSL_OpenSSL::Context ssl;
+  Web::HTTPClient client(wurl, &ssl, user_agent, fetch_timeout, fetch_timeout);
   string body;
   log.detail << "Fetching data from " << wurl << endl;
   auto res = client.get(wurl, body);

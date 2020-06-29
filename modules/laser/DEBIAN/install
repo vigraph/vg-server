@@ -5,6 +5,7 @@ add-vertex-repeats/vg-module-laser-add-vertex-repeats.so /usr/lib/vigraph/module
 add-blanking-anchors/vg-module-laser-add-blanking-anchors.so /usr/lib/vigraph/modules/
 infill-lines/vg-module-laser-infill-lines.so /usr/lib/vigraph/modules/
 beamify/vg-module-laser-beamify.so /usr/lib/vigraph/modules/
+etherdream-out/vg-module-laser-idn-out.so /usr/lib/vigraph/modules/
 
 #sources/ilda/vg-module-laser-source-ilda.so /usr/lib/vigraph/modules/
 

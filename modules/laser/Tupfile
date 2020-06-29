@@ -12,7 +12,8 @@ DEPENDS  =  vg-module-laser-show-blanking \
             vg-module-laser-add-vertex-repeats \
             vg-module-laser-add-blanking-anchors \
             vg-module-laser-infill-lines \
-            vg-module-laser-beamify
+            vg-module-laser-beamify \
+            vg-module-laser-etherdream-out
 
 #           vg-module-laser-source-ilda \
 

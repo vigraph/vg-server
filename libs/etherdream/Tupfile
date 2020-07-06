@@ -1,11 +1,11 @@
 #===========================================================================
-# Tupfile for Vigraph laser Etherdream output module
+# Tupfile for ViGraph Etherdream protocol library
 #
 # Copyright (c) 2020 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-laser-etherdream-out
-TYPE    = shared
-DEPENDS = vg-dataflow vg-geometry vg-etherdream ot-net
+NAME    = vg-etherdream
+TYPE    = lib
+DEPENDS = ot-chan ot-net ot-log
 
 include_rules

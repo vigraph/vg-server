@@ -7,7 +7,7 @@
 //==========================================================================
 
 #include "../../vector/vector-module.h"
-#include "ot-net.h"
+#include "vg-etherdream.h"
 
 namespace {
 
@@ -45,7 +45,7 @@ public:
 
   // Settings
   Setting<string> host_address;
-  Setting<Integer> host_port{7765};
+  Setting<Integer> host_port{EtherDream::default_port};
   Setting<string> source_address{default_source_address};
   Setting<Integer> frame_rate{default_frame_rate};
 

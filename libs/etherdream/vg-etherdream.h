@@ -12,12 +12,14 @@
 
 #include "ot-chan.h"
 #include "ot-net.h"
+#include "vg-geometry.h"
 
 namespace ViGraph { namespace EtherDream {
 
 // Make our lives easier without polluting anyone else
 using namespace std;
 using namespace ViGraph;
+using namespace ViGraph::Geometry;
 using namespace ObTools;
 
 const auto default_port = 7765;
@@ -78,6 +80,9 @@ struct Status
 
   // Read from raw data
   bool read(const vector<uint8_t>& data);
+
+  // Dump to channel
+  void dump(ostream& out);
 };
 
 //==========================================================================
@@ -86,6 +91,7 @@ struct Status
 class Interface
 {
  private:
+  vector<uint8_t> receive_buffer;
   Status last_status;
 
   // Send data out
@@ -96,6 +102,9 @@ class Interface
 
   // Start the interface
   virtual void start();
+
+  // Send data
+  virtual void send(vector<Point>& points);
 
   // Get last status (for testing)
   const Status& get_last_status() { return last_status; }

@@ -100,14 +100,32 @@ class Interface
  public:
   Interface() {}
 
+  // Get last status (for testing)
+  const Status& get_last_status() { return last_status; }
+
   // Start the interface
   virtual void start();
+
+  // Prepare stream
+  virtual void prepare();
+
+  // Begin playback
+  virtual void begin_playback(uint32_t point_rate);
+
+  // Queue rate change
+  void queue_rate_change(uint32_t point_rate);
 
   // Send data
   virtual void send(vector<Point>& points);
 
-  // Get last status (for testing)
-  const Status& get_last_status() { return last_status; }
+  // Stop
+  void stop_playback();
+
+  // Emergency stop
+  void emergency_stop();
+
+  // Clear emergency stop
+  void clear_emergency_stop();
 
   // Receive data
   void receive_data(const vector<uint8_t>& data);

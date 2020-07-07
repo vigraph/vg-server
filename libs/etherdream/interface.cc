@@ -14,7 +14,8 @@ namespace ViGraph { namespace EtherDream {
 enum Command
 {
   prepare           = 0x70,   // 'p'
-  queue_rate_change = 0x74,   // 'q'
+  begin_playback    = 0x62,   // 'b'
+  queue_rate_change = 0x71,   // 'q'
   write_data        = 0x64,   // 'd'
   stop              = 0x73,   // 's'
   e_stop            = 0,
@@ -27,6 +28,38 @@ void Interface::start()
 {
   vector<uint8_t> data;
   data.push_back(Command::ping);
+  send_data(data);
+}
+
+// Prepare stream
+void Interface::prepare()
+{
+  vector<uint8_t> data{ Command::prepare };
+  send_data(data);
+}
+
+// Begin playback
+void Interface::begin_playback(uint32_t point_rate)
+{
+  vector<uint8_t> data(7);
+  Channel::BlockWriter bw(data);
+
+  bw.write_byte(Command::begin_playback);
+  bw.write_le_16(0);   // 'low water mark' (not implemented their side)
+  bw.write_le_32(point_rate);
+
+  send_data(data);
+}
+
+// Queue rate change
+void Interface::queue_rate_change(uint32_t point_rate)
+{
+  vector<uint8_t> data(5);
+  Channel::BlockWriter bw(data);
+
+  bw.write_byte(Command::queue_rate_change);
+  bw.write_le_32(point_rate);
+
   send_data(data);
 }
 
@@ -52,6 +85,27 @@ void Interface::send(vector<Point>& points)
     bw.write_le_16(0);  // u2
   }
 
+  send_data(data);
+}
+
+// Stop
+void Interface::stop_playback()
+{
+  vector<uint8_t> data{ Command::stop };
+  send_data(data);
+}
+
+// Emergency stop
+void Interface::emergency_stop()
+{
+  vector<uint8_t> data{ Command::e_stop };
+  send_data(data);
+}
+
+// Clear emergency stop
+void Interface::clear_emergency_stop()
+{
+  vector<uint8_t> data{ Command::clear_e_stop };
   send_data(data);
 }
 

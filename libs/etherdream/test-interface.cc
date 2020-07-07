@@ -49,6 +49,45 @@ TEST(InterfaceTest, test_it_sends_a_ping_on_startup)
   EXPECT_EQ('?', iface.received_data[0]);
 }
 
+TEST(InterfaceTest, test_prepare)
+{
+  TestInterface iface;
+  iface.prepare();
+  ASSERT_EQ(1, iface.received_data.size());
+  EXPECT_EQ('p', iface.received_data[0]);
+}
+
+TEST(InterfaceTest, test_begin_playback)
+{
+  TestInterface iface;
+  iface.begin_playback(0x01020304ul);
+
+  vector<uint8_t> expected
+  {
+    'b',
+    0, 0,
+    4, 3, 2, 1
+  };
+
+  ASSERT_EQ(7, iface.received_data.size());
+  EXPECT_EQ(expected, iface.received_data);
+}
+
+TEST(InterfaceTest, test_queue_rate_change)
+{
+  TestInterface iface;
+  iface.queue_rate_change(0x0A0B0C0Dul);
+
+  vector<uint8_t> expected
+  {
+    'q',
+    0x0D, 0x0C, 0x0B, 0x0A
+  };
+
+  ASSERT_EQ(5, iface.received_data.size());
+  EXPECT_EQ(expected, iface.received_data);
+}
+
 TEST(InterfaceTest, test_sending_blank_data)
 {
   TestInterface iface;
@@ -134,6 +173,30 @@ TEST(InterfaceTest, test_sending_top_left_rgb)
 
   ASSERT_EQ(21, iface.received_data.size());
   EXPECT_EQ(expected, iface.received_data);
+}
+
+TEST(InterfaceTest, test_stop)
+{
+  TestInterface iface;
+  iface.stop_playback();
+  ASSERT_EQ(1, iface.received_data.size());
+  EXPECT_EQ('s', iface.received_data[0]);
+}
+
+TEST(InterfaceTest, test_e_stop)
+{
+  TestInterface iface;
+  iface.emergency_stop();
+  ASSERT_EQ(1, iface.received_data.size());
+  EXPECT_EQ(0, iface.received_data[0]);
+}
+
+TEST(InterfaceTest, test_clear_e_stop)
+{
+  TestInterface iface;
+  iface.clear_emergency_stop();
+  ASSERT_EQ(1, iface.received_data.size());
+  EXPECT_EQ('c', iface.received_data[0]);
 }
 
 TEST(InterfaceTest, test_status_change_on_unsolicited_status_received)

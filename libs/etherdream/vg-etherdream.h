@@ -78,8 +78,8 @@ struct Status
   uint32_t point_rate{0};
   uint32_t point_count{0};
 
-  // Read from raw data
-  bool read(const vector<uint8_t>& data);
+  // Read and remove from raw data
+  bool read(vector<uint8_t>& data);
 
   // Dump to channel
   void dump(ostream& out);
@@ -90,7 +90,10 @@ struct Status
 class DataChannel
 {
  public:
+  // Send data
   virtual void send(const vector<uint8_t>& data) = 0;
+
+  // Receive data - blocking, result is 0 if channel fails
   virtual size_t receive(vector<uint8_t>&) { return 0; }
 
   virtual ~DataChannel() {}
@@ -117,7 +120,7 @@ class CommandSender
   void queue_rate_change(uint32_t point_rate);
 
   // Send data
-  void send(vector<Point>& points);
+  void send(const vector<Point>& points);
 
   // Stop
   void stop_playback();
@@ -135,14 +138,34 @@ class CommandSender
 //==========================================================================
 // Ether Dream Interface
 // Handles request/response using the given data channel
-class Interface: public CommandSender
+class Interface
 {
-  //  DataChannel& channel;
+  DataChannel& channel;
   vector<uint8_t> receive_buffer;
   Status last_status;
+  CommandSender commands;
+  uint32_t point_rate;  // Points per second
+
+  // Internal
+  bool get_response();
 
  public:
-  Interface(DataChannel& c): CommandSender(c) {} //, channel(c) {}
+   static const uint32_t default_point_rate = 30000;
+
+   Interface(DataChannel& c, uint32_t _point_rate = default_point_rate):
+     channel(c), commands(c), point_rate(_point_rate) {}
+
+  // Start the interface
+  // Returns true if initial 'response' received and ping accepted
+  virtual bool start();
+
+  // Ensure the interface is ready to receive data
+  // Returns whether it is ready
+  bool get_ready();
+
+  // Send point data to the interface
+  // Returns whether data sent successfully
+  bool send(const vector<Point>& points);
 
   // Get last status (for testing)
   const Status& get_last_status() { return last_status; }

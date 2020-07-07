@@ -11,8 +11,8 @@
 
 namespace ViGraph { namespace EtherDream {
 
-// Read from raw data
-bool Status::read(const vector<uint8_t>& data)
+// Read and remove from raw data
+bool Status::read(vector<uint8_t>& data)
 {
   if (data.size() < 20) return false;
   Channel::BlockReader br(data);
@@ -34,6 +34,7 @@ bool Status::read(const vector<uint8_t>& data)
     return false;
   }
 
+  data.erase(data.begin(), data.begin()+20);
   return true;
 }
 

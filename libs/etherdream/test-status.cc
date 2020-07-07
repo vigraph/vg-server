@@ -48,6 +48,7 @@ TEST(StatusTest, test_read_ok_on_valid_input)
     0, 0, 1, 0,  // point rate = 63336
     0, 0, 0, 1}; // point count = 16M
   ASSERT_TRUE(status.read(data));
+  EXPECT_EQ(0, data.size());
 
   EXPECT_EQ(42, status.protocol);
   EXPECT_EQ(Status::LightEngineState::warmup, status.light_engine_state);

@@ -56,7 +56,7 @@ void CommandSender::queue_rate_change(uint32_t point_rate)
 }
 
 // Send data
-void CommandSender::send(vector<Point>& points)
+void CommandSender::send(const vector<Point>& points)
 {
   vector<uint8_t> data(3+18*points.size());
   Channel::BlockWriter bw(data);

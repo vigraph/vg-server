@@ -33,7 +33,7 @@ public:
   vector<uint8_t> received_data;
 };
 
-TEST(InterfaceTest, test_prepare)
+TEST(CommandsTest, test_prepare)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -42,7 +42,7 @@ TEST(InterfaceTest, test_prepare)
   EXPECT_EQ('p', channel.received_data[0]);
 }
 
-TEST(InterfaceTest, test_begin_playback)
+TEST(CommandsTest, test_begin_playback)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -59,7 +59,7 @@ TEST(InterfaceTest, test_begin_playback)
   EXPECT_EQ(expected, channel.received_data);
 }
 
-TEST(InterfaceTest, test_queue_rate_change)
+TEST(CommandsTest, test_queue_rate_change)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -75,7 +75,7 @@ TEST(InterfaceTest, test_queue_rate_change)
   EXPECT_EQ(expected, channel.received_data);
 }
 
-TEST(InterfaceTest, test_sending_blank_data)
+TEST(CommandsTest, test_sending_blank_data)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -88,7 +88,7 @@ TEST(InterfaceTest, test_sending_blank_data)
   EXPECT_EQ(0, channel.received_data[2]);
 }
 
-TEST(InterfaceTest, test_sending_centre_point_white)
+TEST(CommandsTest, test_sending_centre_point_white)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -114,7 +114,7 @@ TEST(InterfaceTest, test_sending_centre_point_white)
   EXPECT_EQ(expected, channel.received_data);
 }
 
-TEST(InterfaceTest, test_sending_bottom_left_red)
+TEST(CommandsTest, test_sending_bottom_left_red)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -140,7 +140,7 @@ TEST(InterfaceTest, test_sending_bottom_left_red)
   EXPECT_EQ(expected, channel.received_data);
 }
 
-TEST(InterfaceTest, test_sending_top_left_rgb)
+TEST(CommandsTest, test_sending_top_left_rgb)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -166,7 +166,7 @@ TEST(InterfaceTest, test_sending_top_left_rgb)
   EXPECT_EQ(expected, channel.received_data);
 }
 
-TEST(InterfaceTest, test_stop)
+TEST(CommandsTest, test_stop)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -175,7 +175,7 @@ TEST(InterfaceTest, test_stop)
   EXPECT_EQ('s', channel.received_data[0]);
 }
 
-TEST(InterfaceTest, test_e_stop)
+TEST(CommandsTest, test_e_stop)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -184,7 +184,7 @@ TEST(InterfaceTest, test_e_stop)
   EXPECT_EQ(0, channel.received_data[0]);
 }
 
-TEST(InterfaceTest, test_clear_e_stop)
+TEST(CommandsTest, test_clear_e_stop)
 {
   TestChannel channel;
   CommandSender commands(channel);
@@ -193,7 +193,7 @@ TEST(InterfaceTest, test_clear_e_stop)
   EXPECT_EQ('c', channel.received_data[0]);
 }
 
-TEST(InterfaceTest, test_ping)
+TEST(CommandsTest, test_ping)
 {
   TestChannel channel;
   CommandSender commands(channel);

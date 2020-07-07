@@ -86,37 +86,38 @@ struct Status
 };
 
 //==========================================================================
-// EtherDream Interface
-// Abstract protocol handler
-class Interface
+// Data channel abstract interface
+class DataChannel
+{
+ public:
+  virtual void send(const vector<uint8_t>& data) = 0;
+  virtual size_t receive(vector<uint8_t>&) { return 0; }
+
+  virtual ~DataChannel() {}
+};
+
+//==========================================================================
+// EtherDream command sender
+// Separated out for one-way message testing
+class CommandSender
 {
  private:
-  vector<uint8_t> receive_buffer;
-  Status last_status;
-
-  // Send data out
-  virtual void send_data(vector<uint8_t>& data) = 0;
+  DataChannel& channel;
 
  public:
-  Interface() {}
-
-  // Get last status (for testing)
-  const Status& get_last_status() { return last_status; }
-
-  // Start the interface
-  virtual void start();
+  CommandSender(DataChannel& c): channel(c) {}
 
   // Prepare stream
-  virtual void prepare();
+  void prepare();
 
   // Begin playback
-  virtual void begin_playback(uint32_t point_rate);
+  void begin_playback(uint32_t point_rate);
 
   // Queue rate change
   void queue_rate_change(uint32_t point_rate);
 
   // Send data
-  virtual void send(vector<Point>& points);
+  void send(vector<Point>& points);
 
   // Stop
   void stop_playback();
@@ -127,11 +128,24 @@ class Interface
   // Clear emergency stop
   void clear_emergency_stop();
 
-  // Receive data
-  void receive_data(const vector<uint8_t>& data);
+  // Send ping
+  void ping();
+};
 
-  // Virtual destructor
-  virtual ~Interface() {}
+//==========================================================================
+// Ether Dream Interface
+// Handles request/response using the given data channel
+class Interface: public CommandSender
+{
+  //  DataChannel& channel;
+  vector<uint8_t> receive_buffer;
+  Status last_status;
+
+ public:
+  Interface(DataChannel& c): CommandSender(c) {} //, channel(c) {}
+
+  // Get last status (for testing)
+  const Status& get_last_status() { return last_status; }
 };
 
 //==========================================================================

@@ -1,7 +1,7 @@
 //==========================================================================
-// ViGraph Ether Dream protocol library: interface.cc
+// ViGraph Ether Dream protocol library: commands.cc
 //
-// Abstract protocol interface
+// Protocol command sender
 //
 // Copyright (c) 2020 Paul Clark.  All rights reserved
 //==========================================================================
@@ -23,23 +23,15 @@ enum Command
   ping              = 0x3f    // '?'
 };
 
-// Start the interface
-void Interface::start()
-{
-  vector<uint8_t> data;
-  data.push_back(Command::ping);
-  send_data(data);
-}
-
 // Prepare stream
-void Interface::prepare()
+void CommandSender::prepare()
 {
   vector<uint8_t> data{ Command::prepare };
-  send_data(data);
+  channel.send(data);
 }
 
 // Begin playback
-void Interface::begin_playback(uint32_t point_rate)
+void CommandSender::begin_playback(uint32_t point_rate)
 {
   vector<uint8_t> data(7);
   Channel::BlockWriter bw(data);
@@ -48,11 +40,11 @@ void Interface::begin_playback(uint32_t point_rate)
   bw.write_le_16(0);   // 'low water mark' (not implemented their side)
   bw.write_le_32(point_rate);
 
-  send_data(data);
+  channel.send(data);
 }
 
 // Queue rate change
-void Interface::queue_rate_change(uint32_t point_rate)
+void CommandSender::queue_rate_change(uint32_t point_rate)
 {
   vector<uint8_t> data(5);
   Channel::BlockWriter bw(data);
@@ -60,11 +52,11 @@ void Interface::queue_rate_change(uint32_t point_rate)
   bw.write_byte(Command::queue_rate_change);
   bw.write_le_32(point_rate);
 
-  send_data(data);
+  channel.send(data);
 }
 
 // Send data
-void Interface::send(vector<Point>& points)
+void CommandSender::send(vector<Point>& points)
 {
   vector<uint8_t> data(3+18*points.size());
   Channel::BlockWriter bw(data);
@@ -85,36 +77,36 @@ void Interface::send(vector<Point>& points)
     bw.write_le_16(0);  // u2
   }
 
-  send_data(data);
+  channel.send(data);
 }
 
 // Stop
-void Interface::stop_playback()
+void CommandSender::stop_playback()
 {
   vector<uint8_t> data{ Command::stop };
-  send_data(data);
+  channel.send(data);
 }
 
 // Emergency stop
-void Interface::emergency_stop()
+void CommandSender::emergency_stop()
 {
   vector<uint8_t> data{ Command::e_stop };
-  send_data(data);
+  channel.send(data);
 }
 
 // Clear emergency stop
-void Interface::clear_emergency_stop()
+void CommandSender::clear_emergency_stop()
 {
   vector<uint8_t> data{ Command::clear_e_stop };
-  send_data(data);
+  channel.send(data);
 }
 
-// Receive data
-void Interface::receive_data(const vector<uint8_t>& data)
+// Send ping
+void CommandSender::ping()
 {
-  receive_buffer.insert(receive_buffer.end(), data.begin(), data.end());
-  if (last_status.read(receive_buffer))
-    receive_buffer.erase(receive_buffer.begin(), receive_buffer.begin()+20);
+  vector<uint8_t> data { Command::ping };
+  channel.send(data);
 }
+
 
 }} // namespaces

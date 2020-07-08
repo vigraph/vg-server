@@ -12,7 +12,6 @@
 namespace {
 
 using namespace ViGraph::Dataflow;
-const auto default_source_address = "0.0.0.0";
 const auto default_frame_rate = 50;
 
 //==========================================================================
@@ -20,10 +19,10 @@ const auto default_frame_rate = 50;
 class EtherDreamOut: public SimpleElement
 {
 private:
-  Net::EndPoint source, destination;
+  Net::EndPoint destination;
 
   // State
-  unique_ptr<Net::TCPClient> socket;
+  unique_ptr<EtherDream::TCPInterface> etherdream;
 
   // Element virtuals
   void setup(const SetupContext& context) override;
@@ -46,8 +45,8 @@ public:
   // Settings
   Setting<string> host_address;
   Setting<Integer> host_port{EtherDream::default_port};
-  Setting<string> source_address{default_source_address};
   Setting<Integer> frame_rate{default_frame_rate};
+  Setting<Integer> point_rate{EtherDream::Interface::default_point_rate};
 
   // Input
   Input<Frame> input;
@@ -67,13 +66,8 @@ void EtherDreamOut::setup(const SetupContext& context)
   destination = Net::EndPoint(Net::IPAddress(host_address), host_port);
   log.summary << "Creating EtherDream transmitter to " << destination << endl;
 
-  source = Net::EndPoint(Net::IPAddress(source_address), 0);
-  // Bind to local port
-  socket.reset(new Net::TCPClient(source, destination));
-
-  source = socket->local();
-  log.detail << "EtherDream transmitter bound to local address "
-             << source << endl;
+  etherdream.reset(new EtherDream::TCPInterface(destination, point_rate));
+  etherdream->start();
 
   input.set_sample_rate(frame_rate);
 }
@@ -83,24 +77,16 @@ void EtherDreamOut::setup(const SetupContext& context)
 void EtherDreamOut::tick(const TickData& td)
 {
   const auto sample_rate = frame_rate;
-  auto sample_time = td.first_sample_at(sample_rate);
-  const auto sample_duration = td.sample_duration(sample_rate);
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, tie(input), {},
                  [&](const Frame& input)
   {
-    transmit(input, sample_time, sample_rate);
-    sample_time += sample_duration;
+    if (!input.points.empty())
+    {
+      if (etherdream->get_ready())
+        etherdream->send(input.points);
+    }
   });
-}
-
-//--------------------------------------------------------------------------
-// Transmit a frame
-void EtherDreamOut::transmit(const Frame& /*frame*/,
-                             timestamp_t /*timestamp*/,
-                             double /*sample_rate*/)
-{
-  if (!socket) return;
 }
 
 //--------------------------------------------------------------------------
@@ -109,7 +95,7 @@ void EtherDreamOut::shutdown()
 {
   Log::Detail log;
   log << "Shutting down EtherDream transmitter\n";
-  socket.reset();
+  etherdream.reset();
 }
 
 //--------------------------------------------------------------------------
@@ -122,8 +108,8 @@ Dataflow::SimpleModule module
   {
     { "address",         &EtherDreamOut::host_address      },
     { "port",            &EtherDreamOut::host_port         },
-    { "source-address",  &EtherDreamOut::source_address    },
-    { "frame-rate",      &EtherDreamOut::frame_rate        }
+    { "frame-rate",      &EtherDreamOut::frame_rate        },
+    { "point-rate",      &EtherDreamOut::point_rate        }
   },
   {
     { "input",           &EtherDreamOut::input }

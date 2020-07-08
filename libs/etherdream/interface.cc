@@ -27,7 +27,21 @@ bool Interface::get_response()
       if (!last_status.read(receive_buffer))
         return false;
 
-      return response == 'a';  // ACK
+      if (response == 'a') return true;
+
+      Log::Error log;
+      log << "Ether Dream error response: " << response << " - ";
+      switch (response)
+      {
+        case 'F': log << "buffer full"; break;
+        case 'I': log << "invalid"; break;
+        case '!': log << "emergency stop"; break;
+        default: log << "UNKNOWN!";
+      }
+
+      log << endl;
+      last_status.dump(log);
+      return false;
     }
 
     // Get some more
@@ -80,7 +94,6 @@ bool Interface::get_ready()
     if (last_status.light_engine_state == Status::LightEngineState::e_stop)
     {
       log.error << "Ether Dream stuck in e-stop\n";
-      last_status.dump(log.detail);
       return false;
     }
 
@@ -101,7 +114,6 @@ bool Interface::get_ready()
     if (last_status.playback_state == Status::PlaybackState::idle)
     {
       log.error << "Ether Dream stuck in idle\n";
-      last_status.dump(log.detail);
       return false;
     }
 
@@ -118,8 +130,8 @@ bool Interface::send(const vector<Point>& points)
   commands.send(points);
   if (!get_response())
   {
-    Log::Error log;
-    log << "Ether Dream sending points failed\n";
+    Log::Streams log;
+    log.error << "Ether Dream sending points failed\n";
     return false;
   }
 
@@ -138,7 +150,6 @@ bool Interface::send(const vector<Point>& points)
     if (last_status.playback_state != Status::PlaybackState::playing)
     {
       log.error << "Ether Dream won't start playing\n";
-      last_status.dump(log.detail);
       return false;
     }
   }

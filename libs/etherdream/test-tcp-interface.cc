@@ -3,6 +3,9 @@
 //
 // Tests for TCP interface
 //
+// By default tests against an internal fake, but
+// also accepts a hostname for test with a real one
+//
 // Copyright (c) 2020 Paul Clark.  All rights reserved
 //==========================================================================
 
@@ -20,6 +23,9 @@ using namespace ViGraph::Geometry;
 using namespace ObTools;
 using namespace std;
 
+string host{"localhost"};
+int port{7765};
+
 // OK status responses
 const vector<uint8_t> ok_response_idle
 {
@@ -30,6 +36,24 @@ const vector<uint8_t> ok_response_idle
   0,      // protocol
   0,      // light engine state: ready
   0,      // playback state: idle
+  0,      // source: network
+  0, 0,   // light engine flags: none
+  1, 0,   // playback flags: underflow
+  0, 1,   // source flags = 256
+  1, 4,   // buffer fullness = 1025
+  0, 0, 1, 0,  // point rate = 63336
+  0, 0, 0, 1   // point count = 16M
+};
+
+const vector<uint8_t> ok_response_prepared
+{
+  'a',    // ACK
+  0,      // command
+
+  // status:
+  0,      // protocol
+  0,      // light engine state: ready
+  1,      // playback state: prepared
   0,      // source: network
   0, 0,   // light engine flags: none
   1, 0,   // playback flags: underflow
@@ -60,7 +84,16 @@ class FakeDevice: public Net::TCPServer
         log.detail << "Fake server received: '" << s << "'\n";
 
         // Send back a response
-        socket.write(ok_response_idle.data(), ok_response_idle.size());
+        auto response = &ok_response_idle;
+
+        switch (s[0])
+        {
+          case 'p':
+            response = &ok_response_prepared;
+            break;
+        }
+
+        socket.write(response->data(), response->size());
       }
     }
     catch (Net::SocketError se)
@@ -70,17 +103,17 @@ class FakeDevice: public Net::TCPServer
   }
 
 public:
-  static const int default_port = 7765;
-  FakeDevice(): Net::TCPServer(default_port) {}
+  FakeDevice(int _port): Net::TCPServer(_port) {}
 };
 
-TEST(TCPInterfaceTest, test_interface_startup_to_fake)
+TEST(TCPInterfaceTest, test_interface_startup_and_prepare)
 {
-  FakeDevice device;
+  FakeDevice device(port);
   Net::TCPServerThread thread(device);
 
-  TCPInterface intf(Net::EndPoint("localhost", FakeDevice::default_port));
-  ASSERT_TRUE(intf.start());
+  TCPInterface intf(Net::EndPoint(host, port));
+  EXPECT_TRUE(intf.start());
+  EXPECT_TRUE(intf.get_ready());
   device.shutdown();
 }
 
@@ -88,10 +121,16 @@ TEST(TCPInterfaceTest, test_interface_startup_to_fake)
 
 int main(int argc, char **argv)
 {
-  if (argc > 1 && string(argv[1]) == "-v")
+  for(int i=1; i<argc; i++)
   {
-    auto chan_out = new Log::StreamChannel{&cout};
-    Log::logger.connect(chan_out);
+    string arg(argv[i]);
+
+    if (arg == "-v")
+    {
+      auto chan_out = new Log::StreamChannel{&cout};
+      Log::logger.connect(chan_out);
+    }
+    else host = arg;
   }
 
   ::testing::InitGoogleTest(&argc, argv);

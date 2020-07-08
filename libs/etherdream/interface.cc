@@ -41,7 +41,6 @@ bool Interface::get_response()
 bool Interface::start()
 {
   Log::Streams log;
-  log.summary << "Starting Ether Dream interface\n";
 
   if (!get_response())
   {
@@ -57,7 +56,7 @@ bool Interface::start()
     return false;
   }
 
-  log.detail << "Ether Dream connected OK\n";
+  log.detail << "Ether Dream: connected OK\n";
   return true;
 }
 
@@ -84,12 +83,14 @@ bool Interface::get_ready()
       last_status.dump(log.detail);
       return false;
     }
+
+    log.detail << "Ether Dream: e-stop cleared OK\n";
   }
 
   // Check for idle, go prepared
   if (last_status.playback_state == Status::PlaybackState::idle)
   {
-    log.detail << "Ether Dream: Preparing\n";
+    log.detail << "Ether Dream: preparing\n";
     commands.prepare();
     if (!get_response())
     {
@@ -103,6 +104,8 @@ bool Interface::get_ready()
       last_status.dump(log.detail);
       return false;
     }
+
+    log.detail << "Ether Dream: prepared OK\n";
   }
 
   return true;

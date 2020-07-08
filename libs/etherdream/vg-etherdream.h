@@ -172,5 +172,41 @@ class Interface
 };
 
 //==========================================================================
+// TCP Data channel
+class TCPDataChannel: public DataChannel
+{
+  Net::TCPSocket *socket{0};
+
+  void send(const vector<uint8_t>& data) override;
+  size_t receive(vector<uint8_t>&) override;
+
+ public:
+  void set_socket(Net::TCPSocket *s) { socket = s; }
+};
+
+//==========================================================================
+// TCP Interface
+class TCPInterface: public Interface
+{
+  Net::EndPoint device;
+  int timeout;
+  TCPDataChannel tcp_channel;
+  unique_ptr<Net::TCPClient> client;
+
+ public:
+  static const int default_timeout = 5;
+
+  TCPInterface(Net::EndPoint _dev,
+               uint32_t _point_rate = Interface::default_point_rate,
+               int _timeout = default_timeout):
+    Interface(tcp_channel, _point_rate),
+    device(_dev), timeout(_timeout)
+    {}
+
+  // Start the interface
+  bool start() override;
+};
+
+//==========================================================================
 }} //namespaces
 #endif // !__VG_ETHERDREAM_H

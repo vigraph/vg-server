@@ -84,7 +84,21 @@ void EtherDreamOut::tick(const TickData& td)
     if (!input.points.empty())
     {
       if (etherdream->get_ready())
-        etherdream->send(input.points);
+      {
+        auto available = etherdream->get_buffer_points_available();
+        if (input.points.size() <= available)
+        {
+          etherdream->send(input.points);
+        }
+        else
+        {
+          Log::Error log;
+          log << "Etherdream overflow - only " << available
+              << " points available, " << input.points.size()
+              << " to send - frame skipped\n";
+          etherdream->get_last_status().dump(log);
+        }
+      }
     }
   });
 }

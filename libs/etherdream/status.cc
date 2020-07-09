@@ -39,7 +39,7 @@ bool Status::read(vector<uint8_t>& data)
 }
 
 // Dump to channel
-void Status::dump(ostream& out)
+void Status::dump(ostream& out) const
 {
   out << "Status:\n";
   out << "  Light engine: ";

@@ -82,7 +82,7 @@ struct Status
   bool read(vector<uint8_t>& data);
 
   // Dump to channel
-  void dump(ostream& out);
+  void dump(ostream& out) const;
 };
 
 //==========================================================================
@@ -169,6 +169,9 @@ class Interface
 
   // Get last status (for testing)
   const Status& get_last_status() { return last_status; }
+
+  // Get estimate of buffer availability
+  size_t get_buffer_points_available();
 };
 
 //==========================================================================

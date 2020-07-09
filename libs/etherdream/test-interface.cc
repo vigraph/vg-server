@@ -254,6 +254,19 @@ TEST(InterfaceTest, test_sending_points)
   EXPECT_EQ('b', channel.data_received[21]);
 }
 
+TEST(InterfaceTest, test_buffer_points_available_after_startup)
+{
+  TestChannel channel;
+  channel.prime(ok_response_idle);  // Startup 'response'
+  channel.prime(ok_response_idle);  // Ping response
+
+  // Note responses claim 1025 fullness
+
+  Interface intf(channel);
+  ASSERT_TRUE(intf.start());
+  ASSERT_EQ(4000-1025, intf.get_buffer_points_available());
+}
+
 } // anonymous namespace
 
 int main(int argc, char **argv)

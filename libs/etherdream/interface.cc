@@ -157,4 +157,19 @@ bool Interface::send(const vector<Point>& points)
   return true;
 }
 
+// Get estimate of buffer availability
+size_t Interface::get_buffer_points_available()
+{
+  // !!! For now, get up-to-date fullness with a ping
+  commands.ping();
+  get_response();
+
+  // !!! Quantify buffer size with Jacob
+  // !!! Take into account points used since last send
+  // !!! If async, take into account points sent but not acked
+  auto available = 4000 - last_status.buffer_fullness;
+
+  return available;
+}
+
 }} // namespaces

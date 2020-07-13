@@ -46,7 +46,6 @@ public:
   Setting<string> host_address;
   Setting<Integer> host_port{EtherDream::default_port};
   Setting<Integer> frame_rate{default_frame_rate};
-  Setting<Integer> point_rate{EtherDream::Interface::default_point_rate};
 
   // Input
   Input<Frame> input;
@@ -66,7 +65,7 @@ void EtherDreamOut::setup(const SetupContext& context)
   destination = Net::EndPoint(Net::IPAddress(host_address), host_port);
   log.summary << "Creating EtherDream transmitter to " << destination << endl;
 
-  etherdream.reset(new EtherDream::TCPInterface(destination, point_rate));
+  etherdream.reset(new EtherDream::TCPInterface(destination));
   etherdream->start();
 
   input.set_sample_rate(frame_rate);
@@ -88,7 +87,7 @@ void EtherDreamOut::tick(const TickData& td)
         auto available = etherdream->get_buffer_points_available();
         if (input.points.size() <= available)
         {
-          etherdream->send(input.points);
+          etherdream->send(input.points, 1.0/frame_rate);
         }
         else
         {
@@ -121,8 +120,7 @@ Dataflow::SimpleModule module
   {
     { "address",         &EtherDreamOut::host_address      },
     { "port",            &EtherDreamOut::host_port         },
-    { "frame-rate",      &EtherDreamOut::frame_rate        },
-    { "point-rate",      &EtherDreamOut::point_rate        }
+    { "frame-rate",      &EtherDreamOut::frame_rate        }
   },
   {
     { "input",           &EtherDreamOut::input }

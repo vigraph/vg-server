@@ -144,16 +144,13 @@ class Interface
   vector<uint8_t> receive_buffer;
   Status last_status;
   CommandSender commands;
-  uint32_t point_rate;  // Points per second
 
   // Internal
   bool get_response();
 
  public:
-   static const uint32_t default_point_rate = 30000;
-
-   Interface(DataChannel& c, uint32_t _point_rate = default_point_rate):
-     channel(c), commands(c), point_rate(_point_rate) {}
+   Interface(DataChannel& c):
+     channel(c), commands(c) {}
 
   // Start the interface
   // Returns true if initial 'response' received and ping accepted
@@ -164,8 +161,9 @@ class Interface
   bool get_ready();
 
   // Send point data to the interface
+  // duration of this frame in seconds
   // Returns whether data sent successfully
-  bool send(const vector<Point>& points);
+  bool send(const vector<Point>& points, double duration);
 
   // Get last status (for testing)
   const Status& get_last_status() { return last_status; }
@@ -200,9 +198,8 @@ class TCPInterface: public Interface
   static const int default_timeout = 5;
 
   TCPInterface(Net::EndPoint _dev,
-               uint32_t _point_rate = Interface::default_point_rate,
                int _timeout = default_timeout):
-    Interface(tcp_channel, _point_rate),
+    Interface(tcp_channel),
     device(_dev), timeout(_timeout)
     {}
 

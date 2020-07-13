@@ -11,6 +11,8 @@
 
 namespace ViGraph { namespace EtherDream {
 
+static const int min_fullness_for_start = 1500;
+
 // Get response with status as last_status
 // Returns true if OK
 bool Interface::get_response()
@@ -124,10 +126,26 @@ bool Interface::get_ready()
 }
 
 // Send point data to the interface
+// duration of this frame in seconds
 // Returns whether data sent successfully
-bool Interface::send(const vector<Point>& points)
+bool Interface::send(const vector<Point>& points,
+                     double duration)
 {
-  commands.send(points);
+  // Calculate point rate for this period
+  uint32_t point_rate = (uint32_t)(points.size() / duration + 0.5);
+  commands.queue_rate_change(point_rate);
+  if (!get_response())
+  {
+    Log::Streams log;
+    log.error << "Ether Dream queue rate change failed\n";
+    return false;
+  }
+
+  // Check for prepared after status from queue_rate_change
+  get_ready();
+
+  // Send points with rate change
+  commands.send(points, true);
   if (!get_response())
   {
     Log::Streams log;
@@ -135,8 +153,10 @@ bool Interface::send(const vector<Point>& points)
     return false;
   }
 
-  // Check for running, and if not, start it
-  if (last_status.playback_state != Status::PlaybackState::playing)
+  // Check for running, and if not, start it, after allowing buffer to
+  // build up
+  if (last_status.playback_state != Status::PlaybackState::playing
+      && last_status.buffer_fullness >= min_fullness_for_start)
   {
     Log::Streams log;
     log.detail << "Ether Dream: Start playing\n";

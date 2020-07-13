@@ -89,24 +89,6 @@ const vector<uint8_t> ok_response_e_stop
   0, 0, 0, 1   // point count = 16M
 };
 
-const vector<uint8_t> ok_response_playback
-{
-  'a',    // ACK
-  0,      // command
-
-  // status:
-  0,      // protocol
-  0,      // light engine state: ready
-  2,      // playback state: playing
-  0,      // source: network
-  0, 0,   // light engine flags: none
-  0, 0,   // playback flags: none
-  0, 1,   // source flags = 256
-  1, 4,   // buffer fullness = 1025
-  0, 0, 1, 0,  // point rate = 63336
-  0, 0, 0, 1   // point count = 16M
-};
-
 const vector<uint8_t> ok_response_prepared
 {
   'a',    // ACK
@@ -120,7 +102,7 @@ const vector<uint8_t> ok_response_prepared
   0, 0,   // light engine flags: none
   0, 0,   // playback flags: none
   0, 1,   // source flags = 256
-  1, 4,   // buffer fullness = 1025
+  1, 6,   // buffer fullness = 1537 - note allows play start
   0, 0, 1, 0,  // point rate = 63336
   0, 0, 0, 1   // point count = 16M
 };
@@ -237,6 +219,7 @@ TEST(InterfaceTest, test_get_ready_clears_e_stop_and_prepares)
 TEST(InterfaceTest, test_sending_points)
 {
   TestChannel channel;
+  channel.prime(ok_response_prepared);       // After rate change
   channel.prime(ok_response_prepared);       // After send data
   channel.prime(ok_response_playing);        // After start playing
 
@@ -244,14 +227,23 @@ TEST(InterfaceTest, test_sending_points)
   vector<Point> points;
   points.push_back(Point(0,0,Colour::white));
 
-  ASSERT_TRUE(intf.send(points));
+  ASSERT_TRUE(intf.send(points, 0.1));
 
-  ASSERT_EQ(28, channel.data_received.size());
-  EXPECT_EQ('d', channel.data_received[0]);
+  ASSERT_EQ(33, channel.data_received.size());
+  EXPECT_EQ('q', channel.data_received[0]);
+  EXPECT_EQ(10, channel.data_received[1]);  // 10 pps
+  EXPECT_EQ(0, channel.data_received[2]);
+  EXPECT_EQ(0, channel.data_received[3]);
+  EXPECT_EQ(0, channel.data_received[4]);
+  EXPECT_EQ('d', channel.data_received[5]);
   // Assume rest of point data is OK - see test-commands for detailed test
 
   // Check start-playing request
-  EXPECT_EQ('b', channel.data_received[21]);
+  EXPECT_EQ('b', channel.data_received[26]);
+  EXPECT_EQ(10, channel.data_received[29]);  // 10 pps
+  EXPECT_EQ(0, channel.data_received[30]);
+  EXPECT_EQ(0, channel.data_received[31]);
+  EXPECT_EQ(0, channel.data_received[32]);
 }
 
 TEST(InterfaceTest, test_buffer_points_available_after_startup)

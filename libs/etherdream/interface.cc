@@ -167,7 +167,7 @@ size_t Interface::get_buffer_points_available()
   // !!! Quantify buffer size with Jacob
   // !!! Take into account points used since last send
   // !!! If async, take into account points sent but not acked
-  auto available = 4000 - last_status.buffer_fullness;
+  auto available = 3000 - last_status.buffer_fullness;
 
   return available;
 }

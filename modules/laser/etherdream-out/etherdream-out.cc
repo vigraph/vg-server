@@ -96,7 +96,6 @@ void EtherDreamOut::tick(const TickData& td)
           log << "Etherdream overflow - only " << available
               << " points available, " << input.points.size()
               << " to send - frame skipped\n";
-          etherdream->get_last_status().dump(log);
         }
       }
     }

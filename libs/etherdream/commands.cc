@@ -56,7 +56,7 @@ void CommandSender::queue_rate_change(uint32_t point_rate)
 }
 
 // Send data
-void CommandSender::send(const vector<Point>& points)
+void CommandSender::send(const vector<Point>& points, bool change_rate)
 {
   vector<uint8_t> data(3+18*points.size());
   Channel::BlockWriter bw(data);
@@ -66,7 +66,8 @@ void CommandSender::send(const vector<Point>& points)
 
   for(const auto& p: points)
   {
-    bw.write_le_16(0);  // control
+    bw.write_le_16(change_rate?(1<<15):0);  // control
+    change_rate = false;
     bw.write_le_16(static_cast<int16_t>(65535*p.x));
     bw.write_le_16(static_cast<int16_t>(65535*p.y));
     bw.write_le_16(static_cast<uint16_t>(65535*p.c.r));

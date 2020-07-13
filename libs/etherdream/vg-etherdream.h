@@ -119,8 +119,8 @@ class CommandSender
   // Queue rate change
   void queue_rate_change(uint32_t point_rate);
 
-  // Send data
-  void send(const vector<Point>& points);
+  // Send data, with option to send rate change on first point
+  void send(const vector<Point>& points, bool change_rate = false);
 
   // Stop
   void stop_playback();

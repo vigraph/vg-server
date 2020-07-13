@@ -264,7 +264,7 @@ TEST(InterfaceTest, test_buffer_points_available_after_startup)
 
   Interface intf(channel);
   ASSERT_TRUE(intf.start());
-  ASSERT_EQ(4000-1025, intf.get_buffer_points_available());
+  ASSERT_EQ(3000-1025, intf.get_buffer_points_available());
 }
 
 } // anonymous namespace

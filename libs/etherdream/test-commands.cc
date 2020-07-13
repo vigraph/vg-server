@@ -166,6 +166,43 @@ TEST(CommandsTest, test_sending_top_left_rgb)
   EXPECT_EQ(expected, channel.received_data);
 }
 
+TEST(CommandsTest, test_sending_two_points_with_rate_change)
+{
+  TestChannel channel;
+  CommandSender commands(channel);
+  vector<Point> points;
+  points.push_back(Point(0,0,Colour::black));
+  points.push_back(Point(0,0,Colour::white));
+  commands.send(points, true);
+
+  vector<uint8_t> expected
+  {
+    'd', 2, 0,
+    0,0x80, // control with rate change
+    0,0, // x
+    0,0, // y
+    0, 0, // r
+    0, 0, // g
+    0, 0, // b
+    0, 0, // i
+    0, 0, // u1
+    0, 0,  // u2
+
+    0,0, // control, no rate change
+    0,0, // x
+    0,0, // y
+    0xff, 0xff, // r
+    0xff, 0xff, // g
+    0xff, 0xff, // b
+    0, 0, // i
+    0, 0, // u1
+    0, 0  // u2
+  };
+
+  ASSERT_EQ(39, channel.received_data.size());
+  EXPECT_EQ(expected, channel.received_data);
+}
+
 TEST(CommandsTest, test_stop)
 {
   TestChannel channel;

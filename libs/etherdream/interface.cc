@@ -13,6 +13,29 @@ namespace ViGraph { namespace EtherDream {
 
 static const int min_fullness_for_start = 1500;
 
+// Log stats at intervals
+void Interface::log_stats()
+{
+  if (last_status.buffer_fullness > stats.max_fullness)
+    stats.max_fullness = last_status.buffer_fullness;
+  if (last_status.buffer_fullness < stats.min_fullness)
+    stats.min_fullness = last_status.buffer_fullness;
+
+  Time::Stamp now = Time::Stamp::now();
+  if (now - stats.last_log_time >= stats.log_interval)
+  {
+    Log::Detail log;
+    log << "Ether Dream stats: fullness " << last_status.buffer_fullness
+        << " min " << stats.min_fullness
+        << " max " << stats.max_fullness
+        << endl;
+
+    stats.last_log_time = now;
+    stats.max_fullness = 0;
+    stats.min_fullness = UINT16_MAX;
+  }
+}
+
 // Get response with status as last_status
 // Returns true if OK
 bool Interface::get_response()
@@ -29,7 +52,24 @@ bool Interface::get_response()
       if (!last_status.read(receive_buffer))
         return false;
 
-      if (response == 'a') return true;
+      // Log error conditions
+      if (last_status.playback_flags & Status::PlaybackFlags::underflow)
+      {
+        Log::Error log;
+        log << "Ether Dream: Underflow\n";
+      }
+
+      if (last_status.playback_flags & Status::PlaybackFlags::e_stop)
+      {
+        Log::Error log;
+        log << "Ether Dream: E-Stop!\n";
+      }
+
+      if (response == 'a')
+      {
+        log_stats();
+        return true;
+      }
 
       Log::Error log;
       log << "Ether Dream error response: " << response << " - ";

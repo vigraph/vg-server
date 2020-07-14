@@ -6,6 +6,6 @@
 
 NAME    = vg-etherdream
 TYPE    = lib
-DEPENDS = ot-chan ot-net ot-log vg-geometry
+DEPENDS = ot-chan ot-net ot-log ot-time vg-geometry
 
 include_rules

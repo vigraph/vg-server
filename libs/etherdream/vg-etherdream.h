@@ -12,6 +12,7 @@
 
 #include "ot-chan.h"
 #include "ot-net.h"
+#include "ot-time.h"
 #include "vg-geometry.h"
 
 namespace ViGraph { namespace EtherDream {
@@ -145,12 +146,29 @@ class Interface
   Status last_status;
   CommandSender commands;
 
+  // Instrumentation
+  struct Stats
+  {
+    Time::Stamp last_log_time;
+
+    static const int default_log_interval = 10;
+    Time::Duration log_interval{default_log_interval};
+
+    uint16_t max_fullness{0};
+    uint16_t min_fullness{UINT16_MAX};
+  } stats;
+
   // Internal
+  void log_stats();
   bool get_response();
 
  public:
-   Interface(DataChannel& c):
-     channel(c), commands(c) {}
+  Interface(DataChannel& c):
+   channel(c), commands(c) {}
+
+  // Set the stats logging interval
+  void set_stats_log_interval(Time::Duration d)
+  { stats.log_interval = d; }
 
   // Start the interface
   // Returns true if initial 'response' received and ping accepted

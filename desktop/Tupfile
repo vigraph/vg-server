@@ -16,6 +16,7 @@ WINDOWS-DEPENDS = ext-ole32 ext-comctl32 ext-oleaut32 ext-uuid
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0
 REVISION = 1~dev1
+APPNAME  = ViGraph Create Pro
 
 ifdef RELEASE
   CFLAGS += -DDAEMON

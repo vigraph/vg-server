@@ -188,6 +188,9 @@ class Interface
 
   // Get estimate of buffer availability
   size_t get_buffer_points_available();
+
+  // Virtual destructor
+  virtual ~Interface() {}
 };
 
 //==========================================================================

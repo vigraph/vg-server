@@ -2618,7 +2618,6 @@ private:
   Time::Duration start_time;
   uint64_t tick_number{0};
   SetupContext context;
-  bool saving_enabled{false};
 
   //------------------------------------------------------------------------
   // Handle deadlock
@@ -2651,12 +2650,6 @@ public:
   // Set/get the tick interval
   void set_tick_interval(const Time::Duration& d) { tick_interval = d; }
   Time::Duration get_tick_interval() const { return tick_interval; }
-
-  //------------------------------------------------------------------------
-  // Set/get the saving enabled flag
-  bool is_saving_enabled() { return saving_enabled; }
-  void enable_saving() { saving_enabled = true; }
-  void disable_saving() { saving_enabled = false; }
 
   //------------------------------------------------------------------------
   // Set resource directory

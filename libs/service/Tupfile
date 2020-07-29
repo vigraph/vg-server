@@ -7,7 +7,7 @@
 NAME      = vg-service
 TYPE      = lib
 DEPENDS   = ot-soap ot-g2d ot-lib \
-            vg-dataflow vg-json vg-geometry vg-licence vg-compiler \
+            vg-dataflow vg-json vg-geometry vg-compiler \
             ext-pkg-sdl2
 PLATFORMS = posix
 

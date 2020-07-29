@@ -93,7 +93,6 @@ class Server: public MainThreadRunner
 {
   XML::Element config_xml;
   File::Path config_file;
-  string licence_file;
   File::Path graph_file;
   time_t graph_file_time = 0;
 
@@ -136,7 +135,7 @@ class Server: public MainThreadRunner
 public:
   //------------------------------------------------------------------------
   // Constructor
-  Server(const string& _licence_file);
+  Server();
 
   //------------------------------------------------------------------------
   // Get the engine

@@ -1,0 +1,3 @@
+[submodule "obtools"]
+	path = obtools
+	url = git@github.com:sandtreader/obtools.git

@@ -5,7 +5,6 @@
 //==========================================================================
 
 #include "vg-service.h"
-#include "vg-licence.h"
 #include "vg-compiler.h"
 #include "vg-json.h"
 #include <SDL.h>
@@ -16,8 +15,7 @@ const auto default_section = "core";
 
 //--------------------------------------------------------------------------
 // Constructor
-Server::Server(const string& _licence_file):
-  licence_file{_licence_file}
+Server::Server()
 {
 }
 
@@ -34,45 +32,6 @@ void Server::read_config(const XML::Configuration& _config,
 // Prerun function - run with original user (usually root) privileges
 int Server::run_priv()
 {
-  Log::Streams log;
-
-  // Assume the worst
-  auto licenced = false;
-
-  if (licence_file.size())
-  {
-    // Check licence first so logging is at front
-    log.detail << "Reading licence from " << licence_file << endl;
-    Licence::File licence_xml(licence_file, log.error);
-
-    if (licence_xml.check())
-    {
-      if (licence_xml["licensee"].size())
-        log.summary << "Licensed to " << licence_xml["licensee"] << endl;
-      if (licence_xml["purpose"].size())
-        log.summary << licence_xml["purpose"] << endl;
-
-      // Get engine licence element
-      const auto *licence_e = licence_xml.get_component("vg-engine");
-      if (licence_e)
-      {
-        licenced = true;
-
-        if (licence_e->get_child("saving").get_attr_bool("enabled"))
-          engine.enable_saving();
-      }
-    }
-  }
-
-  if (!licenced)
-  {
-    log.error
-      << "===========================================================" << endl
-      << "                No valid licence found" << endl
-      << "    Please contact info@vigraph.com for full licensing" << endl
-      << "===========================================================" << endl;
-    return 666;
-  }
   return 0;
 }
 
@@ -177,8 +136,6 @@ bool Server::configure()
 // Global pre-configuration - called at startup
 int Server::preconfigure()
 {
-  XML::XPathProcessor xpath(config_xml);
-  licence_file = xpath.get_value("licence/@file", licence_file);
   return 0;
 }
 

@@ -5,7 +5,6 @@
 //==========================================================================
 
 #include "vg-service.h"
-#include "vg-licence.h"
 #include "ot-log.h"
 #include "ot-web.h"
 #include "ot-json.h"

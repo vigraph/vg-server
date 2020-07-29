@@ -15,7 +15,6 @@ namespace {
 const auto server_name    = "ViGraph dataflow engine daemon";
 const auto server_version = VERSION;
 
-const auto default_licence = "/etc/vigraph/licence.xml";
 #ifdef DEBUG
 const auto default_config_file = "engine.cfg.xml";
 #else
@@ -29,7 +28,7 @@ const auto pid_file         = "/var/run/vg-engine.pid";
 
 int main(int argc, char **argv)
 {
-  Server server(default_licence);
+  Server server;
   Daemon::Shell shell(server, server_name, server_version,
                       default_config_file, config_file_root,
                       default_log_file, pid_file);

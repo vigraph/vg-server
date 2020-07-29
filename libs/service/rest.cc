@@ -5,7 +5,6 @@
 //==========================================================================
 
 #include "vg-service.h"
-#include "vg-licence.h"
 #include "vg-json.h"
 #include "ot-log.h"
 #include "ot-web.h"
@@ -496,16 +495,6 @@ public:
 // Returns whether request was valid
 bool CombinedURLHandler::handle_get(Web::HTTPMessage& response)
 {
-  // Saving enabled?
-  if (!engine.is_saving_enabled())
-  {
-    Log::Error log;
-    log << "Combined saving disabled\n";
-    response.code = 403;
-    response.reason = "Forbidden";
-    return true;
-  }
-
   Log::Streams log;
   log.detail << "REST Combined: GET" << endl;
 
@@ -621,15 +610,14 @@ bool CombinedURLHandler::handle_request(const Web::HTTPMessage& request,
 
 class VersionURLHandler: public Web::URLHandler
 {
-  Dataflow::Engine& engine;
   bool handle_get(Web::HTTPMessage& response);
   bool handle_request(const Web::HTTPMessage& request,
                       Web::HTTPMessage& response,
                       const SSL::ClientDetails& client);
 
 public:
-  VersionURLHandler(Dataflow::Engine& _engine):
-    URLHandler("/version"), engine(_engine)
+  VersionURLHandler():
+    URLHandler("/version")
   {}
 };
 
@@ -644,7 +632,6 @@ bool VersionURLHandler::handle_get(Web::HTTPMessage& response)
   json.put("major", 2);
   json.put("minor", 0);
   json.put("name", "TBC");
-  json.put("saving", engine.is_saving_enabled());
   response.body = json.str(true);
   return true;
 }
@@ -692,7 +679,7 @@ RESTInterface::RESTInterface(const XML::Element& config,
   http_server->add(new MetaURLHandler(engine));
   http_server->add(new LayoutURLHandler(layout));
   http_server->add(new CombinedURLHandler(engine, layout));
-  http_server->add(new VersionURLHandler(engine));
+  http_server->add(new VersionURLHandler);
 
   // Allow cross-origin fetch from anywhere
   http_server->set_cors_origin();

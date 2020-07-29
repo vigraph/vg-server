@@ -31,7 +31,6 @@ const auto website_url = "http://vigraph.com/";
 const auto copyright_url = "http://localhost:33380/copyright.html";
 const auto application_url = "http://localhost:33380/";
 
-const auto default_licence = "licence.xml";
 const auto default_config = "desktop.cfg.xml";
 const auto config_file_root = "desktop";
 const auto default_log = "desktop.log";
@@ -164,11 +163,10 @@ int main(int argc, char **argv)
                       QStandardPaths::AppConfigLocation).toUtf8().constData()};
   auto data_dir = File::Directory{QStandardPaths::writableLocation(
                       QStandardPaths::AppDataLocation).toUtf8().constData()};
-  auto licence = config_dir.resolve(File::Path{default_licence}).str();
   auto config = config_dir.resolve(File::Path{default_config}).str();
   auto log = data_dir.resolve(File::Path{default_log}).str();
   MT::Semaphore started;
-  Server server(licence, app, started);
+  Server server(app, started);
   Daemon::Shell shell(server, server_name, server_version,
                       config, config_file_root,
                       log, {});

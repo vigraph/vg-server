@@ -40,9 +40,8 @@ private:
 public:
   //------------------------------------------------------------------------
   // Constructor
-  Server(const string& licence_file, QApplication& _app,
-         MT::Semaphore& _started):
-    server{licence_file}, app{_app}, started{_started} {}
+  Server(QApplication& _app, MT::Semaphore& _started):
+    app{_app}, started{_started} {}
 
   //------------------------------------------------------------------------
   // Time to sleep until next tick (microseconds)

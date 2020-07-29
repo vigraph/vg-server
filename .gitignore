@@ -1,0 +1,8 @@
+create-deb.sh
+create-rpm.sh
+create-nsis.sh
+create-wasm.sh
+Tuprules.tup
+Tuprules.lua
+.tup
+build-*

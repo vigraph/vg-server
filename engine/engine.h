@@ -28,7 +28,7 @@ private:
 public:
   //------------------------------------------------------------------------
   // Constructor
-  Server(const string& licence_file): server{licence_file} {}
+  Server() {}
 
   //------------------------------------------------------------------------
   // Time to sleep until next tick (microseconds)

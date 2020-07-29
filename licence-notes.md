@@ -16,13 +16,14 @@ headaches.  Talk to me to see if we can partner commercially on it.
 
 If you want to embed ViGraph in a physical product (say, a laser controller
 or mixing desk), again, you can do it under very strict conditions (you would
-be required to enable users to build and replace the firmware).  But it
+be required to publish any modules you add, and 
+to enable users to build and replace the firmware).  But it
 would probably be much more effective to talk to me about a commercial
 licence and support package.
 
 Paul Clark
 
-[paul@vigraph.com](mailto:paul@vigraph.com)
+[paul@sandtreader.com](mailto:paul@sandtreader.com)
 
 ## External libraries
 
@@ -36,10 +37,10 @@ external library used in modules)
 
 Used in
 
-* `audio/sdl-{in,out}`
-* `audio/wav-in`
-* `bitmap/sdl-out`
-* `bitmap/image-in`
+* `modules/audio/sdl-{in,out}`
+* `modules/audio/wav-in`
+* `modules/bitmap/sdl-out`
+* `modules/bitmap/image-in`
 
 [SDL2](https://www.libsdl.org/) uses the [Zlib licence](https://www.libsdl.org/license.php) which is GPL-compatible.
 
@@ -47,27 +48,27 @@ Used in
 
 Used in
 
-* `audio/alsa-{in,out}`
-* `midi/alsa-{in,out}`
+* `modules/audio/alsa-{in,out}`
+* `modules/midi/alsa-{in,out}`
 
 The [ALSA Project](https://alsa-project.org/) [library](https://github.com/alsa-project/alsa-lib) is under LGPL-2.1, which is GPL-compatible.
 
 ### OLA
 
-Used in `dmx/ola-{in,out}`
+Used in `modules/dmx/ola-{in,out}`
 
 The [Open Lighting Architecture](https://www.openlighting.org/ola/) [library](https://github.com/OpenLightingProject/ola) is under LGPL-2.1 (or later),
 which is GPL-compatible.
 
 ### SoundTouch
 
-Used in `audio/pitch-shift`
+Used in `modules/audio/pitch-shift`
 
 The [SoundTouch](http://soundtouch.surina.net/) [library](https://gitlab.com/soundtouch/soundtouch) is LGPL2.1, which is GPL compatible.
 
 ### Mosquitto
 
-Used in `iot/mqtt-{in,out}`
+Used in `modules/iot/mqtt-{in,out}`
 
 The [Eclipse Mosquitto](https://github.com/eclipse/mosquitto) project has the following [licence](https://github.com/eclipse/mosquitto/blob/master/LICENSE.txt):
 
@@ -103,9 +104,16 @@ copyright owner I am entirely happy for anyone to link the ViGraph
 code with OpenSSL, and as far as I know there is no issue in the other
 direction.
 
+### QT
+
+Used in `desktop` for Windows.
+
+[QT](https://www.qt.io/) is used only to provide the menu and basic 'about' window in the Windows desktop version.  It is [dual-licenced](https://www.qt.io/licensing/) with LGPLv3/GPLv3 for Open Source use, which is obviously fine.  If you want to distribute ViGraph as a
+closed-source product under a commercial licence from me, you will also need to obtain a QT commercial licence.
+
 ### Windows System Libraries
 
-Used in
+Used in Windows build for
 
 * `modules/midi/winmm-{in,out}` (winmm)
 * `obtools/libs/net` (wsock32, iphlpapi)

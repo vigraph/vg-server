@@ -108,7 +108,7 @@ direction.
 
 Used in `desktop` for Windows.
 
-[QT](https://www.qt.io/) is used only to provide the menu and basic 'about' window in the Windows desktop version.  It is [dual-licenced](https://www.qt.io/licensing/) with LGPLv3/GPLv3 for Open Source use, which is obviously fine.  If you want to distribute ViGraph as a
+[QT](https://www.qt.io/) is used only to provide the menu and basic 'about' window in the Windows desktop version.  It is [dual-licensed](https://www.qt.io/licensing/) with LGPLv3/GPLv3 for Open Source use, which is obviously fine.  If you want to distribute ViGraph as a
 closed-source product under a commercial licence from me, you will also need to obtain a QT commercial licence.
 
 ### Windows System Libraries

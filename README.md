@@ -39,14 +39,23 @@ The complete build process is therefore:
         
 ### Dependencies
 
-Building the Linux version requires a standard build system with `clang++`, and `tup`.  The latest Debian (10) & Ubuntu (20.04) have Tup packaged, otherwise you can build it yourself from the [Tup sources](http://gittup.org/tup/).  Why Tup?  It's blindingly fast and intelligent.
+Building the Linux version requires a standard build system with `clang++`, and `tup`.  The latest Debian (10) & Ubuntu (20.04) have Tup packaged, otherwise you can build it yourself from the [Tup sources](http://gittup.org/tup/).
 
 To build all the modules, you will require:
 
 * SDL2 (libsdl2-dev)
 * ALSA (libasound2-dev)
 * OLA (libola-dev)
-* TBC!
+* plus all the [dependencies to build ObTools](https://github.com/sandtreader/obtools/blob/master/README.md#dependencies)
 
+## Contributions
+
+Yes please!
+
+If it's a bug-fix, test or tidy, please just go ahead and send a PR.  If it's anything major, please discuss it with me first...
+
+I ask all contributors to sign a standard, FSF-approved [Contributor License Agreement](http://contributoragreements.org/) to make the project easier to manage.  You can sign it when you generate a PR, or in advance [here](https://cla-assistant.io/vigraph/vg-server).  You only have to do this once for all of ViGraph and ObTools.
+
+Thanks!
 
         

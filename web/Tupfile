@@ -9,6 +9,9 @@ TYPE      = exe
 DEPENDS   = vg-dataflow vg-json ot-lib
 PLATFORMS = web
 
+# File list for packaging - note relative to top level
+WEB-FILES = web/WEB/files
+
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0
 REVISION = 1~dev1

@@ -15,7 +15,6 @@ WINDOWS-DEPENDS = ext-ole32 ext-comctl32 ext-oleaut32 ext-uuid
 
 # File list for packaging - note relative to top level
 WINDOWS-FILES = desktop/WINDOWS/files
-WEB-FILES = desktop/WEB/files
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

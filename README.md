@@ -46,6 +46,8 @@ To build all the modules, you will require:
 * SDL2 (libsdl2-dev)
 * ALSA (libasound2-dev)
 * OLA (libola-dev)
+* Mosquitto (libmosquittopp-dev)
+* QT5 (qt5-default, libqt5webkit5-dev) (for experimental desktop app)
 * plus all the [dependencies to build ObTools](https://github.com/sandtreader/obtools/blob/master/README.md#dependencies)
 
 ## Contributions

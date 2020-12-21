@@ -6,7 +6,8 @@
 
 NAME     = vg-modules-control
 TYPE     = package
-DEPENDS  = vg-module-control-knob
+DEPENDS  = vg-module-control-knob \
+           vg-module-control-slider
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

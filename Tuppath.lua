@@ -47,6 +47,8 @@ function get_dependency_path(name)
     return 'modules/trigger/' .. string.sub(name, 19)
   elseif string.sub(name, 1, 17) == 'vg-module-binary-' then
     return 'modules/binary/' .. string.sub(name, 18)
+  elseif string.sub(name, 1, 18) == 'vg-module-control-' then
+    return 'modules/control/' .. string.sub(name, 19)
 
   elseif string.sub(name, 1, 3) == 'vg-' then
     return 'libs/' .. string.sub(name, 4)

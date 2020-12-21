@@ -1,0 +1,19 @@
+#===========================================================================
+# Tupfile for ViGraph dataflow UI control modules
+#
+# Copyright (c) 2020 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME     = vg-modules-control
+TYPE     = package
+DEPENDS  = vg-module-control-knob
+
+PACKAGE  = $(NAME)
+VERSION  = 2.0.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

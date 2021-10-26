@@ -197,7 +197,7 @@ public:
 
     for(auto i=0; i<nticks; i++)
     {
-      loader.engine.tick(Time::Duration{1+i});
+      loader.engine.tick(Time::Duration{1.0+i});
     }
   }
 };

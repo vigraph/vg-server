@@ -1,0 +1,34 @@
+<!--
+  Configuration file for ViGraph messaging / queue server (vg-nexus)
+
+  Copyright (c) Paul Clark 2021.
+  All rights reserved.
+-->
+
+<nexus>
+  <!-- Logging configuration
+
+       'level' is one of:
+
+         0 - Silence
+         1 - Errors only
+         2 - Session start/stop
+         3 - Details & intermediate changes
+         4 - Debug
+         5 - Everything imaginable
+
+       Production builds are only capable of outputting to level 3
+
+       'file' (default /var/log/vigraph/engine.log) gives log file
+
+       'timestamp' gives strftime(3) format for timestamp prefix.
+       with extensions: %*S = seconds+milliseconds, %*L = log level
+       Plain text can also be added.  If empty, nothing is added
+  -->
+  <log level="2" file="/var/log/vigraph/nexus.log"
+       timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
+
+  <!-- Drop to ordinary user priviledge, special user -->
+  <security user="vigraph" group="vigraph"/>
+
+</nexus>

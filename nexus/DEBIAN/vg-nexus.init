@@ -1,0 +1,41 @@
+#!/bin/sh
+# Start/stop the ViGraph nexus
+
+### BEGIN INIT INFO
+# Provides: vg-nexus
+# Required-Start: $remote_fs $syslog
+# Required-Stop: $remote_fs $syslog
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Description: ViGraph nexus server
+### END INIT INFO
+
+set -e
+test -f /usr/sbin/vg-nexus || exit 0
+
+case "$1" in
+start)
+        echo -n "Starting ViGraph nexus daemon: vg-nexus"
+        start-stop-daemon --start --quiet --pidfile /var/run/vg-nexus.pid --name vg-nexus --startas /usr/sbin/vg-nexus
+        echo "."
+	;;
+
+stop)
+        echo -n "Stopping ViGraph nexus daemon: vg-nexus"
+        start-stop-daemon --stop --retry forever/TERM --oknodo --quiet --pidfile /var/run/vg-nexus.pid --name vg-nexus
+        echo "."
+        ;;
+
+restart|force-reload)
+        echo -n "Restarting ViGraph nexus daemon: vg-nexus"
+        start-stop-daemon --stop --retry forever/TERM --oknodo --quiet --pidfile /var/run/vg-nexus.pid --name vg-nexus
+	sleep 2
+        start-stop-daemon --start --quiet --pidfile /var/run/vg-nexus.pid --name vg-nexus --startas /usr/sbin/vg-nexus
+        echo "."
+        ;;
+
+*)	echo "Usage: /etc/init.d/vg-nexus start|stop|restart|force-reload"
+        exit 1
+        ;;
+esac
+exit 0

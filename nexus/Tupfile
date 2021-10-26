@@ -1,0 +1,20 @@
+#===========================================================================
+# Tupfile for ViGraph nexus messaging / queue server
+#
+# Copyright (c) 2021 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-nexus
+TYPE      = exe
+DEPENDS   = ot-daemon
+PLATFORMS = posix
+
+PACKAGE  = $(NAME)
+VERSION  = 0.1.0
+REVISION = 1~dev1
+
+ifdef RELEASE
+  CFLAGS += -DDAEMON
+endif
+
+include_rules

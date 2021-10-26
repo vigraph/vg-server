@@ -1,0 +1,10 @@
+/var/log/vigraph/nexus.log {
+  rotate 14
+  daily
+  compress
+  delaycompress
+  missingok
+  notifempty
+  copytruncate
+  create 0640 root root
+}

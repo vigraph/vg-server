@@ -8,6 +8,7 @@
 #define __VIGRAPH_NEXUS_H
 
 #include "ot-daemon.h"
+#include "ot-file.h"
 
 namespace ViGraph { namespace Nexus {
 
@@ -21,6 +22,9 @@ using namespace ViGraph;
 // Singleton instance of server-wide state
 class Server: public Daemon::Application
 {
+  XML::Element config_xml;
+  File::Path config_file;
+
 public:
   //------------------------------------------------------------------------
   // Constructor
@@ -32,58 +36,33 @@ public:
 
   //------------------------------------------------------------------------
   // Read settings from configuration
-  void read_config(const XML::Configuration& /*config*/,
-                   const string& /*config_filename*/) override
-  {
-  }
+  void read_config(const XML::Configuration& config,
+                   const string& config_filename) override;
 
-  //------------------------------------------------------------------------
-  // Prerun function for child process
-  int run_priv() override
-  {
-    return 0;
-  }
+  //--------------------------------------------------------------------------
+  // Main setup function
+  int pre_run() override;
 
-  //------------------------------------------------------------------------
-  // Pre main loop function
-  int pre_run() override
-  {
-    return 0;
-  }
-
-  //------------------------------------------------------------------------
+//------------------------------------------------------------------------
   // Main loop iteration function
-  int tick() override
-  {
-    return 0;
-  }
+  int tick() override;
 
   //------------------------------------------------------------------------
   // Global configuration - called only at startup
   // Returns whether successful
-  bool configure()
-  {
-    return 0;
-  }
+  bool configure();
 
   //------------------------------------------------------------------------
   // Global pre-configuration - called at startup
-  int preconfigure() override
-  {
-    return 0;
-  }
+  int preconfigure() override;
 
   //------------------------------------------------------------------------
   // Global re-configuration - called at SIGHUP
-  void reconfigure() override
-  {
-  }
+  void reconfigure() override;
 
   //------------------------------------------------------------------------
   // Clean up
-  void cleanup() override
-  {
-  }
+  void cleanup() override;
 
   //------------------------------------------------------------------------
   // Virtual Destructor

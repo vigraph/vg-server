@@ -6,9 +6,9 @@
 // Copyright (c) 2018-2019 Paul Clark.  All rights reserved
 //==========================================================================
 
+#include "ot-ssl-openssl.h"
 #include "../time-series-module.h"
 #include "ot-web.h"
-#include "ot-ssl-openssl.h"
 
 namespace {
 

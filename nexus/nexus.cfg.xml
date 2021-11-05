@@ -35,7 +35,7 @@
   <queue>
 
     <!-- Time clients get active when they reach the front of the queue -->
-    <active time="1 min"/>
+    <active time="10"/>
 
   </queue>
 

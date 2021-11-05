@@ -41,6 +41,25 @@ int Server::pre_run()
 // Main loop tick
 int Server::tick()
 {
+  Log::Streams log;
+
+  // Check if the currently active client has timed out
+  auto new_active_client_id = client_queue.check_time_up(Time::Stamp::now());
+  if (new_active_client_id != current_active_client_id)
+  {
+    // !!! Send timeout message to the old one (if any)
+
+    current_active_client_id = new_active_client_id;
+    if (current_active_client_id.empty())
+      log.summary << "Gone idle\n";
+    else
+      log.summary << "New active client: " << current_active_client_id << endl;
+  }
+
+  // !!! Send active messages to the active one (if any)
+
+  // !!! Broadcast queue info messages
+
   return 0;
 }
 

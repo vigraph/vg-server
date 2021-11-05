@@ -78,6 +78,7 @@ class Server: public Daemon::Application
 
   // Client queue
   Queue client_queue;
+  string current_active_client_id;
 
 public:
   //------------------------------------------------------------------------

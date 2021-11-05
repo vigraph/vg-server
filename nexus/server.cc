@@ -1,5 +1,7 @@
 //==========================================================================
-// Singleton server object for nexus daemon
+// ViGraph Nexus server: server.cc
+//
+// Singleton server object
 //
 // Copyright (c) 2021 Paul Clark.  All rights reserved
 //==========================================================================
@@ -45,8 +47,27 @@ int Server::tick()
 // Returns whether successful
 bool Server::configure()
 {
+  XML::XPathProcessor config(config_xml);
   Log::Streams log;
   log.summary << "Configuring server permanent state" << endl;
+
+  // Create Web server
+  auto port = config.get_value_int("http/server/@port");
+  if (port)
+  {
+    log.summary << "Creating UI HTTP server on port " << port << endl;
+    auto jwt_secret = config["http/jwt/@secret"];
+    if (!jwt_secret.empty())
+      log.summary << " - requiring JWT authentication\n";
+
+    http_server.reset(new HTTPServer(nullptr /* !!! ssl_ctx.get()*/, port,
+                                     jwt_secret));
+
+    // Background thread to run it
+    http_server_thread.reset(new Net::TCPServerThread(*http_server));
+    http_server_thread->detach();
+  }
+
   reconfigure();
   return true;
 }

@@ -31,4 +31,14 @@
   <!-- Drop to ordinary user priviledge, special user -->
   <security user="vigraph" group="vigraph"/>
 
+  <!-- HTTP server configuration -->
+  <http>
+    <!-- Server port -->
+    <server port="33480"/>
+
+    <!-- JWT secret - if set, authentication is required -->
+    <jwt secret=""/>
+
+  </http>
+
 </nexus>

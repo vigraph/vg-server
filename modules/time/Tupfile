@@ -8,6 +8,7 @@ NAME     = vg-modules-time
 TYPE     = package
 DEPENDS  = vg-module-time-timer     \
            vg-module-time-clock     \
+           vg-module-time-now
 
 PACKAGE  = $(NAME)
 VERSION  = 2.0.0

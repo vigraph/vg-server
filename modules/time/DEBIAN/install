@@ -1,2 +1,3 @@
 clock/vg-module-time-clock.so /usr/lib/vigraph/modules/
 timer/vg-module-time-timer.so /usr/lib/vigraph/modules/
+now/vg-module-time-now.so /usr/lib/vigraph/modules/

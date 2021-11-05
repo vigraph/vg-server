@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph clock now module (current time)
+#
+# Copyright (c) 2021 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-time-now
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib
+
+include_rules

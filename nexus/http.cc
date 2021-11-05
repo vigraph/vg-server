@@ -100,7 +100,7 @@ HTTPServer::HTTPServer(SSL::Context *ssl_ctx,
 //------------------------------------------------------------------------
 // Interface to handle upgraded web socket
 void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
-                                  const SSL::ClientDetails& /* client */,
+                                  const SSL::ClientDetails& client,
                                   SSL::TCPSocket& /* socket */,
                                   Net::TCPStream& stream)
 {
@@ -109,32 +109,63 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
 
   Web::WebSocketServer ws(stream);
 
-  // Register message queue for broadcasts
-  MT::Queue<string> msg_queue;
+  // Register client message queue
+  auto client_id = client.address.str();
+  ClientEntry entry;
   {
-    MT::Lock lock(active_queue_mutex);
-    active_queues.insert(&msg_queue);
+    MT::Lock lock(clients_mutex);
+    clients[client_id] = &entry;
   }
+
+  log.summary << "Registered client " << client_id << endl;
 
   // Thread to read requests from the client
   atomic<bool> closed{false};
-  thread read_thread{[&closed, &ws, &msg_queue]()
+  thread read_thread{[&closed, &ws, &entry]()
   {
     string raw;
     // Loop while reading for valid messages, exit on failure
     while (ws.read(raw))
     {
-      // Ignore for now!
+      istringstream iss(raw);
+      JSON::Parser parser(iss);
+      JSON::Value json;
+      try
+      {
+        json = parser.read_value();
+      }
+      catch (JSON::Exception e)
+      {
+        Log::Error log;
+        log << "Bad JSON: " << e.error << endl;
+        break;
+      }
+
+      const auto& type = json["type"].as_str();
+      if (type == "join")
+      {
+        // !!! Handle join
+      }
+      else if (type == "control")
+      {
+        // !!! Handle control
+      }
+      else
+      {
+        Log::Error log;
+        log << "Unrecognised message type '" << type << "'\n";
+        break;
+      }
     }
 
     closed = true;
     // Wake up the sender
-    msg_queue.send("");
+    entry.msg_queue.send("");
   }};
 
   while (!closed)
   {
-    const string& msg = msg_queue.wait();
+    const string& msg = entry.msg_queue.wait();
     if (msg.empty()) // Shutdown on empty marker
     {
       log.detail << "Shutting down WebSocket UI connection\n";
@@ -152,10 +183,11 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
 
   read_thread.join();
 
-  // Deregister message queue for broadcasts
+  // Deregister client
+  log.summary << "De-registering client " << client_id << endl;
   {
-    MT::Lock lock(active_queue_mutex);
-    active_queues.erase(&msg_queue);
+    MT::Lock lock(clients_mutex);
+    clients.erase(client_id);
   }
 
   log.detail << "WebSocket UI connection closed\n";
@@ -165,10 +197,10 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
 // Shut down
 void HTTPServer::shutdown()
 {
-  // Send empty string to all queues to force shutdown
-  MT::Lock lock(active_queue_mutex);
-  for(auto q: active_queues)
-    q->send("");
+  // Send empty string to all client queues to force shutdown
+  MT::Lock lock(clients_mutex);
+  for(auto& p: clients)
+    p.second->msg_queue.send("");
 
   Web::SimpleHTTPServer::shutdown();
 }

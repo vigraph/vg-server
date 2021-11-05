@@ -21,12 +21,19 @@ using namespace ObTools;
 using namespace ViGraph;
 
 //==========================================================================
+/// Queue entry
+struct ClientEntry
+{
+  MT::Queue<string> msg_queue;
+};
+
+//==========================================================================
 /// REST and Websocket server class
 class HTTPServer: public ObTools::Web::SimpleHTTPServer
 {
-  // Set of active websocket message queues, for broadcast, and mutex on it
-  MT::Mutex active_queue_mutex;
-  set<MT::Queue<string> *> active_queues;
+  // Registered clients
+  MT::Mutex clients_mutex;
+  map<string, ClientEntry *> clients;  // By ID
 
   // Secret for authentication - if empty, none is done
   string jwt_secret;

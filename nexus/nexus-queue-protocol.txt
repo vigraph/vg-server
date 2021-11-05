@@ -1,0 +1,56 @@
+ViGraph Nexus Queue Protocol
+============================
+(c) Paul Clark 2021
+
+Connection is from a UI client to the Nexus server with a WebSocket
+on port 33480 (default).  WS messages are JSON, distinguished with a 'type'
+field.
+
+Note currently assuming only one queue per server but protocol can be
+extended to allow more
+
+Client -> Server
+----------------
+
+Join:  Join a queue
+
+Add this client to the queue
+
+{
+  type: "join"
+}
+
+Control setting
+
+{
+  type: "control"
+  values:
+  {
+    // Control values
+  }
+}
+
+Server -> Client
+----------------
+
+QInfo:  Queue information
+
+{
+  type: "qinfo",
+  position: 3,   // Position in queue = 3 queuing, one active
+  total: 7,      // Number waiting
+  time: 180      // Estimated time (sec) before being served
+}
+
+Active:  Active notification
+
+{
+  type: "active",
+  time: 47       // Time remaining (sec)
+}
+
+Time up notification
+
+{
+  type: "timeup"
+}

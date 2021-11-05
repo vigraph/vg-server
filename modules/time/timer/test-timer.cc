@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/timer/test-timer.cc
+// ViGraph dataflow module: time/timer/test-timer.cc
 //
 // Tests for <timer> control
 //
@@ -13,7 +13,7 @@ class TimerTest: public GraphTester
 public:
   TimerTest()
   {
-    loader.load("./vg-module-core-timer.so");
+    loader.load("./vg-module-time-timer.so");
   }
 };
 
@@ -21,7 +21,7 @@ const auto sample_rate = 100;
 
 TEST_F(TimerTest, TestUnconnectedDoesNotStart)
 {
-  auto& timer = add("core/timer").set("period", 0.5);
+  auto& timer = add("time/timer").set("period", 0.5);
 
   auto finished = vector<Trigger>{};
   auto& sinkf = add_sink(finished, sample_rate);
@@ -45,7 +45,7 @@ TEST_F(TimerTest, TestUnconnectedDoesNotStart)
 
 TEST_F(TimerTest, TestRunAfterStart)
 {
-  auto& timer = add("core/timer").set("period", 0.5);
+  auto& timer = add("time/timer").set("period", 0.5);
 
   auto start_data = vector<Trigger>(100);
   start_data[0] = 1.0;
@@ -74,7 +74,7 @@ TEST_F(TimerTest, TestRunAfterStart)
 
 TEST_F(TimerTest, TestStartThenReset)
 {
-  auto& timer = add("core/timer").set("period", 0.5);
+  auto& timer = add("time/timer").set("period", 0.5);
 
   auto start_data = vector<Trigger>(100);
   start_data[0] = 1.0;
@@ -108,7 +108,7 @@ TEST_F(TimerTest, TestStartThenReset)
 
 TEST_F(TimerTest, TestRunAfterRestart)
 {
-  auto& timer = add("core/timer").set("period", 0.5);
+  auto& timer = add("time/timer").set("period", 0.5);
 
   auto start_data = vector<Trigger>(100);
   start_data[0] = 1.0;

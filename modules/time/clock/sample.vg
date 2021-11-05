@@ -8,12 +8,12 @@ vector/websocket-display
 
 # Control
 beat interval=10 ->start ->c2.start
-clock ->- ->factor
+time/clock ->- ->factor
 multiply ->-
 multiply factor=-0.005 ->-
 add offset=0.25 ->tx.y
 
-c2: clock ->-
+c2: time/clock ->-
 multiply factor=0.08 ->-
 add offset=-0.4 ->tx.x
 

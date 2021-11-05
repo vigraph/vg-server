@@ -1,10 +1,10 @@
 #===========================================================================
-# Tupfile for Vigraph clock core module
+# Tupfile for Vigraph clock time module
 #
-# Copyright (c) 2019 Paul Clark. All rights reserved
+# Copyright (c) 2021 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-core-clock
+NAME    = vg-module-time-clock
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry ot-lib
 

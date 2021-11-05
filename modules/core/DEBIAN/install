@@ -8,7 +8,6 @@ oscillator/vg-module-core-oscillator.so /usr/lib/vigraph/modules/
 compare/vg-module-core-compare.so /usr/lib/vigraph/modules/
 random/vg-module-core-random.so /usr/lib/vigraph/modules/
 log/vg-module-core-log.so /usr/lib/vigraph/modules/
-timer/vg-module-core-timer.so /usr/lib/vigraph/modules/
 interpolator/vg-module-core-interpolator.so /usr/lib/vigraph/modules/
 memory/vg-module-core-memory.so /usr/lib/vigraph/modules/
 switch/vg-module-core-switch.so /usr/lib/vigraph/modules/

@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/clock/test-clock.cc
+// ViGraph dataflow module: time/clock/test-clock.cc
 //
 // Tests for <clock> control
 //
@@ -13,7 +13,7 @@ class ClockTest: public GraphTester
 public:
   ClockTest()
   {
-    loader.load("./vg-module-core-clock.so");
+    loader.load("./vg-module-time-clock.so");
   }
 };
 
@@ -21,7 +21,7 @@ const auto sample_rate = 100;
 
 TEST_F(ClockTest, TestFreeRun)
 {
-  auto& clock = add("core/clock");
+  auto& clock = add("time/clock");
   auto output = vector<Number>{};
   auto& snk = add_sink(output, sample_rate);
   clock.connect("output", snk, "input");
@@ -37,7 +37,7 @@ TEST_F(ClockTest, TestFreeRun)
 
 TEST_F(ClockTest, TestStartConnectedButNotFired)
 {
-  auto& clock = add("core/clock");
+  auto& clock = add("time/clock");
 
   auto start_data = vector<Trigger>(100);
   auto& sts = add_source(start_data);
@@ -56,7 +56,7 @@ TEST_F(ClockTest, TestStartConnectedButNotFired)
 
 TEST_F(ClockTest, TestStartAndRestart)
 {
-  auto& clock = add("core/clock");
+  auto& clock = add("time/clock");
 
   auto start_data = vector<Trigger>(100);
   start_data[0] = 1;
@@ -78,7 +78,7 @@ TEST_F(ClockTest, TestStartAndRestart)
 
 TEST_F(ClockTest, TestStartAndStop)
 {
-  auto& clock = add("core/clock");
+  auto& clock = add("time/clock");
 
   auto start_data = vector<Trigger>(100);
   start_data[25] = 1;

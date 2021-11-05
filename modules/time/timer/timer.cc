@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/timer/timer.cc
+// ViGraph dataflow module: time/timer/timer.cc
 //
 // Control to provide a retriggerable monostable
 //
@@ -86,7 +86,7 @@ Dataflow::SimpleModule module
 {
   "timer",
   "Timer",
-  "core",
+  "time",
   {},
   {
     { "period",    &Timer::period   },

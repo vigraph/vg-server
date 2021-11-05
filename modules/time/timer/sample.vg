@@ -9,7 +9,7 @@ vector/websocket-display
 
 # Control
 beat interval=3 ->start
-timer period=1 active>sw.fraction finished>count.up
+time/timer period=1 active>sw.fraction finished>count.up
 
 sw: switch inputs=2 input1=-0.3 input2=0.3 ->tx.y
 

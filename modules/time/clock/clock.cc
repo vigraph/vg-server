@@ -1,5 +1,5 @@
 //==========================================================================
-// ViGraph dataflow module: core/clock/clock.cc
+// ViGraph dataflow module: time/clock/clock.cc
 //
 // Control to provide a resettable timebase output
 //
@@ -78,7 +78,7 @@ Dataflow::SimpleModule module
 {
   "clock",
   "Clock",
-  "core",
+  "time",
   {},
   {
     { "start",     &Clock::start    },

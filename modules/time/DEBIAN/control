@@ -1,0 +1,14 @@
+Source: vg-modules-time
+Section: Video
+Priority: optional
+Maintainer:  ViGraph Support <support@vigraph.com>
+Build-Depends: debhelper (>= 9)
+Rules-Requires-Root: no
+Standards-Version: 3.9.6
+Homepage: http://www.vigraph.com/
+
+Package: vg-modules-time
+Architecture: any
+Depends: ${shlibs:Depends}, vg-engine
+Description: ViGraph dataflow engine - time modules
+ Time-based modules for the dataflow engine.

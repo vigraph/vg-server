@@ -16,7 +16,6 @@ DEPENDS  = vg-module-core-clone         \
            vg-module-core-compare       \
            vg-module-core-random        \
            vg-module-core-memory        \
-           vg-module-core-timer         \
            vg-module-core-interpolator  \
            vg-module-core-switch        \
            vg-module-core-log

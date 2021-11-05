@@ -84,10 +84,12 @@ bool HTTPServer::check_auth(const Web::HTTPMessage& request,
 
 //------------------------------------------------------------------------
 // Constructor - see ot-web.h SimpleHTTPServer()
-HTTPServer::HTTPServer(SSL::Context *ssl_ctx,
-                       int port, const string& _jwt_secret):
+HTTPServer::HTTPServer(SSL::Context *ssl_ctx, int port,
+                       Queue& _client_queue,
+                       const string& _jwt_secret):
   // Max of 50, no pre-create, backlog 5, timeout 60
   Web::SimpleHTTPServer(ssl_ctx, port, server_ident, 50, 0, 5, 60),
+  client_queue(_client_queue),
   jwt_secret(_jwt_secret)
 {
   // Allow cross-origin fetch from anywhere
@@ -121,7 +123,7 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
 
   // Thread to read requests from the client
   atomic<bool> closed{false};
-  thread read_thread{[&closed, &ws, &entry]()
+  thread read_thread{[this, &closed, &ws, &entry, &client_id, &log]()
   {
     string raw;
     // Loop while reading for valid messages, exit on failure
@@ -136,15 +138,15 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
       }
       catch (JSON::Exception e)
       {
-        Log::Error log;
-        log << "Bad JSON: " << e.error << endl;
+        log.error << "Bad JSON: " << e.error << endl;
         break;
       }
 
       const auto& type = json["type"].as_str();
       if (type == "join")
       {
-        // !!! Handle join
+        log.summary << "Client " << client_id << " joined queue\n";
+        client_queue.add(client_id, Time::Stamp::now());
       }
       else if (type == "control")
       {
@@ -152,8 +154,7 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
       }
       else
       {
-        Log::Error log;
-        log << "Unrecognised message type '" << type << "'\n";
+        log.error << "Unrecognised message type '" << type << "'\n";
         break;
       }
     }
@@ -185,6 +186,7 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
 
   // Deregister client
   log.summary << "De-registering client " << client_id << endl;
+  client_queue.remove(client_id);
   {
     MT::Lock lock(clients_mutex);
     clients.erase(client_id);

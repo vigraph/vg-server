@@ -12,6 +12,7 @@
 #include "ot-daemon.h"
 #include "ot-file.h"
 #include "ot-web.h"
+#include "vg-nexus-queue.h"
 
 namespace ViGraph { namespace Nexus {
 
@@ -35,6 +36,9 @@ class HTTPServer: public ObTools::Web::SimpleHTTPServer
   MT::Mutex clients_mutex;
   map<string, ClientEntry *> clients;  // By ID
 
+  // Client queue
+  Queue& client_queue;
+
   // Secret for authentication - if empty, none is done
   string jwt_secret;
 
@@ -52,6 +56,7 @@ class HTTPServer: public ObTools::Web::SimpleHTTPServer
 public:
   /// Constructor - see ot-web.h SimpleHTTPServer()
   HTTPServer(ObTools::SSL::Context *ssl_ctx, int port,
+             Queue& _client_queue,
              const string& _jwt_secret);
 
   /// Shutdown
@@ -70,6 +75,9 @@ class Server: public Daemon::Application
   // HTTP server & thread
   std::unique_ptr<HTTPServer> http_server;
   std::unique_ptr<ObTools::Net::TCPServerThread> http_server_thread;
+
+  // Client queue
+  Queue client_queue;
 
 public:
   //------------------------------------------------------------------------

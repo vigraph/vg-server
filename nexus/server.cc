@@ -10,6 +10,8 @@
 
 namespace ViGraph { namespace Nexus {
 
+const auto default_active_time{"1 min"};
+
 //--------------------------------------------------------------------------
 // Read settings from configuration
 void Server::read_config(const XML::Configuration& _config,
@@ -51,6 +53,12 @@ bool Server::configure()
   Log::Streams log;
   log.summary << "Configuring server permanent state" << endl;
 
+  // Configure the client queue
+  Time::Duration active_time(config.get_value("queue/active/@time",
+                                              default_active_time));
+  log.detail << "Active time is " << active_time.seconds() << "s\n";
+  client_queue.set_active_time(active_time);
+
   // Create Web server
   auto port = config.get_value_int("http/server/@port");
   if (port)
@@ -61,7 +69,7 @@ bool Server::configure()
       log.summary << " - requiring JWT authentication\n";
 
     http_server.reset(new HTTPServer(nullptr /* !!! ssl_ctx.get()*/, port,
-                                     jwt_secret));
+                                     client_queue, jwt_secret));
 
     // Background thread to run it
     http_server_thread.reset(new Net::TCPServerThread(*http_server));

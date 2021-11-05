@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for ViGraph Nexus Queue library
+#
+# Copyright (c) 2021 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-nexus-queue
+TYPE    = lib
+DEPENDS = ot-json ot-mt ot-time
+
+include_rules

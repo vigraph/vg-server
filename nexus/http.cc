@@ -196,6 +196,18 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
 }
 
 //------------------------------------------------------------------------
+// Send a JSON message to a given client
+void HTTPServer::send(const string& client_id, const JSON::Value& json)
+{
+  MT::Lock lock(clients_mutex);
+  auto p = clients.find(client_id);
+  if (p == clients.end()) return;
+
+  auto client = p->second;
+  client->msg_queue.send(json.str());
+}
+
+//------------------------------------------------------------------------
 // Shut down
 void HTTPServer::shutdown()
 {

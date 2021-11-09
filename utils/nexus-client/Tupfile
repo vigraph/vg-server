@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for ViGraph Nexus test client
+#
+# Copyright (c) 2021 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-nexus-client
+TYPE    = exe
+DEPENDS = ot-web ot-json
+VERSION = 0.0.1
+
+include_rules

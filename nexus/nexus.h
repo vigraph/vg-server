@@ -59,6 +59,9 @@ public:
              Queue& _client_queue,
              const string& _jwt_secret);
 
+  /// Send a JSON message to a given client
+  void send(const string& client_id, const JSON::Value& json);
+
   /// Shutdown
   void shutdown();
 };
@@ -71,6 +74,7 @@ class Server: public Daemon::Application
   // Configuration read from file
   XML::Element config_xml;
   File::Path config_file;
+  Time::Duration update_interval;
 
   // HTTP server & thread
   std::unique_ptr<HTTPServer> http_server;
@@ -79,6 +83,7 @@ class Server: public Daemon::Application
   // Client queue
   Queue client_queue;
   string current_active_client_id;
+  Time::Stamp last_update_time;
 
 public:
   //------------------------------------------------------------------------

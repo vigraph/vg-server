@@ -36,6 +36,9 @@ public:
   // Constructor
   Queue(const Time::Duration& _active_time = {}): active_time(_active_time) {}
 
+  // Get the active time
+  Time::Duration get_active_time() { return active_time; }
+
   // Set the active time
   void set_active_time(const Time::Duration& t) { active_time = t; }
 

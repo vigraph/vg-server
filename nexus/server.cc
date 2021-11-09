@@ -11,6 +11,7 @@
 namespace ViGraph { namespace Nexus {
 
 const auto default_active_time{"1 min"};
+const auto default_update_interval{"1 sec"};
 
 //--------------------------------------------------------------------------
 // Read settings from configuration
@@ -44,10 +45,17 @@ int Server::tick()
   Log::Streams log;
 
   // Check if the currently active client has timed out
-  auto new_active_client_id = client_queue.check_time_up(Time::Stamp::now());
+  auto now = Time::Stamp::now();
+  auto new_active_client_id = client_queue.check_time_up(now);
   if (new_active_client_id != current_active_client_id)
   {
-    // !!! Send timeout message to the old one (if any)
+    // Send timeout message to the old one (if any)
+    if (!current_active_client_id.empty())
+    {
+      JSON::Value timeup(JSON::Value::OBJECT);
+      timeup.set("type", "timeup");
+      http_server->send(current_active_client_id, timeup);
+    }
 
     current_active_client_id = new_active_client_id;
     if (current_active_client_id.empty())
@@ -56,9 +64,37 @@ int Server::tick()
       log.summary << "New active client: " << current_active_client_id << endl;
   }
 
-  // !!! Send active messages to the active one (if any)
+  if (now - last_update_time >= update_interval)
+  {
+    auto time_remaining = client_queue.get_time_remaining(now);
 
-  // !!! Broadcast queue info messages
+    // Send active messages to the active one (if any)
+    if (!current_active_client_id.empty())
+    {
+      JSON::Value active(JSON::Value::OBJECT);
+      active.set("type", "active");
+      active.set("time", time_remaining);
+      http_server->send(current_active_client_id, active);
+    }
+
+    // Send queue info messages to all that are waiting
+    auto waiting = client_queue.get_waiting();
+    auto active_time = client_queue.get_active_time();
+    int position = 1;
+    for(const auto& client_id: waiting)
+    {
+      JSON::Value qinfo(JSON::Value::OBJECT);
+      qinfo.set("type", "qinfo");
+      qinfo.set("position", position);
+      qinfo.set("total", waiting.size());
+      qinfo.set("time", (position-1)*active_time.seconds()
+                        + time_remaining);
+      http_server->send(client_id, qinfo);
+      position++;
+    }
+
+    last_update_time = now;
+  }
 
   return 0;
 }
@@ -77,6 +113,10 @@ bool Server::configure()
                                               default_active_time));
   log.detail << "Active time is " << active_time.seconds() << "s\n";
   client_queue.set_active_time(active_time);
+
+  update_interval = Time::Duration(config.get_value("queue/update/@interval",
+                                                    default_update_interval));
+  log.detail << "Update interval is " << update_interval.seconds() << "s\n";
 
   // Create Web server
   auto port = config.get_value_int("http/server/@port");

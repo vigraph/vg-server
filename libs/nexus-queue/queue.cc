@@ -7,6 +7,7 @@
 //==========================================================================
 
 #include "vg-nexus-queue.h"
+#include <math.h>
 
 namespace ViGraph { namespace Nexus {
 
@@ -59,7 +60,7 @@ int Queue::get_time_remaining(const Time::Stamp& now)
 {
   MT::Lock lock(mutex);
   if (current.empty()) return 0;
-  return (int)(active_time - (now - current_start_time)).seconds();
+  return (int)ceil((active_time - (now - current_start_time)).seconds());
 }
 
 }} // namespaces

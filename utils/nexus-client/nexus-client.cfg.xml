@@ -1,0 +1,40 @@
+<!-- Configuration file for ViGraph Nexus client -->
+<nexus-client>
+  <!-- Logging level:
+
+         0 - Silence
+         1 - Errors only
+         2 - Session start/stop
+         3 - Details & intermediate changes
+         4 - Debug
+         5 - Everything imaginable
+
+       Production builds are only capable of outputting to level 3  -->
+  <log level="3" timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
+
+  <!-- Script to run -->
+  <script>
+
+    <!-- 10 threads -->
+    <replicate copies="10">
+      <log>Starting thread $copy</log>
+      <thread sleep="0">
+	<!-- Scope required to hold independent client IDs -->
+	<scope>
+
+          <open server="localhost:33480"/>
+          <join/>
+
+          <repeat times="5">
+            <wait/>
+          </repeat>
+
+          <close/>
+
+	</scope>
+      </thread>
+    </replicate>
+  </script>
+
+</nexus-client>
+

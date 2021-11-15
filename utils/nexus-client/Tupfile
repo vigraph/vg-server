@@ -6,7 +6,7 @@
 
 NAME    = vg-nexus-client
 TYPE    = exe
-DEPENDS = ot-web ot-json
-VERSION = 0.0.1
+DEPENDS = ot-web ot-json ot-cache ot-script ot-misc
+VERSION = 0.2.0
 
 include_rules

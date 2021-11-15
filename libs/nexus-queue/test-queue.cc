@@ -50,6 +50,25 @@ TEST(QueueTest, second_id_is_queued)
   EXPECT_EQ("foo", q.check_time_up(now));
 }
 
+TEST(QueueTest, repeated_join_is_ignored_when_current)
+{
+  Queue q(Time::Duration(5));
+  Time::Stamp now;
+  q.add("foo", now);
+  q.add("foo", now);
+  EXPECT_TRUE(q.get_waiting().empty());
+}
+
+TEST(QueueTest, repeated_join_is_ignored_when_queued)
+{
+  Queue q(Time::Duration(5));
+  Time::Stamp now;
+  q.add("bar", now);
+  q.add("foo", now);
+  q.add("foo", now);
+  EXPECT_EQ(1, q.get_waiting().size());
+}
+
 TEST(QueueTest, ids_are_timed_out_and_removed)
 {
   Queue q(Time::Duration(5));

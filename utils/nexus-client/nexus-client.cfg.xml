@@ -16,7 +16,7 @@
   <script>
 
     <!-- 10 threads -->
-    <replicate copies="10">
+    <replicate copies="10" spread="5">
       <log>Starting thread $copy</log>
       <thread sleep="0">
 	<!-- Scope required to hold independent client IDs -->
@@ -25,7 +25,7 @@
           <open server="localhost:33480"/>
           <join/>
 
-          <repeat times="5">
+          <repeat times="60">
             <wait/>
           </repeat>
 

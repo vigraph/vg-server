@@ -157,6 +157,9 @@ public:
     auto client_id = con.vars.get_int("client");
     log.detail << "Closing client " << client_id << endl;
 
+    auto client = clients.lookup(client_id);
+    if (client && client->ws) client->ws->close();
+
     clients.remove(client_id);
     return true;
   }

@@ -88,7 +88,7 @@ HTTPServer::HTTPServer(SSL::Context *ssl_ctx, int port,
                        Queue& _client_queue,
                        const string& _jwt_secret):
   // Max of 50, no pre-create, backlog 5, timeout 60
-  Web::SimpleHTTPServer(ssl_ctx, port, server_ident, 50, 0, 5, 60),
+  Web::SimpleHTTPServer(ssl_ctx, port, server_ident, 5, 0, 50, 60),
   client_queue(_client_queue),
   jwt_secret(_jwt_secret)
 {

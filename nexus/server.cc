@@ -132,7 +132,6 @@ bool Server::configure()
 
     // Background thread to run it
     http_server_thread.reset(new Net::TCPServerThread(*http_server));
-    http_server_thread->detach();
   }
 
   reconfigure();
@@ -160,6 +159,11 @@ void Server::cleanup()
 {
   Log::Summary log;
   log << "Shutting down\n";
+
+  if (!!http_server) http_server->shutdown();
+  if (!!http_server_thread) http_server_thread->join();
+  http_server_thread.reset();
+  http_server.reset();
 
   log << "Shutdown complete\n";
 }

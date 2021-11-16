@@ -212,9 +212,11 @@ void HTTPServer::send(const string& client_id, const JSON::Value& json)
 void HTTPServer::shutdown()
 {
   // Send empty string to all client queues to force shutdown
-  MT::Lock lock(clients_mutex);
-  for(auto& p: clients)
-    p.second->msg_queue.send("");
+  {
+    MT::Lock lock(clients_mutex);
+    for(auto& p: clients)
+      p.second->msg_queue.send("");
+  }
 
   Web::SimpleHTTPServer::shutdown();
 }

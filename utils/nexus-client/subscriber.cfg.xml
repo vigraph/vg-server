@@ -1,0 +1,19 @@
+<!-- Configuration file for ViGraph Nexus client - subscriber version -->
+<nexus-client>
+  <log level="3" timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
+
+  <script>
+    <scope>
+      <open server="localhost:33480"/>
+      <subscribe/>
+
+      <repeat>
+        <wait/>
+      </repeat>
+
+      <close/>
+    </scope>
+  </script>
+
+</nexus-client>
+

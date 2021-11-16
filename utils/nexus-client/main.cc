@@ -112,6 +112,39 @@ Init::NewFactory<Script::Action, JoinAction,
                  Script::Action::CP> join_factory;
 
 //==========================================================================
+// Subscribe action
+class SubscribeAction: public Script::SingleAction
+{
+public:
+  using Script::SingleAction::SingleAction;
+
+  //------------------------------------------------------------------------
+  // Run action
+  bool run(Script::Context& con)
+  {
+    int client_id = con.vars.get_int("client");
+
+    Log::Streams log;
+    log.detail << "Subscribing queue on client " << client_id << endl;
+
+    auto client = clients.lookup(client_id);
+    if (client && client->ws)
+    {
+      client->ws->write("{ type: \"subscribe\" }");
+      return true;
+    }
+    else
+    {
+      log.error << "No nexus client for ID '" << client_id << "'\n";
+      return false;
+    }
+  }
+};
+
+Init::NewFactory<Script::Action, SubscribeAction,
+                 Script::Action::CP> subscribe_factory;
+
+//==========================================================================
 // Wait action - wait for a single message
 class WaitAction: public Script::SingleAction
 {
@@ -177,10 +210,11 @@ public:
   // Constructor
   TestLanguage(): Script::BaseLanguage()
   {
-    register_action("open", open_factory);
-    register_action("join", join_factory);
-    register_action("wait", wait_factory);
-    register_action("close", close_factory);
+    register_action("open",      open_factory);
+    register_action("join",      join_factory);
+    register_action("subscribe", subscribe_factory);
+    register_action("wait",      wait_factory);
+    register_action("close",     close_factory);
   }
 };
 

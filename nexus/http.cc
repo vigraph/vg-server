@@ -148,9 +148,17 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
         log.summary << "Client " << client_id << " joined queue\n";
         client_queue.add(client_id, Time::Stamp::now());
       }
+      else if (type == "subscribe")
+      {
+        MT::Lock lock(clients_mutex);
+        subscribers[client_id] = &entry;
+      }
       else if (type == "control")
       {
-        // !!! Handle control
+        // Reflect it to all subscribers
+        MT::Lock lock(clients_mutex);
+        for(auto& p: subscribers)
+          p.second->msg_queue.send(raw);
       }
       else
       {
@@ -190,6 +198,7 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
   {
     MT::Lock lock(clients_mutex);
     clients.erase(client_id);
+    subscribers.erase(client_id);
   }
 
   log.detail << "WebSocket UI connection closed\n";

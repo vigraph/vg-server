@@ -77,7 +77,7 @@ int Server::tick()
       http_server->send(current_active_client_id, active);
     }
 
-    // Send queue info messages to all that are waiting
+    // Send queue info mehssages to all that are waiting
     auto waiting = client_queue.get_waiting();
     auto active_time = client_queue.get_active_time();
     int position = 1;

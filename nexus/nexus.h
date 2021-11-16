@@ -34,7 +34,8 @@ class HTTPServer: public ObTools::Web::SimpleHTTPServer
 {
   // Registered clients
   MT::Mutex clients_mutex;
-  map<string, ClientEntry *> clients;  // By ID
+  map<string, ClientEntry *> clients;      // By ID
+  map<string, ClientEntry *> subscribers;  // By ID
 
   // Client queue
   Queue& client_queue;

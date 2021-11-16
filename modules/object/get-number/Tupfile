@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph object get-number module
+#
+# Copyright (c) 2021 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-object-get-number
+TYPE    = shared
+DEPENDS = vg-dataflow ot-lib
+
+include_rules

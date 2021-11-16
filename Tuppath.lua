@@ -51,6 +51,8 @@ function get_dependency_path(name)
     return 'modules/control/' .. string.sub(name, 19)
   elseif string.sub(name, 1, 15) == 'vg-module-time-' then
     return 'modules/time/' .. string.sub(name, 16)
+  elseif string.sub(name, 1, 17) == 'vg-module-object-' then
+    return 'modules/object/' .. string.sub(name, 18)
 
   elseif string.sub(name, 1, 3) == 'vg-' then
     return 'libs/' .. string.sub(name, 4)

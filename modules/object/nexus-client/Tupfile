@@ -1,0 +1,12 @@
+#===========================================================================
+# Tupfile for Vigraph object Nexus client module
+#
+# Copyright (c) 2021 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME      = vg-module-object-nexus-client
+TYPE      = shared
+DEPENDS   = vg-dataflow ot-log ot-lib ot-web ot-ssl-openssl
+PLATFORMS = posix
+
+include_rules

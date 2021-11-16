@@ -1,0 +1,2 @@
+nexus-client/vg-module-object-nexus-client.so /usr/lib/vigraph/modules
+get-number/vg-module-object-get-number.so /usr/lib/vigraph/modules

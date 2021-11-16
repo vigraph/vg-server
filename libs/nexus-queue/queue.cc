@@ -8,6 +8,7 @@
 
 #include "vg-nexus-queue.h"
 #include <math.h>
+#include <algorithm>
 
 namespace ViGraph { namespace Nexus {
 
@@ -20,7 +21,8 @@ void Queue::add(const string& id, const Time::Stamp& now)
     current = id;
     current_start_time = now;
   }
-  else
+  else if (find(waiting.begin(), waiting.end(), id) == waiting.end()
+           && id != current)
     waiting.push_back(id);
 }
 

@@ -1,0 +1,27 @@
+<!--
+  Configuration file for ViGraph engine, Nexus client test
+
+  Copyright (c) Paul Clark 2021. All rights reserved.
+-->
+
+<engine>
+  <log level="3" file="engine.log"
+       timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
+
+  <resources>
+    <directory path="." />
+  </resources>
+
+  <modules>
+    <directory path="../../build-debug/modules/"/>
+  </modules>
+
+  <graph file="nexus-client-test.vg"/>
+
+  <rest>
+    <http port="33381"/>
+    <url prefix="/"/>
+    <layout file="layout.json"/>
+  </rest>
+
+</engine>

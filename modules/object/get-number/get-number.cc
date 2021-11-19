@@ -13,6 +13,8 @@ namespace {
 class GetNumber: public SimpleElement
 {
 private:
+  Number last_value{0};
+
   // Element virtuals
   void tick(const TickData& td) override;
 
@@ -44,9 +46,9 @@ void GetNumber::tick(const TickData& td)
                  [&](const string& property, const Data& input, Number& output)
   {
     if (input.json.type == JSON::Value::OBJECT)
-      output = input.json[property].as_float();
+      output = last_value = input.json[property].as_float(last_value);
     else
-      output = 0;
+      output = last_value;
   });
 }
 

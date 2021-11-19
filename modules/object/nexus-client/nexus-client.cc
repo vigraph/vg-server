@@ -9,26 +9,40 @@
 #include "ot-ssl-openssl.h"
 #include "../object-module.h"
 #include "ot-web.h"
+#include <thread>
+#include <sstream>
 
 namespace {
 
 const auto user_agent("ViGraph Nexus client/0.1");
-const auto fetch_timeout{5};
 
 //==========================================================================
 // Nexus client
 class NexusClient: public SimpleElement
 {
 private:
+  unique_ptr<Web::HTTPClient> http;
+  unique_ptr<Web::WebSocketServer> ws;
+  MT::Mutex last_json_mutex;
+  JSON::Value last_json{JSON::Value::OBJECT};
+  atomic<bool> stop_fetch_thread{false};
+  unique_ptr<thread> fetch_thread;
+
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
   void tick(const TickData& td) override;
+
+  // Internal
+  bool reconnect();
 
   // Clone
   NexusClient *create_clone() const override
   {
     return new NexusClient{module};
   }
+
+  // Destructor
+  ~NexusClient();
 
 public:
   using SimpleElement::SimpleElement;
@@ -41,17 +55,87 @@ public:
 };
 
 //--------------------------------------------------------------------------
+// (Re)connect the WebSocket
+bool NexusClient::reconnect()
+{
+  Log::Streams log;
+  log.detail << "Connecting to Nexus at " << url << endl;
+
+  Web::URL wurl(url);
+  SSL_OpenSSL::Context ssl;
+  ws.reset();
+  http.reset(new Web::HTTPClient(wurl, &ssl, user_agent));
+
+  Net::TCPStream *stream;
+  auto rc = http->open_websocket(Web::URL("/"), stream);
+  if (rc != 101)
+  {
+    log.error << "Can't open Websocket at " << url << endl;
+    http.reset();
+    return false;
+  }
+
+  ws.reset(new Web::WebSocketServer(*stream));
+
+  // Subscribe
+  JSON::Value subscribe(JSON::Value::OBJECT);
+  subscribe.set("type", "subscribe");
+  ws->write(subscribe.str());
+
+  return true;
+}
+
+//--------------------------------------------------------------------------
 // Setup
 void NexusClient::setup(const SetupContext& context)
 {
   SimpleElement::setup(context);
 
-  Log::Streams log;
-  Web::URL wurl(url);
-  SSL_OpenSSL::Context ssl;
-  Web::HTTPClient client(wurl, &ssl, user_agent, fetch_timeout, fetch_timeout);
-  string body;
-  log.detail << "Fetching data from " << wurl << endl;
+  // Set up websocket
+  // Don't worry if it fails, the thread will pick this up and retry
+  reconnect();
+
+  // Start the thread to read messages
+  fetch_thread.reset(new thread([this]
+  {
+    while (!stop_fetch_thread)
+    {
+      string msg;
+      if (!ws || !ws->read(msg))
+      {
+        if (stop_fetch_thread) break;
+
+        // Wait then reconnect
+        this_thread::sleep_for(1s);
+        reconnect();
+        continue;
+      }
+
+      istringstream iss(msg);
+      JSON::Parser parser(iss);
+      JSON::Value json;
+      try
+      {
+        json = parser.read_value();
+      }
+      catch (JSON::Exception e)
+      {
+        Log::Error log;
+        log << "Bad JSON: " << e.error << endl;
+        continue;
+      }
+
+      if (json["type"].as_str() == "control")
+      {
+        const auto& values = json["values"];
+        if (values.type == JSON::Value::OBJECT)
+        {
+          MT::Lock lock(last_json_mutex);
+          last_json = values;
+        }
+      }
+    }
+  }));
 }
 
 //--------------------------------------------------------------------------
@@ -62,8 +146,18 @@ void NexusClient::tick(const TickData& td)
   sample_iterate(td, nsamples, {}, {}, tie(output),
                  [&](Data& output)
   {
-    output.json = JSON::Value(JSON::Value::OBJECT);
+    MT::Lock lock(last_json_mutex);
+    output.json = last_json;
   });
+}
+
+//--------------------------------------------------------------------------
+// Destructor - stop thread and close WebSocket
+NexusClient::~NexusClient()
+{
+  if (!!ws) ws->close();
+  stop_fetch_thread = true;
+  if (!!fetch_thread) fetch_thread->join();
 }
 
 //--------------------------------------------------------------------------

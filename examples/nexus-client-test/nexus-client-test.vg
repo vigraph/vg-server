@@ -1,0 +1,34 @@
+# ViGraph script for testing Nexus client module
+
+object/nexus-client url="http://localhost:33480"
+  ->gethue.-
+  ->getsat.-
+  ->getspeed.-
+
+gethue: object/get-number property="hue" ->loghue.- ->colour.h
+getsat: object/get-number property="saturation" ->logsat.- ->colour.s
+getspeed: object/get-number property="speed" ->logspeed.- ->speed.factor
+
+
+loghue: log text="Hue: "
+logsat: log text="Saturation: "
+logspeed: log text="Speed: "
+logperiod: log text="Period: "
+
+
+# Base colour
+bitmap/rectangle width=100 height=10 ->fill.-
+colour: colour/hsl ->colour
+fill: bitmap/fill ->ws.-
+
+#Spark
+maths/add offset=0.5 ->-
+speed: maths/divide ->period ->logperiod.-
+oscillator wave="saw" ->-
+maths/subtract offset=0.5 ->tx.x
+
+bitmap/rectangle width=10 height=10 ->-
+tx: bitmap/translate ->ws.-
+
+
+ws: bitmap/websocket-display width=100 height=10 frame-rate=25

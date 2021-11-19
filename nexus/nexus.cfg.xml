@@ -35,7 +35,7 @@
   <queue>
 
     <!-- Time clients get active when they reach the front of the queue -->
-    <active time="10"/>
+    <active time="60"/>
 
     <!-- How often we send queue status / active status updates -->
     <update interval="1"/>

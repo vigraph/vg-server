@@ -49,6 +49,7 @@ public:
 
   // Settings
   Setting<string> url;
+  Setting<string> resource;
 
   // Output
   Output<Data> output;
@@ -80,6 +81,7 @@ bool NexusClient::reconnect()
   // Subscribe
   JSON::Value subscribe(JSON::Value::OBJECT);
   subscribe.set("type", "subscribe");
+  if (!resource.empty()) subscribe.set("resource", resource);
   ws->write(subscribe.str());
 
   return true;

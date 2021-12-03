@@ -23,7 +23,7 @@
 	<scope>
 
           <open server="localhost:33480"/>
-          <join/>
+          <join resource="test"/>
 
           <repeat times="60">
             <wait/>

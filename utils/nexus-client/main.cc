@@ -89,15 +89,20 @@ public:
   // Run action
   bool run(Script::Context& con)
   {
-    int client_id = con.vars.get_int("client");
+    const auto& resource = xml.get_attr("resource", "default");
+    auto client_id = con.vars.get_int("client");
 
     Log::Streams log;
-    log.detail << "Joining queue on client " << client_id << endl;
+    log.detail << "Joining queue for resource " << resource
+               << " on client " << client_id << endl;
 
     auto client = clients.lookup(client_id);
     if (client && client->ws)
     {
-      client->ws->write("{ type: \"join\" }");
+      JSON::Value msg(JSON::Value::OBJECT);
+      msg.set("type", "join");
+      msg.set("resource", resource);
+      client->ws->write(msg.str());
       return true;
     }
     else
@@ -122,15 +127,20 @@ public:
   // Run action
   bool run(Script::Context& con)
   {
-    int client_id = con.vars.get_int("client");
+    const auto& resource = xml.get_attr("resource", "default");
+    auto client_id = con.vars.get_int("client");
 
     Log::Streams log;
-    log.detail << "Subscribing queue on client " << client_id << endl;
+    log.detail << "Subscribing for resource " << resource
+               << " on client " << client_id << endl;
 
     auto client = clients.lookup(client_id);
     if (client && client->ws)
     {
-      client->ws->write("{ type: \"subscribe\" }");
+      JSON::Value msg(JSON::Value::OBJECT);
+      msg.set("type", "subscribe");
+      msg.set("resource", resource);
+      client->ws->write(msg.str());
       return true;
     }
     else

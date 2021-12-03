@@ -5,7 +5,7 @@
   <script>
     <scope>
       <open server="localhost:33480"/>
-      <subscribe/>
+      <subscribe resource="test"/>
 
       <repeat>
         <wait/>

@@ -29,16 +29,26 @@ struct ClientEntry
 };
 
 //==========================================================================
+/// Individual resource
+struct Resource
+{
+  Queue queue;
+  map<string, ClientEntry *> subscribers;  // By client ID
+  string current_active_client_id;
+  Time::Stamp last_update_time;
+};
+
+//==========================================================================
 /// REST and Websocket server class
 class HTTPServer: public ObTools::Web::SimpleHTTPServer
 {
   // Registered clients
   MT::Mutex clients_mutex;
   map<string, ClientEntry *> clients;      // By ID
-  map<string, ClientEntry *> subscribers;  // By ID
 
-  // Client queue
-  Queue& client_queue;
+  // Resources
+  map<string, shared_ptr<Resource>>& resources;
+  Time::Duration active_time;
 
   // Secret for authentication - if empty, none is done
   string jwt_secret;
@@ -54,10 +64,13 @@ class HTTPServer: public ObTools::Web::SimpleHTTPServer
                   Web::HTTPMessage& response,
                   const SSL::ClientDetails& client);
 
+  shared_ptr<Resource>& ensure_resource(const string& resource_id);
+
 public:
   /// Constructor - see ot-web.h SimpleHTTPServer()
   HTTPServer(ObTools::SSL::Context *ssl_ctx, int port,
-             Queue& _client_queue,
+             map<string, shared_ptr<Resource>>& _resources,
+             Time::Duration _active_time,
              const string& _jwt_secret);
 
   /// Send a JSON message to a given client
@@ -81,10 +94,8 @@ class Server: public Daemon::Application
   std::unique_ptr<HTTPServer> http_server;
   std::unique_ptr<ObTools::Net::TCPServerThread> http_server_thread;
 
-  // Client queue
-  Queue client_queue;
-  string current_active_client_id;
-  Time::Stamp last_update_time;
+  // Resources, by resource ID
+  map<string, shared_ptr<Resource>> resources;
 
 public:
   //------------------------------------------------------------------------

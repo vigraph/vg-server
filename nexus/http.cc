@@ -85,11 +85,12 @@ bool HTTPServer::check_auth(const Web::HTTPMessage& request,
 //------------------------------------------------------------------------
 // Constructor - see ot-web.h SimpleHTTPServer()
 HTTPServer::HTTPServer(SSL::Context *ssl_ctx, int port,
-                       Queue& _client_queue,
+                       map<string, shared_ptr<Resource>>& _resources,
+                       Time::Duration _active_time,
                        const string& _jwt_secret):
   // Max of 50, no pre-create, backlog 5, timeout 60
   Web::SimpleHTTPServer(ssl_ctx, port, server_ident, 5, 0, 50, 60),
-  client_queue(_client_queue),
+  resources(_resources), active_time(_active_time),
   jwt_secret(_jwt_secret)
 {
   // Allow cross-origin fetch from anywhere
@@ -97,6 +98,19 @@ HTTPServer::HTTPServer(SSL::Context *ssl_ctx, int port,
 
   // Enable WebSocket
   enable_websocket();
+}
+
+//------------------------------------------------------------------------
+// Ensure a resource exists
+shared_ptr<Resource>& HTTPServer::ensure_resource(const string& resource_id)
+{
+  shared_ptr<Resource>& resource = resources[resource_id];
+  if (!resource)
+  {
+    resource.reset(new Resource);
+    resource->queue.set_active_time(active_time);
+  }
+  return resource;
 }
 
 //------------------------------------------------------------------------
@@ -126,6 +140,8 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
   thread read_thread{[this, &closed, &ws, &entry, &client_id, &log]()
   {
     string raw;
+    string resource_id{"default"};
+
     // Loop while reading for valid messages, exit on failure
     while (ws.read(raw))
     {
@@ -145,20 +161,31 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
       const auto& type = json["type"].as_str();
       if (type == "join")
       {
-        log.summary << "Client " << client_id << " joined queue\n";
-        client_queue.add(client_id, Time::Stamp::now());
+        resource_id = json["resource"].as_str("default");
+        log.summary << "Client " << client_id << " joined queue on resource "
+                    << resource_id << endl;
+        auto& resource = ensure_resource(resource_id);
+        resource->queue.add(client_id, Time::Stamp::now());
       }
       else if (type == "subscribe")
       {
+        const auto& resource_id = json["resource"].as_str("default");
+        log.summary << "Client " << client_id << " subscribed to resource "
+                    << resource_id << endl;
         MT::Lock lock(clients_mutex);
-        subscribers[client_id] = &entry;
+        auto& resource = ensure_resource(resource_id);
+        resource->subscribers[client_id] = &entry;
       }
       else if (type == "control")
       {
-        // Reflect it to all subscribers
-        MT::Lock lock(clients_mutex);
-        for(auto& p: subscribers)
-          p.second->msg_queue.send(raw);
+        // Reflect it to all subscribers on current resource
+        // !!! Check we are the current head of queue!
+        if (!!resources[resource_id])
+        {
+          MT::Lock lock(clients_mutex);
+          for(auto& p: resources[resource_id]->subscribers)
+            p.second->msg_queue.send(raw);
+        }
       }
       else
       {
@@ -194,11 +221,17 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
 
   // Deregister client
   log.summary << "De-registering client " << client_id << endl;
-  client_queue.remove(client_id);
   {
     MT::Lock lock(clients_mutex);
     clients.erase(client_id);
-    subscribers.erase(client_id);
+    for(auto& p: resources)
+    {
+      if (!!p.second)
+      {
+        p.second->queue.remove(client_id);
+        p.second->subscribers.erase(client_id);
+      }
+    }
   }
 
   log.detail << "WebSocket UI connection closed\n";

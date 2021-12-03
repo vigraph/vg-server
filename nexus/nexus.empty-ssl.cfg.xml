@@ -53,21 +53,7 @@
   </http>
 
   <!-- SSL configuration - if enabled, http server goes https -->
-  <ssl enabled="no">
-
-    <!-- Certificate in PEM format -->
-    <certificate>
-      -----BEGIN CERTIFICATE-----
-        == PEM format certificate goes here! ==
-      -----END CERTIFICATE-----
-    </certificate>
-
-    <!-- Private key in PEM format -->
-    <private-key encrypted="no">
-      -----BEGIN RSA PRIVATE KEY-----
-        == PEM format private key goes here! ==
-      -----END RSA PRIVATE KEY-----
-    </private-key>
+  <ssl enabled="yes">
 
   </ssl>
 </nexus>

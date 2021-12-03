@@ -6,7 +6,7 @@
 
 NAME      = vg-nexus
 TYPE      = exe
-DEPENDS   = ot-daemon ot-web vg-nexus-queue
+DEPENDS   = ot-daemon ot-web ot-ssl-openssl vg-nexus-queue
 PLATFORMS = posix
 
 PACKAGE  = $(NAME)

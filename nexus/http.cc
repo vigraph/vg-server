@@ -22,7 +22,7 @@ namespace
 // Check Authorization JWT
 bool HTTPServer::check_auth(const Web::HTTPMessage& request,
                             Web::HTTPMessage& /*response*/,
-                            const SSL::ClientDetails& /*client*/)
+                            const ObTools::SSL::ClientDetails& /*client*/)
 {
   // If no secret, leave it open
   if (jwt_secret.empty()) return true;
@@ -84,7 +84,7 @@ bool HTTPServer::check_auth(const Web::HTTPMessage& request,
 
 //------------------------------------------------------------------------
 // Constructor - see ot-web.h SimpleHTTPServer()
-HTTPServer::HTTPServer(SSL::Context *ssl_ctx, int port,
+HTTPServer::HTTPServer(ObTools::SSL::Context *ssl_ctx, int port,
                        map<string, shared_ptr<Resource>>& _resources,
                        Time::Duration _active_time,
                        const string& _jwt_secret):
@@ -116,8 +116,8 @@ shared_ptr<Resource>& HTTPServer::ensure_resource(const string& resource_id)
 //------------------------------------------------------------------------
 // Interface to handle upgraded web socket
 void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
-                                  const SSL::ClientDetails& client,
-                                  SSL::TCPSocket& /* socket */,
+                                  const ObTools::SSL::ClientDetails& client,
+                                  ObTools::SSL::TCPSocket& /* socket */,
                                   Net::TCPStream& stream)
 {
   Log::Streams log;

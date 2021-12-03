@@ -133,7 +133,7 @@ bool Server::configure()
     if (!jwt_secret.empty())
       log.summary << " - requiring JWT authentication\n";
 
-    http_server.reset(new HTTPServer(nullptr /* !!! ssl_ctx.get()*/, port,
+    http_server.reset(new HTTPServer(ssl_ctx.get(), port,
                                      resources, active_time, jwt_secret));
 
     // Background thread to run it
@@ -148,6 +148,17 @@ bool Server::configure()
 // Global pre-configuration - called at startup
 int Server::preconfigure()
 {
+  XML::XPathProcessor config(config_xml);
+
+  // Create SSL context, if required
+  XML::Element *ssl_e = config.get_element("ssl");
+  if (ssl_e && ssl_e->get_attr_bool("enabled"))
+  {
+    Log::Summary log;
+    log << "Enabling HTTPS\n";
+    ssl_ctx.reset(SSL_OpenSSL::Context::create(*ssl_e));
+  }
+
   return 0;
 }
 

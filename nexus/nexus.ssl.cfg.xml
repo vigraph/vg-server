@@ -1,0 +1,193 @@
+<!--
+  Configuration file for ViGraph messaging / queue server (vg-nexus)
+
+  Copyright (c) Paul Clark 2021.
+  All rights reserved.
+-->
+
+<nexus>
+  <!-- Logging configuration
+
+       'level' is one of:
+
+         0 - Silence
+         1 - Errors only
+         2 - Session start/stop
+         3 - Details & intermediate changes
+         4 - Debug
+         5 - Everything imaginable
+
+       Production builds are only capable of outputting to level 3
+
+       'file' (default /var/log/vigraph/engine.log) gives log file
+
+       'timestamp' gives strftime(3) format for timestamp prefix.
+       with extensions: %*S = seconds+milliseconds, %*L = log level
+       Plain text can also be added.  If empty, nothing is added
+  -->
+  <log level="3" file="/var/log/vigraph/nexus.log"
+       timestamp="%a %d %b %H:%M:%*S [%*L]: "/>
+
+  <!-- Drop to ordinary user priviledge, special user -->
+  <security user="vigraph" group="vigraph"/>
+
+  <!-- Queue configuration -->
+  <queue>
+
+    <!-- Time clients get active when they reach the front of the queue -->
+    <active time="60"/>
+
+    <!-- How often we send queue status / active status updates -->
+    <update interval="1"/>
+
+  </queue>
+
+  <!-- HTTP server configuration -->
+  <http>
+    <!-- Server port -->
+    <server port="33480"/>
+
+    <!-- JWT secret - if set, authentication is required -->
+    <jwt secret=""/>
+
+  </http>
+
+  <!-- SSL configuration - if enabled, http server goes https -->
+  <ssl enabled="yes">
+
+    <!-- Certificates in PEM format -->
+    <certificate>
+-----BEGIN CERTIFICATE-----
+MIIFQTCCBCmgAwIBAgISA4RTgkjYQ5LL8rtPBSlA+oR4MA0GCSqGSIb3DQEBCwUA
+MDIxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQD
+EwJSMzAeFw0yMTEyMDMxNDA5NDRaFw0yMjAzMDMxNDA5NDNaMCkxJzAlBgNVBAMT
+Hm5leHVzLmdyZWVud2F2ZWludGVyYWN0aXZlLmNvbTCCASIwDQYJKoZIhvcNAQEB
+BQADggEPADCCAQoCggEBAKBtKY+uV93teSYDM05wDG8/1D4q54tdSUn7i1fPZ33l
+tjF8ob6BrhJyJJdzBsDIILSHdN4MGd4VFuPAtdCy/C9u5gxkAAYb/EfT0lcpmRz7
+xZ3GYJ756Wxf4pnhwNISOZTVzeUR1t8NLrDyImdlFaBa/68OBaV3syXSSihQ84bU
+Gf8De4ehYcUYZ+h9L3DJ47wsaWCxLAncCZ/HobYP5EjPN3LfC8l49wO7i7xphtad
+4ZX/YNkGSmSytVmg4pycSghDKKkQ4TZtEzPJNFYM+Nom9d5187NOReMDN8oreDex
+rMIUZgos6aOoYlBEzXvj+cBaV4WiaQqZnVdGhSu00FMCAwEAAaOCAlgwggJUMA4G
+A1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDAYD
+VR0TAQH/BAIwADAdBgNVHQ4EFgQUkKIVdYoqt9lZUWp4GNxU0+zHiVgwHwYDVR0j
+BBgwFoAUFC6zF7dYVsuuUAlA5h+vnYsUwsYwVQYIKwYBBQUHAQEESTBHMCEGCCsG
+AQUFBzABhhVodHRwOi8vcjMuby5sZW5jci5vcmcwIgYIKwYBBQUHMAKGFmh0dHA6
+Ly9yMy5pLmxlbmNyLm9yZy8wKQYDVR0RBCIwIIIebmV4dXMuZ3JlZW53YXZlaW50
+ZXJhY3RpdmUuY29tMEwGA1UdIARFMEMwCAYGZ4EMAQIBMDcGCysGAQQBgt8TAQEB
+MCgwJgYIKwYBBQUHAgEWGmh0dHA6Ly9jcHMubGV0c2VuY3J5cHQub3JnMIIBAwYK
+KwYBBAHWeQIEAgSB9ASB8QDvAHYAQcjKsd8iRkoQxqE6CUKHXk4xixsD6+tLx2jw
+kGKWBvYAAAF9gNgWngAABAMARzBFAiAsPninotYzFR0r4FHAZIm97XBFLejs9/Vj
+zbFEvtQ8+AIhAMWSOTRpaLaHp7+V4XJ/9UuxOms4t4bCh/x9d0lUJubtAHUARqVV
+63X6kSAwtaKJafTzfREsQXS+/Um4havy/HD+bUcAAAF9gNgWuwAABAMARjBEAiBV
+GMTRy1Pf9G7ff2lty+5anAOu4F01BEahuyfdB1pRhQIgOTbqWdHrrcwUz4PMb2gA
+32Zpb+EcXrrRJmhd7fDFaSEwDQYJKoZIhvcNAQELBQADggEBAFahnssyuhM/WcRm
+y3ObCJcXObczIAFCKfwVnn251YwTB+sIkpmXF8vBPwQtiiD0v2b63B/luYIvCymu
+bYG96Q5CsXPYXCvSHJpqkf0FtjezgZjkkz6K50x6Wz0N6H6CamhOuMGaQk6uJlR5
+f8baL4eNjZOVk+MAoXzeTqcIs9+nttA3BbzR2NE4PG9KLFBkQ3tUknIBqdqYt8Wh
+BWo5IxnNAWDZv2RsGJnyUDUCATnoL4GrRubdG0f5V6ij76P6IwrayAzNw6n7py1o
+tkIUmTwxjpi493yCqnXPtR5LPNR0J2Rdd3aohmR9yrIrGlVNxWvnb/MNQq7VqPc0
+jde1mUc=
+-----END CERTIFICATE-----
+    </certificate>
+
+    <certificate>
+-----BEGIN CERTIFICATE-----
+MIIFFjCCAv6gAwIBAgIRAJErCErPDBinU/bWLiWnX1owDQYJKoZIhvcNAQELBQAw
+TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh
+cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMjAwOTA0MDAwMDAw
+WhcNMjUwOTE1MTYwMDAwWjAyMQswCQYDVQQGEwJVUzEWMBQGA1UEChMNTGV0J3Mg
+RW5jcnlwdDELMAkGA1UEAxMCUjMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQC7AhUozPaglNMPEuyNVZLD+ILxmaZ6QoinXSaqtSu5xUyxr45r+XXIo9cP
+R5QUVTVXjJ6oojkZ9YI8QqlObvU7wy7bjcCwXPNZOOftz2nwWgsbvsCUJCWH+jdx
+sxPnHKzhm+/b5DtFUkWWqcFTzjTIUu61ru2P3mBw4qVUq7ZtDpelQDRrK9O8Zutm
+NHz6a4uPVymZ+DAXXbpyb/uBxa3Shlg9F8fnCbvxK/eG3MHacV3URuPMrSXBiLxg
+Z3Vms/EY96Jc5lP/Ooi2R6X/ExjqmAl3P51T+c8B5fWmcBcUr2Ok/5mzk53cU6cG
+/kiFHaFpriV1uxPMUgP17VGhi9sVAgMBAAGjggEIMIIBBDAOBgNVHQ8BAf8EBAMC
+AYYwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMBIGA1UdEwEB/wQIMAYB
+Af8CAQAwHQYDVR0OBBYEFBQusxe3WFbLrlAJQOYfr52LFMLGMB8GA1UdIwQYMBaA
+FHm0WeZ7tuXkAXOACIjIGlj26ZtuMDIGCCsGAQUFBwEBBCYwJDAiBggrBgEFBQcw
+AoYWaHR0cDovL3gxLmkubGVuY3Iub3JnLzAnBgNVHR8EIDAeMBygGqAYhhZodHRw
+Oi8veDEuYy5sZW5jci5vcmcvMCIGA1UdIAQbMBkwCAYGZ4EMAQIBMA0GCysGAQQB
+gt8TAQEBMA0GCSqGSIb3DQEBCwUAA4ICAQCFyk5HPqP3hUSFvNVneLKYY611TR6W
+PTNlclQtgaDqw+34IL9fzLdwALduO/ZelN7kIJ+m74uyA+eitRY8kc607TkC53wl
+ikfmZW4/RvTZ8M6UK+5UzhK8jCdLuMGYL6KvzXGRSgi3yLgjewQtCPkIVz6D2QQz
+CkcheAmCJ8MqyJu5zlzyZMjAvnnAT45tRAxekrsu94sQ4egdRCnbWSDtY7kh+BIm
+lJNXoB1lBMEKIq4QDUOXoRgffuDghje1WrG9ML+Hbisq/yFOGwXD9RiX8F6sw6W4
+avAuvDszue5L3sz85K+EC4Y/wFVDNvZo4TYXao6Z0f+lQKc0t8DQYzk1OXVu8rp2
+yJMC6alLbBfODALZvYH7n7do1AZls4I9d1P4jnkDrQoxB3UqQ9hVl3LEKQ73xF1O
+yK5GhDDX8oVfGKF5u+decIsH4YaTw7mP3GFxJSqv3+0lUFJoi5Lc5da149p90Ids
+hCExroL1+7mryIkXPeFM5TgO9r0rvZaBFOvV2z0gp35Z0+L4WPlbuEjN/lxPFin+
+HlUjr8gRsI3qfJOQFy/9rKIJR0Y/8Omwt/8oTWgy1mdeHmmjk7j1nYsvC9JSQ6Zv
+MldlTTKB3zhThV1+XWYp6rjd5JW1zbVWEkLNxE7GJThEUG3szgBVGP7pSWTUTsqX
+nLRbwHOoq7hHwg==
+-----END CERTIFICATE-----
+    </certificate>
+
+    <certificate>
+-----BEGIN CERTIFICATE-----
+MIIFYDCCBEigAwIBAgIQQAF3ITfU6UK47naqPGQKtzANBgkqhkiG9w0BAQsFADA/
+MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT
+DkRTVCBSb290IENBIFgzMB4XDTIxMDEyMDE5MTQwM1oXDTI0MDkzMDE4MTQwM1ow
+TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh
+cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwggIiMA0GCSqGSIb3DQEB
+AQUAA4ICDwAwggIKAoICAQCt6CRz9BQ385ueK1coHIe+3LffOJCMbjzmV6B493XC
+ov71am72AE8o295ohmxEk7axY/0UEmu/H9LqMZshftEzPLpI9d1537O4/xLxIZpL
+wYqGcWlKZmZsj348cL+tKSIG8+TA5oCu4kuPt5l+lAOf00eXfJlII1PoOK5PCm+D
+LtFJV4yAdLbaL9A4jXsDcCEbdfIwPPqPrt3aY6vrFk/CjhFLfs8L6P+1dy70sntK
+4EwSJQxwjQMpoOFTJOwT2e4ZvxCzSow/iaNhUd6shweU9GNx7C7ib1uYgeGJXDR5
+bHbvO5BieebbpJovJsXQEOEO3tkQjhb7t/eo98flAgeYjzYIlefiN5YNNnWe+w5y
+sR2bvAP5SQXYgd0FtCrWQemsAXaVCg/Y39W9Eh81LygXbNKYwagJZHduRze6zqxZ
+Xmidf3LWicUGQSk+WT7dJvUkyRGnWqNMQB9GoZm1pzpRboY7nn1ypxIFeFntPlF4
+FQsDj43QLwWyPntKHEtzBRL8xurgUBN8Q5N0s8p0544fAQjQMNRbcTa0B7rBMDBc
+SLeCO5imfWCKoqMpgsy6vYMEG6KDA0Gh1gXxG8K28Kh8hjtGqEgqiNx2mna/H2ql
+PRmP6zjzZN7IKw0KKP/32+IVQtQi0Cdd4Xn+GOdwiK1O5tmLOsbdJ1Fu/7xk9TND
+TwIDAQABo4IBRjCCAUIwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYw
+SwYIKwYBBQUHAQEEPzA9MDsGCCsGAQUFBzAChi9odHRwOi8vYXBwcy5pZGVudHJ1
+c3QuY29tL3Jvb3RzL2RzdHJvb3RjYXgzLnA3YzAfBgNVHSMEGDAWgBTEp7Gkeyxx
++tvhS5B1/8QVYIWJEDBUBgNVHSAETTBLMAgGBmeBDAECATA/BgsrBgEEAYLfEwEB
+ATAwMC4GCCsGAQUFBwIBFiJodHRwOi8vY3BzLnJvb3QteDEubGV0c2VuY3J5cHQu
+b3JnMDwGA1UdHwQ1MDMwMaAvoC2GK2h0dHA6Ly9jcmwuaWRlbnRydXN0LmNvbS9E
+U1RST09UQ0FYM0NSTC5jcmwwHQYDVR0OBBYEFHm0WeZ7tuXkAXOACIjIGlj26Ztu
+MA0GCSqGSIb3DQEBCwUAA4IBAQAKcwBslm7/DlLQrt2M51oGrS+o44+/yQoDFVDC
+5WxCu2+b9LRPwkSICHXM6webFGJueN7sJ7o5XPWioW5WlHAQU7G75K/QosMrAdSW
+9MUgNTP52GE24HGNtLi1qoJFlcDyqSMo59ahy2cI2qBDLKobkx/J3vWraV0T9VuG
+WCLKTVXkcGdtwlfFRjlBz4pYg1htmf5X6DYO8A4jqv2Il9DjXA6USbW1FzXSLr9O
+he8Y4IWS6wY7bCkjCWDcRQJMEhg76fsO3txE+FiYruq9RUWhiF1myv4Q6W+CyBFC
+Dfvp7OOGAN6dEOM4+qR9sdjoSYKEBpsr6GtPAQw4dy753ec5
+-----END CERTIFICATE-----
+    </certificate>
+
+    <!-- Private key in PEM format -->
+    <private-key encrypted="no">
+-----BEGIN RSA PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCgbSmPrlfd7Xkm
+AzNOcAxvP9Q+KueLXUlJ+4tXz2d95bYxfKG+ga4SciSXcwbAyCC0h3TeDBneFRbj
+wLXQsvwvbuYMZAAGG/xH09JXKZkc+8WdxmCe+elsX+KZ4cDSEjmU1c3lEdbfDS6w
+8iJnZRWgWv+vDgWld7Ml0kooUPOG1Bn/A3uHoWHFGGfofS9wyeO8LGlgsSwJ3Amf
+x6G2D+RIzzdy3wvJePcDu4u8aYbWneGV/2DZBkpksrVZoOKcnEoIQyipEOE2bRMz
+yTRWDPjaJvXedfOzTkXjAzfKK3g3sazCFGYKLOmjqGJQRM174/nAWleFomkKmZ1X
+RoUrtNBTAgMBAAECggEAbpwVZc1tI8TSHNVkEJbM2/+EVQC7+KjvGSVoY7jKwFEb
+l285DeLXpDwy4oEajNzvP8mNWHO7ehXMXGfIdAaUPhgWYUCpi4zMGrH/er1hpkwp
+aqkWgUYKHQDXegXfLngGX4oyldgA8HVkVff8pJFbod5cH9RpLDclu9QL8VQvNCv9
+waXMxQLg1H7gBCFEE3kp2X/LU2PU84/DCsH+/os3XcBanMTNiaEnEedWarajxTMQ
+Uq2qLQNgn/LedKlazxsy5VYzEn9LFR3Q7g6fOyBNKfaNIGhzNkG0p1YK+PGpZEVY
+Rqx+B+jfAkf8C1iGfPJYiKDUMVZN94xComL+Pp1lYQKBgQDSaBwI5PXvrCMklcQB
+6s6DAxLgB5UOOiOQ0BhIRSo/VMVjXhwLB+tB//fSftDzpaOK2JS1pKEQQz8CkUk9
+7SPEYfVBZ/1qcvVxUsRcrhFz00vw+VdfU6rG4NdmDktzFJ71J8RyDCB/VkE9+WrG
+iEA2pRabPTTfPs0WnpACog8PqwKBgQDDMH9e51ZUG6gP9zIw7gbnvSK1vGtC2w8P
+P89iI948Aw2wsxS7NzLlnlPfwRMDr5Lj2HmcBHIFkft/V79y9m+6r84FHl4GHs0L
+czmAV2Ndt96AvJ0dSAf2YqlaYSUGCzqH8dnQDGCFBoiWzAKpLgje/22WW3juB8uE
+SwUqbjS5+QKBgDfegSMzeMJtWN+MDQHdUXykQkzOdpvSgEMhnnECPJeYcNlT0epz
+7doWl72DAwTPRL/HhqU806+3y3FpFqOk5kxtHmyBql6rq9Stf4qEhgnVX2LbMoIT
+e1NXvJpSzWH/Zb3/E0CdS7vEMYq9Qcb5wuM/ruMFu5ZT3K1W6TJpycoFAoGBAKMf
+/eLfrYs/TdaB/eVcmFLGA6Mko/PMxao15uibF1jKKH/bOmE4QYYbKveeEXkMG9Pl
+j8SvBmfXV/tV5z9562h3EtO+TFALH8wI8S5sWjPxvbeTai8ViuoEDIrnEx0Y90K0
+AhfYsDWcfzyfpT2kpm9Pw1NcgRVVWGXomJmcXt5pAoGAKe3/TcHRDXKB4nr4r6MJ
+JOYf4ICxI7EJo//YBLMbtPtIR9/WwKLaF162iV4uF8iMsuvAr+76dnunSGAgd5WL
+AjVcTcCZbSbvKOofFypZTfdRqtS7VcwNbrpoeDeaBPUBO6nMz0rsMx3uLQmQAbFe
++KgEUyzuoCLdW+0PNTqOFIM=
+-----END RSA PRIVATE KEY-----
+    </private-key>
+
+  </ssl>
+</nexus>

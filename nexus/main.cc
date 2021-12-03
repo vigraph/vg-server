@@ -27,6 +27,7 @@ const auto pid_file         = "/var/run/vg-nexus.pid";
 
 int main(int argc, char **argv)
 {
+  Crypto::Library library;
   Server server;
   Daemon::Shell shell(server, server_name, server_version,
                       default_config_file, config_file_root,

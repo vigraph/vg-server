@@ -9,6 +9,7 @@
 #ifndef __VIGRAPH_NEXUS_H
 #define __VIGRAPH_NEXUS_H
 
+#include "ot-ssl-openssl.h"
 #include "ot-daemon.h"
 #include "ot-file.h"
 #include "ot-web.h"
@@ -55,14 +56,14 @@ class HTTPServer: public ObTools::Web::SimpleHTTPServer
 
   // Interface to handle upgraded web socket
   virtual void handle_websocket(const Web::HTTPMessage& request,
-                                const SSL::ClientDetails& client,
-                                SSL::TCPSocket& socket,
+                                const ObTools::SSL::ClientDetails& client,
+                                ObTools::SSL::TCPSocket& socket,
                                 Net::TCPStream& stream);
 
   // Override of auth check
   bool check_auth(const Web::HTTPMessage& request,
                   Web::HTTPMessage& response,
-                  const SSL::ClientDetails& client);
+                  const ObTools::SSL::ClientDetails& client);
 
   shared_ptr<Resource>& ensure_resource(const string& resource_id);
 
@@ -96,6 +97,9 @@ class Server: public Daemon::Application
 
   // Resources, by resource ID
   map<string, shared_ptr<Resource>> resources;
+
+  // SSL
+  unique_ptr<ObTools::SSL::Context> ssl_ctx;
 
 public:
   //------------------------------------------------------------------------

@@ -170,7 +170,8 @@ Dataflow::SimpleModule module
   "Nexus client",
   "object",
   {
-    { "url",      &NexusClient::url     }
+    { "url",      &NexusClient::url      },
+    { "resource", &NexusClient::resource }
   },
   {},
   {

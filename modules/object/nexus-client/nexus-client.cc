@@ -81,7 +81,7 @@ bool NexusClient::reconnect()
   // Subscribe
   JSON::Value subscribe(JSON::Value::OBJECT);
   subscribe.set("type", "subscribe");
-  if (!resource.empty()) subscribe.set("resource", resource);
+  if (!resource.get().empty()) subscribe.set("resource", resource.get());
   ws->write(subscribe.str());
 
   return true;

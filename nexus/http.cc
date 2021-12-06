@@ -179,12 +179,17 @@ void HTTPServer::handle_websocket(const Web::HTTPMessage& /* request */,
       else if (type == "control")
       {
         // Reflect it to all subscribers on current resource
-        // !!! Check we are the current head of queue!
         if (!!resources[resource_id])
         {
           MT::Lock lock(clients_mutex);
-          for(auto& p: resources[resource_id]->subscribers)
-            p.second->msg_queue.send(raw);
+          auto& resource = resources[resource_id];
+          if (resource->queue.get_active() == client_id)
+          {
+            for(auto& p: resource->subscribers)
+              p.second->msg_queue.send(raw);
+          }
+          else log.error << "Control received from non-head-of-queue: "
+                         << client_id << endl;
         }
       }
       else

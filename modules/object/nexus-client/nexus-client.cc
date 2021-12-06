@@ -27,6 +27,7 @@ private:
   JSON::Value last_json{JSON::Value::OBJECT};
   atomic<bool> stop_fetch_thread{false};
   unique_ptr<thread> fetch_thread;
+  bool is_active{false};
 
   // Source/Element virtuals
   void setup(const SetupContext& context) override;
@@ -53,6 +54,7 @@ public:
 
   // Output
   Output<Data> output;
+  Output<Number> active;
 };
 
 //--------------------------------------------------------------------------
@@ -76,6 +78,7 @@ bool NexusClient::reconnect()
     return false;
   }
 
+  http->enable_keepalive();
   ws.reset(new Web::WebSocketServer(*stream));
 
   // Subscribe
@@ -127,14 +130,21 @@ void NexusClient::setup(const SetupContext& context)
         continue;
       }
 
-      if (json["type"].as_str() == "control")
+      const auto& mtype = json["type"].as_str();
+
+      if (mtype == "control")
       {
         const auto& values = json["values"];
         if (values.type == JSON::Value::OBJECT)
         {
           MT::Lock lock(last_json_mutex);
           last_json = values;
+          is_active = true;
         }
+      }
+      else if (mtype == "idle")
+      {
+        is_active = false;
       }
     }
   }));
@@ -144,12 +154,14 @@ void NexusClient::setup(const SetupContext& context)
 // Generate a frame
 void NexusClient::tick(const TickData& td)
 {
-  const auto nsamples = td.samples_in_tick(output.get_sample_rate());
-  sample_iterate(td, nsamples, {}, {}, tie(output),
-                 [&](Data& output)
+  const auto nsamples = td.samples_in_tick(max(output.get_sample_rate(),
+                                               active.get_sample_rate()));
+  sample_iterate(td, nsamples, {}, {}, tie(output, active),
+                 [&](Data& output, Number& active)
   {
     MT::Lock lock(last_json_mutex);
     output.json = last_json;
+    active = is_active;
   });
 }
 

@@ -99,6 +99,15 @@ int Server::tick()
         position++;
       }
 
+      // Send idle notifications to subscribers if our queue is empty
+      if (resource.current_active_client_id.empty())
+      {
+        JSON::Value idle(JSON::Value::OBJECT);
+        idle.set("type", "idle");
+        for(auto& p: resource.subscribers)
+          http_server->send(p.first, idle);
+      }
+
       resource.last_update_time = now;
     }
   }

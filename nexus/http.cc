@@ -88,8 +88,8 @@ HTTPServer::HTTPServer(ObTools::SSL::Context *ssl_ctx, int port,
                        map<string, shared_ptr<Resource>>& _resources,
                        Time::Duration _active_time,
                        const string& _jwt_secret):
-  // Max of 50, no pre-create, backlog 5, timeout 60
-  Web::SimpleHTTPServer(ssl_ctx, port, server_ident, 5, 0, 50, 60),
+  // Max of 50, no pre-create, backlog 5, no timeout
+  Web::SimpleHTTPServer(ssl_ctx, port, server_ident, 5, 0, 50, 0),
   resources(_resources), active_time(_active_time),
   jwt_secret(_jwt_secret)
 {

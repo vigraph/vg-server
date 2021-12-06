@@ -30,6 +30,12 @@ Control setting
   }
 }
 
+Subscribe:  Subscribe for queue
+
+{
+  type: "subscribe"
+}
+
 Server -> Client
 ----------------
 
@@ -53,4 +59,20 @@ Time up notification
 
 {
   type: "timeup"
+}
+
+Control reflection to subscriber
+
+{
+  type: "control"
+  values:
+  {
+    // Control values
+  }
+}
+
+Idle notification to subscriber
+
+{
+  type: "idle"
 }

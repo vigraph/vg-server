@@ -55,6 +55,7 @@ public:
       log << "Can't open Websocket to " << server << endl;
       return false;
     }
+    client->http->enable_keepalive();
     client->ws.reset(new Web::WebSocketServer(*stream));
 
     int id;

@@ -187,7 +187,8 @@ Dataflow::SimpleModule module
   },
   {},
   {
-    { "output",   &NexusClient::output  }
+    { "output",   &NexusClient::output  },
+    { "active",   &NexusClient::active  }
   }
 };
 

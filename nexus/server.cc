@@ -10,8 +10,8 @@
 
 namespace ViGraph { namespace Nexus {
 
-const auto default_active_time{"1 min"};
-const auto default_update_interval{"1 sec"};
+const string default_active_time{"1 min"};
+const string default_update_interval{"1 sec"};
 
 //--------------------------------------------------------------------------
 // Read settings from configuration

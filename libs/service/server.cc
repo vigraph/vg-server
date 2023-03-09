@@ -70,7 +70,7 @@ int Server::tick()
   MT::Lock lock{functions_mutex};
   while (!functions.empty())
   {
-    auto ff = move(functions.front());
+    auto ff = std::move(functions.front());
     functions.pop();
     try
     {

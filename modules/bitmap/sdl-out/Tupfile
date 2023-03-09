@@ -7,6 +7,6 @@
 NAME      = vg-module-bitmap-sdl-out
 TYPE      = shared
 DEPENDS   = vg-dataflow vg-bitmap ext-pkg-sdl2
-PLATFORMS = posix
+PLATFORMS = posix web
 
 include_rules

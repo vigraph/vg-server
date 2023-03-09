@@ -9,6 +9,6 @@ TYPE      = lib
 DEPENDS   = ot-soap ot-g2d ot-lib \
             vg-dataflow vg-json vg-geometry vg-compiler \
             ext-pkg-sdl2
-PLATFORMS = posix
+PLATFORMS = posix web
 
 include_rules

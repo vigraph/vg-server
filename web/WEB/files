@@ -1,5 +1,4 @@
 ../modules/core/average/vg-module-core-average.wasm modules
-../modules/core/clock/vg-module-core-clock.wasm modules
 ../modules/core/clone/vg-module-core-clone.wasm modules
 ../modules/core/clone-info/vg-module-core-clone-info.wasm modules
 ../modules/core/compare/vg-module-core-compare.wasm modules
@@ -13,7 +12,6 @@
 ../modules/core/pin/vg-module-core-pin.wasm modules
 ../modules/core/random/vg-module-core-random.wasm modules
 ../modules/core/switch/vg-module-core-switch.wasm modules
-../modules/core/timer/vg-module-core-timer.wasm modules
 
 ../modules/audio/bit-crush/vg-module-audio-bit-crush.wasm modules
 ../modules/audio/delay/vg-module-audio-delay.wasm modules
@@ -80,6 +78,10 @@
 ../modules/midi/key-out/vg-module-midi-key-out.wasm modules
 ../modules/midi/pin/vg-module-midi-pin.wasm modules
 ../modules/midi/switch/vg-module-midi-switch.wasm modules
+
+../modules/time/clock/vg-module-time-clock.wasm modules
+../modules/time/timer/vg-module-time-timer.wasm modules
+../modules/time/now/vg-module-time-now.wasm modules
 
 ../modules/time-series/average/vg-module-time-series-average.wasm modules
 ../modules/time-series/capture/vg-module-time-series-capture.wasm modules

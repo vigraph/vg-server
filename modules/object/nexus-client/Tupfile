@@ -7,6 +7,6 @@
 NAME      = vg-module-object-nexus-client
 TYPE      = shared
 DEPENDS   = vg-dataflow ot-log ot-lib ot-web ot-ssl-openssl
-PLATFORMS = posix
+PLATFORMS = posix web
 
 include_rules

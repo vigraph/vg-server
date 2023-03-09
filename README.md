@@ -1,8 +1,8 @@
 # ViGraph Server
 
-This is the "server side" of the ViGraph system, containing the core 'engine' and modules.  The engine has little (Windows) or no (Linux) user interface itself - all the user interaction is through a Web application (see [vg-ui-web](https://github.com/vigraph/vg-ui-web)).  It's written in C++14 and is currently ported to Linux (with Debian and RPM packaging) and Windows (through cross-compilation with [MinGW](https://mingw.org).
+This is the "server side" of the ViGraph system, containing the core 'engine' and modules.  The engine has little (Windows) or no (Linux) user interface itself - all the user interaction is through a Web application (see [vg-ui-web](https://github.com/vigraph/vg-ui-web)).  It's written in C++14 and is currently ported to Linux (with Debian and RPM packaging) and Windows (through cross-compilation with [MinGW](https://mingw.org).  I'm currently working on a WASM build which will allow the whole thing to run in a browser!
 
-ViGraph was created in 2017 by [Paul Clark](https://sandtreader.com), initially to create interactive laser displays for his company [Greenwave Interactive](https://greenwaveinteractive.com).  Alex Woods at Paul's other company [Packet Ship](https://www.packetship.com) significantly improved the core engine dataflow system and added the audio and MIDI modules in 2019/20.  Paul published the whole of ViGraph under AGPLv3 in July 2020.
+ViGraph was created in 2017 by me, [Paul Clark](https://sandtreader.com), initially to create interactive laser displays for my company [Greenwave Interactive](https://greenwaveinteractive.com).  Alex Woods at my other company [Packet Ship](https://www.packetship.com) significantly improved the core engine dataflow system and added the audio and MIDI modules in 2019/20.  I published the whole of ViGraph under AGPLv3 in July 2020.
 
 ## What's it for?
 
@@ -23,7 +23,7 @@ You can find out more about ViGraph (with prettier pictures) at [vigraph.com](ht
 
 ## Building ViGraph
 
-The ViGraph server is built on top of Paul's [ObTools](https://github.com/sandtreader/obtools) libraries, and uses its build system.  See the README there for details.  You don't need to check out ObTools separately, it's a submodule of `vg-server`, so after cloning this repository you just need to:
+The ViGraph server is built on top of my [ObTools](https://github.com/sandtreader/obtools) libraries, and uses its build system.  See the README there for details.  You don't need to check out ObTools separately, it's a submodule of `vg-server`, so after cloning this repository you just need to:
 
         $ git submodule init
         $ git submodule update
@@ -44,10 +44,13 @@ Building the Linux version requires a standard build system with `clang++`, and 
 To build all the modules, you will require:
 
 * SDL2 (libsdl2-dev)
+* SDL-Image2 (libsdl2-image-dev)
 * ALSA (libasound2-dev)
+* SoundTouch (libsoundtouch-dev)
+* FreeType (libfreetype-dev)
 * OLA (libola-dev)
 * Mosquitto (libmosquittopp-dev)
-* QT5 (qt5-default, libqt5webkit5-dev) (for experimental desktop app)
+* QT5 (qtbase5-dev, libqt5webkit5-dev) (for experimental desktop app)
 * plus all the [dependencies to build ObTools](https://github.com/sandtreader/obtools/blob/master/README.md#dependencies)
 
 ## Contributions
@@ -60,4 +63,5 @@ I ask all contributors to sign a standard, FSF-approved [Contributor License Agr
 
 Thanks!
 
-        
+Paul
+

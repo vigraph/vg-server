@@ -28,6 +28,7 @@ static const auto protocol_revision{14u};
 // OpCodes
 enum OpCode
 {
+  op_invalid             = 0,          // internal
   op_poll                = 0x2000,
   op_poll_reply          = 0x2100,
   op_diag_data           = 0x2300,
@@ -103,33 +104,48 @@ enum Style
 // Art-Net Packet base
 struct Packet
 {
-  OpCode opcode;
+  OpCode opcode{op_invalid};
 
-  // Constructor
+  // Default constructor for reading
+  Packet() {}
+
+  // Constructor for writing
   Packet(OpCode _opcode): opcode(_opcode) {}
 
+  // Check whether invalid
+  bool operator!() const { return opcode == op_invalid; }
+
+  // Read from a channel
+  virtual void read(Channel::Reader& reader);
+
   // Write to a channel
-  virtual void write(Channel::Writer& writer);
+  virtual void write(Channel::Writer& writer) const;
 };
 
 //==========================================================================
 // Art-Net DMX Packet base
 struct DMXPacket: public Packet
 {
-  uint8_t sequence;
-  uint16_t port_address;  // Net(7), Subnet(4), Universe(4)
+  uint8_t sequence{0};
+  uint16_t port_address{0};  // Net(7), Subnet(4), Universe(4)
   vector<DMX::value_t> data;
 
-  // Constructor
+  // Default constructor for reading
+  DMXPacket() {}
+
+  // Constructor for writing
   DMXPacket(uint8_t _sequence, uint16_t _port_address):
     Packet(OpCode::op_dmx),
     sequence(_sequence), port_address(_port_address) {}
 
+  // Read from a channel
+  void read(Channel::Reader& reader);
+
   // Write to a channel
-  void write(Channel::Writer& writer);
+  void write(Channel::Writer& writer) const;
 
   // Get packet length
-  size_t length() { return 18u + data.size(); }
+  size_t length() const { return 18u + data.size(); }
 };
 
 //==========================================================================

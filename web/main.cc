@@ -37,7 +37,7 @@ int main(int, char **)
   {
     log.summary << "Searching directory " << dir << " for modules\n";
     list<File::Path> paths;
-    dir.inspect_recursive(paths, "*.wasm");
+    dir.inspect_recursive(paths, "*.so");
     for (const auto& path: paths)
     {
       log.detail << "Loading module " << path << endl;
@@ -49,6 +49,7 @@ int main(int, char **)
         continue;
       }
 
+      log.detail << " - loaded\n";
       auto fn = mod->get_function<vg_init_fn_t *>("vg_init");
       if (!fn)
       {
@@ -61,6 +62,8 @@ int main(int, char **)
         log.error << "Module " << path << " initialisation failed\n";
         continue;
       }
+
+      log.detail << " - initialised\n";
     }
   }
 

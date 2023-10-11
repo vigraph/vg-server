@@ -7,6 +7,7 @@
 NAME     = vg-modules-dmx
 TYPE     = package
 DEPENDS  = vg-module-dmx-artnet-out \
+           vg-module-dmx-artnet-in \
            vg-module-dmx-ola-in \
            vg-module-dmx-ola-out \
            vg-module-dmx-bitmap-render \
@@ -14,7 +15,7 @@ DEPENDS  = vg-module-dmx-artnet-out \
            vg-module-dmx-get-value
 
 PACKAGE  = $(NAME)
-VERSION  = 2.0.0
+VERSION  = 2.1.0
 REVISION = 1~dev1
 
 ifdef RELEASE

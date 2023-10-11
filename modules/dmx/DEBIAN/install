@@ -1,4 +1,5 @@
 artnet-out/vg-module-dmx-artnet-out.so /usr/lib/vigraph/modules/
+artnet-in/vg-module-dmx-artnet-in.so /usr/lib/vigraph/modules/
 ola-in/vg-module-dmx-ola-in.so /usr/lib/vigraph/modules/
 ola-out/vg-module-dmx-ola-out.so /usr/lib/vigraph/modules/
 bitmap-render/vg-module-dmx-bitmap-render.so /usr/lib/vigraph/modules/

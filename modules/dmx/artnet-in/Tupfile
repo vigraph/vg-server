@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph DMX Artnet input module
+#
+# Copyright (c) 2023 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-dmx-artnet-in
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry vg-artnet
+
+include_rules

@@ -14,6 +14,8 @@ namespace {
 using namespace ViGraph::Dataflow;
 const auto default_listen_address = "0.0.0.0";
 
+class ArtNetInThread;
+
 //==========================================================================
 // ArtNetIn filter
 class ArtNetIn: public SimpleElement
@@ -23,6 +25,13 @@ private:
 
   // State
   unique_ptr<Net::UDPSocket> socket;
+  unique_ptr<ArtNetInThread> thread;
+  atomic<bool> running{false};
+  MT::Mutex state_queue_mutex;
+  queue<DMX::State> state_queue;
+
+  friend class ArtNetInThread;
+  void run();
 
   // Element virtuals
   void setup(const SetupContext& context) override;
@@ -50,6 +59,20 @@ public:
   ~ArtNetIn() { shutdown(); }
 };
 
+//==========================================================================
+// ArtNetIn thread
+class ArtNetInThread: public MT::Thread
+{
+private:
+  ArtNetIn& in;
+
+  void run() override
+  { in.run(); }
+
+public:
+  ArtNetInThread(ArtNetIn& _in): in{_in} {}
+};
+
 //--------------------------------------------------------------------------
 // Setup after config
 void ArtNetIn::setup(const SetupContext& context)
@@ -62,22 +85,67 @@ void ArtNetIn::setup(const SetupContext& context)
   log.summary << "Creating ArtNet receiver on " << listen << endl;
 
   // Create listener socket
-  socket.reset(new Net::UDPSocket(listen, true));
+  socket.reset(new Net::UDPSocket(listen, true, true));
+
+  // Start background thread
+  thread.reset(new ArtNetInThread(*this));
+  running = true;
+  thread->start();
+}
+
+//--------------------------------------------------------------------------
+// Run background
+void ArtNetIn::run()
+{
+  Log::Streams log;
+  unsigned char buffer[65536];
+
+  while (running && socket)
+  {
+    try
+    {
+      while (ssize_t len = socket->recv(buffer, sizeof(buffer)))
+      {
+        if (len > 0)
+        {
+          Channel::BlockReader reader(buffer, len);
+          ArtNet::DMXPacket packet;
+          packet.read(reader);
+
+          if (!!packet)
+          {
+            DMX::State state;
+            auto channel = DMX::channel_number(packet.port_address, 1);
+            state.regions[channel] = packet.data;
+            MT::Lock lock{state_queue_mutex};
+            state_queue.push(state);
+          }
+        }
+      }
+    }
+    catch (const Net::SocketError &error)
+    {
+      if (running) log.error << "ArtNetIn socket error: " << error << endl;
+      break;
+    }
+  }
 }
 
 //--------------------------------------------------------------------------
 // Tick data
 void ArtNetIn::tick(const TickData& td)
 {
-  if (!socket) return;
-
   const auto sample_rate = output.get_sample_rate();
   const auto nsamples = td.samples_in_tick(sample_rate);
   sample_iterate(td, nsamples, {}, {}, tie(output),
-                 [&](DMX::State& )//output)
+                 [&](DMX::State& output)
   {
-    // !!! Read packets from a background thread
-    // post DMXState values like OlaIn does
+    MT::Lock lock(state_queue_mutex);
+    if (!state_queue.empty())
+    {
+      output = state_queue.front();
+      state_queue.pop();
+    }
   });
 }
 
@@ -87,7 +155,14 @@ void ArtNetIn::shutdown()
 {
   Log::Detail log;
   log << "Shutting down ArtNet receiver\n";
+  running = false;
+  if (socket)
+  {
+    socket->shutdown();
+    socket->close();
+  }
   socket.reset();
+  if (thread) thread->join();
 }
 
 //--------------------------------------------------------------------------

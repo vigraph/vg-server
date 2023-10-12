@@ -1,0 +1,12 @@
+# ArtNet loopback test
+
+oscillator wave="saw" period=10 ->-
+dmx/set-value universe=10 channel=7 ->-
+dmx/artnet-out address="127.0.0.1"
+
+dmx/artnet-in address="127.0.0.1" ->-
+dmx/get-value universe=10 channel=7 ->-
+log text="DMX: "
+
+
+

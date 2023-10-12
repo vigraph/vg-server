@@ -12,7 +12,8 @@ DEPENDS  = vg-module-dmx-artnet-out \
            vg-module-dmx-ola-out \
            vg-module-dmx-bitmap-render \
            vg-module-dmx-set-value \
-           vg-module-dmx-get-value
+           vg-module-dmx-get-value \
+           vg-module-dmx-log
 
 PACKAGE  = $(NAME)
 VERSION  = 2.1.0

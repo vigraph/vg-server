@@ -27,8 +27,8 @@ private:
   unique_ptr<Net::UDPSocket> socket;
   unique_ptr<ArtNetInThread> thread;
   atomic<bool> running{false};
-  MT::Mutex state_queue_mutex;
-  queue<DMX::State> state_queue;
+  MT::Mutex last_state_mutex;
+  DMX::State last_state;
 
   friend class ArtNetInThread;
   void run();
@@ -117,8 +117,8 @@ void ArtNetIn::run()
             DMX::State state;
             auto channel = DMX::channel_number(packet.port_address, 1);
             state.regions[channel] = packet.data;
-            MT::Lock lock{state_queue_mutex};
-            state_queue.push(state);
+            MT::Lock lock{last_state_mutex};
+            last_state = state;
           }
         }
       }
@@ -140,12 +140,8 @@ void ArtNetIn::tick(const TickData& td)
   sample_iterate(td, nsamples, {}, {}, tie(output),
                  [&](DMX::State& output)
   {
-    MT::Lock lock(state_queue_mutex);
-    if (!state_queue.empty())
-    {
-      output = state_queue.front();
-      state_queue.pop();
-    }
+    MT::Lock lock(last_state_mutex);
+    output = last_state;
   });
 }
 

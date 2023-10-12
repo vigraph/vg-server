@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph DMX <log> module
+#
+# Copyright (c) 2023 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-dmx-log
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry vg-dmx ot-lib
+
+include_rules

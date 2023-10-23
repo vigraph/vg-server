@@ -64,7 +64,8 @@ void Slice::tick(const TickData& td)
       else
       {
         // first is always blanked
-        output.points.push_back(Vector(input.points[start_point]));
+        if (start_point < size)
+          output.points.push_back(Vector(input.points[start_point]));
       }
     }
   });

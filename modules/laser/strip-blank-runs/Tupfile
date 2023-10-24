@@ -1,0 +1,11 @@
+#===========================================================================
+# Tupfile for Vigraph laser strip-blank-runs module
+#
+# Copyright (c) 2023 Paul Clark. All rights reserved
+#===========================================================================
+
+NAME    = vg-module-laser-strip-blank-runs
+TYPE    = shared
+DEPENDS = vg-dataflow vg-geometry ot-lib vg-laser
+
+include_rules

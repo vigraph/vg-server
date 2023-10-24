@@ -231,4 +231,27 @@ vector<Point> Optimiser::reorder_segments(const vector<Point>& points)
   return new_points;
 }
 
+//-----------------------------------------------------------------------
+// Strip out long runs of blanks (longer than threshold)
+vector<Point> Optimiser::strip_blank_runs(const vector<Point>& points,
+                                          int threshold)
+{
+  int blanks{0};
+  vector<Point> new_points;
+
+  for(const auto& p: points)
+  {
+    if (p.is_blanked())
+      blanks++;
+    else
+      blanks=0;
+
+    // Only copy if lit or blanks less than threshold
+    if (blanks <= threshold)
+      new_points.emplace_back(p);
+  }
+
+  return new_points;
+}
+
 }} // namespaces

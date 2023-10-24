@@ -206,6 +206,34 @@ TEST(OptimiserTest, TestReorderingWithLastPointBlank)
   EXPECT_EQ(4, opoints[4].x);
 }
 
+TEST(OptimiserTest, TestStripBlanks)
+{
+  vector<Point> points;
+  for(int i=0; i<10; i++)
+    points.push_back(Point(0, 0));
+  for(int i=0; i<10; i++)
+    points.push_back(Point(0, 0, Colour::white));
+  for(int i=0; i<5; i++)
+    points.push_back(Point(0, 0));
+  points.push_back(Point(0, 0, Colour::white));
+  for(int i=0; i<10; i++)
+    points.push_back(Point(0, 0));
+
+  Optimiser optimiser;
+  vector<Point> opoints = optimiser.strip_blank_runs(points, 5);
+  ASSERT_EQ(26, opoints.size());
+
+  for(int i=0; i<5; i++)
+    EXPECT_TRUE(opoints[i].is_blanked());
+  for(int i=5; i<15; i++)
+    EXPECT_TRUE(opoints[i].is_lit());
+  for(int i=15; i<20; i++)
+    EXPECT_TRUE(opoints[i].is_blanked());
+  EXPECT_TRUE(opoints[20].is_lit());
+  for(int i=21; i<26; i++)
+    EXPECT_TRUE(opoints[i].is_blanked());
+}
+
 } // anonymous namespace
 
 int main(int argc, char **argv)

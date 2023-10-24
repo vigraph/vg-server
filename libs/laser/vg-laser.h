@@ -50,6 +50,11 @@ class Optimiser
   //-----------------------------------------------------------------------
   // Reorder segments of points to find optimal path
   vector<Point> reorder_segments(const vector<Point>& points);
+
+  //-----------------------------------------------------------------------
+  // Strip out long runs of blanks (longer than threshold)
+  vector<Point> strip_blank_runs(const vector<Point>& points,
+                                 int threshold);
 };
 
 //==========================================================================

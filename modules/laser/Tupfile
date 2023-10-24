@@ -12,6 +12,7 @@ DEPENDS  =  vg-module-laser-show-blanking \
             vg-module-laser-add-vertex-repeats \
             vg-module-laser-add-blanking-anchors \
             vg-module-laser-infill-lines \
+            vg-module-laser-strip-blank-runs \
             vg-module-laser-beamify \
             vg-module-laser-etherdream-out
 
@@ -19,7 +20,7 @@ DEPENDS  =  vg-module-laser-show-blanking \
 
 
 PACKAGE  = $(NAME)
-VERSION  = 2.0.0
+VERSION  = 2.0.1
 REVISION = 1~dev1
 
 ifdef RELEASE

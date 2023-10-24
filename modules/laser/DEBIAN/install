@@ -4,6 +4,7 @@ reorder-segments/vg-module-laser-reorder-segments.so /usr/lib/vigraph/modules/
 add-vertex-repeats/vg-module-laser-add-vertex-repeats.so /usr/lib/vigraph/modules/
 add-blanking-anchors/vg-module-laser-add-blanking-anchors.so /usr/lib/vigraph/modules/
 infill-lines/vg-module-laser-infill-lines.so /usr/lib/vigraph/modules/
+strip-blank-runs/vg-module-laser-strip-blank-runs.so /usr/lib/vigraph/modules/
 beamify/vg-module-laser-beamify.so /usr/lib/vigraph/modules/
 etherdream-out/vg-module-laser-etherdream-out.so /usr/lib/vigraph/modules/
 

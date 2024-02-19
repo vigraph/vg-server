@@ -4,7 +4,7 @@
 # Copyright (c) 2018 Paul Clark. All rights reserved
 #===========================================================================
 
-NAME    = vg-module-laser-source-ilda
+NAME    = vg-module-laser-ilda
 TYPE    = shared
 DEPENDS = vg-dataflow vg-geometry vg-ilda
 
